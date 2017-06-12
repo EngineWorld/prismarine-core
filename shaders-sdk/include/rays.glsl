@@ -18,7 +18,7 @@ const uint Qt = 2;
 const uint Ut = 3;
 
 void _collect(inout Ray ray) {
-    if (mlength(ray.color.xyz) <= 0.f) return;
+    if (lessEqualF(mlength(ray.color.xyz), 0.f)) return;
     const vec4 color = max(ray.final, vec4(0.f));
 #ifdef USE_COMPATIBLE_ACCUMULATION
     atomicAdd(texelInfo[ray.texel].samplecolor.x, int(double(color.x) * COMPATIBLE_PRECISION));
@@ -111,7 +111,7 @@ int createRay(inout Ray original, in int idx) {
     if (
         original.actived < 1 || 
         original.bounce < 0 || 
-        mlength(original.color.xyz) <= 0.f
+        lessEqualF(mlength(original.color.xyz), 0.f)
     ) return -1; 
     
     atomicMax(arcounter[Ut], 0); // prevent most decreasing
@@ -132,7 +132,7 @@ int createRayIdx(inout Ray original, in int idx, in int rayIndex) {
     if (
         original.actived < 1 || 
         original.bounce < 0 || 
-        mlength(original.color.xyz) <= 0.f
+        lessEqualF(mlength(original.color.xyz), 0.f)
     ) return -1; 
     
     atomicMax(arcounter[Rt], rayIndex+1);

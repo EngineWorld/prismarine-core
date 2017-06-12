@@ -22,7 +22,7 @@ void main()
     ray.bounce -= 1;
     hit.vmods.w = equalF(hit.dist, 0.f) ? (hit.vmods.w+1.f) : 0.f;
 
-    if (ray.bounce < 0 || hit.shaded <= 0 || mlength(ray.color.xyz) <= 0.f) {
+    if (ray.bounce < 0 || hit.shaded <= 0 || lessEqualF(mlength(ray.color.xyz), 0.f)) {
         ray.actived = 0;
     }
 
