@@ -182,7 +182,7 @@ namespace Paper {
         geometryUniformData.texmatrix = *(Vc4x4 *)glm::value_ptr(gobject->texmat);
         geometryUniformData.colormod = *(Vc4 *)glm::value_ptr(gobject->colormod);
         geometryUniformData.offset = gobject->voffset;
-        memcpy(&attributeUniformData, &gobject->attributeUniformData, sizeof(AttributeUniformStruct));
+        attributeUniformData = gobject->attributeUniformData;
 
         gobject->bind();
         this->bind();
