@@ -9,9 +9,7 @@
 #include "../include/vertex.glsl"
 
 layout ( std430, binding = 5 ) buffer MinmaxOutputSSBO {vec4 minmax[];};
-LOCAL_SIZE_LAYOUT;
-
-//shared int minmax_l[8];
+layout ( local_size_x = 512 ) in;
 
 shared bbox sdata[256];
 
@@ -76,55 +74,4 @@ void main() {
         minmax[gl_WorkGroupID.x*2 + 0] = sdata[0].mn; 
         minmax[gl_WorkGroupID.x*2 + 1] = sdata[0].mx; 
     }
-
-
-    /*
-    if (gl_LocalInvocationID.x == 0){
-        minmax_l[0] = 10000000;
-        minmax_l[1] = 10000000;
-        minmax_l[2] = 10000000;
-        minmax_l[3] = 10000000;
-        minmax_l[4] = -10000000;
-        minmax_l[5] = -10000000;
-        minmax_l[6] = -10000000;
-        minmax_l[7] = -10000000;
-    }
-
-    barrier(); memoryBarrier();
-
-    const int idx = int(gl_GlobalInvocationID.x);
-    if (idx < GEOMETRY_BLOCK geometryUniform.triangleCount) {
-        bbox mnmx;
-        mnmx.mn = vec4(INFINITY);
-        mnmx.mx = vec4(-INFINITY);
-
-        vec3 triverts[3];
-#pragma optionNV (unroll all)
-        for (int x=0;x<3;x++) {
-            const int j = indics[idx*3 + x];
-            const vec4 nps = GEOMETRY_BLOCK octreeUniform.project * vec4(toVec3(verts[j].vertex), 1.0f);
-            triverts[x] = nps.xyz / nps.w;
-        }
-        mnmx.mn.xyz = min(mnmx.mn.xyz, min(triverts[0], min(triverts[1], triverts[2])));
-        mnmx.mx.xyz = max(mnmx.mx.xyz, max(triverts[0], max(triverts[1], triverts[2])));
-
-        atomicMin(minmax_l[0], int(floor(double(mnmx.mn.x) * double(GEOMETRY_BLOCK minmaxUniform.prec))));
-        atomicMin(minmax_l[1], int(floor(double(mnmx.mn.y) * double(GEOMETRY_BLOCK minmaxUniform.prec))));
-        atomicMin(minmax_l[2], int(floor(double(mnmx.mn.z) * double(GEOMETRY_BLOCK minmaxUniform.prec))));
-        atomicMax(minmax_l[4], int(ceil(double(mnmx.mx.x) * double(GEOMETRY_BLOCK minmaxUniform.prec))));
-        atomicMax(minmax_l[5], int(ceil(double(mnmx.mx.y) * double(GEOMETRY_BLOCK minmaxUniform.prec))));
-        atomicMax(minmax_l[6], int(ceil(double(mnmx.mx.z) * double(GEOMETRY_BLOCK minmaxUniform.prec))));
-    }
-
-    barrier(); memoryBarrier();
-
-    if (gl_LocalInvocationID.x == 0){
-        atomicMin(minmax[0], minmax_l[0]);
-        atomicMin(minmax[1], minmax_l[1]);
-        atomicMin(minmax[2], minmax_l[2]);
-        atomicMax(minmax[4], minmax_l[4]);
-        atomicMax(minmax[5], minmax_l[5]);
-        atomicMax(minmax[6], minmax_l[6]);
-    }
-    */
 }
