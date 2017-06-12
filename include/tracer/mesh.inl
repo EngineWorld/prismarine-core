@@ -2,6 +2,14 @@
 
 namespace Paper {
 
+    inline void Mesh::setNodeCount(size_t tcount) {
+        nodeCount = tcount;
+    }
+
+    inline size_t Mesh::getNodeCount() {
+        return nodeCount;
+    }
+
     inline void Mesh::setVerticeOffset(float voff) {
         voffset = voff;
     }
@@ -94,8 +102,18 @@ namespace Paper {
             _toffset += mesh->mNumVertices;
         }
 
-        triangleCount = tcount;
+        nodeCount = tcount;
         verticeCount = stridedData.size() / stride;
+
+        // make owner layout template
+        attributeUniformData.mode = 0;
+        attributeUniformData.stride = 8;
+        attributeUniformData.haveTexcoord = true;
+        attributeUniformData.haveNormal = true;
+        attributeUniformData.haveColor = false;
+        attributeUniformData.vertexOffset = 0;
+        attributeUniformData.texcoordOffset = 3;
+        attributeUniformData.normalOffset = 5;
 
         // delete not needed buffers
         if (vbo_triangle_ssbo) glDeleteBuffers(1, &vbo_triangle_ssbo);
@@ -103,7 +121,6 @@ namespace Paper {
         if (vebo_triangle_ssbo) glDeleteBuffers(1, &vebo_triangle_ssbo);
 
         // re-alloc buffers
-
         glCreateBuffers(1, &vbo_triangle_ssbo);
         glCreateBuffers(1, &mat_triangle_ssbo);
         glCreateBuffers(1, &vebo_triangle_ssbo);

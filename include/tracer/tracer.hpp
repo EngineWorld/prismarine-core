@@ -10,6 +10,7 @@
 namespace Paper {
 
     class Tracer : public PTObject {
+    private:
         GLuint renderProgram;
         GLuint matProgram;
         GLuint beginProgram;
@@ -38,6 +39,7 @@ namespace Paper {
         int32_t maxSamples = 4;
         int32_t maxFilters = 1;
         int32_t currentRayLimit = 0;
+        int32_t worksize = 256;
 
         GLuint presampled;
         GLuint samples;
@@ -49,14 +51,19 @@ namespace Paper {
         GLuint idcBuf;
         GLuint posattr;
 
-    private:
         const int32_t zero[1] = { 0 };
-
         void initShaderCompute(std::string str, GLuint& prog);
         void initShaders();
         void init();
 
+        RandomUniformStruct randomUniformData;
+        MaterialUniformStruct materialUniformData;
+        SamplerUniformStruct samplerUniformData;
+        CameraUniformStruct cameraUniformData;
+
     public:
+        Tracer() { init(); }
+
         uint32_t width = 256;
         uint32_t height = 256;
         uint32_t displayWidth = 256;
@@ -68,22 +75,13 @@ namespace Paper {
         void syncUniforms();
         void reloadQueuedRays();
 
-        int32_t worksize = 256;
-        RandomUniformStruct randomUniformData;
-        LightUniformStruct lightUniformData[6];
-        MaterialUniformStruct materialUniformData;
-        SamplerUniformStruct samplerUniformData;
-        CameraUniformStruct cameraUniformData;
-
-        bool raycountCacheClear;
+        LightUniformStruct * lightUniformData;
         int32_t raycountCache = 0;
         int32_t qraycountCache = 0;
 
         glm::vec4 lightColor[6] = { glm::vec4((glm::vec3(255.f, 241.f, 224.f) / 255.f) * 300.f, 40.0f) };
         glm::vec4 lightVector[6] = { glm::vec4(0.4f, 1.0f, 0.1f, 400.0f) };
         glm::vec4 lightOffset[6] = { glm::vec4(0.0f, 0.0f, 0.0f, 0.0f) };
-
-        Tracer() { init(); }
 
         void enableReflections(const int32_t flag);
         void enableShadows(const int32_t flag);
@@ -102,7 +100,6 @@ namespace Paper {
         int intersection(Intersector * obj, const int clearDepth = 0);
         void shade(Material * mat);
         int32_t getRayCount();
-        int32_t getRayCountDirect();
     };
 }
 

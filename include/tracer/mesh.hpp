@@ -20,6 +20,7 @@ namespace Paper {
     class Mesh : public PTObject {
     public:
         Mesh() {}
+        friend Intersector;
 
     private:
         GLuint vbo_triangle_ssbo;
@@ -27,18 +28,25 @@ namespace Paper {
         GLuint vebo_triangle_ssbo;
         int32_t _toffset = 0;
 
-    public:
+        AttributeUniformStruct attributeUniformData;
         glm::mat4 texmat = glm::mat4(1.0f);
         glm::mat4 trans = glm::mat4(1.0f);
+        glm::vec4 colormod = glm::vec4(1.0f);
+
         int32_t materialID = 0;
         int32_t maxDepth = 4;
-        size_t triangleCount = 0;
-        size_t verticeCount = 0;
         int32_t unindexed = 1;
         int32_t offset = 0;
-        glm::vec4 colormod = {1.0f, 1.0f, 1.0f, 0.0f};
+        size_t nodeCount = 0;
+        size_t verticeCount = 0;
+        
         float voffset = 0;
 
+
+    public:
+        
+        size_t getNodeCount();
+        void setNodeCount(size_t tcount);
         void setVerticeOffset(float voff);
         void setColorModifier(glm::vec4 color);
         void setMaterialOffset(int32_t id);

@@ -118,6 +118,7 @@ namespace Paper {
 
     inline void Tracer::init() {
         initShaders();
+        lightUniformData = new LightUniformStruct[6];
 
         glCreateBuffers(1, &arcounter);
         glNamedBufferStorage(arcounter, strided<int32_t>(4), nullptr, GL_DYNAMIC_STORAGE_BIT);
@@ -146,8 +147,6 @@ namespace Paper {
         glEnableVertexArrayAttrib(vao, 0);
         glVertexArrayAttribFormat(vao, 0, 2, GL_FLOAT, GL_FALSE, 0);
         glVertexArrayVertexBuffer(vao, 0, posBuf, 0, strided<Vc2>(1));
-
-        this->raycountCacheClear = 0;
 
         materialUniformData.f_reflections = 1;
         materialUniformData.f_shadows = 1;
@@ -370,8 +369,9 @@ namespace Paper {
     }
 
     inline void Tracer::reloadQueuedRays() {
-        this->raycountCacheClear = true;
-        int32_t rsize = getRayCountDirect();
+        glGetNamedBufferSubData(arcounter, 0 * sizeof(uint32_t), sizeof(uint32_t), &raycountCache);
+        samplerUniformData.rayCount = raycountCache;
+        syncUniforms();
 
         uint32_t availableCount = 0;
         glGetNamedBufferSubData(arcounter, 2 * sizeof(int32_t), 1 * sizeof(int32_t), &availableCount);
@@ -379,8 +379,8 @@ namespace Paper {
         glNamedBufferSubData(arcounter, 2 * sizeof(int32_t), 1 * sizeof(int32_t), zero);
         glNamedBufferSubData(arcounter, 0 * sizeof(int32_t), 1 * sizeof(int32_t), zero);
 
-        if (rsize > 0) {
-            glCopyNamedBufferSubData(activenl, activel, 0, 0, strided<uint32_t>(rsize));
+        if (raycountCache > 0) {
+            glCopyNamedBufferSubData(activenl, activel, 0, 0, strided<uint32_t>(raycountCache));
         }
 
         if (availableCount > 0) {
@@ -424,8 +424,7 @@ namespace Paper {
         int32_t rsize = getRayCount();
         if (rsize <= 0) return 0;
 
-        obj->geometryUniformData.clearDepth = clearDepth;
-        obj->geometryUniformData.triangleCount = obj->triangleCount;
+        obj->configureIntersection(clearDepth);
         obj->syncUniforms();
         obj->bind();
         obj->bindBVH();
@@ -452,16 +451,6 @@ namespace Paper {
         glDispatchCompute(tiled(rsize, worksize), 1, 1);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
         reloadQueuedRays();
-    }
-
-    inline int32_t Tracer::getRayCountDirect() {
-        glGetNamedBufferSubData(arcounter, 0 * sizeof(uint32_t), sizeof(uint32_t), &raycountCache);
-
-        this->raycountCacheClear = false;
-        samplerUniformData.rayCount = raycountCache;
-        syncUniforms();
-
-        return raycountCache >= 32 ? raycountCache : 0;
     }
 
     inline int32_t Tracer::getRayCount() {

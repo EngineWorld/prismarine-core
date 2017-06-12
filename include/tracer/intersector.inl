@@ -164,19 +164,25 @@ namespace Paper {
         glCopyNamedBufferSubData(lscounterTemp, tcounter, 0, 0, strided<uint32_t>(1));
     }
 
+    inline void Intersector::configureIntersection(bool clearDepth) {
+        geometryUniformData.triangleCount = this->triangleCount;
+        geometryUniformData.clearDepth = clearDepth;
+    }
+
     inline void Intersector::loadMesh(Mesh * gobject) {
-        if (!gobject || gobject->triangleCount <= 0) return;
+        if (!gobject || gobject->nodeCount  <= 0) return;
 
         geometryUniformData.unindexed = gobject->unindexed;
         geometryUniformData.loadOffset = gobject->offset;
         geometryUniformData.materialID = gobject->materialID;
         geometryUniformData.triangleOffset = triangleCount;
-        geometryUniformData.triangleCount = gobject->triangleCount;
+        geometryUniformData.triangleCount = gobject->nodeCount;
         geometryUniformData.transform = *(Vc4x4 *)glm::value_ptr(gobject->trans);
         geometryUniformData.transformInv = *(Vc4x4 *)glm::value_ptr(glm::inverse(gobject->trans));
         geometryUniformData.texmatrix = *(Vc4x4 *)glm::value_ptr(gobject->texmat);
         geometryUniformData.colormod = *(Vc4 *)glm::value_ptr(gobject->colormod);
         geometryUniformData.offset = gobject->voffset;
+        memcpy(&attributeUniformData, &gobject->attributeUniformData, sizeof(AttributeUniformStruct));
 
         gobject->bind();
         this->bind();
@@ -185,7 +191,7 @@ namespace Paper {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, tcounter);
 
         glUseProgram(geometryLoaderProgram2);
-        glDispatchCompute(tiled(gobject->triangleCount, worksize), 1, 1);
+        glDispatchCompute(tiled(gobject->nodeCount, worksize), 1, 1);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
         markDirty();

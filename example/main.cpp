@@ -135,42 +135,23 @@ namespace PaperExample {
 #endif
 
         rays = new Tracer();
-        rays->enableShadows(0);
-
         cam = new Controller();
         cam->setRays(rays);
-
         supermat = new Material();
-
-        glm::mat4 matrix;
-        matrix = glm::scale(matrix, glm::vec3(mscale));
-
         geom = new Mesh();
-
-#ifdef TOL_SUPPORT
-        geom->loadMesh(shapes, attrib);
-#endif
 
 #ifdef ASSIMP_SUPPORT
         geom->loadMesh(scene->mMeshes, scene->mNumMeshes);
         materialCount = scene->mNumMaterials;
 #endif
 
+        glm::mat4 matrix = glm::mat4(1.0f);
+        matrix = glm::scale(matrix, glm::vec3(mscale));
         geom->setMaterialOffset(0);
         geom->setTransform(matrix);
 
         object = new Intersector();
-        object->allocate(geom->triangleCount);
-
-        // load mesh by attributes
-        object->attributeUniformData.mode = 0;
-        object->attributeUniformData.stride = 8;
-        object->attributeUniformData.haveTexcoord = true;
-        object->attributeUniformData.haveNormal = true;
-        object->attributeUniformData.haveColor = false;
-        object->attributeUniformData.vertexOffset = 0;
-        object->attributeUniformData.texcoordOffset = 3;
-        object->attributeUniformData.normalOffset = 5;
+        object->allocate(geom->getNodeCount());
         object->loadMesh(geom);
 
         time = milliseconds();
