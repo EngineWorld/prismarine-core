@@ -443,11 +443,11 @@ namespace Paper {
         samplerUniformData.rayCount = rsize;
         randomUniformData.time = frandom();
 
+        this->bind();
+        if (cubeTex) glBindTextureUnit(0, cubeTex);
+
         glUseProgram(matProgram);
         mat->bindWithContext(matProgram);
-        this->bind();
-        
-        if (cubeTex) glBindTextureUnit(0, cubeTex);
         glDispatchCompute(tiled(rsize, worksize), 1, 1);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
         reloadQueuedRays();
