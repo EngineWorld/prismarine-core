@@ -380,11 +380,11 @@ namespace Paper {
         glNamedBufferSubData(arcounter, 0 * sizeof(int32_t), 1 * sizeof(int32_t), zero);
 
         if (rsize > 0) {
-            glCopyBufferSubData(activenl, activel, 0, 0, strided<uint32_t>(rsize));
+            glCopyNamedBufferSubData(activenl, activel, 0, 0, strided<uint32_t>(rsize));
         }
 
         if (availableCount > 0) {
-            glCopyBufferSubData(freedoms, availables, 0, 0, strided<uint32_t>(availableCount));
+            glCopyNamedBufferSubData(freedoms, availables, 0, 0, strided<uint32_t>(availableCount));
         }
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
     }

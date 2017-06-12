@@ -56,7 +56,10 @@ namespace Paper {
 
         template<class T>
         GLuint allocateBuffer(size_t size = 1) {
-            GLuint buf = 0; glCreateBuffers(1, &buf); glBufferStorage(buf, sizeof(T) * size, nullptr, GL_DYNAMIC_STORAGE_BIT); return buf;
+            GLuint buf = 0; 
+            glCreateBuffers(1, &buf); 
+            glBufferStorage(buf, sizeof(T) * size, nullptr, GL_DYNAMIC_STORAGE_BIT); 
+            return buf;
         }
 
         void dispatch(const GLuint &program, const GLuint gridSize) {
@@ -75,8 +78,9 @@ namespace Paper {
             initShaderCompute("./shaders/radix/histogram.comp", histogramProgram);
         }
 
-        void sort(GLuint InKeys, GLuint InVals = 0, uint32_t size = 1, uint32_t descending = 0) {
-            bool HadValues = !!InVals;
+        void sort(GLuint &InKeys, GLuint &InVals, uint32_t size = 1, uint32_t descending = 0) {
+            //bool HadValues = !!InVals;
+            bool HadValues = true;
 
             Consts consts[] = {
                 size, 0, descending, 0,
@@ -106,10 +110,10 @@ namespace Paper {
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, HistogramBuffer);
 
             for (GLuint i = 0; i < 8;i++) {
-                glNamedBufferSubData(VarBuffer, 0, strided<uint32_t>(1), &consts[i]);
+                glNamedBufferSubData(VarBuffer, 0, strided<Consts>(1), &consts[i]);
                 this->dispatch(histogramProgram, WG_COUNT);
                 this->dispatch(prefixScanProgram, 1);
-                this->dispatch(permuteProgram, 1);
+                this->dispatch(permuteProgram, WG_COUNT);
                 glCopyNamedBufferSubData(OutKeys, InKeys, 0, 0, strided<uint32_t>(size));
                 glCopyNamedBufferSubData(OutValues, InVals, 0, 0, strided<uint32_t>(size));
             }

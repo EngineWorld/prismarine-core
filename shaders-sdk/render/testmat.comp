@@ -108,9 +108,6 @@ void main() {
     Ray newRay = fetchRayDirect(t);
     Hit hit = fetchHitDirect(t);
 
-    newRay.final.xyz = newRay.color.xyz * vec3(0.0f, 1.0f, 0.0f);
-    newRay.actived = 0;
-
     if (hit.shaded > 0 || newRay.actived < 1) { // already shaded, waiting
         storeRay(t, newRay);
         return;

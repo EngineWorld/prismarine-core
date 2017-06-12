@@ -235,7 +235,7 @@ namespace Paper {
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
         bbox bound;
-        glGetNamedBufferSubData(tcounter, 0, strided<bbox>(1), &bound);
+        glGetNamedBufferSubData(minmaxBuf, 0, strided<bbox>(1), &bound);
         scale  = (glm::make_vec4((float *)&bound.mx) - glm::make_vec4((float *)&bound.mn)).xyz();
         offset =  glm::make_vec4((float *)&bound.mn).xyz();
 
@@ -264,9 +264,14 @@ namespace Paper {
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
         glGetNamedBufferSubData(aabbCounter, 0, strided<uint32_t>(1), &triangleCount);
+        if (triangleCount <= 0) return;
 
         // radix sort of morton-codes
         sorter->sort(mortonBuffer, mortonBufferIndex, triangleCount); // early serial tests
+
+        //std::vector < uint32_t > sorted(triangleCount);
+        //glGetNamedBufferSubData(mortonBuffer, 0, strided<uint32_t>(triangleCount), sorted.data());
+
         geometryUniformData.triangleCount = triangleCount;
 
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, leafBuffer);
