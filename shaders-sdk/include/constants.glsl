@@ -36,7 +36,7 @@
 #extension GL_ARB_gpu_shader_int64 : require
 #endif
 
-#define WORK_SIZE 128
+#define WORK_SIZE 256
 //#define LOCAL_SIZE_LAYOUT layout ( local_size_variable ) in;
 //#extension GL_ARB_compute_variable_group_size : require
 #define LOCAL_SIZE_LAYOUT layout ( local_size_x = WORK_SIZE ) in
