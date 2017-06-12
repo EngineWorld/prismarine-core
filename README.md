@@ -7,7 +7,6 @@
 ## ➕ Features: 
 
 - CMake support (Windows)
-- Phantom OpenGL wrapper (C++)
 - Fixed most bugs
 - GPU optimized BVH (HLBVH)
 - Direct lighting for sun
@@ -18,7 +17,6 @@
 
 ## 🔂 Requirement
 
-- Phantom OpenGL C++ wrapper (https://github.com/capitalknew/PhantomOGL)
 - OpenGL 4.5 with extensions :)
 - Latest CMake
 
