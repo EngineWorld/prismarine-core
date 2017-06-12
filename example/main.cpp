@@ -151,7 +151,7 @@ namespace PaperExample {
         geom->setTransform(matrix);
 
         object = new Intersector();
-        object->allocate(geom->getNodeCount());
+        object->allocate(1024 * 1024);
         object->loadMesh(geom);
 
         time = milliseconds();

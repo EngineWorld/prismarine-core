@@ -169,9 +169,9 @@ namespace Paper {
         displayWidth = w;
         displayHeight = h;
 
-        if (samples) glDeleteTextures(1, &samples);
-        if (sampleflags) glDeleteTextures(1, &sampleflags);
-        if (presampled) glDeleteTextures(1, &presampled);
+        if (samples     != -1) glDeleteTextures(1, &samples);
+        if (sampleflags != -1) glDeleteTextures(1, &sampleflags);
+        if (presampled  != -1) glDeleteTextures(1, &presampled);
 
         glCreateTextures(GL_TEXTURE_2D, 1, &samples);
         glCreateTextures(GL_TEXTURE_2D, 1, &sampleflags);
@@ -206,13 +206,13 @@ namespace Paper {
         width = w;
         height = h;
 
-        if (rays) glDeleteBuffers(1, &rays); //delete rays;
-        if (hits) glDeleteBuffers(1, &hits);//delete hits;
-        if (activel) glDeleteBuffers(1, &activel);//delete activel;
-        if (activenl) glDeleteBuffers(1, &activenl);//delete activenl;
-        if (texels) glDeleteBuffers(1, &texels);//delete texels;
-        if (freedoms) glDeleteBuffers(1, &freedoms);//delete freedoms;
-        if (availables) glDeleteBuffers(1, &availables);//delete availables;
+        if (rays       != -1) glDeleteBuffers(1, &rays);
+        if (hits       != -1) glDeleteBuffers(1, &hits);
+        if (activel    != -1) glDeleteBuffers(1, &activel);
+        if (activenl   != -1) glDeleteBuffers(1, &activenl);
+        if (texels     != -1) glDeleteBuffers(1, &texels);
+        if (freedoms   != -1) glDeleteBuffers(1, &freedoms);
+        if (availables != -1) glDeleteBuffers(1, &availables);
 
         const int32_t wrsize = width * height;
         currentRayLimit = std::min(wrsize * 8, 4096 * 4096);
@@ -323,9 +323,6 @@ namespace Paper {
     inline void Tracer::camera(const glm::mat4 &persp, const glm::mat4 &frontSide) {
         clearRays();
 
-        int32_t undef = 0xFFFFFFFF;
-        glNamedBufferSubData(freedoms, 0, strided<uint32_t>(1), &undef);
-
         randomUniformData.time = frandom();
         cameraUniformData.camInv = *(Vc4x4 *)glm::value_ptr(glm::inverse(frontSide));
         cameraUniformData.projInv = *(Vc4x4 *)glm::value_ptr(glm::inverse(persp));
@@ -425,7 +422,6 @@ namespace Paper {
         if (rsize <= 0) return 0;
 
         obj->configureIntersection(clearDepth);
-        obj->syncUniforms();
         obj->bind();
         obj->bindBVH();
         this->bind();

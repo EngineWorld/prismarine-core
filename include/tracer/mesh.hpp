@@ -23,9 +23,9 @@ namespace Paper {
         friend Intersector;
 
     private:
-        GLuint vbo_triangle_ssbo;
-        GLuint mat_triangle_ssbo;
-        GLuint vebo_triangle_ssbo;
+        GLuint vbo_triangle_ssbo = -1;
+        GLuint mat_triangle_ssbo = -1;
+        GLuint vebo_triangle_ssbo = -1;
         int32_t _toffset = 0;
 
         AttributeUniformStruct attributeUniformData;

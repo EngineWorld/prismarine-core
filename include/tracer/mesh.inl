@@ -54,20 +54,16 @@ namespace Paper {
 
         size_t stride = 8;
         size_t tcount = 0;
-        for (int32_t i = 0; i < meshCount;i++) {
+        for (int32_t i = 0; i < meshCount; i++) {
             aiMesh * mesh = meshes[i];
 
             for (uint32_t ti = 0; ti < mesh->mNumFaces;ti++) {
                 aiFace &face = mesh->mFaces[ti];
-
-                // material ID
                 material_ids.push_back(mesh->mMaterialIndex);
-
-                // vertex index
-                for (int32_t dc = 0; dc < face.mNumIndices;dc++) {
+                //for (int32_t dc = 0; dc < face.mNumIndices;dc++) {
+                for (int32_t dc = 0; dc < 3; dc++) {
                     vindices.push_back(_toffset + face.mIndices[dc]);
                 }
-
                 tcount++;
             }
 
@@ -91,8 +87,7 @@ namespace Paper {
                     stridedData.push_back(normal.x);
                     stridedData.push_back(normal.y);
                     stridedData.push_back(normal.z);
-                }
-                else {
+                } else {
                     stridedData.push_back(0);
                     stridedData.push_back(0);
                     stridedData.push_back(0);
@@ -102,12 +97,13 @@ namespace Paper {
             _toffset += mesh->mNumVertices;
         }
 
+        unindexed = 0;
         nodeCount = tcount;
         verticeCount = stridedData.size() / stride;
 
         // make owner layout template
         attributeUniformData.mode = 0;
-        attributeUniformData.stride = 8;
+        attributeUniformData.stride = stride;
         attributeUniformData.haveTexcoord = true;
         attributeUniformData.haveNormal = true;
         attributeUniformData.haveColor = false;
@@ -116,9 +112,9 @@ namespace Paper {
         attributeUniformData.normalOffset = 5;
 
         // delete not needed buffers
-        if (vbo_triangle_ssbo) glDeleteBuffers(1, &vbo_triangle_ssbo);
-        if (mat_triangle_ssbo) glDeleteBuffers(1, &mat_triangle_ssbo);
-        if (vebo_triangle_ssbo) glDeleteBuffers(1, &vebo_triangle_ssbo);
+        if (vbo_triangle_ssbo != -1) glDeleteBuffers(1, &vbo_triangle_ssbo);
+        if (mat_triangle_ssbo != -1) glDeleteBuffers(1, &mat_triangle_ssbo);
+        if (vebo_triangle_ssbo != -1) glDeleteBuffers(1, &vebo_triangle_ssbo);
 
         // re-alloc buffers
         glCreateBuffers(1, &vbo_triangle_ssbo);
@@ -128,9 +124,6 @@ namespace Paper {
         glNamedBufferData(vebo_triangle_ssbo, strided<int32_t>(vindices.size()), vindices.data(), GL_STATIC_DRAW);
         glNamedBufferData(mat_triangle_ssbo, strided<int32_t>(material_ids.size()), material_ids.data(), GL_STATIC_DRAW);
         glNamedBufferData(vbo_triangle_ssbo, strided<float>(stridedData.size()), stridedData.data(), GL_STATIC_DRAW);
-
-        // use indexing
-        unindexed = 0;
     }
 #endif
 

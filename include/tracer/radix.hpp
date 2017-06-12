@@ -2,11 +2,6 @@
 
 namespace Paper {
 
-    //template<class T>
-    //size_t strided(size_t sizeo) {
-    //    return sizeof(T) * sizeo;
-    //}
-
     class RadixSort {
         GLuint permuteProgram;
         GLuint prefixScanProgram;
@@ -79,9 +74,6 @@ namespace Paper {
         }
 
         void sort(GLuint &InKeys, GLuint &InVals, uint32_t size = 1, uint32_t descending = 0) {
-            //bool HadValues = !!InVals;
-            bool HadValues = true;
-
             Consts consts[] = {
                 size, 0, descending, 0,
                 size, 4, descending, 0,
@@ -93,12 +85,11 @@ namespace Paper {
                 size, 28, descending, 0
             };
 
-            const uint32_t WG_COUNT = 32;
+            const uint32_t WG_COUNT = 64;
             const uint32_t RADICES = 16;
 
             GLuint OutKeys = this->allocateBuffer<uint32_t>(size);
-            GLuint OutValues = this->allocateBuffer<uint32_t>(HadValues ? size : 0);
-            if (!HadValues) InVals = this->allocateBuffer<uint32_t>(0);
+            GLuint OutValues = this->allocateBuffer<uint32_t>(size);
             GLuint HistogramBuffer = this->allocateBuffer<uint32_t>(WG_COUNT * RADICES);
             GLuint VarBuffer = this->allocateBuffer<Consts>(1);
 
@@ -118,7 +109,7 @@ namespace Paper {
                 glCopyNamedBufferSubData(OutValues, InVals, 0, 0, strided<uint32_t>(size));
             }
 
-            if (!HadValues) glDeleteBuffers(1, &InVals);
+            glFlush();
             glDeleteBuffers(1, &OutKeys);
             glDeleteBuffers(1, &OutValues);
             glDeleteBuffers(1, &HistogramBuffer);

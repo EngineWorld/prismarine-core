@@ -20,15 +20,15 @@ namespace Paper {
         GLuint samplerProgram;
         GLuint intersectionProgram;
 
-        GLuint rays;
-        GLuint hits;
-        GLuint texels;
-        GLuint activenl;
-        GLuint activel;
-        GLuint freedoms;
-        GLuint availables;
-        GLuint arcounter;
-        GLuint arcounterTemp;
+        GLuint rays = -1;
+        GLuint hits = -1;
+        GLuint texels = -1;
+        GLuint activenl = -1;
+        GLuint activel = -1;
+        GLuint freedoms = -1;
+        GLuint availables = -1;
+        GLuint arcounter = -1;
+        GLuint arcounterTemp = -1;
 
         GLuint lightUniform;
         GLuint rayBlockUniform;
@@ -39,11 +39,11 @@ namespace Paper {
         int32_t maxSamples = 4;
         int32_t maxFilters = 1;
         int32_t currentRayLimit = 0;
-        int32_t worksize = 256;
+        int32_t worksize = 128;
 
-        GLuint presampled;
-        GLuint samples;
-        GLuint sampleflags;
+        GLuint presampled = -1;
+        GLuint samples = -1;
+        GLuint sampleflags = -1;
         GLuint cubeTex;
         GLuint vao;
 

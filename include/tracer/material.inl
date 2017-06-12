@@ -20,7 +20,7 @@ namespace Paper {
         std::vector<int32_t> vctr(pcount);
         for (int i = 0; i < pcount; i++) vctr[i] = firstBind + i;
         glBindTextures(firstBind, pcount, samplers.data());
-        glUniform1iv(textureLocation, pcount, vctr.data());
+        glProgramUniform1iv(prog, textureLocation, pcount, vctr.data());
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 15, mats);
     }
 

@@ -39,7 +39,8 @@ void main() {
 
 #pragma optionNV (unroll all)
     for (int x=0;x<3;x++) {
-        const int j = indics[tri3 + x];
+        //const int j = indics[tri3 + x];
+        const int j = t * 3 + x;
         const vec4 nps = GEOMETRY_BLOCK octreeUniform.project * vec4(toVec3(verts[j].vertex), 1.0f);
         triverts[x] = nps.xyz / nps.w;
     }

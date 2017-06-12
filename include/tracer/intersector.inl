@@ -165,8 +165,9 @@ namespace Paper {
     }
 
     inline void Intersector::configureIntersection(bool clearDepth) {
-        geometryUniformData.triangleCount = this->triangleCount;
-        geometryUniformData.clearDepth = clearDepth;
+        this->geometryUniformData.triangleCount = this->triangleCount;
+        this->geometryUniformData.clearDepth = clearDepth;
+        this->syncUniforms();
     }
 
     inline void Intersector::loadMesh(Mesh * gobject) {
@@ -213,7 +214,7 @@ namespace Paper {
     }
 
     inline void Intersector::build(const glm::mat4 &optimization) {
-        if (triangleCount <= 0 || !dirty) return;
+        if (this->triangleCount <= 0 || !dirty) return;
         this->resolve();
 
         size_t triangleCount = this->triangleCount;
@@ -232,9 +233,8 @@ namespace Paper {
             octreeUniformData.unproject = *(Vc4x4 *)glm::value_ptr(glm::inverse(mat));
         }
 
-        this->bind();
         this->syncUniforms();
-        
+        this->bind();
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, minmaxBuf);
         glUseProgram(minmaxProgram2);
         glDispatchCompute(1, 1, 1);
@@ -264,7 +264,6 @@ namespace Paper {
 
         this->bind();
         this->syncUniforms();
-
         glUseProgram(aabbMakerProgramH);
         glDispatchCompute(tiled(triangleCount, worksize), 1, 1);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
@@ -274,21 +273,16 @@ namespace Paper {
 
         // radix sort of morton-codes
         sorter->sort(mortonBuffer, mortonBufferIndex, triangleCount); // early serial tests
-
-        //std::vector < uint32_t > sorted(triangleCount);
-        //glGetNamedBufferSubData(mortonBuffer, 0, strided<uint32_t>(triangleCount), sorted.data());
-
         geometryUniformData.triangleCount = triangleCount;
 
+        this->syncUniforms();
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, leafBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mortonBufferIndex);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, leafBufferSorted);
-        this->syncUniforms();
         glUseProgram(resortProgramH);
         glDispatchCompute(tiled(triangleCount, worksize), 1, 1);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 20, aabbCounter);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, numBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mortonBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, mortonBufferIndex);

@@ -206,8 +206,11 @@ void main() {
     const float fres = computeFresnel(hit.normal.xyz, newRay.direct.xyz, inior, outior) * (inside <= 0.0f ? 1.0f : 0.0f);
 
 
+    // TODO - refraction support
+
     const float trns = mlength(tts.xyz);
-    const float prom = (1.0f - tx.a * (1.0f - trns));
+    //const float prom = (1.0f - tx.a * (1.0f - trns));
+    const float prom = 1.0f - tx.a;
     tts.xyz = mix(tts.xyz, vec3(1.0f), (1.0f - tx.a));
     sp.xyz = mix(tx.xyz, sp.xyz, glossiness);
 
@@ -217,7 +220,7 @@ void main() {
     {
         Ray emitentRay = newRay;
         Ray reflectionRay = newRay;
-        Ray transmissionRay = newRay;
+        //Ray transmissionRay = newRay;
 
         if (random() < emis) {
             emitentRay = emissive(newRay, hit, emi.xyz / min(emis, 1.0f), normal);
@@ -226,7 +229,7 @@ void main() {
             diffused = true;
         }
 
-        transmissionRay = refraction(newRay, hit, tts.xyz, normal, inior, outior, glossiness);
+        //transmissionRay = refraction(newRay, hit, tts.xyz, normal, inior, outior, glossiness);
         reflectionRay = reflection(newRay, hit, sp.xyz, normal, glossiness);
         reflectionRay.color.xyz *= 1.0f - prom;
         emitentRay.color.xyz *= 1.0f - prom;
@@ -239,7 +242,7 @@ void main() {
 
         //emitRay(reflectionRay, hit, normal, 1.0f);
         emitRay(emitentRay, hit, normal, 1.0f);
-        newRay = transmissionRay;
+        newRay = promised(newRay, hit, normal);
         newRay.color.xyz *= additiveBlend ? 1.0f : prom;
     }
 
