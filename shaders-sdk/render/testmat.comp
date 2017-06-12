@@ -19,8 +19,7 @@
 
 /* Water and optics settings */
 #define SUNLIGHT_CAUSTICS
-#define WATER_REFRACTION_ENABLED
-#define WATER_REFRACTION_SKIP_SUN
+#define REFRACTION_SKIP_SUN
 #define PHI 1.6180339887498948482
 
 /* Atmosphere sky functions and parameters */
@@ -194,145 +193,42 @@ void main() {
     normal = normalize(tbn * getNormalMapping(materialCache, hit.texcoord.xy, newRay.direct.xyz, normal));
     normal = faceforward(normal, dir, normal);
 
-    const float glossiness = clamp(1.0f / log2(materialCache.reflectivity), 0.0f, 1.0f);
-    const bool isWater = iseq16(hit.vmods.x, 8.f) || iseq16(hit.vmods.x, 9.f);
-    const bool isGlass = iseq16(hit.vmods.x, 20.f) || iseq16(hit.vmods.x, 102.f);
-    const bool isStained = iseq16(hit.vmods.x, 95.f) || iseq16(hit.vmods.x, 160.f);
-
     vec4 tx = fetchDiffuse(materialCache, hit.texcoord.xy, newRay.direct.xyz, normal);
     tx *= vec4(hit.vcolor.xyz, hit.vcolor.a);
 
-    vec4 tts = clamp(fetchTransmission(materialCache, hit.texcoord.xy, newRay.direct.xyz, normal), vec4(0.0f), vec4(1.0f));
-    vec4 emi = materialCache.emissive;//fetchEmissive(materialCache, hit.texcoord.xy, newRay.direct.xyz, normal);
-    vec4 sp = fetchSpecular(materialCache, hit.texcoord.xy, newRay.direct.xyz, normal);
-    vec4 rc = vec4(mix(sp.xyz, tx.xyz, glossiness), 1.0f);
+    vec4 tts = 1.0f - clamp(fetchTransmission(materialCache, hit.texcoord.xy, newRay.direct.xyz, normal), vec4(0.0f), vec4(1.0f));
+    vec4 sp = clamp(fetchSpecular(materialCache, hit.texcoord.xy, newRay.direct.xyz, normal), vec4(0.0f), vec4(1.0f));
+    vec4 emi = materialCache.emissive;
 
-    if ( iseq16(hit.vmods.x, 89.f) ) { // glowstone
-        emi = vec4(8.0f);
-    }
-
-    if ( iseq16(hit.vmods.x, 10.f) || iseq16(hit.vmods.x, 11.f) ) { // lava
-        emi = vec4(7.0f);
-    }
-
-    if ( iseq16(hit.vmods.x, 76.f) ) { // redstone torch
-        emi = vec4(8.0f);
-    }
-
-    if ( iseq16(hit.vmods.x, 50.f) ) { // torch
-        emi = vec4(12.0f);
-    }
+    const float glossiness = clamp(1.0f / log2(materialCache.reflectivity), 0.0f, 1.0f);
+    const float emis = mlength(emi.xyz); emi *= tx;
+    const float spic = mlength(sp.xyz) * (1.0f / glossiness);
+    const float fres = computeFresnel(hit.normal.xyz, newRay.direct.xyz, inior, outior) * (inside <= 0.0f ? 1.0f : 0.0f);
 
 
-    const float trns = clamp(mlength(tts.xyz), 0.0f, 1.0f);
-    const float emis = mlength(emi.xyz);
-    const float spic = mlength(rc.xyz);
-    const float prom = 1.0f - tx.a;
-    float fres = computeFresnel(hit.normal.xyz, newRay.direct.xyz, inior, outior) * (inside <= 0.0f ? 1.0f : 0.0f);
+    const float trns = mlength(tts.xyz);
+    const float prom = (1.0f - tx.a * (1.0f - trns));
+    tts.xyz = mix(tts.xyz, vec3(1.0f), (1.0f - tx.a));
+    sp.xyz = mix(tx.xyz, sp.xyz, glossiness);
 
-    emi *= tx;
-
-    float grefl = 0.2f + pow((1.0f - abs(dot(normal, newRay.direct.xyz))), 2.0f) * 0.6f;
     bool diffused = false;
-
-    if (isGlass) {
-
-        // glass transparency
-        float trnsy = prom * (1.0f - grefl);
-        if (greaterF(trnsy, 0.0f)) emitRay(promised(newRay, hit, normal), hit, normal, trnsy);
-
-        // glass reflection (on transparency)
-        float refly = prom * grefl;
-        if (greaterF(refly, 0.0f)) emitRay(reflection(newRay, hit, vec3(1.0f), normal, 0.0f), hit, normal, refly);
-
-        {
-            // glass frames (diffuse)
-            newRay.color.xyz *= 1.0f - prom;
-            newRay = diffuse(newRay, hit, tx.xyz, normal);
-
-#ifdef DIRECT_LIGHT
-            if (diffused) applyLight(directLight(0, newRay, hit, vec3(1.0f), normal), newRay, surfacenormal);
-#endif
-
-            diffused = true;
-        }
-
-    } else
-
-    if (isStained) {
-
-        // glass reflection
-        emitRay(reflection(newRay, hit, vec3(1.0f), normal, 0.0f), hit, normal, grefl);
-        newRay.color.xyz *= (1.0f - grefl);
-
-        // stained transparency (with multiply)
-        newRay = refraction(newRay, hit, mix(tx.xyz, vec3(1.0f), vec3(prom)), normal, 1.0f, 1.0f, 0.0f);
-
-    } else
-
-    if (isWater) {
-        const float frameTimeCounter = float(double(RAY_BLOCK materialUniform.iModifiers0.w) / 60000.0f) * 4.0f;
-        vec3 posxz = (inverse(RAY_BLOCK materialUniform.transformModifier) * vec4(newRay.origin.xyz, 1.0f)).xyz;
-        posxz.x += sin(posxz.z+frameTimeCounter)*0.25;
-        posxz.z += cos(posxz.x+frameTimeCounter*0.5)*0.25;
-
-        const float deltaPos = 0.1f;
-        const float h0 = waterH(posxz, frameTimeCounter);
-        const float h1 = waterH(posxz + vec3(deltaPos,0.0,0.0), frameTimeCounter);
-        const float h2 = waterH(posxz + vec3(-deltaPos,0.0,0.0), frameTimeCounter);
-        const float h3 = waterH(posxz + vec3(0.0,0.0,deltaPos), frameTimeCounter);
-        const float h4 = waterH(posxz + vec3(0.0,0.0,-deltaPos), frameTimeCounter);
-        const float xDelta = ((h1-h0)+(h0-h2))/deltaPos;
-        const float yDelta = ((h3-h0)+(h0-h4))/deltaPos;
-
-        vec3 bump = normalize(vec3(xDelta,yDelta,1.0-xDelta*xDelta-yDelta*yDelta));
-        const float bumpmult = 0.1f;
-        bump = bump * vec3(bumpmult, bumpmult, bumpmult) + vec3(0.0f, 0.0f, 1.0f - bumpmult);
-        normal = normalize(tbn * bump);
-
-        inior = 1.0f;
-        outior = 1.333333333f;
-        const float inside = dot(prenormal, dir);
-        if (inside >= 0.0f) {
-            const float tmp = inior;
-            inior = outior;
-            outior = tmp;
-        }
-
-        Ray promRay = reflection(newRay, hit, vec3(1.0f), normal, 0.0f);
-        Ray refrRay = refraction(newRay, hit, vec3( 1.0f ), normal, inior, outior, 0.0f);
-        const float fres = computeFresnel(normal, newRay.direct.xyz, inior, outior) * (inside <= 0.0f ? 1.0f : 0.0f);
-        if (newRay.params.w == 0) {
-            emitRay(promRay, hit, normal, fres);
-        }
-        newRay = refrRay;
-        newRay.color.xyz *= 1.0f - fres;
-
-    } else
+    bool additiveBlend = false;
 
     {
-        if (materialCache.binding >= 0 && texelInfo[newRay.texel].EXT.x < 0) {
-            texelInfo[newRay.texel].EXT.x = materialCache.binding;
-        }
-
-        const bool additiveBlend = false;
-        const float amod = additiveBlend ? 1.0f : prom;
-
         Ray emitentRay = newRay;
+        Ray reflectionRay = newRay;
+        Ray transmissionRay = newRay;
+
         if (random() < emis) {
             emitentRay = emissive(newRay, hit, emi.xyz / min(emis, 1.0f), normal);
-        } else
-        if (random() < spic) {
-            emitentRay = reflection(newRay, hit, rc.xyz, normal, glossiness);
-        } else
-        //if (random() < trns){ // Todo for basic renders
-        //    emitentRay = refraction(newRay, hit, tts.xyz, normal, inior, outior, glossiness);
-        //} else
-        {
+        } else {
             emitentRay = diffuse(newRay, hit, tx.xyz, normal);
             diffused = true;
         }
 
+        transmissionRay = refraction(newRay, hit, tts.xyz, normal, inior, outior, glossiness);
+        reflectionRay = reflection(newRay, hit, sp.xyz, normal, glossiness);
+        reflectionRay.color.xyz *= 1.0f - prom;
         emitentRay.color.xyz *= 1.0f - prom;
         emitentRay.final.xyz *= 1.0f - prom;
 
@@ -340,9 +236,11 @@ void main() {
         if (diffused) applyLight(directLight(0, emitentRay, hit, vec3(1.0f), normal), emitentRay, surfacenormal);
 #endif
 
-        emitRay(emitentRay, hit, normal, 1.0f);
-        newRay = promised(newRay, hit, normal);
-        newRay.color.xyz *= amod;
+        //mixed(emitentRay.color.xyz, reflectionRay.color.xyz, spic);
+        //emitRay(reflectionRay, hit, normal, 1.0f);
+        emitRay(   emitentRay, hit, normal, 1.0f);
+        newRay = transmissionRay;
+        newRay.color.xyz *= additiveBlend ? 1.0f : prom;
     }
 
     storeHit(t, hit);

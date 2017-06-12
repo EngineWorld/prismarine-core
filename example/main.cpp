@@ -278,10 +278,9 @@ namespace PaperExample {
                 material->Get(AI_MATKEY_COLOR_EMISSIVE, dcolor);
                 mat.emissive = { dcolor.r, dcolor.g, dcolor.b, dcolor.a };
 
-                material->Get(AI_MATKEY_COLOR_REFLECTIVE, dcolor);
+                material->Get(AI_MATKEY_COLOR_SPECULAR, dcolor);
                 mat.specular = { dcolor.r, dcolor.g, dcolor.b, dcolor.a };
 
-                // at now renderer not support refractive translucent
                 material->Get(AI_MATKEY_COLOR_TRANSPARENT, dcolor);
                 mat.transmission = { dcolor.r, dcolor.g, dcolor.b, dcolor.a };
 
@@ -302,7 +301,7 @@ namespace PaperExample {
                 mat.emissivePart = supermat->loadTexture(std::string(tsc.data, tsc.length));
 
                 tsc = "";
-                material->GetTexture(aiTextureType_REFLECTION, 0, &tsc);
+                material->GetTexture(aiTextureType_SPECULAR, 0, &tsc);
                 mat.specularPart = supermat->loadTexture(std::string(tsc.data, tsc.length));
 
                 tsc = "";

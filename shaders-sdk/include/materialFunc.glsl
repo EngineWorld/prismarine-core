@@ -87,9 +87,7 @@ vec4 fetchEmissive(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 norm
 }
 
 vec4 fetchTransmission(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 normal){
-    vec4 transm = mat.transmission;
-    transm.xyz = pow(transm.xyz, vec3(GAMMA));
-    return transm;
+    return mat.transmission;
 }
 
 vec4 fetchNormal(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 normal){
@@ -138,6 +136,16 @@ vec3 glossy(in vec3 dir, in vec3 normal, in float refli) {
     return normalize(mix(normalize(dir), randomCosine(normal), clamp(sqrt(random()) * refli, 0.0f, 1.0f)));
 }
 
+void mixed(inout vec3 src, inout vec3 dst, in float coef){
+    dst *= coef;
+    src *= 1.0f - coef;
+}
+
+void mixed(inout vec3 src, inout vec3 dst, in vec3 coef){
+    dst *= coef;
+    src *= 1.0f - coef;
+}
+
 Ray reflection(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal, in float glossiness){
     if (newRay.params.w == 1) return newRay;
     newRay.direct.xyz = glossy(reflect(newRay.direct.xyz, normal), normal, glossiness);
@@ -149,24 +157,28 @@ Ray reflection(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal, in floa
 }
 
 Ray refraction(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal, in float inior, in float outior, in float glossiness){
-#ifdef WATER_REFRACTION_SKIP_SUN
+    const vec3 refrDir = normalize(  refract(newRay.direct.xyz, normal, inior / outior)  );
+    const bool refrc = equalF(inior, outior);
+
+#ifdef REFRACTION_SKIP_SUN
+
     newRay.bounce += 1;
     if (newRay.params.w < 1) {
-        newRay.direct.xyz = normalize(  glossy(refract(newRay.direct.xyz, normal, inior / outior), -normal, glossiness)   );
+        newRay.direct.xyz = refrDir;
     }
+
 #else
-    const bool refrc = equalF(inior, outior);
-    if (!refrc) {
-        newRay.params.x = 0;
-    }
-    if (refrc || newRay.params.w < 1) {
+    
+    newRay.direct.xyz = refrDir;
+    if (!refrc) newRay.params.x = 0;  // can be lighted by direct
+    if (newRay.params.w < 1 || refrc) { 
         newRay.bounce += 1;
     }
-    newRay.direct.xyz = normalize(  glossy(refract(newRay.direct.xyz, normal, inior / outior), -normal, glossiness)   );
+    
 #endif
 
+    if (!refrc) newRay.origin.xyz = fma(faceforward(hit.normal.xyz, newRay.direct.xyz, -hit.normal.xyz), vec3(GAP), newRay.origin.xyz); // padding
     newRay.color.xyz *= color;
-    newRay.origin.xyz = fma(faceforward(hit.normal.xyz, newRay.direct.xyz, -hit.normal.xyz), vec3(GAP), newRay.origin.xyz); // padding
     return newRay;
 }
 
