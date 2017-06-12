@@ -57,7 +57,7 @@ void main() {
     bbox current = stack[0];
 
     const vec3 tcenter = (triverts[0] + triverts[1] + triverts[2]) * 0.33333333333333f;
-    const vec3 center = (current.mn.xyz + current.mx.xyz) * 0.5f;
+    const vec3 center = tcenter;//(current.mn.xyz + current.mx.xyz) * 0.5f;
 
     // check 
     vec3 tp[3];
