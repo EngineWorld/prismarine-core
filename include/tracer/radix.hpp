@@ -58,7 +58,7 @@ namespace Paper {
         GLuint allocateBuffer(size_t size = 1) {
             GLuint buf = 0; 
             glCreateBuffers(1, &buf); 
-            glBufferStorage(buf, sizeof(T) * size, nullptr, GL_DYNAMIC_STORAGE_BIT); 
+            glNamedBufferStorage(buf, sizeof(T) * size, nullptr, GL_DYNAMIC_STORAGE_BIT); 
             return buf;
         }
 

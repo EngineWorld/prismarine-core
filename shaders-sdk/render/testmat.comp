@@ -132,7 +132,7 @@ void main() {
 
     // light achieved?
     if (lc >= 0 && (newRay.params.y == lc || newRay.params.w < 1)){
-        //newRay.final.xyz = newRay.color.xyz * getLightColor(lc);
+        newRay.final.xyz = newRay.color.xyz * getLightColor(lc);
         newRay.actived = 0;
     }
 

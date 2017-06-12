@@ -89,7 +89,7 @@ void main() {
 
     Ray newRay = fetchRayDirect(t);
     Hit hit = fetchHitDirect(t);
-    if (hit.shaded > 0) { // already shaded, waiting
+    if (hit.shaded > 0 || newRay.actived < 1) { // already shaded, waiting
         storeRay(t, newRay);
         return;
     }
