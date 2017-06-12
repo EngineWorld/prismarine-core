@@ -65,11 +65,9 @@ vec4 fetchPart(in uint binding, in vec2 texcoord, in ivec2 offset){
 }
 
 vec4 fetchSpecular(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 normal){
-    vec4 specular = vec4(0.0f);
-    if(!validateTexture(mat.specularPart)) {
-        specular= mat.specular;
-    } else {
-        specular= fetchPart(mat.specularPart, texcoord);
+    vec4 specular = mat.specular;
+    if (validateTexture(mat.specularPart)) {
+        specular = fetchPart(mat.specularPart, texcoord);
     }
     specular.xyz = pow(specular.xyz, vec3(GAMMA));
     return specular;

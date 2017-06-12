@@ -231,12 +231,12 @@ void main() {
         reflectionRay.color.xyz *= 1.0f - prom;
         emitentRay.color.xyz *= 1.0f - prom;
         emitentRay.final.xyz *= 1.0f - prom;
+        //mixed(emitentRay.color.xyz, reflectionRay.color.xyz, spic);
 
 #ifdef DIRECT_LIGHT
         if (diffused) applyLight(directLight(0, emitentRay, hit, vec3(1.0f), normal), emitentRay, surfacenormal);
 #endif
 
-        //mixed(emitentRay.color.xyz, reflectionRay.color.xyz, spic);
         //emitRay(reflectionRay, hit, normal, 1.0f);
         emitRay(emitentRay, hit, normal, 1.0f);
         newRay = transmissionRay;
