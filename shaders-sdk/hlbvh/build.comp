@@ -1,0 +1,95 @@
+#version 450
+
+#include "../include/constants.glsl"
+#include "../include/structs.glsl"
+#include "../include/uniforms.glsl"
+#include "./includes.glsl"
+
+#define LEAFIDX(i) ((Range.y-1) + i)
+#define NODEIDX(i) (clamp(i, 1, Range.y-2))
+
+int nlz (in uint x) {
+    return 31-findMSB(x);
+}
+
+int nlz (in int x) {
+    return 31-findMSB(uint(x));
+}
+
+int delta( in int i1, in int i2) {
+    int left  = min(i1, i2);
+    int right = max(i1, i2);
+    if (left < 0 || right >= Range.y) return -1;
+    uint  leftcode = Mortoncodes[left];
+    uint rightcode = Mortoncodes[right];
+    return leftcode != rightcode ? nlz(leftcode ^ rightcode) : (32 + nlz(left ^ right));
+}
+
+ivec2 findSpan(in int idx) {
+    int d = sign( delta(idx, idx+1) - delta(idx, idx-1) );
+    int deltamin = delta(idx, idx-d);
+    int lmax = 2;
+    while (delta(idx,idx + lmax * d) > deltamin) lmax *= 2;
+
+    int l = 0;
+    int t = lmax;
+    do {
+        t >>= 1;
+        if(delta(idx, idx + (l + t)*d) > deltamin) {
+            l = l + t;
+        }
+    } while (t > 1);
+
+    ivec2 span;
+    span.x = min(idx, idx + l*d);
+    span.y = max(idx, idx + l*d);
+    return clamp(span, ivec2(0), ivec2(Range.y-1));
+}
+
+int findSplit(in int left, in int right) {
+    uint  leftcode = Mortoncodes[left];
+    uint rightcode = Mortoncodes[right];
+    int numidentical = delta(left, right);
+    do {
+        int newsplit = (right + left) >> 1;
+        if (delta(left, newsplit) > numidentical) {
+            left = newsplit;
+        } else {
+            right = newsplit;
+        }
+    }
+    while (right > left + 1);
+    return clamp(left, 0, Range.y-1);
+}
+
+void main() {
+    //Start from next childs
+    const int globalID = int(gl_GlobalInvocationID.x); //+ Range.x;
+    if (globalID == 0) Nodes[globalID].parent = -1;
+
+    // Set child
+    if (globalID < Range.y) {
+        int lid = LEAFIDX(globalID);
+        Nodes[lid].box = Leafs[globalID].box;
+        Nodes[lid].triangle = Leafs[globalID].triangle;
+        Nodes[lid].range = ivec2(lid);
+        Flags[lid] = 0;
+        Leafs[globalID].parent = lid;
+    }
+    
+    // Set internal nodes
+    if (globalID < Range.y-1) {
+        const ivec2 range = findSpan(globalID);
+        const int split = findSplit(range.x, range.y);
+        const int c1idx = split    ;
+        const int c2idx = split + 1;
+        const bool  leftleaf = (c1idx == range.x);
+        const bool rightleaf = (c2idx == range.y);
+        const int c1idxl =  leftleaf ? LEAFIDX(c1idx) : NODEIDX(c1idx);
+        const int c2idxl = rightleaf ? LEAFIDX(c2idx) : NODEIDX(c2idx);
+        atomicExchange(Nodes[c1idxl].parent, globalID);
+        atomicExchange(Nodes[c2idxl].parent, globalID);
+        Nodes[globalID].range = ivec2(c1idxl, c2idxl);
+        Flags[globalID] = 0;
+    }
+}

@@ -1,0 +1,65 @@
+#version 450
+#include "./includes.glsl"
+
+/*
+// warp based prefix-sum
+uint prefix_sum(in uint data, inout uint total_sum) {
+    uint rsort = data;
+    for (uint i = 1; i < WG_COUNT; i <<= 1) {
+        const uint tmp = READ_LANE(rsort, LANE_IDX - i) * uint(LANE_IDX >= i && LANE_IDX < WG_COUNT);
+        rsort += tmp;
+    }
+
+    total_sum = READ_LANE(rsort, WG_COUNT-1);
+    const uint result = READ_LANE(rsort, LANE_IDX - 1) * uint(LANE_IDX > 0);
+    return result;
+}
+
+layout (local_size_x = WARP_SIZE, local_size_y = 1) in;
+
+// single warp version prefix_scan (WG_COUNT limited to WARP_SIZE)
+void main() {
+    uint seed = 0;
+    for(uint d=0;d<RADICES;d++){
+        uint idx = d * WG_COUNT + LANE_IDX;
+        uint val = LANE_IDX < WG_COUNT ? Histogram[idx] : 0;
+        uint total = 0;
+        uint res = prefix_sum(val, total);
+
+        if (LANE_IDX < WG_COUNT) Histogram[idx] = res + readFirstInvocationARB(seed);
+        seed += READ_LANE(res, WG_COUNT-1) + READ_LANE(val, WG_COUNT-1);
+    }
+}
+*/
+
+shared uint local_sort[WG_COUNT];
+uint prefix_sum(uint data, inout uint total_sum) {
+    local_sort[LC_IDX] = data;
+    barrier();
+    for (uint i = 1; i < WG_COUNT; i <<= 1) {
+        uint tmp = local_sort[LC_IDX - i] * uint(LC_IDX >= i);
+        barrier();
+        local_sort[LC_IDX] += tmp;
+        barrier();
+    }
+    total_sum = local_sort[WG_COUNT - 1];
+    return local_sort[LC_IDX - 1] * uint(LC_IDX > 0);
+}
+
+layout (local_size_x = 1, local_size_y = WG_COUNT) in; // no warp version
+
+shared uint seed;
+void main() {
+    if (LC_IDX == WG_COUNT - 1) seed = 0;
+    barrier();
+    for(uint d=0;d<RADICES;d++){
+        uint val = 0;
+        uint idx = d * WG_COUNT + LC_IDX;
+        if (LC_IDX < WG_COUNT) val = Histogram[idx];
+        uint total = 0;
+        uint res = prefix_sum(val, total);
+        if (LC_IDX < WG_COUNT) Histogram[idx] = res + seed;
+        if (LC_IDX == WG_COUNT - 1) seed += res + val;
+        barrier();
+    }
+}

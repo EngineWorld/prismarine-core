@@ -1,0 +1,92 @@
+#version 450
+
+#extension GL_ARB_separate_shader_objects : require
+#extension GL_ARB_shading_language_420pack : require
+
+#include "../include/constants.glsl"
+#include "../include/structs.glsl"
+#include "../include/uniforms.glsl"
+#include "../include/rays.glsl"
+#include "../include/random.glsl"
+#include "../include/STOmath.glsl"
+
+LOCAL_SIZE_LAYOUT;
+
+void main()
+{
+    const int enable360 = RAY_BLOCK cameraUniform.enable360;
+    const ivec2 wh = ivec2(RAY_BLOCK samplerUniform.sceneRes.xy);
+    const int it = int(gl_GlobalInvocationID.x);
+    globalInvocationSMP = it;
+
+    const ivec2 xy = ivec2(it % wh.x, it / wh.x);
+    const vec2 sceneResInv = 1.0f / vec2(RAY_BLOCK samplerUniform.sceneRes.xy);
+    if (xy.x < wh.x && xy.y < wh.y) {
+        
+        if (RAY_BLOCK cameraUniform.interlace == 1){
+            if ((abs(xy.x + xy.y) % 2) == RAY_BLOCK cameraUniform.interlaceStage) return;
+        }
+
+        vec2 coord = (vec2(xy) + clamp(vec2(random(), random()), vec2(0.00001f), vec2(0.99999f))) * sceneResInv;
+
+        const int idx = int(it);
+        texelInfo[idx].coord.x = coord.x;
+        texelInfo[idx].coord.y = coord.y;
+        texelInfo[idx].EXT = ivec4(0);
+        texelInfo[idx].EXT.x = -1; //Object-Selection
+        texelInfo[idx].samplecolor.x = texelInfo[idx].samplecolor.y = texelInfo[idx].samplecolor.z = 0;
+
+        if (enable360 == 1) {
+            coord.x = 1.f - coord.x;
+            if (coord.x > 0.5f) {
+                coord.y = 1.f - coord.y;
+            }
+        }
+
+        float fov_x = PI;
+        float fov_y = PI;
+
+        vec4 ray_rot = vec4(0.0f, 0.0f, (mod(coord.x * 2.0f, 1.0f) * fov_x) - fov_x/2, (coord.y * fov_y) - fov_y/2);
+        vec4 rot_sin = sin(ray_rot), rot_cos = cos(ray_rot);
+        vec4 n = vec4(rot_cos.w * rot_sin.z, -rot_sin.w, rot_cos.w * rot_cos.z, 0.0f);
+        vec4 v = vec4(
+            n.x*rot_cos.x + n.y*rot_sin.x*rot_sin.y + n.z*rot_sin.x*rot_cos.y,
+            n.y*rot_cos.y - n.z*rot_sin.y,
+            -n.x*rot_sin.x + n.y*rot_cos.x*rot_sin.y + n.z*rot_cos.x*rot_cos.y,
+            0.0f
+        );
+
+        vec4 orig;
+        vec4 dir;
+        if (enable360 == 1) {
+            orig = RAY_BLOCK cameraUniform.camInv * vec4(0.0f, 0.0f, 0.0f, 1.0f);
+            dir = RAY_BLOCK cameraUniform.camInv * (coord.x > 0.5f ? v : -v);
+        } else {
+            vec4 co = divW(RAY_BLOCK cameraUniform.camInv * RAY_BLOCK cameraUniform.projInv * vec4(coord * 2.0f - 1.0f, 0.999f, 1.0f));
+            orig = divW(RAY_BLOCK cameraUniform.camInv * RAY_BLOCK cameraUniform.projInv * vec4(coord * 2.0f - 1.0f, 0.0f, 1.0f));
+            dir = vec4(normalize(co.xyz - orig.xyz), 0.0f);
+        }
+
+        Ray ray;
+        ray.texel = idx;
+        ray.idx = LONGEST;
+        ray.direct = dir;
+        ray.origin = orig;
+        ray.origin.w = 1.0f;
+        ray.color = vec4(1.0f);
+        ray.actived = 1;
+        ray.final = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+
+        ray.params = ivec4(0);
+        ray.params.y = -1;
+        ray.params.x = 1;
+        ray.params.z = 0; // Show sunlight or not
+        ray.params.w = 0;
+        ray.bounce = 4;
+
+        //ray.final = vec4(1.0f, 1.0f, 0.0f, 1.0f);
+        //ray.actived = 0;
+
+        createRayIdx(ray, idx, RAY_BLOCK cameraUniform.interlace == 1 ? (idx / 2) : idx);
+    }
+}

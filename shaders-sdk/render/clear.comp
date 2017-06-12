@@ -1,0 +1,27 @@
+#version 450
+
+#extension GL_ARB_separate_shader_objects : require
+#extension GL_ARB_shading_language_420pack : require
+
+#include "../include/constants.glsl"
+#include "../include/structs.glsl"
+#include "../include/uniforms.glsl"
+#include "../include/rays.glsl"
+#include "../include/STOmath.glsl"
+
+layout ( binding = 0, r32ui ) uniform uimage2D sampleflags;
+LOCAL_SIZE_LAYOUT;
+
+void main()
+{
+    const int t = int(gl_GlobalInvocationID.x);
+    if (t >= RAY_BLOCK samplerUniform.samplecount) return;
+    const ivec2 wh = ivec2(imageSize(sampleflags).xy);
+    imageStore(sampleflags, ivec2(t % wh.x, t / wh.x), uvec4(1));
+
+#ifdef USE_COMPATIBLE_ACCUMULATION
+    texelInfo[t].samplecolor = toStride4(ivec4(0.f));
+#else
+    texelInfo[t].samplecolor = toStride4(vec4(0.f));
+#endif
+}

@@ -1,0 +1,151 @@
+#version 450
+#include "./includes.glsl"
+
+shared uint localSort[BLOCK_SIZE];
+shared uint localSortVal[BLOCK_SIZE];
+shared uint localHistogramToCarry[RADICES];
+shared uint localHistogram[RADICES];
+shared uint warpPScan[WORK_SIZE];
+shared uint psums[WORK_SIZE];
+shared uint totals[WORK_SIZE];
+
+layout (local_size_x = WARP_SIZE, local_size_y = WORK_SIZE) in;
+
+uint bitCount64(in uint64_t a64) {
+    return
+        bitCount(uint(a64 & 0xFFFFFFFFul)) +
+        bitCount(uint((a64 >> 32ul) & 0xFFFFFFFFul));
+}
+
+// prefix scan for WARP vector
+uint prefix_scan(inout UVEC_WARP v){
+    /*
+    uint sum = 0;
+    //uint vm[WARP_SIZE];
+    uint vm = v;
+    for (int i=0;i<WARP_SIZE;i++) {
+        uint tmp = READ_LANE(v, i); 
+        //vm[i] = sum;
+        if (i == LANE_IDX) vm = sum; 
+        sum += tmp;
+    }
+    v = vm;
+    return sum;
+    */
+
+    const BVEC_WARP btf = (v == 1);
+    const UVEC64_WARP bits = ballotARB(btf);
+    const UVEC_WARP sum = bitCount64(bits);
+    v = bitCount64(bits & gl_SubGroupLtMaskARB);
+    return sum;
+}
+
+
+// WARP version of prefix_sum
+uint prefix_sum(in uint data, inout uint total_sum) {
+    UVEC_WARP rsort = data;
+    for (uint i = 1; i < WORK_SIZE; i <<= 1) {
+        const UVEC_WARP tmp = READ_LANE(rsort, LANE_IDX - i) * uint(LANE_IDX < WORK_SIZE);
+        rsort += tmp;
+    }
+    total_sum = READ_LANE(rsort, WORK_SIZE-1);
+    const UVEC_WARP result = READ_LANE(rsort, LANE_IDX - 1) * uint(LANE_IDX < WORK_SIZE);
+    return result;
+}
+
+
+
+void sortBits(inout uint sort, inout uint sortVal){
+    const UVEC_WARP addr = WARP_SIZE * LC_IDX + LANE_IDX;
+    for (int i=0;i<BITS_PER_PASS;i++) {
+        const BVEC_WARP cmp = bitfieldExtract(sort, int(Shift) + i, 1) == 0;
+        UVEC_WARP warpKey = UVEC_WARP(cmp);
+
+        // prefix scan for WARP vector
+        const uint pscan = prefix_scan(warpKey);
+        if (LANE_IDX == 0) warpPScan[LC_IDX] = pscan; // cache by WARP ID
+        barrier();
+
+        // use LANE_IDX as LC_IDX, so we did caching
+        if (LC_IDX == 0) {
+            uint warpTotal = 0;
+            uint prefixSum = prefix_sum(warpPScan[LANE_IDX], warpTotal);
+            if (LANE_IDX < WORK_SIZE) {
+                psums [LANE_IDX] = prefixSum;
+                totals[LANE_IDX] = warpTotal;
+            }
+        }
+        barrier();
+        
+        // use generalized local indexing (incl. warps)
+        warpKey += psums[LC_IDX];
+
+        const UVEC_WARP destAddr = cmp ? warpKey : (addr - warpKey + totals[LC_IDX]);
+        localSort   [destAddr] = sort;
+        localSortVal[destAddr] = sortVal;
+        barrier();
+
+        sort    = localSort   [addr];
+        sortVal = localSortVal[addr];
+        barrier();
+    }
+}
+
+void main(){
+    const UVEC_WARP localIdx = WARP_SIZE * LC_IDX + LANE_IDX;
+    const UVEC_WARP def = 0xFFFFFFFFu;
+
+    if (localIdx < RADICES) localHistogramToCarry[localIdx] = Histogram[localIdx * WG_COUNT + WG_IDX];
+    barrier();
+
+    blocks_info blocks = get_blocks_info(NumKeys, WG_IDX);
+    UVEC_WARP addr = blocks.offset + localIdx;
+
+    for ( int i_block=0; i_block < blocks.count ; i_block++ ) {
+        const BVEC_WARP validAddress = addr < NumKeys;
+        UVEC_WARP data      = validAddress ?   KeyIn[addr] : def;
+        UVEC_WARP dataValue = validAddress ? ValueIn[addr] : 0u;
+        sortBits(data, dataValue);
+
+        const UVEC_WARP k = bitfieldExtract(data, int(Shift), BITS_PER_PASS);
+        const UVEC_WARP      key = k;
+        const UVEC_WARP  histKey = key;
+        const UVEC_WARP localKey = key + (LC_IDX / RADICES) * RADICES;
+        if (localIdx < WORK_SIZE) localSort[LANE_IDX] = 0;
+        barrier();
+
+        atomicAdd(localSort[localKey], uint(validAddress));
+        const UVEC_WARP offset = localHistogramToCarry[k] + localIdx;
+        barrier();
+
+        // Use LANE_IDX as LC_IDX (non-vector mode)
+        if (LC_IDX == 0) {
+            UVEC_WARP warpHistogram = 0;
+            UVEC_WARP sum = 0;
+            if (LANE_IDX < RADICES) {
+                for (int i=0;i<WORK_SIZE/RADICES;i++) sum += localSort[i * RADICES + LANE_IDX];
+                if (LANE_IDX < RADICES) localHistogramToCarry[LANE_IDX] += warpHistogram = sum;
+            }
+
+            uint tmp = 0;
+            warpHistogram = READ_LANE(warpHistogram, LANE_IDX-1);
+            tmp = READ_LANE(warpHistogram, LANE_IDX-3) + READ_LANE(warpHistogram, LANE_IDX-2) + READ_LANE(warpHistogram, LANE_IDX-1);
+            warpHistogram += tmp;
+            tmp = READ_LANE(warpHistogram, LANE_IDX-12) + READ_LANE(warpHistogram, LANE_IDX-8) + READ_LANE(warpHistogram, LANE_IDX-4);
+            warpHistogram += tmp;
+        
+            if (LANE_IDX < RADICES) {
+                localHistogram[LANE_IDX] = warpHistogram;
+            }
+        }
+        barrier();
+
+        const UVEC_WARP outKey = offset - localHistogram[histKey];
+        if (validAddress)   KeyOut[outKey] = data;
+        if (validAddress) ValueOut[outKey] = dataValue;
+        barrier();
+
+        addr += BLOCK_SIZE;
+    }
+}
+

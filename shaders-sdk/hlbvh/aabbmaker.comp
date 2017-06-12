@@ -1,0 +1,82 @@
+#version 450
+
+#extension GL_ARB_separate_shader_objects : require
+#extension GL_ARB_shading_language_420pack : require
+
+#include "../include/constants.glsl"
+#include "../include/structs.glsl"
+#include "../include/uniforms.glsl"
+#include "../include/vertex.glsl"
+#include "../include/morton.glsl"
+
+layout ( std430, binding = 20 ) buffer CounterBlock {
+    int aabbCounter[1];
+};
+
+layout ( std430, binding = 0 ) buffer OutLeafBlock {
+    Leaf OutLeafs[];
+};
+
+layout ( std430, binding = 1 ) buffer MortoncodesBlock {
+    uint Mortoncodes[];
+};
+
+layout ( std430, binding = 2 ) buffer IndicesBlock {
+    int MortoncodesIndices[];
+};
+
+LOCAL_SIZE_LAYOUT;
+
+void main() {
+    const int t = int(gl_GlobalInvocationID.x);
+    if (t >= GEOMETRY_BLOCK geometryUniform.triangleCount) return;
+
+    vec4 mn = vec4(INFINITY);
+    vec4 mx = vec4(-INFINITY);
+    vec3 triverts[3];
+
+    const int tri3 = t * 3;
+
+#pragma optionNV (unroll all)
+    for (int x=0;x<3;x++) {
+        const int j = indics[tri3 + x];
+        const vec4 nps = GEOMETRY_BLOCK octreeUniform.project * vec4(toVec3(verts[j].vertex), 1.0f);
+        triverts[x] = nps.xyz / nps.w;
+    }
+
+    mn.xyz = min(triverts[0], min(triverts[1], triverts[2]));
+    mx.xyz = max(triverts[0], max(triverts[1], triverts[2]));
+
+    // Starting from
+    bbox stack[1];
+    stack[0].mn = mn;
+    stack[0].mx = mx;
+
+    // First pointer
+    bbox current = stack[0];
+
+    const vec3 tcenter = (triverts[0] + triverts[1] + triverts[2]) * 0.33333333333333f;
+    const vec3 center = (current.mn.xyz + current.mx.xyz) * 0.5f;
+
+    // check 
+    vec3 tp[3];
+#pragma optionNV (unroll all)
+    for (int i=0;i<3;i++) {
+        tp[i] = triverts[i] - tcenter;
+    }
+    if (length(abs(tp[0]) + abs(tp[1]) + abs(tp[2])) < 1.e-5) return;
+
+    const int to = atomicAdd(aabbCounter[0], 1);
+    //const int to = t; atomicAdd(aabbCounter[0], 1);
+
+    MortoncodesIndices[to] = int(to);
+    Mortoncodes[to] = encodeMorton3_64(clamp(uvec3(center * 1023.9999f), uvec3(0), uvec3(1023)));
+
+    Leaf outLeaf;
+    outLeaf.range = ivec2(to);
+    outLeaf.box.mn = current.mn - 0.0001f;
+    outLeaf.box.mx = current.mx + 0.0001f;
+    outLeaf.parent = -1;
+    outLeaf.triangle = t;
+    OutLeafs[to] = outLeaf;
+}

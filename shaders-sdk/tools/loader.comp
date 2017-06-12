@@ -1,0 +1,178 @@
+#version 450
+
+#extension GL_ARB_separate_shader_objects : require
+#extension GL_ARB_shading_language_420pack : require
+
+#include "../include/constants.glsl"
+#include "../include/structs.glsl"
+#include "../include/uniforms.glsl"
+#include "../include/vertex.glsl"
+
+layout ( std430, binding=0) buffer TCounterSSBO {int tcounter[];};
+layout ( std430, binding=6) readonly buffer InputVertexSSBO {float iverts[];};
+layout ( std430, binding=7) readonly buffer InputVertexIndicesSSBO {int vindics[];};
+layout ( std430, binding=8) readonly buffer InputMaterialsSSBO {int imats[];};
+LOCAL_SIZE_LAYOUT;
+
+const int m[3] = {3, 0, 2};
+const int ms[3] = {2, 1, 3};
+
+float mlength(in vec3 mcolor){
+    return max(mcolor.x, max(mcolor.y, mcolor.z));
+}
+
+void main()
+{
+    if (gl_GlobalInvocationID.x >= GEOMETRY_BLOCK geometryUniform.triangleCount) return;
+
+    const int ctriangle = GEOMETRY_BLOCK geometryUniform.loadOffset + int(gl_GlobalInvocationID.x);
+    const int matID = imats[ctriangle] + GEOMETRY_BLOCK geometryUniform.materialID;
+    vec3 vertice[4] = {vec3(0.0f), vec3(0.0f), vec3(0.0f), vec3(0.0f)};
+    vec3 normal[4] = {vec3(0.0f), vec3(0.0f), vec3(0.0f), vec3(0.0f)};
+    vec4 texcoord[4] = {vec4(0.0f), vec4(0.0f), vec4(0.0f), vec4(0.0f)};
+    vec4 colors[4] = {vec4(0.0f), vec4(0.0f), vec4(0.0f), vec4(0.0f)};
+    vec4 mods[4] = {vec4(0.0f), vec4(0.0f), vec4(0.0f), vec4(0.0f)};
+
+    const int mode = GEOMETRY_BLOCK attributeUniform.mode;
+    const int trp = mode == 1 ? 4 : 3;
+    for(int i=0;i<trp;i++){
+        const int ctri = ctriangle * trp + i;
+        const int vindices = GEOMETRY_BLOCK geometryUniform.unindexed == 1 ? ctri : vindics[ctri];
+        const int stride = GEOMETRY_BLOCK attributeUniform.stride;
+
+        vec3 vpos = vec3(0.0f);
+        vec4 vtex = vec4(0.0f);
+        vec3 vnorm = vec3(0.0f);
+        vec4 color = vec4(1.0f);
+        vec4 modf = vec4(0.0f);
+
+        {
+            vpos = vec3(
+                iverts[(vindices) * stride + GEOMETRY_BLOCK attributeUniform.vertexOffset + 0],
+                iverts[(vindices) * stride + GEOMETRY_BLOCK attributeUniform.vertexOffset + 1],
+
+                // Z-coordinate
+                GEOMETRY_BLOCK attributeUniform.iModifiers0.z == 1 ? 0.00001f :
+                iverts[(vindices) * stride + GEOMETRY_BLOCK attributeUniform.vertexOffset + 2]
+            );
+
+            if (GEOMETRY_BLOCK attributeUniform.haveNormal > 0) {
+                vnorm = vec3(
+                    iverts[(vindices) * stride + GEOMETRY_BLOCK attributeUniform.normalOffset + 0],
+                    iverts[(vindices) * stride + GEOMETRY_BLOCK attributeUniform.normalOffset + 1],
+                    iverts[(vindices) * stride + GEOMETRY_BLOCK attributeUniform.normalOffset + 2]
+                );
+            }
+
+            if (GEOMETRY_BLOCK attributeUniform.haveColor > 0) {
+                if (GEOMETRY_BLOCK attributeUniform.colorFormat == 0) {
+                    color = vec4(
+                        iverts[(vindices) * stride + GEOMETRY_BLOCK attributeUniform.colorOffset + 0],
+                        iverts[(vindices) * stride + GEOMETRY_BLOCK attributeUniform.colorOffset + 1],
+                        iverts[(vindices) * stride + GEOMETRY_BLOCK attributeUniform.colorOffset + 2],
+                        iverts[(vindices) * stride + GEOMETRY_BLOCK attributeUniform.colorOffset + 3]
+                    );
+                } else
+                if (GEOMETRY_BLOCK attributeUniform.colorFormat == 1) {
+                    color = unpackUnorm4x8(floatBitsToUint(iverts[(vindices) * stride + GEOMETRY_BLOCK attributeUniform.colorOffset]));
+                }
+            }
+
+
+            vec2 tx = vec2(0.0f);
+            if (GEOMETRY_BLOCK attributeUniform.haveTexcoord > 0) {
+                tx.x = iverts[(vindices) * stride + GEOMETRY_BLOCK attributeUniform.texcoordOffset + 0];
+                tx.y = iverts[(vindices) * stride + GEOMETRY_BLOCK attributeUniform.texcoordOffset + 1];
+            }
+
+            vec2 lt = vec2(0.0f);
+            if (GEOMETRY_BLOCK attributeUniform.haveLightcoord > 0) {
+                if (GEOMETRY_BLOCK attributeUniform.iModifiers0.x == 1) {
+
+                    const uint bits = floatBitsToUint(iverts[(vindices) * stride + GEOMETRY_BLOCK attributeUniform.lightcoordOffset]);
+                    const ivec3 bts = ivec3(
+                        (bits >> 4) & 0xF,
+                        (bits >> 20) & 0xF,
+                        0
+                    );
+                    lt.xy = vec2(bts.x / 15.f, bts.z);
+
+                } else {
+                    lt.x = iverts[(vindices) * stride + GEOMETRY_BLOCK attributeUniform.lightcoordOffset + 0];
+                    lt.y = iverts[(vindices) * stride + GEOMETRY_BLOCK attributeUniform.lightcoordOffset + 1];
+                }
+            }
+
+            vec2 ml = vec2(0.0f);
+            if (GEOMETRY_BLOCK attributeUniform.iModifiers0.y == 1) {
+                ml.xy = unpackUnorm2x16(floatBitsToUint(iverts[(vindices) * stride + GEOMETRY_BLOCK attributeUniform.iModifiers1.y]));
+            }
+
+            vec4 txf = vec4(tx.xy, 0.0f, 1.0f) * GEOMETRY_BLOCK geometryUniform.texmatrix;
+            txf /= txf.w;
+
+            vtex = vec4(txf.xy, lt);
+            modf = vec4(ml, vec2(0.0f));
+        }
+
+        vec4 normalf = vec4(vnorm, 0.0f) * GEOMETRY_BLOCK geometryUniform.transformInv;
+        vec4 verticef = GEOMETRY_BLOCK geometryUniform.transform * vec4(vpos, 1.0f);
+        verticef.xyz /= verticef.w;
+
+        vertice[i] = verticef.xyz;
+        normal[i] = normalf.xyz;
+        texcoord[i] = vtex;
+        colors[i] = color;
+        mods[i] = modf;
+    }
+
+    vec3 offsetnormal = cross(vertice[1] - vertice[0], vertice[2] - vertice[0]);
+    offsetnormal /= max(length(offsetnormal), 0.00001f);
+
+    // adapt quads to triangles
+    const int istride = mode == 1 ? 2 : 1;
+    int tidc = GEOMETRY_BLOCK geometryUniform.triangleOffset + int(gl_GlobalInvocationID.x) * istride;
+    atomicAdd(tcounter[0], istride);
+
+    {
+        mats[tidc] = matID;
+#pragma optionNV (unroll all)
+        for (int i=0;i<3;i++) {
+            const int idc = tidc*3 + i;
+            indics[idc] = idc;
+
+            if (mlength(abs(normal[i])) > 0.00001f) {
+                verts[idc].normal = toStride3(normalize(normal[i]));
+            } else {
+                verts[idc].normal = toStride3(offsetnormal.xyz);
+            }
+
+            verts[idc].vertex = toStride3(vertice[i] + offsetnormal * GEOMETRY_BLOCK geometryUniform.offset);
+            verts[idc].color = toStride4(colors[i]);
+            verts[idc].texcoord = toStride4(texcoord[i]);
+            verts[idc].modifiers = toStride4(mods[i]);
+        }
+    }
+
+    if (mode == 1) {
+        tidc += 1;
+        mats[tidc] = matID;
+#pragma optionNV (unroll all)
+        for (int i=0;i<3;i++) {
+            const int idc = tidc*3 + i;
+            indics[idc] = idc;
+
+            const int mi = (GEOMETRY_BLOCK attributeUniform.iModifiers0.w > 0 ? ms : m)[i];
+            if (mlength(abs(normal[mi])) > 0.00001f) {
+                verts[idc].normal = toStride3(normalize(normal[mi]));
+            } else {
+                verts[idc].normal = toStride3(offsetnormal.xyz);
+            }
+
+            verts[idc].vertex = toStride3(vertice[mi] + offsetnormal * GEOMETRY_BLOCK geometryUniform.offset);
+            verts[idc].color = toStride4(colors[mi]);
+            verts[idc].texcoord = toStride4(texcoord[mi]);
+            verts[idc].modifiers = toStride4(mods[mi]);
+        }
+    }
+}

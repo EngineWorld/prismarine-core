@@ -30,3 +30,15 @@
 *.exe
 *.out
 *.app
+
+build*/
+shaders/
+Chess_Set_Obj/
+Chess_Textures/
+gli/
+glad/
+KHR/
+phantom/
+stb/
+cub/
+x64/

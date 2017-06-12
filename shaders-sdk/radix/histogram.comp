@@ -1,0 +1,38 @@
+#version 450
+#include "./includes.glsl"
+
+shared uint localHistogram[RADICES];
+layout (local_size_x = WARP_SIZE, local_size_y = WORK_SIZE) in;
+
+void main(){
+    blocks_info blocks = get_blocks_info(NumKeys, WG_IDX);
+    const uint localIdx = WARP_SIZE * LC_IDX + LANE_IDX;
+    if (localIdx < RADICES) localHistogram[localIdx] = 0;
+    barrier();
+
+    UVEC_WARP addr = blocks.offset + localIdx;
+    for (int i=0;i<blocks.count;i++) {
+        const BVEC_WARP validAddress = addr < NumKeys;
+        const UVEC_WARP data = KeyIn[addr];
+        const UVEC_WARP k = bitfieldExtract(data, int(Shift), BITS_PER_PASS);
+        const UVEC_WARP key = k;
+
+        /*
+        // warp histogram counting
+        UVEC_WARP inWarpHist = 0;
+        for (int ri=0;ri<RADICES;ri++) {  // limited RADICES by WARP_SIZE
+            const BVEC_WARP cmp = key == ri && validAddress;
+            const UVEC_WARP blt = uint(ballotARB( cmp ));
+            if (ri == LANE_IDX) inWarpHist = bitCount(blt);
+        }
+        atomicAdd(localHistogram[LANE_IDX], inWarpHist); // much synchronized atomicAdd
+        */
+
+        // smaller version (generalized)
+        atomicAdd(localHistogram[key], UVEC_WARP(validAddress));
+        addr += BLOCK_SIZE;
+    }
+
+    barrier();
+    if (localIdx < RADICES) Histogram[localIdx * WG_COUNT + WG_IDX] = localHistogram[localIdx];
+}
