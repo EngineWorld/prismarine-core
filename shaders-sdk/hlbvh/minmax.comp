@@ -16,7 +16,7 @@ LOCAL_SIZE_LAYOUT;
 shared bbox sdata[256];
 
 bbox getMinMaxPrimitive(in uint idx){
-    idx = clamp(idx, 0u, uint(GEOMETRY_BLOCK geometryUniform.triangleCount));
+    idx = clamp(idx, 0u, uint(GEOMETRY_BLOCK geometryUniform.triangleCount-1));
     vec4 triverts[3];
 #pragma optionNV (unroll all)
     for (int x=0;x<3;x++) {
