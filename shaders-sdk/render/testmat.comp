@@ -238,7 +238,7 @@ void main() {
 
         //mixed(emitentRay.color.xyz, reflectionRay.color.xyz, spic);
         //emitRay(reflectionRay, hit, normal, 1.0f);
-        emitRay(   emitentRay, hit, normal, 1.0f);
+        emitRay(emitentRay, hit, normal, 1.0f);
         newRay = transmissionRay;
         newRay.color.xyz *= additiveBlend ? 1.0f : prom;
     }
