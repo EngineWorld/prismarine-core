@@ -17,11 +17,6 @@
 #include "../include/STOmath.glsl"
 #include "../include/materialFunc.glsl"
 
-/* Water and optics settings */
-#define SUNLIGHT_CAUSTICS
-#define REFRACTION_SKIP_SUN
-#define PHI 1.6180339887498948482
-
 /* Atmosphere sky functions and parameters */
 #define up vec3(0.0f, 1.0f, 0.0f)
 #define atmosphereColor vec3(0.18, 0.49, 0.66)
@@ -135,8 +130,6 @@ void main() {
         newRay.actived = 0;
     }
 
-
-
     if (greaterEqualF(hit.dist, INFINITY) && newRay.params.w < 1 && hit.shaded < 1) {
         newRay = transformRay(newRay);
 
@@ -234,14 +227,18 @@ void main() {
         reflectionRay.color.xyz *= 1.0f - prom;
         emitentRay.color.xyz *= 1.0f - prom;
         emitentRay.final.xyz *= 1.0f - prom;
+
+        // reflection
         //mixed(emitentRay.color.xyz, reflectionRay.color.xyz, spic);
-
-#ifdef DIRECT_LIGHT
-        if (diffused) applyLight(directLight(0, emitentRay, hit, vec3(1.0f), normal), emitentRay, surfacenormal);
-#endif
-
         //emitRay(reflectionRay, hit, normal, 1.0f);
+
+        // diffuse or emissive
+        if (diffused) {
+            applyLight(directLight(0, emitentRay, hit, vec3(1.0f), normal), emitentRay, surfacenormal);
+        }
         emitRay(emitentRay, hit, normal, 1.0f);
+
+        // transparency
         newRay = promised(newRay, hit, normal);
         newRay.color.xyz *= additiveBlend ? 1.0f : prom;
     }

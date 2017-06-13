@@ -1,6 +1,8 @@
 #ifndef _CONSTANTS_H
 #define _CONSTANTS_H
 
+/* Water and optics settings */
+#define PHI 1.6180339887498948482
 #define LONGEST 0xFFFFFFFF
 #define INFINITY 100000.0f
 #define GAMMA 2.2f
@@ -15,6 +17,9 @@
 
 #define USE_COMPATIBLE_ACCUMULATION
 #define COMPATIBLE_PRECISION 8388608.0
+
+#define SUNLIGHT_CAUSTICS true
+#define REFRACTION_SKIP_SUN
 
 #define FREEIMAGE_STYLE
 //#define RT_OPTIMIZED

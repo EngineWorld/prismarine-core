@@ -18,8 +18,12 @@ const uint Qt = 2;
 const uint Ut = 3;
 
 void _collect(inout Ray ray) {
-    if (lessEqualF(mlength(ray.color.xyz), 0.f)) return;
     const vec4 color = max(ray.final, vec4(0.f));
+    const float amplitude = mlength(color.xyz);
+    if (lessEqualF(amplitude, 0.f) || greaterF(amplitude, 100.0f)) {
+        ray.final.xyzw = vec4(0.0f);
+        return;
+    }
 #ifdef USE_COMPATIBLE_ACCUMULATION
     atomicAdd(texelInfo[ray.texel].samplecolor.x, int(double(color.x) * COMPATIBLE_PRECISION));
     atomicAdd(texelInfo[ray.texel].samplecolor.y, int(double(color.y) * COMPATIBLE_PRECISION));

@@ -148,8 +148,8 @@ Ray reflection(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal, in floa
     if (newRay.params.w == 1) return newRay;
     newRay.direct.xyz = glossy(reflect(newRay.direct.xyz, normal), normal, glossiness);
     newRay.color.xyz *= color;
-    newRay.params.x = 0;
-    newRay.bounce = min(3, newRay.bounce); // easier mode
+    newRay.params.x = SUNLIGHT_CAUSTICS ? 0 : 1;
+    newRay.bounce = min(2, newRay.bounce); // easier mode
     newRay.origin.xyz = fma(faceforward(hit.normal.xyz, newRay.direct.xyz, -hit.normal.xyz), vec3(GAP), newRay.origin.xyz); // padding
     return newRay;
 }
@@ -168,7 +168,7 @@ Ray refraction(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal, in floa
 #else
     
     newRay.direct.xyz = refrDir;
-    if (!refrc) newRay.params.x = 0;  // can be lighted by direct
+    if (!refrc) newRay.params.x = SUNLIGHT_CAUSTICS ? 0 : 1; // can be lighted by direct
     if (newRay.params.w < 1 || refrc) { 
         newRay.bounce += 1;
     }
@@ -225,10 +225,14 @@ vec3 sLight(in int i){
 }
 
 int applyLight(in Ray directRay, inout Ray newRay, in vec3 normal){
+#ifdef DIRECT_LIGHT
     if (newRay.params.w == 1) return -1; // don't accept from shadow originals
     if (dot(normal, directRay.direct.xyz) < 0.f) return -1; // don't accept regret shadows
     newRay.params.x = 1;
     return createRay(directRay);
+#else 
+    return -1;
+#endif
 }
 
 Ray directLight(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 normal){
@@ -251,7 +255,7 @@ Ray diffuse(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal){
     if (newRay.params.w == 1) return newRay;
     newRay.color.xyz *= color;
     newRay.direct.xyz = randomCosine(normal);
-    newRay.bounce = min(3, newRay.bounce);
+    newRay.bounce = min(2, newRay.bounce);
     newRay.params.z = 1;
     newRay.params.x = 0;
     newRay.origin.xyz = fma(faceforward(hit.normal.xyz, newRay.direct.xyz, -hit.normal.xyz), vec3(GAP), newRay.origin.xyz); // padding

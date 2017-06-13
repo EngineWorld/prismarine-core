@@ -20,6 +20,8 @@ void main()
     Ray ray = fetchRayDirect(t);
     Hit hit = fetchHitDirect(t);
     ray.bounce -= 1;
+    ray.final.xyz = max(vec3(0.0f), ray.final.xyz);
+    ray.color.xyz = max(vec3(0.0f), ray.color.xyz);
     hit.vmods.w = equalF(hit.dist, 0.f) ? (hit.vmods.w+1.f) : 0.f;
 
     if (ray.bounce < 0 || hit.shaded <= 0 || lessEqualF(mlength(ray.color.xyz), 0.f)) {
