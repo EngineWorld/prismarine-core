@@ -215,7 +215,7 @@ namespace Paper {
         if (availables != -1) glDeleteBuffers(1, &availables);
 
         const int32_t wrsize = width * height;
-        currentRayLimit = std::min(wrsize * 8, 4096 * 4096);
+        currentRayLimit = std::min(wrsize * 4, 4096 * 4096);
 
         glCreateBuffers(1, &rays);
         glCreateBuffers(1, &hits);
@@ -326,7 +326,7 @@ namespace Paper {
         randomUniformData.time = frandom();
         cameraUniformData.camInv = *(Vc4x4 *)glm::value_ptr(glm::inverse(frontSide));
         cameraUniformData.projInv = *(Vc4x4 *)glm::value_ptr(glm::inverse(persp));
-        cameraUniformData.interlace = 0;
+        cameraUniformData.interlace = 1;
         cameraUniformData.interlaceStage = (framenum++) % 2;
 
         this->bind();
