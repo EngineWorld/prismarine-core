@@ -10,7 +10,7 @@
 #define RADICES_MASK 0xf
 
 #define WG_SIZE WORK_SIZE
-#define WG_COUNT 64
+#define WG_COUNT 8
 #define WG_IDX gl_WorkGroupID.x
 #define LC_IDX gl_LocalInvocationID.y
 #define LANE_IDX gl_SubGroupInvocationARB

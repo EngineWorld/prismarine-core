@@ -85,7 +85,7 @@ namespace Paper {
                 size, 28, descending, 0
             };
 
-            const uint32_t WG_COUNT = 64;
+            const uint32_t WG_COUNT = 8;
             const uint32_t RADICES = 16;
 
             GLuint OutKeys = this->allocateBuffer<uint32_t>(size);
