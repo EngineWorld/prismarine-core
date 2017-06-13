@@ -326,7 +326,7 @@ namespace Paper {
         randomUniformData.time = frandom();
         cameraUniformData.camInv = *(Vc4x4 *)glm::value_ptr(glm::inverse(frontSide));
         cameraUniformData.projInv = *(Vc4x4 *)glm::value_ptr(glm::inverse(persp));
-        cameraUniformData.interlace = 1;
+        cameraUniformData.interlace = 0;
         cameraUniformData.interlaceStage = (framenum++) % 2;
 
         this->bind();

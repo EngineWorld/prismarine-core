@@ -436,8 +436,8 @@ int main(const int argc, const char ** argv)
     glfwWindowHint(GLFW_ALPHA_BITS, 2);
     glfwWindowHint(GLFW_DEPTH_BITS, 32); 
 
-    int32_t width = 800;
-    int32_t height = 600;
+    int32_t width = 1920;
+    int32_t height = 1080;
 
     GLFWmonitor* monitor = glfwGetPrimaryMonitor();
     GLFWwindow* window = glfwCreateWindow(width, height, "Simple example", NULL, NULL);
