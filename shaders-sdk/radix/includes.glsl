@@ -45,7 +45,7 @@ blocks_info get_blocks_info(const uint n, const uint wg_idx) {
     */
 
     const uint block_stride = WG_COUNT * BLOCK_SIZE;
-    const uint block_count = uint(ceil(double(n) / double(block_stride)));
+    const uint block_count = (n - 1) / block_stride + 1;
     const uint block_off = wg_idx * BLOCK_SIZE * block_count;
     return blocks_info(block_count, block_off);
 }
