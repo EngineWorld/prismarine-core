@@ -12,9 +12,8 @@ shared uint totals[WORK_SIZE];
 layout (local_size_x = WARP_SIZE, local_size_y = WORK_SIZE) in;
 
 uint bitCount64(in uint64_t a64) {
-    return
-        bitCount(uint(a64 & 0xFFFFFFFFul)) +
-        bitCount(uint((a64 >> 32ul) & 0xFFFFFFFFul));
+    const uvec2 unpacked = unpackUint2x32(a64);
+    return bitCount(unpacked.x) + bitCount(unpacked.y);
 }
 
 // prefix scan for WARP vector
