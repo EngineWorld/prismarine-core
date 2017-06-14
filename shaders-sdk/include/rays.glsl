@@ -25,9 +25,10 @@ void _collect(inout Ray ray) {
         return;
     }
 #ifdef USE_COMPATIBLE_ACCUMULATION
-    atomicAdd(texelInfo[ray.texel].samplecolor.x, int(double(color.x) * COMPATIBLE_PRECISION));
-    atomicAdd(texelInfo[ray.texel].samplecolor.y, int(double(color.y) * COMPATIBLE_PRECISION));
-    atomicAdd(texelInfo[ray.texel].samplecolor.z, int(double(color.z) * COMPATIBLE_PRECISION));
+    const ivec3 gcol = ivec3(dvec3(color.xyz) * COMPATIBLE_PRECISION);
+    atomicAdd(texelInfo[ray.texel].samplecolor.x, gcol.x);
+    atomicAdd(texelInfo[ray.texel].samplecolor.y, gcol.y);
+    atomicAdd(texelInfo[ray.texel].samplecolor.z, gcol.z);
 #else
     atomicAdd(texelInfo[ray.texel].samplecolor.x, color.x);
     atomicAdd(texelInfo[ray.texel].samplecolor.y, color.y);

@@ -18,9 +18,12 @@ int hash( in ivec3 v ) { return hash( v.x ^ hash(v.y) ^ hash(v.z)             );
 int hash( in ivec4 v ) { return hash( v.x ^ hash(v.y) ^ hash(v.z) ^ hash(v.w) ); }
 
 float floatConstruct( in int m ) {
-    m = (m >> 13) ^ m;
-    const int nn = (m * (m * m * 60493 + 19990303) + 1376312589) & 0x7fffffff;
-    return float(fract(1.0 - (double(nn) / 1073741824.0)));
+    const int ieeeMantissa = 0x007FFFFF; // binary32 mantissa bitmask
+    const int ieeeOne      = 0x3F800000; // 1.0 in IEEE binary32
+    m &= ieeeMantissa;                     // Keep only mantissa bits (fractional part)
+    m |= ieeeOne;                          // Add fractional part to 1.0
+    float  f = uintBitsToFloat( m );       // Range [1:2]
+    return f - 1.0;                        // Range [0:1]
 }
 
 float random( in float x ) { return floatConstruct(hash(floatBitsToInt(x))); }
