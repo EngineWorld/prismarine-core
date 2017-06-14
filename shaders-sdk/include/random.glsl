@@ -18,11 +18,11 @@ int hash( in ivec3 v ) { return hash( v.x ^ hash(v.y) ^ hash(v.z)             );
 int hash( in ivec4 v ) { return hash( v.x ^ hash(v.y) ^ hash(v.z) ^ hash(v.w) ); }
 
 float floatConstruct( in int m ) {
-    const int ieeeMantissa = 0x007FFFFF;                   // binary32 mantissa bitmask
-    const int ieeeOne      = 0x3F800000;                   // 1.0 in IEEE binary32
-    m &= ieeeMantissa;                                     // Keep only mantissa bits (fractional part)
-    m |= ieeeOne;                                          // Add fractional part to 1.0
-    return clamp(uintBitsToFloat( m ) - 1.0f, 0.0f, 1.0f); // Range [0:1]
+    const int ieeeMantissa = 0x007FFFFF; // binary32 mantissa bitmask
+    const int ieeeOne      = 0x3F800000; // 1.0 in IEEE binary32
+    m &= ieeeMantissa;                   // Keep only mantissa bits (fractional part)
+    m |= ieeeOne;                        // Add fractional part to 1.0
+    return fract(uintBitsToFloat( m ));  // Range [0:1]
 }
 
 float random( in float x ) { return floatConstruct(hash(floatBitsToInt(x))); }
