@@ -37,7 +37,7 @@ namespace Paper {
 
     private:
         int32_t materialID = 0;
-        GLuint mats;
+        GLuint mats = -1;
 
         void init();
 
@@ -50,10 +50,7 @@ namespace Paper {
         Material() {
 			submats = std::vector<Submat>(0); // init
             samplers = std::vector<uint32_t>(0);
-
-            { // create zero texture
-                samplers.push_back(0);
-            }
+            samplers.push_back(0);
 
             freedomSamplers = std::vector<uint32_t>(0);
             texnames = std::map<std::string, uint32_t>();
@@ -82,12 +79,14 @@ namespace Paper {
 
         void loadToVGA();
         void bindWithContext(GLuint & prog);
+
 		void freeTextureByGL(const GLuint& idx);
         void freeTexture(const uint32_t& idx);
+
         uint32_t loadTexture(std::string tex, bool force_write = false);
         uint32_t loadTexture(const GLuint & gltexture);
 
-        uint32_t getGLTexture(const uint32_t & idx);
+        GLuint getGLTexture(const uint32_t & idx);
         uint32_t getTexture(const GLuint & idx);
     };
 }
