@@ -20,7 +20,7 @@ layout ( location = 0 ) out vec4 outFragColor;
 layout ( location = 0 ) uniform sampler2D samples;
 
 uniform vec2 viewport;
-in vec2 texcoord;
+layout ( location = 0 ) in vec2 texcoord;
 
 
 void mediumSwap(inout vec4 c0, inout vec4 c1){
