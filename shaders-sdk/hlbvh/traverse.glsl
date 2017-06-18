@@ -181,6 +181,10 @@ float intersectCubeSingle(in vec3 origin, in vec3 ray, in vec3 cubeMin, in vec3 
     return isCube ? (lessEqualF(tNear, 0.0f) ? tFar : tNear) : INFINITY;
 }
 
+const int STACK_SIZE = 32;
+int deferredStack[STACK_SIZE];
+int deferredPtr = 0;
+
 TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     TResult lastRes;
     lastRes.dist = INFINITY;
@@ -200,10 +204,13 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     const int bakedStep = int(floor(1.f + hit.vmods.w));
     lastRes.predist = far * dirlen;
 
-    bool validBox = lessF(near, INFINITY) && lessF(d, INFINITY) && greaterEqualF(d, 0.0f) && greaterEqualF(lastRes.predist, near * dirlen);
+    bool validBox = lessF(d, INFINITY) && greaterEqualF(d, 0.0f) && greaterEqualF(lastRes.predist, near * dirlen);
     if (!validBox) {
         return loadInfo(lastRes);
     }
+
+    deferredPtr = 0;
+    //deferredStack[deferredPtr++] = -1;
 
     int idx = 0, escape = -1, level = 0;
     for(int i=0;i<16384;i++)
@@ -239,7 +246,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
             }
 
             if (leftOverlap || rightOverlap) {
-                const int leftNeeded = leftOverlap ? node.range.x : -1;
+                const int leftNeeded  = leftOverlap  ? node.range.x : -1;
                 const int rightNeeded = rightOverlap ? node.range.y : -1;
 
                 if (leftOverlap && rightOverlap) {
@@ -248,19 +255,29 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
                 
                 const int farest  = leftOverlap ? rightNeeded : leftNeeded;
                 const int nearest = leftOverlap ? leftNeeded : rightNeeded;
+
+                idx = nearest;
+                if (deferredPtr < STACK_SIZE && farest != -1) {
+                    deferredStack[deferredPtr++] = farest;
+                }
+                continue;
+
+                /*
                 const int pref = nearest != escape ? nearest : farest;
                 if ( (farest != escape || escape < 0) && pref >= 0 ) {
                     idx = pref;
                     level++;
                     continue;
                 }
+                */
             }
         }
 
-        escape = idx;
-        idx = node.parent;
+        idx = deferredStack[--deferredPtr];
+        //escape = idx;
+        //idx = node.parent;
 
-        const bool overhead = idx < 0 || (--level) < 0;
+        const bool overhead = idx < 0 || deferredPtr < 0;//(--level) < 0;
         validBox = validBox && !overhead;
         if ( overhead ) { break; }
     }

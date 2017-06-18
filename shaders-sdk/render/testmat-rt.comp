@@ -124,7 +124,6 @@ void main() {
     if (greaterEqualF(hit.dist, INFINITY) && newRay.params.w < 1) {
         newRay.actived = 0;
         newRay.final.xyz = newRay.color.xyz * vec3(0.0f);
-        //newRay.final.xyz = newRay.color.xyz * vec3(0.5f, 0.0f, 0.5f);
 
         hit.triangle = 0;
         hit.dist = INFINITY;

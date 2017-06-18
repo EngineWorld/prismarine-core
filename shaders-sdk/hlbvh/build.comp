@@ -87,8 +87,8 @@ void main() {
         const bool rightleaf = (c2idx == range.y);
         const int c1idxl =  leftleaf ? LEAFIDX(c1idx) : NODEIDX(c1idx);
         const int c2idxl = rightleaf ? LEAFIDX(c2idx) : NODEIDX(c2idx);
-        atomicExchange(Nodes[c1idxl].parent, globalID);
-        atomicExchange(Nodes[c2idxl].parent, globalID);
+        Nodes[c2idxl].parent = globalID;
+        Nodes[c1idxl].parent = globalID;
         Nodes[globalID].range = ivec2(c1idxl, c2idxl);
         Flags[globalID] = 0;
     }
