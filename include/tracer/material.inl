@@ -26,23 +26,23 @@ namespace Paper {
 
     inline void Material::freeTexture(const uint32_t& idx) {
         freedomSamplers.push_back(idx);
+        samplers[idx] = -1;
     }
 
 	inline void Material::freeTextureByGL(const GLuint & gltexture) {
-        for (int i = 0; i < samplers.size(); i++) {
+        for (int i = 1; i < samplers.size(); i++) {
             if (samplers[i] == gltexture) {
-                freedomSamplers.push_back(i);
+                this->freeTexture(i);
             }
         }
 	}
 
     // get texture by GL
     inline uint32_t Material::getTexture(const GLuint & gltexture) {
-        for (int i = 0; i < samplers.size(); i++) {
-            if (samplers[i] == gltexture) {
-                return i;
-            }
+        for (int i = 1; i < samplers.size(); i++) {
+            if (samplers[i] == gltexture) return i;
         }
+        return 0;
     }
 
     inline GLuint Material::getGLTexture(const uint32_t & idx) {
@@ -50,7 +50,8 @@ namespace Paper {
     }
 
     inline uint32_t Material::loadTexture(const GLuint & gltexture) {
-        int32_t idx = 0;
+        int32_t idx = getTexture(gltexture);
+        if (idx) return idx;
         if (freedomSamplers.size() > 0) {
             idx = freedomSamplers[freedomSamplers.size() - 1];
             freedomSamplers.pop_back();

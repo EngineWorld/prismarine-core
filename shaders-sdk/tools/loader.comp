@@ -141,7 +141,7 @@ void main()
             const int idc = tidc*3 + i;
             //indics[idc] = idc;
 
-            if (mlength(abs(normal[i])) > 0.00001f) {
+            if (mlength(abs(normal[i])) > 0.00001f && GEOMETRY_BLOCK attributeUniform.haveNormal > 0) {
                 verts[idc].normal = toStride3(normalize(normal[i]));
             } else {
                 verts[idc].normal = toStride3(offsetnormal.xyz);
@@ -163,7 +163,7 @@ void main()
             //indics[idc] = idc;
 
             const int mi = (GEOMETRY_BLOCK attributeUniform.iModifiers0.w > 0 ? ms : m)[i];
-            if (mlength(abs(normal[mi])) > 0.00001f) {
+            if (mlength(abs(normal[mi])) > 0.00001f && GEOMETRY_BLOCK attributeUniform.haveNormal > 0) {
                 verts[idc].normal = toStride3(normalize(normal[mi]));
             } else {
                 verts[idc].normal = toStride3(offsetnormal.xyz);

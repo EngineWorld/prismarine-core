@@ -50,7 +50,7 @@ namespace Paper {
         Material() {
 			submats = std::vector<Submat>(0); // init
             samplers = std::vector<uint32_t>(0);
-            samplers.push_back(0);
+            samplers.push_back(-1);
 
             freedomSamplers = std::vector<uint32_t>(0);
             texnames = std::map<std::string, uint32_t>();

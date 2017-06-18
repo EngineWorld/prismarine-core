@@ -71,7 +71,7 @@ void main() {
     }
 
     if (tid == 0) {
-        minmax[gl_WorkGroupID.x*2 + 0] = sdata[0].mn; 
-        minmax[gl_WorkGroupID.x*2 + 1] = sdata[0].mx; 
+        minmax[gl_WorkGroupID.x*2 + 0] = sdata[0].mn - 0.0001f; 
+        minmax[gl_WorkGroupID.x*2 + 1] = sdata[0].mx + 0.0001f; 
     }
 }

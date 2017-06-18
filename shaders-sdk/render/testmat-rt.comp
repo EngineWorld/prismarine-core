@@ -67,13 +67,18 @@ vec4 fetchDiffuse(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 norma
     mat.diffuse.xyz *= 1.25f;
     mat.diffuse = clamp(mat.diffuse, vec4(0.0f), vec4(1.0f));
 
-    if(!validateTexture(mat.diffusePart)) {
+    if (!validateTexture(mat.diffusePart)) {
         result = clamp(mat.diffuse, vec4(0.0f), vec4(1.0f));
     } else
     if (haveProp(mat, M_ADDITIVE)) {
         result = clamp(fetchPart(mat.diffusePart, texcoord), vec4(0.0f), vec4(1.0f));
+    } else
+    if (haveProp(mat, M_SHADOWED)) {
+        result = clamp(fetchPart(mat.diffusePart, texcoord) * mat.diffuse, vec4(0.0f), vec4(1.0f));
+        //result = clamp(mat.diffuse, vec4(0.0f), vec4(1.0f));
     } else {
         result = clamp(fetchPart(mat.diffusePart, texcoord) * mat.diffuse, vec4(0.0f), vec4(1.0f));
+        //result = clamp(mat.diffuse, vec4(0.0f), vec4(1.0f));
     }
 
     result.xyz = pow(result.xyz, vec3(GAMMA));
@@ -118,8 +123,8 @@ void main() {
 
     if (greaterEqualF(hit.dist, INFINITY) && newRay.params.w < 1) {
         newRay.actived = 0;
-        //newRay.final.xyz = newRay.color.xyz * vec3(0.0f);
-        newRay.final.xyz = newRay.color.xyz * vec3(0.5f, 0.0f, 0.5f);
+        newRay.final.xyz = newRay.color.xyz * vec3(0.0f);
+        //newRay.final.xyz = newRay.color.xyz * vec3(0.5f, 0.0f, 0.5f);
 
         hit.triangle = 0;
         hit.dist = INFINITY;
@@ -176,10 +181,10 @@ void main() {
         emitentRay.final.xyz *= (1.0f - prom);
 
         // reflective effects in coins and metals
-        if (haveProp(materialCache, M_ENVIRONMENT) && dot(hit.normal.xyz, newRay.direct.xyz) < 0.0f) {
-            emitRay(reflection(newRay, hit, vec3(1.0f), normal, 0.0f), hit, normal, 0.2f);
-            emitentRay.color.xyz *= 0.8f;
-        }
+        //if (haveProp(materialCache, M_ENVIRONMENT) && dot(hit.normal.xyz, newRay.direct.xyz) < 0.0f) {
+        //    emitRay(reflection(newRay, hit, vec3(1.0f), normal, 0.0f), hit, normal, 0.2f);
+        //    emitentRay.color.xyz *= 0.8f;
+        //}
 
         // emit diffuse ray
         if (prom < 1.f) {
