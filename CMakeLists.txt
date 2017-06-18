@@ -13,13 +13,15 @@ set(SOURCES_LIST
     "./include/*.h"
     
     #include
+    "./external/include/*/*.hpp"
+    "./external/include/*/*.hh"
+    "./external/include/*/*.h"
     "./external/include/*.hpp"
     "./external/include/*.hh"
     "./external/include/*.h"
     
     #GLAD
-    "./include/glad/*.h"
-    "./include/glad/*.cpp"
+    "./external/src/glad/*.c"
     
     #ray-tracer
     "./include/tracer/*.hpp"
@@ -57,7 +59,7 @@ set (LIBS
     ${OPENGL_LIBRARIES}
     glfw3 
     FreeImage 
-    assimp
+    assimp-vc140-mt
 )
 
 set (CMAKE_CXX_STANDARD_REQUIRED ON)

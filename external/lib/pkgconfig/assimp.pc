@@ -1,0 +1,11 @@
+prefix=C:/Users/capitalknew/Documents/GitHub/paper-render-2/external
+exec_prefix=C:/Users/capitalknew/Documents/GitHub/paper-render-2/external/
+libdir=C:/Users/capitalknew/Documents/GitHub/paper-render-2/external/lib
+includedir=C:/Users/capitalknew/Documents/GitHub/paper-render-2/external/include/assimp
+
+Name: Assimp
+Description: Import various well-known 3D model formats in an uniform manner.
+Version: 3.3.1
+Libs: -L${libdir} -lassimp
+Libs.private:  -lz
+Cflags: -I${includedir}
