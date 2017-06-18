@@ -19,10 +19,6 @@
 #include "glm/gtx/component_wise.hpp"
 #include "glad/glad.h"
 
-#ifdef USE_LODEPNG
-#include "lodepng.h"
-#endif
-
 #ifdef USE_FREEIMAGE
 #include "external/include/FreeImage.h"
 #endif
