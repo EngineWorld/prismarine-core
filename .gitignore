@@ -33,9 +33,6 @@ build*/
 shaders/
 Chess_Set_Obj/
 Chess_Textures/
-gli/
-glad/
-KHR/
 phantom/
 stb/
 cub/
