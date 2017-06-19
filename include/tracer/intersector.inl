@@ -222,7 +222,7 @@ namespace Paper {
         
         glCopyNamedBufferSubData(minmaxBufRef, minmaxBuf, 0, 0, strided<bbox>(1));
         geometryUniformData.triangleOffset = 0;
-        geometryUniformData.triangleCount = this->triangleCount;
+        geometryUniformData.triangleCount = triangleCount;
         minmaxUniformData.prec = prec;
         minmaxUniformData.heap = 1;
 
