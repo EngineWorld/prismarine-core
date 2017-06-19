@@ -5,8 +5,8 @@
 #include "../include/uniforms.glsl"
 #include "./includes.glsl"
 
-#define LEAFIDX(i) ((Range.y-1) + i)
-#define NODEIDX(i) (clamp(i, 1, Range.y-2))
+#define LEAFIDX(i) (Range.y + i)
+#define NODEIDX(i) (clamp(i, 1, Range.y-1))
 
 int nlz (in uint x) {
     return 31-findMSB(x);

@@ -174,7 +174,7 @@ float intersectCubeSingle(in vec3 origin, in vec3 ray, in vec3 cubeMin, in vec3 
     const vec3 t2 = max(tMin, tMax);
     const float tNear = max(max(t1.x, t1.y), t1.z);
     const float tFar  = min(min(t2.x, t2.y), t2.z);
-    const bool isCube = tFar >= tNear && tFar >= 0.0f;
+    const bool isCube = tFar >= tNear && greaterEqualF(tFar, 0.0f);
     near = isCube ? tNear : INFINITY;
     far  = isCube ? tFar  : INFINITY;
     return isCube ? (lessEqualF(tNear, 0.0f) ? tFar : tNear) : INFINITY;
