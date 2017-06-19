@@ -7,8 +7,8 @@
 
 bbox bboxunion(in bbox b1, in bbox b2) {
     bbox res = b1;
-    res.mn = min(res.mn, b2.mn);
-    res.mx = max(res.mx, b2.mx);
+    res.mn = min(b1.mn, b2.mn);
+    res.mx = max(b1.mx, b2.mx);
     return res;
 }
 
@@ -22,9 +22,7 @@ void main() {
         if (atomicCompSwap(Flags[idx], 0, 1) == 1) {
             const int lc = Nodes[idx].range.x;
             const int rc = Nodes[idx].range.y;
-            bbox lb = Nodes[lc].box;
-            bbox rb = Nodes[rc].box;
-            Nodes[idx].box = bboxunion(lb, rb);
+            Nodes[idx].box = bboxunion(Nodes[lc].box, Nodes[rc].box);
         } else {
             break;
         }

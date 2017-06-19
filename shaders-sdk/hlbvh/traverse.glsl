@@ -19,7 +19,7 @@ float intersectTriangle(in vec3 orig, in vec3 dir, inout vec3 ve[3], inout vec2 
     const vec3 e2 = ve[2] - ve[0];
 
     if (
-        lessEqualF(length(e1), 0.f) || 
+        lessEqualF(length(e1), 0.f) && 
         lessEqualF(length(e2), 0.f)
     ) return INFINITY;
 
@@ -27,9 +27,9 @@ float intersectTriangle(in vec3 orig, in vec3 dir, inout vec3 ve[3], inout vec2 
     const float det = dot(e1, pvec);
 
 #ifndef CULLING
-    if (lessF(abs(det), 0.0f)) return INFINITY;
+    if (abs(det) < 0.00001f) return INFINITY;
 #else
-    if (lessF(det, 0.0f)) return INFINITY;
+    if (det < 0.00001f) return INFINITY;
 #endif
 
     const vec3 tvec = orig - ve[0];
@@ -40,7 +40,7 @@ float intersectTriangle(in vec3 orig, in vec3 dir, inout vec3 ve[3], inout vec2 
 
     if (
         any(lessThan(uvt.xy, vec2(0.f))) || 
-        any(greaterThan(vec2(0.f, uvt.y) + uvt.x, vec2(1.f))) 
+        any(greaterThan(vec2(uvt.x) + vec2(0.f, uvt.y), vec2(1.f))) 
     ) return INFINITY;
 
     UV.xy = uvt.xy;
@@ -175,9 +175,9 @@ float intersectCubeSingle(in vec3 origin, in vec3 ray, in vec3 cubeMin, in vec3 
     const vec3 t2 = max(tMin, tMax);
     const float tNear = max(max(t1.x, t1.y), t1.z);
     const float tFar  = min(min(t2.x, t2.y), t2.z);
-    const bool isCube = greaterEqualF(tFar, tNear) && greaterEqualF(tFar, 0.0f);
+    const bool isCube = tFar >= tNear && tFar >= 0.0f;
     near = isCube ? tNear : INFINITY;
-    far = isCube ? tFar : INFINITY;
+    far  = isCube ? tFar  : INFINITY;
     return isCube ? (lessEqualF(tNear, 0.0f) ? tFar : tNear) : INFINITY;
 }
 
@@ -192,15 +192,20 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     lastRes.triangle = LONGEST;
     lastRes.materialID = LONGEST;
     bakedRange[0] = -1;
+    deferredPtr = 0;
 
     direct = normalize(direct);
     vec3 dirproj = (GEOMETRY_BLOCK octreeUniform.project * vec4(direct, 0.0)).xyz;
     const float dirlen = 1.0f / length(dirproj);
     dirproj = normalize(dirproj);
 
+    int idx = 0;
+    HlbvhNode node = Nodes[idx];
+    const bbox lbox = node.box; // need to use this fox, because with [0-1] box shows holes
+
     float near = INFINITY, far = INFINITY;
     const vec3 torig = projectVoxels(origin);
-    const float d = intersectCubeSingle(torig, dirproj, vec3(0.0f), vec3(1.0f), near, far);
+    const float d = intersectCubeSingle(torig, dirproj, lbox.mn.xyz, lbox.mx.xyz, near, far);
     const int bakedStep = int(floor(1.f + hit.vmods.w));
     lastRes.predist = far * dirlen;
 
@@ -208,13 +213,8 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     if (!validBox) {
         return loadInfo(lastRes);
     }
-
-    deferredPtr = 0;
-    //deferredStack[deferredPtr++] = -1;
-
-    int idx = 0, escape = -1, level = 0;
-    for(int i=0;i<16384;i++)
-    {
+    
+    for(int i=0;i<16384;i++) {
         HlbvhNode node = Nodes[idx];
 
         if (node.range.x == node.range.y && validBox) {
@@ -250,7 +250,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
                 const int rightNeeded = rightOverlap ? node.range.y : -1;
 
                 if (leftOverlap && rightOverlap) {
-                    leftOverlap = lessEqualF(lefthit, righthit);
+                    leftOverlap = lefthit <= righthit;
                 }
                 
                 const int farest  = leftOverlap ? rightNeeded : leftNeeded;
@@ -261,23 +261,12 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
                     deferredStack[deferredPtr++] = farest;
                 }
                 continue;
-
-                /*
-                const int pref = nearest != escape ? nearest : farest;
-                if ( (farest != escape || escape < 0) && pref >= 0 ) {
-                    idx = pref;
-                    level++;
-                    continue;
-                }
-                */
             }
         }
 
         idx = deferredStack[--deferredPtr];
-        //escape = idx;
-        //idx = node.parent;
 
-        const bool overhead = idx < 0 || deferredPtr < 0;//(--level) < 0;
+        const bool overhead = idx < 0 || deferredPtr < 0;
         validBox = validBox && !overhead;
         if ( overhead ) { break; }
     }
