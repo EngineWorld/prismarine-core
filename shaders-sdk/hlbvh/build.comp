@@ -9,11 +9,11 @@
 #define NODEIDX(i) (clamp(i, 1, Range.y-1))
 
 int nlz (in uint x) {
-    return 31-findMSB(x);
+    return clamp(31-findMSB(x), 0, 31);
 }
 
 int nlz (in int x) {
-    return 31-findMSB(uint(x));
+    return clamp(31-findMSB(uint(x)), 0, 31);
 }
 
 int delta( in int i1, in int i2) {
