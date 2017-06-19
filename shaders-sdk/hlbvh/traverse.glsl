@@ -17,11 +17,7 @@ void swap(inout int a, inout int b){
 float intersectTriangle(in vec3 orig, in vec3 dir, inout vec3 ve[3], inout vec2 UV) {
     const vec3 e1 = ve[1] - ve[0];
     const vec3 e2 = ve[2] - ve[0];
-
-    if (
-        lessEqualF(length(e1), 0.f) && 
-        lessEqualF(length(e2), 0.f)
-    ) return INFINITY;
+    if (length(e1) < 0.0001f && length(e2) < 0.0001f) return INFINITY;
 
     const vec3 pvec = cross(dir, e2);
     const float det = dot(e1, pvec);
