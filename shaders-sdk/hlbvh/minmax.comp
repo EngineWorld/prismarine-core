@@ -62,16 +62,18 @@ void main() {
         if (tid < 64) { sdata[tid] = bboxunion(sdata[tid], sdata[tid + 64]); } barrier();
     }
 
-    if (tid < gl_SubGroupSizeARB) {
+    //if (tid < gl_SubGroupSizeARB) {
         if (gl_WorkGroupSize.x >= 64) { if (tid < 32) {sdata[tid] = bboxunion(sdata[tid], sdata[tid + 32]);} barrier(); }
         if (gl_WorkGroupSize.x >= 32) { if (tid < 16) {sdata[tid] = bboxunion(sdata[tid], sdata[tid + 16]);} barrier(); }
         if (gl_WorkGroupSize.x >= 16) { if (tid < 8) {sdata[tid] = bboxunion(sdata[tid], sdata[tid + 8]);} barrier(); }
         if (gl_WorkGroupSize.x >= 8) { if (tid < 4) {sdata[tid] = bboxunion(sdata[tid], sdata[tid + 4]);} barrier(); }
         if (gl_WorkGroupSize.x >= 4) { if (tid < 2) {sdata[tid] = bboxunion(sdata[tid], sdata[tid + 2]);} barrier(); }
         if (gl_WorkGroupSize.x >= 2) { if (tid < 1) {sdata[tid] = bboxunion(sdata[tid], sdata[tid + 1]);} barrier(); }
-    }
+    //}
 
     if (tid == 0) {
+        //minmax[gl_WorkGroupID.x*2 + 0] = sdata[0].mn - 9.0001f; 
+        //minmax[gl_WorkGroupID.x*2 + 1] = sdata[0].mx + 9.0001f; 
         minmax[gl_WorkGroupID.x*2 + 0] = sdata[0].mn - 0.0001f; 
         minmax[gl_WorkGroupID.x*2 + 1] = sdata[0].mx + 0.0001f; 
     }

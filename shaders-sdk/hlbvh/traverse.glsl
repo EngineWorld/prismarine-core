@@ -55,7 +55,11 @@ TResult choiceFirstBaked(inout TResult res, in vec3 orig, in vec3 dir) {
     const int tri = bakedRange[0];
     bakedRange[0] = LONGEST;
 
-    const bool validTriangle = tri != LONGEST;
+    const bool validTriangle = 
+        tri >= 0 && 
+        tri != LONGEST && 
+        tri < GEOMETRY_BLOCK geometryUniform.triangleCount && 
+        tri != res.triangle;
     if (!validTriangle) return res;
 
     const vec2 uv = bakedRangeIntersection[0].yz;
@@ -92,12 +96,12 @@ TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
 
     const int tri = tpi < bakedStackCount ? bakedStack[tpi] : LONGEST;
     bakedStackCount = 0;
-    bakedStack[0] = LONGEST;
 
     const bool validTriangle = 
         tri >= 0 && 
         tri != LONGEST && 
-        tri < GEOMETRY_BLOCK geometryUniform.triangleCount;
+        tri < GEOMETRY_BLOCK geometryUniform.triangleCount && 
+        tri != res.triangle;
 
     vec2 uv = vec2(0.0f);
     vec3 triverts[3];
@@ -123,7 +127,8 @@ TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tr
     const bool validTriangle = 
         tri >= 0 && 
         tri != LONGEST && 
-        tri < GEOMETRY_BLOCK geometryUniform.triangleCount;
+        tri < GEOMETRY_BLOCK geometryUniform.triangleCount && 
+        tri != res.triangle;
 
     vec2 uv = vec2(0.0f);
     vec3 triverts[3];
@@ -134,23 +139,22 @@ TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tr
     }
 
     const float _d = intersectTriangle(orig, dir, triverts, uv);
-    const bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.predist);
+    const bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.predist) && greaterEqualF(_d, 0.0f);
     const bool inbaked = equalF(_d, 0.0f);
-    const bool isbaked = !inbaked || bakedStackCount > step;
-    const bool changed = !equalF(_d, res.predist) && isbaked;
+    const bool isbaked = equalF(_d, res.predist);
+    const bool changed = !isbaked && !inbaked;
 
     if (near) {
-        if (changed) {
-            res.predist = _d;
-            bakedRange[0] = LONGEST;
-        }
-        if (inbaked) {
+        if (changed) res.predist = _d;
+
+        if ( inbaked ) {
             bakedStack[bakedStackCount++] = tri;
         } else 
-        if (tri > bakedRange[0] || bakedRange[0] == LONGEST) {
+        if ( bakedRange[0] < tri || bakedRange[0] == LONGEST || changed ) {
             bakedRange[0] = tri;
             bakedRangeIntersection[0] = vec4(_d, uv, 0.f);
         }
+        
     }
 
     return res;
@@ -177,7 +181,7 @@ float intersectCubeSingle(in vec3 origin, in vec3 ray, in vec3 cubeMin, in vec3 
     const bool isCube = tFar >= tNear && greaterEqualF(tFar, 0.0f);
     near = isCube ? tNear : INFINITY;
     far  = isCube ? tFar  : INFINITY;
-    return isCube ? (lessEqualF(tNear, 0.0f) ? tFar : tNear) : INFINITY;
+    return isCube ? (lessF(tNear, 0.0f) ? tFar : tNear) : INFINITY;
 }
 
 const int STACK_SIZE = 16;
@@ -190,7 +194,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     lastRes.predist = INFINITY;
     lastRes.triangle = LONGEST;
     lastRes.materialID = LONGEST;
-    bakedRange[0] = -1;
+    bakedRange[0] = LONGEST;
     deferredPtr = 0;
 
     const vec3 torig = projectVoxels(origin);
@@ -208,7 +212,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     const float d = intersectCubeSingle(torig, dirproj, lbox.mn.xyz, lbox.mx.xyz, near, far);
     //const float d = intersectCubeSingle(torig, dirproj, vec3(0.0f) - padding, vec3(1.0f) + padding, near, far);
     const int bakedStep = int(floor(1.f + hit.vmods.w));
-    lastRes.predist = far * dirlen;
+    //lastRes.predist = far * dirlen;
 
     bool validBox = 
         lessF(d, INFINITY) 

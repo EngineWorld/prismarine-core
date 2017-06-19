@@ -242,16 +242,15 @@ namespace Paper {
 
         bbox bound;
         glGetNamedBufferSubData(minmaxBuf, 0, strided<bbox>(1), &bound);
-        scale  = (glm::make_vec4((float *)&bound.mx) - glm::make_vec4((float *)&bound.mn)).xyz();
-        offset =  glm::make_vec4((float *)&bound.mn).xyz();
+        scale = (glm::make_vec4((float *)&bound.mx) - glm::make_vec4((float *)&bound.mn)).xyz();
+        //scale  = (glm::make_vec4((float *)&bound.mx) - glm::make_vec4((float *)&bound.mn)).xyz() * 1.01f;
+        offset = glm::make_vec4((float *)&bound.mn).xyz();
 
         {
             glm::mat4 mat(1.0f);
             mat = glm::scale(mat, 1.0f / (scale));
             mat = glm::translate(mat, -offset);
             mat *= glm::inverse(optimization);
-            octreeUniformData.transform = *(Vc4x4 *)glm::value_ptr(glm::mat4(1.0f));
-            octreeUniformData.transformInv = *(Vc4x4 *)glm::value_ptr(glm::mat4(1.0f));
             octreeUniformData.project = *(Vc4x4 *)glm::value_ptr(mat);
             octreeUniformData.unproject = *(Vc4x4 *)glm::value_ptr(glm::inverse(mat));
         }
