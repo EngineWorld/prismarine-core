@@ -44,11 +44,10 @@ void main() {
     sdata[tid].mn = vec4( 100000.f);
     sdata[tid].mx = vec4(-100000.f);
 
-    //while (i < GEOMETRY_BLOCK geometryUniform.triangleCount) {
-    do {
+    while (i < GEOMETRY_BLOCK geometryUniform.triangleCount) {
         sdata[tid] = bboxunion(sdata[tid], bboxunion(getMinMaxPrimitive(i), getMinMaxPrimitive(i + gl_WorkGroupSize.x)));
         i += gridSize;
-    } while(i < GEOMETRY_BLOCK geometryUniform.triangleCount);
+    };
     barrier();
 
     if (gl_WorkGroupSize.x >= 512) {

@@ -126,14 +126,12 @@ void main()
         mods[i] = modf;
     }
 
-    vec3 offsetnormal = cross(vertice[1] - vertice[0], vertice[2] - vertice[0]);
-    offsetnormal /= max(length(offsetnormal), 0.00001f);
-
     // adapt quads to triangles
     const int istride = mode == 1 ? 2 : 1;
     int tidc = GEOMETRY_BLOCK geometryUniform.triangleOffset + int(gl_GlobalInvocationID.x) * istride;
     atomicAdd(tcounter[0], istride);
 
+    vec3 offsetnormal = cross(vertice[1] - vertice[0], vertice[2] - vertice[0]);
     {
         mats[tidc] = matID;
 #pragma optionNV (unroll all)
@@ -144,7 +142,7 @@ void main()
             if (mlength(abs(normal[i])) > 0.00001f && GEOMETRY_BLOCK attributeUniform.haveNormal > 0) {
                 verts[idc].normal = toStride3(normalize(normal[i]));
             } else {
-                verts[idc].normal = toStride3(offsetnormal.xyz);
+                verts[idc].normal = toStride3(normalize(offsetnormal.xyz));
             }
 
             verts[idc].vertex = toStride3(vertice[i] + offsetnormal * GEOMETRY_BLOCK geometryUniform.offset);
@@ -166,7 +164,7 @@ void main()
             if (mlength(abs(normal[mi])) > 0.00001f && GEOMETRY_BLOCK attributeUniform.haveNormal > 0) {
                 verts[idc].normal = toStride3(normalize(normal[mi]));
             } else {
-                verts[idc].normal = toStride3(offsetnormal.xyz);
+                verts[idc].normal = toStride3(normalize(offsetnormal.xyz));
             }
 
             verts[idc].vertex = toStride3(vertice[mi] + offsetnormal * GEOMETRY_BLOCK geometryUniform.offset);

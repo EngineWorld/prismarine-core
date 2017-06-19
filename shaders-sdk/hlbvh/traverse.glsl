@@ -17,7 +17,10 @@ void swap(inout int a, inout int b){
 float intersectTriangle(in vec3 orig, in vec3 dir, inout vec3 ve[3], inout vec2 UV) {
     const vec3 e1 = ve[1] - ve[0];
     const vec3 e2 = ve[2] - ve[0];
-    if (length(e1) < 0.0001f && length(e2) < 0.0001f) return INFINITY;
+    if (
+           length(e1) < 0.0001f 
+        && length(e2) < 0.0001f
+    ) return INFINITY;
 
     const vec3 pvec = cross(dir, e2);
     const float det = dot(e1, pvec);
@@ -105,7 +108,7 @@ TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
     }
 
     const float _d = intersectTriangle(orig, dir, triverts, uv);
-    const bool near = lessF(_d, INFINITY) && lessEqualF(_d, res.dist);
+    const bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.dist);
 
     if (near) {
         res.dist = _d;
@@ -131,9 +134,9 @@ TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tr
     }
 
     const float _d = intersectTriangle(orig, dir, triverts, uv);
-    const bool near = lessF(_d, INFINITY) && lessEqualF(_d, res.predist);
+    const bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.predist);
     const bool inbaked = equalF(_d, 0.0f);
-    const bool isbaked = !inbaked || step < bakedStackCount;
+    const bool isbaked = !inbaked || bakedStackCount > step;
     const bool changed = !equalF(_d, res.predist) && isbaked;
 
     if (near) {
@@ -177,7 +180,7 @@ float intersectCubeSingle(in vec3 origin, in vec3 ray, in vec3 cubeMin, in vec3 
     return isCube ? (lessEqualF(tNear, 0.0f) ? tFar : tNear) : INFINITY;
 }
 
-const int STACK_SIZE = 32;
+const int STACK_SIZE = 16;
 int deferredStack[STACK_SIZE];
 int deferredPtr = 0;
 
@@ -190,6 +193,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     bakedRange[0] = -1;
     deferredPtr = 0;
 
+    const vec3 torig = projectVoxels(origin);
     direct = normalize(direct);
     vec3 dirproj = (GEOMETRY_BLOCK octreeUniform.project * vec4(direct, 0.0)).xyz;
     const float dirlen = 1.0f / length(dirproj);
@@ -199,20 +203,21 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     HlbvhNode node = Nodes[idx];
     const bbox lbox = node.box; // need to use this fox, because with [0-1] box shows holes
 
-    const vec3 padding = vec3(0.001f);
+    const vec3 padding = vec3(0.0f);//vec3(0.0001f);
     float near = INFINITY, far = INFINITY;
-    const vec3 torig = projectVoxels(origin);
     const float d = intersectCubeSingle(torig, dirproj, lbox.mn.xyz - padding, lbox.mx.xyz + padding, near, far);
     //const float d = intersectCubeSingle(torig, dirproj, vec3(0.0f) - padding, vec3(1.0f) + padding, near, far);
     const int bakedStep = int(floor(1.f + hit.vmods.w));
     lastRes.predist = far * dirlen;
 
-    bool validBox = lessF(d, INFINITY) && greaterEqualF(d, 0.0f) && greaterEqualF(lastRes.predist, near * dirlen);
-    if (!validBox) {
-        return loadInfo(lastRes);
-    }
-    
-    for(int i=0;i<16384;i++) {
+    bool validBox = 
+        lessF(d, INFINITY) 
+        && greaterEqualF(d, 0.0f) 
+        && greaterEqualF(lastRes.predist, near * dirlen)
+        ;
+
+    for(int i=0;i<8192;i++) {
+        if ( !validBox ) { break; }
         HlbvhNode node = Nodes[idx];
 
         if (node.range.x == node.range.y && validBox) {
@@ -228,9 +233,10 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
                 const bbox lbox = Nodes[node.range.x].box;
                 lefthit = intersectCubeSingle(torig, dirproj, lbox.mn.xyz - padding, lbox.mx.xyz + padding, near, far);
                 leftOverlap = 
-                    lessF(lefthit, INFINITY) &&
-                    greaterEqualF(lefthit, 0.0f) &&
-                    greaterEqualF(lastRes.predist, near * dirlen);
+                    lessF(lefthit, INFINITY) 
+                    && greaterEqualF(lefthit, 0.0f) 
+                    && greaterEqualF(lastRes.predist, near * dirlen)
+                    ;
             }
 
             {
@@ -238,9 +244,10 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
                 const bbox rbox = Nodes[node.range.y].box;
                 righthit = intersectCubeSingle(torig, dirproj, rbox.mn.xyz - padding, rbox.mx.xyz + padding, near, far);
                 rightOverlap = 
-                    lessF(righthit, INFINITY) &&
-                    greaterEqualF(righthit, 0.0f) &&
-                    greaterEqualF(lastRes.predist, near * dirlen);
+                    lessF(righthit, INFINITY) 
+                    && greaterEqualF(righthit, 0.0f) 
+                    && greaterEqualF(lastRes.predist, near * dirlen)
+                    ;
             }
 
             if (leftOverlap || rightOverlap) {
@@ -258,20 +265,19 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
                 if (deferredPtr < STACK_SIZE && farest != -1) {
                     deferredStack[deferredPtr++] = farest;
                 }
+                
                 continue;
             }
         }
 
-        if ((--deferredPtr) >= 0) {
-            idx = deferredStack[deferredPtr];
-            deferredStack[deferredPtr] = -1;
-        } else {
-            idx = -1;
-        }
+        const int ptr = --deferredPtr;
+        const bool valid = ptr >= 0;
 
-        const bool overhead = idx < 0 || deferredPtr < 0;
-        validBox = validBox && !overhead;
-        if ( overhead ) { break; }
+        idx = valid ? deferredStack[ptr] : -1;
+        if (valid) deferredStack[ptr] = -1;
+
+        validBox = validBox && idx >= 0 && valid;
+        if ( !validBox ) { break; }
     }
 
     choiceBaked(lastRes, origin, direct, bakedStep);

@@ -65,7 +65,9 @@ int findSplit(in int left, in int right) {
 void main() {
     //Start from next childs
     const int globalID = int(gl_GlobalInvocationID.x); //+ Range.x;
-    if (globalID == 0) Nodes[globalID].parent = -1;
+    if (globalID == 0) {
+        Nodes[globalID].parent = -1;
+    }
 
     // Set child
     if (globalID < Range.y) {
@@ -76,6 +78,8 @@ void main() {
         Flags[lid] = 0;
         Leafs[globalID].parent = lid;
     }
+
+    barrier();
     
     // Set internal nodes
     if (globalID < Range.y-1) {
@@ -87,9 +91,11 @@ void main() {
         const bool rightleaf = (c2idx == range.y);
         const int c1idxl =  leftleaf ? LEAFIDX(c1idx) : NODEIDX(c1idx);
         const int c2idxl = rightleaf ? LEAFIDX(c2idx) : NODEIDX(c2idx);
-        Nodes[c2idxl].parent = globalID;
-        Nodes[c1idxl].parent = globalID;
+        atomicExchange(Nodes[c2idxl].parent , globalID);
+        atomicExchange(Nodes[c1idxl].parent , globalID);
         Nodes[globalID].range = ivec2(c1idxl, c2idxl);
         Flags[globalID] = 0;
     }
+
+    barrier();
 }
