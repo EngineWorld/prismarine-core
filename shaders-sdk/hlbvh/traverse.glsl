@@ -207,6 +207,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     float near = INFINITY, far = INFINITY;
     const vec3 torig = projectVoxels(origin);
     const float d = intersectCubeSingle(torig, dirproj, lbox.mn.xyz - padding, lbox.mx.xyz + padding, near, far);
+    //const float d = intersectCubeSingle(torig, dirproj, vec3(0.0f) - padding, vec3(1.0f) + padding, near, far);
     const int bakedStep = int(floor(1.f + hit.vmods.w));
     lastRes.predist = far * dirlen;
 

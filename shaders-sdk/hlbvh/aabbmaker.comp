@@ -71,7 +71,7 @@ void main() {
     //const int to = t; atomicAdd(aabbCounter[0], 1);
 
     MortoncodesIndices[to] = int(to);
-    Mortoncodes[to] = encodeMorton3_64(clamp(uvec3(floor(center * 1023.99999f)), uvec3(0), uvec3(1023)));
+    Mortoncodes[to] = encodeMorton3_64(clamp(uvec3(floor(clamp(center, vec3(0.0f), vec3(1.0f)) * 1023.99999f)), uvec3(0), uvec3(1023)));
 
     Leaf outLeaf;
     outLeaf.range = ivec2(to);
