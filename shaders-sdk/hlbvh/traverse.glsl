@@ -262,7 +262,12 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
             }
         }
 
-        idx = deferredStack[--deferredPtr];
+        if ((--deferredPtr) >= 0) {
+            idx = deferredStack[deferredPtr];
+            deferredStack[deferredPtr] = -1;
+        } else {
+            idx = -1;
+        }
 
         const bool overhead = idx < 0 || deferredPtr < 0;
         validBox = validBox && !overhead;
