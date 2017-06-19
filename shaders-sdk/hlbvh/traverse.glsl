@@ -203,9 +203,9 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     HlbvhNode node = Nodes[idx];
     const bbox lbox = node.box; // need to use this fox, because with [0-1] box shows holes
 
-    const vec3 padding = vec3(0.0f);//vec3(0.0001f);
+    const vec3 padding = vec3(0.0001f);
     float near = INFINITY, far = INFINITY;
-    const float d = intersectCubeSingle(torig, dirproj, lbox.mn.xyz - padding, lbox.mx.xyz + padding, near, far);
+    const float d = intersectCubeSingle(torig, dirproj, lbox.mn.xyz, lbox.mx.xyz, near, far);
     //const float d = intersectCubeSingle(torig, dirproj, vec3(0.0f) - padding, vec3(1.0f) + padding, near, far);
     const int bakedStep = int(floor(1.f + hit.vmods.w));
     lastRes.predist = far * dirlen;
@@ -231,7 +231,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
             {
                 float near = INFINITY, far = INFINITY;
                 const bbox lbox = Nodes[node.range.x].box;
-                lefthit = intersectCubeSingle(torig, dirproj, lbox.mn.xyz - padding, lbox.mx.xyz + padding, near, far);
+                lefthit = intersectCubeSingle(torig, dirproj, lbox.mn.xyz, lbox.mx.xyz, near, far);
                 leftOverlap = 
                     lessF(lefthit, INFINITY) 
                     && greaterEqualF(lefthit, 0.0f) 
@@ -242,7 +242,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
             {
                 float near = INFINITY, far = INFINITY;
                 const bbox rbox = Nodes[node.range.y].box;
-                righthit = intersectCubeSingle(torig, dirproj, rbox.mn.xyz - padding, rbox.mx.xyz + padding, near, far);
+                righthit = intersectCubeSingle(torig, dirproj, rbox.mn.xyz, rbox.mx.xyz, near, far);
                 rightOverlap = 
                     lessF(righthit, INFINITY) 
                     && greaterEqualF(righthit, 0.0f) 
