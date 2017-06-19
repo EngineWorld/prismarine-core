@@ -184,7 +184,7 @@ float intersectCubeSingle(in vec3 origin, in vec3 ray, in vec3 cubeMin, in vec3 
     return isCube ? (lessF(tNear, 0.0f) ? tFar : tNear) : INFINITY;
 }
 
-const int STACK_SIZE = 16;
+const int STACK_SIZE = 32;
 int deferredStack[STACK_SIZE];
 int deferredPtr = 0;
 
@@ -212,7 +212,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     const float d = intersectCubeSingle(torig, dirproj, lbox.mn.xyz, lbox.mx.xyz, near, far);
     //const float d = intersectCubeSingle(torig, dirproj, vec3(0.0f) - padding, vec3(1.0f) + padding, near, far);
     const int bakedStep = int(floor(1.f + hit.vmods.w));
-    //lastRes.predist = far * dirlen;
+    lastRes.predist = far * dirlen;
 
     bool validBox = 
         lessF(d, INFINITY) 

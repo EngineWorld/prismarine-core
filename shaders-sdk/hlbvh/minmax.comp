@@ -12,7 +12,7 @@
 layout ( std430, binding = 5 ) buffer MinmaxOutputSSBO {vec4 minmax[];};
 layout ( local_size_x = 512 ) in;
 
-shared bbox sdata[256];
+shared bbox sdata[ 512 ];
 
 bbox getMinMaxPrimitive(in uint idx){
     vec4 triverts[3];
@@ -30,10 +30,10 @@ bbox getMinMaxPrimitive(in uint idx){
 }
 
 bbox bboxunion(in bbox b1, in bbox b2) {
-    bbox res = b1;
-    res.mn = min(res.mn, b2.mn);
-    res.mx = max(res.mx, b2.mx);
-    return res;
+    return bbox(
+        min(b1.mn, b2.mn),
+        max(b1.mx, b2.mx)
+    );
 }
 
 void main() {
@@ -50,30 +50,12 @@ void main() {
     };
     barrier();
 
-    if (gl_WorkGroupSize.x >= 512) {
-        if (tid < 256) { sdata[tid] = bboxunion(sdata[tid], sdata[tid + 256]); } barrier();
+#pragma optionNV (unroll all)
+    for (uint i=gl_WorkGroupSize.x;i>=1;i>>=1) {
+        if (tid < i) { sdata[tid] = bboxunion(sdata[tid], sdata[tid + i]); } barrier();
     }
-
-    if (gl_WorkGroupSize.x >= 256) {
-        if (tid < 128) { sdata[tid] = bboxunion(sdata[tid], sdata[tid + 128]); } barrier(); 
-    }
-
-    if (gl_WorkGroupSize.x >= 128) {
-        if (tid < 64) { sdata[tid] = bboxunion(sdata[tid], sdata[tid + 64]); } barrier();
-    }
-
-    //if (tid < gl_SubGroupSizeARB) {
-        if (gl_WorkGroupSize.x >= 64) { if (tid < 32) {sdata[tid] = bboxunion(sdata[tid], sdata[tid + 32]);} barrier(); }
-        if (gl_WorkGroupSize.x >= 32) { if (tid < 16) {sdata[tid] = bboxunion(sdata[tid], sdata[tid + 16]);} barrier(); }
-        if (gl_WorkGroupSize.x >= 16) { if (tid < 8) {sdata[tid] = bboxunion(sdata[tid], sdata[tid + 8]);} barrier(); }
-        if (gl_WorkGroupSize.x >= 8) { if (tid < 4) {sdata[tid] = bboxunion(sdata[tid], sdata[tid + 4]);} barrier(); }
-        if (gl_WorkGroupSize.x >= 4) { if (tid < 2) {sdata[tid] = bboxunion(sdata[tid], sdata[tid + 2]);} barrier(); }
-        if (gl_WorkGroupSize.x >= 2) { if (tid < 1) {sdata[tid] = bboxunion(sdata[tid], sdata[tid + 1]);} barrier(); }
-    //}
 
     if (tid == 0) {
-        //minmax[gl_WorkGroupID.x*2 + 0] = sdata[0].mn - 9.0001f; 
-        //minmax[gl_WorkGroupID.x*2 + 1] = sdata[0].mx + 9.0001f; 
         minmax[gl_WorkGroupID.x*2 + 0] = sdata[0].mn - 0.0001f; 
         minmax[gl_WorkGroupID.x*2 + 1] = sdata[0].mx + 0.0001f; 
     }
