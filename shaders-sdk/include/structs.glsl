@@ -151,6 +151,7 @@ struct VboDataStride {
     Stride4f texcoord;
     Stride4f color;
     Stride4f modifiers;
+    Stride2f padding;
 };
 
 #endif

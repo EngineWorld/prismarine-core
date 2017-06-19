@@ -128,6 +128,7 @@ namespace Paper {
         Vc4 texcoord;
         Vc4 color;
         Vc4 modifiers;
+        Vc2 padding;
     };
 
 
