@@ -400,9 +400,6 @@ namespace Paper {
 
     inline void Tracer::render() {
         this->bind();
-        glDisable(GL_CULL_FACE);
-        glDisable(GL_BLEND);
-        glDisable(GL_DEPTH_TEST);
         glEnable(GL_TEXTURE_2D);
         glBindTextureUnit(0, presampled);
         glScissor(0, 0, displayWidth, displayHeight);
@@ -411,7 +408,6 @@ namespace Paper {
         glBindVertexArray(vao);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
-        glFlush();
         glBindVertexArray(0);
     }
 

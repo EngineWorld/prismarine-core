@@ -274,6 +274,11 @@ namespace Paper {
         sorter->sort(mortonBuffer, mortonBufferIndex, triangleCount); // early serial tests
         geometryUniformData.triangleCount = triangleCount;
 
+
+        //std::vector<GLuint> radixTest = std::vector<GLuint>(triangleCount);
+        //glGetNamedBufferSubData(mortonBuffer, 0, strided<GLuint>(triangleCount), radixTest.data());
+
+
         this->syncUniforms();
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, leafBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mortonBufferIndex);

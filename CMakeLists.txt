@@ -67,7 +67,7 @@ set (CMAKE_CXX_STANDARD_REQUIRED ON)
 set (CMAKE_CXX_STANDARD 17)
 set (CMAKE_CXX_EXTENSIONS ON)
 set (CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -Ofast)
-add_compile_options(-std=c++17 /Ox /Ot /Oi /Oy /GT /GL /arch:AVX2)
+add_compile_options(-std=c++17 /Ot /Oi /Oy /GT /GL /arch:AVX2)
 
 set (INCLUDE_LIST 
     ${INC_DIR}
