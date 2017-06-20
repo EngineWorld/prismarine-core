@@ -253,20 +253,17 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
                     ;
             }
 
-            if (leftOverlap || rightOverlap) {
-                const int leftNeeded  = leftOverlap  ? node.range.x : -1;
-                const int rightNeeded = rightOverlap ? node.range.y : -1;
+            const bvec2 overlaps = bvec2(leftOverlap, rightOverlap);
+            if (any(overlaps)) {
+                ivec2 leftright = mix(ivec2(-1), ivec2(node.range.xy), overlaps);
 
-                if (leftOverlap && rightOverlap) {
-                    leftOverlap = lessEqualF(lefthit, righthit);
-                }
-                
-                const int farest  = leftOverlap ? rightNeeded : leftNeeded;
-                const int nearest = leftOverlap ? leftNeeded : rightNeeded;
+                // order by distance or valid
+                const bool leftOrder = all(overlaps) ? lessEqualF(lefthit, righthit) : overlaps.x;
+                leftright = leftOrder ? leftright.xy : leftright.yx;
 
-                idx = nearest;
-                if (deferredPtr < STACK_SIZE && farest != -1) {
-                    deferredStack[deferredPtr++] = farest;
+                idx = leftright.x;
+                if (deferredPtr < STACK_SIZE && leftright.y != -1) {
+                    deferredStack[deferredPtr++] = leftright.y;
                 }
                 
                 continue;
