@@ -6,10 +6,10 @@
 layout ( std430, binding = 0 ) buffer RaysSSBO { Ray rays[]; };
 layout ( std430, binding = 1 ) buffer HitsSSBO { Hit hits[]; };
 layout ( std430, binding = 2 ) buffer TexelsSSBO { Texel texelInfo[]; };
-layout ( std430, binding = 6 ) buffer ActivedIndicesSSBO { int actived[]; };
+layout ( std430, binding = 6 ) readonly buffer ActivedIndicesSSBO { int actived[]; };
 layout ( std430, binding = 7 ) buffer CollectedActivesSSBO { int qrays[]; };
 layout ( std430, binding = 8 ) buffer FreedomIndicesSSBO { int freedoms[]; };
-layout ( std430, binding = 14 ) buffer AvailablesIndicesSSBO { int availables[]; };
+layout ( std430, binding = 14 ) readonly buffer AvailablesIndicesSSBO { int availables[]; };
 layout ( std430, binding = 20 ) buffer CounterBlock { int arcounter[4]; };
 
 const uint At = 0;
@@ -125,7 +125,7 @@ int createRay(inout Ray original, in int idx) {
     int rayIndex = 0;
     if (freed >= 0 && availables[freed] != 0xFFFFFFFF) {
         rayIndex = availables[freed];
-        availables[freed] = 0xFFFFFFFF;
+        //availables[freed] = 0xFFFFFFFF;
     } else {
         rayIndex = atomicAdd(arcounter[Rt], 1);
     }
