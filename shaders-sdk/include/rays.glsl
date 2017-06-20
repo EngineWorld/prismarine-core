@@ -20,7 +20,7 @@ const uint Ut = 3;
 void _collect(inout Ray ray) {
     const vec4 color = max(ray.final, vec4(0.f));
     const float amplitude = mlength(color.xyz);
-    if (lessEqualF(amplitude, 0.f) || greaterF(amplitude, 100.0f)) {
+    if (lessEqualF(amplitude, 0.f) || greaterF(amplitude, 1000.0f)) {
         ray.final.xyzw = vec4(0.0f);
         return;
     }

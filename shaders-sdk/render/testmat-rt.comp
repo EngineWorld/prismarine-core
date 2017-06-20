@@ -160,8 +160,8 @@ void main() {
 
     float prom = 1.0f - tx.a;
     if (
-        haveProp(materialCache, M_ALPHA_TEST) && !alphaTest(materialCache.alphafunc, materialCache.alpharef, tx.a) || 
-        !haveProp(materialCache, M_TWO_SIDED) && dot(prenormal, newRay.direct.xyz) > 0.0f
+        haveProp(materialCache, M_ALPHA_TEST) && !alphaTest(materialCache.alphafunc, materialCache.alpharef, tx.a) 
+        //|| !haveProp(materialCache, M_TWO_SIDED) && dot(prenormal, newRay.direct.xyz) > 0.0f
     ) {
         prom = 1.0f;
     }
