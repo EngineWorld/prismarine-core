@@ -24,15 +24,15 @@ void _collect(inout Ray ray) {
         ray.final.xyzw = vec4(0.0f);
         return;
     }
-#ifdef USE_COMPATIBLE_ACCUMULATION
+#ifdef ENABLE_NVIDIA_INSTRUCTION_SET
+    atomicAdd(texelInfo[ray.texel].samplecolor.x, color.x);
+    atomicAdd(texelInfo[ray.texel].samplecolor.y, color.y);
+    atomicAdd(texelInfo[ray.texel].samplecolor.z, color.z);
+#else
     const ivec3 gcol = ivec3(dvec3(color.xyz) * COMPATIBLE_PRECISION);
     atomicAdd(texelInfo[ray.texel].samplecolor.x, gcol.x);
     atomicAdd(texelInfo[ray.texel].samplecolor.y, gcol.y);
     atomicAdd(texelInfo[ray.texel].samplecolor.z, gcol.z);
-#else
-    atomicAdd(texelInfo[ray.texel].samplecolor.x, color.x);
-    atomicAdd(texelInfo[ray.texel].samplecolor.y, color.y);
-    atomicAdd(texelInfo[ray.texel].samplecolor.z, color.z);
 #endif
     ray.final.xyzw = vec4(0.0f);
 }

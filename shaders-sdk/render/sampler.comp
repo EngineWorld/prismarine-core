@@ -45,18 +45,18 @@ void main(){
                     diff.y < 1.0f
                 ) {
                     samplecount++;
-#ifdef USE_COMPATIBLE_ACCUMULATION
-                    newc.xyz += vec3(dvec3(
-                        texelInfo[ts].samplecolor.x,
-                        texelInfo[ts].samplecolor.y,
-                        texelInfo[ts].samplecolor.z
-                    ) / COMPATIBLE_PRECISION);
-#else
+#ifdef ENABLE_NVIDIA_INSTRUCTION_SET
                     newc.xyz += vec3(
                         texelInfo[ts].samplecolor.x,
                         texelInfo[ts].samplecolor.y,
                         texelInfo[ts].samplecolor.z
                     );
+#else
+                    newc.xyz += vec3(dvec3(
+                        texelInfo[ts].samplecolor.x,
+                        texelInfo[ts].samplecolor.y,
+                        texelInfo[ts].samplecolor.z
+                    ) / COMPATIBLE_PRECISION);
 #endif
                 }
             }

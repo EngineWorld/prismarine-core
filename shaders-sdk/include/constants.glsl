@@ -15,7 +15,10 @@
 #define PZERO  2.e-4
 #define NZERO -PZERO
 
-#define USE_COMPATIBLE_ACCUMULATION
+//#define ENABLE_AMD_INSTRUCTION_SET
+//#define ENABLE_INT16_LOADING // such as Neverball
+
+#define ENABLE_NVIDIA_INSTRUCTION_SET
 #define COMPATIBLE_PRECISION 8388608.0
 
 #define SUNLIGHT_CAUSTICS false
@@ -33,7 +36,7 @@
 
 //#define CULLING
 
-#ifndef USE_COMPATIBLE_ACCUMULATION
+#ifdef ENABLE_NVIDIA_INSTRUCTION_SET
 #extension GL_NV_shader_atomic_float : require
 #endif
 

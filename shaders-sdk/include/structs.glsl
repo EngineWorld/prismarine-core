@@ -93,11 +93,10 @@ Stride4i toStride4(in ivec4 a){
 
 struct Texel {
     Vc4 coord;
-
-#ifdef USE_COMPATIBLE_ACCUMULATION
-    Stride4i samplecolor;
+#ifdef ENABLE_NVIDIA_INSTRUCTION_SET
+    Vc4 samplecolor;
 #else
-    Stride4f samplecolor;
+    iVc4 samplecolor;
 #endif
     iVc4 EXT;
 };

@@ -8,9 +8,25 @@
 #include "../include/uniforms.glsl"
 #include "../include/vertex.glsl"
 
+#ifdef ENABLE_AMD_INSTRUCTION_SET
+#define index16 int16_t
+#define I16 (m, i) (m[i])
+#else
+#define index16 int
+#define I16 (m, i) (bitfieldExtract(m[i/2], 16*(i%2), 16))
+#endif
+
+#ifdef ENABLE_INT16_LOADING
+#define index_t index16
+#define pick(m, i) I16(m, i)
+#else
+#define index_t int
+#define pick(m, i) m[i]
+#endif
+
 layout ( std430, binding=0) buffer TCounterSSBO {int tcounter[];};
 layout ( std430, binding=6) readonly buffer InputVertexSSBO {float iverts[];};
-layout ( std430, binding=7) readonly buffer InputVertexIndicesSSBO {int vindics[];};
+layout ( std430, binding=7) readonly buffer InputVertexIndicesSSBO {index_t vindics[];};
 layout ( std430, binding=8) readonly buffer InputMaterialsSSBO {int imats[];};
 LOCAL_SIZE_LAYOUT;
 
@@ -37,7 +53,7 @@ void main()
     const int trp = mode == 1 ? 4 : 3;
     for(int i=0;i<trp;i++){
         const int ctri = ctriangle * trp + i;
-        const int vindices = GEOMETRY_BLOCK geometryUniform.unindexed == 1 ? ctri : vindics[ctri];
+        const int vindices = GEOMETRY_BLOCK geometryUniform.unindexed == 1 ? ctri : int(pick(vindics, ctri));
         const int stride = GEOMETRY_BLOCK attributeUniform.stride;
 
         vec3 vpos = vec3(0.0f);

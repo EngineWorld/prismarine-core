@@ -19,9 +19,9 @@ void main()
     const ivec2 wh = ivec2(imageSize(sampleflags).xy);
     imageStore(sampleflags, ivec2(t % wh.x, t / wh.x), uvec4(1));
 
-#ifdef USE_COMPATIBLE_ACCUMULATION
-    texelInfo[t].samplecolor = toStride4(ivec4(0.f));
+#ifdef ENABLE_NVIDIA_INSTRUCTION_SET
+    texelInfo[t].samplecolor = vec4(0.f);
 #else
-    texelInfo[t].samplecolor = toStride4(vec4(0.f));
+    texelInfo[t].samplecolor = ivec4(0);
 #endif
 }
