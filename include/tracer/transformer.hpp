@@ -21,8 +21,8 @@ namespace Paper {
                 reset();
             }
         
-            glm::mat4 getCurrent(){
-                return glm::mat4(current);
+            glm::dmat4 getCurrent(){
+                return glm::dmat4(current);
             }
         
             void reset() {
