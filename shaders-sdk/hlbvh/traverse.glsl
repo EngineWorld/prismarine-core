@@ -108,7 +108,7 @@ TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
 
 #pragma optionNV (unroll all)
     for (int x=0;x<3;x++) {
-        triverts[x] = validTriangle ? toVec3(verts[tri * 3 + x].vertex) : vec3(0.0f);
+        triverts[x] = validTriangle ? vec3(verts[tri * 3 + x].vertex) : vec3(0.0f);
     }
 
     const float _d = intersectTriangle(orig, dir, triverts, uv);
@@ -135,7 +135,7 @@ TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tr
 
 #pragma optionNV (unroll all)
     for (int x=0;x<3;x++) {
-        triverts[x] = validTriangle ? toVec3(verts[tri * 3 + x].vertex) : vec3(0.0f);
+        triverts[x] = validTriangle ? vec3(verts[tri * 3 + x].vertex) : vec3(0.0f);
     }
 
     const float _d = intersectTriangle(orig, dir, triverts, uv);

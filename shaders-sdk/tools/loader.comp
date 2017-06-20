@@ -10,23 +10,23 @@
 
 #ifdef ENABLE_AMD_INSTRUCTION_SET
 #define index16 int16_t
-#define I16 (m, i) (m[i])
+#define M16(m, i) (m[i])
 #else
 #define index16 int
-#define I16 (m, i) (bitfieldExtract(m[i/2], 16*(i%2), 16))
+#define M16(m, i) (bitfieldExtract(m[i/2], 16*(i%2), 16))
 #endif
 
 #ifdef ENABLE_INT16_LOADING
-#define index_t index16
-#define pick(m, i) I16(m, i)
+#define INDICE_T index16
+#define PICK(m, i) M16(m, i)
 #else
-#define index_t int
-#define pick(m, i) m[i]
+#define INDICE_T int
+#define PICK(m, i) m[i]
 #endif
 
 layout ( std430, binding=0) buffer TCounterSSBO {int tcounter[];};
 layout ( std430, binding=6) readonly buffer InputVertexSSBO {float iverts[];};
-layout ( std430, binding=7) readonly buffer InputVertexIndicesSSBO {index_t vindics[];};
+layout ( std430, binding=7) readonly buffer InputVertexIndicesSSBO {INDICE_T vindics[];};
 layout ( std430, binding=8) readonly buffer InputMaterialsSSBO {int imats[];};
 LOCAL_SIZE_LAYOUT;
 
@@ -53,7 +53,7 @@ void main()
     const int trp = mode == 1 ? 4 : 3;
     for(int i=0;i<trp;i++){
         const int ctri = ctriangle * trp + i;
-        const int vindices = GEOMETRY_BLOCK geometryUniform.unindexed == 1 ? ctri : int(pick(vindics, ctri));
+        const int vindices = GEOMETRY_BLOCK geometryUniform.unindexed == 1 ? ctri : int( PICK(vindics, ctri) );
         const int stride = GEOMETRY_BLOCK attributeUniform.stride;
 
         vec3 vpos = vec3(0.0f);
@@ -156,15 +156,15 @@ void main()
             //indics[idc] = idc;
 
             if (mlength(abs(normal[i])) > 0.00001f && GEOMETRY_BLOCK attributeUniform.haveNormal > 0) {
-                verts[idc].normal = toStride3(normalize(normal[i]));
+                verts[idc].normal = vec4(normalize(normal[i]), 1.0f);
             } else {
-                verts[idc].normal = toStride3(normalize(offsetnormal.xyz));
+                verts[idc].normal = vec4(normalize(offsetnormal.xyz), 1.0f);
             }
 
-            verts[idc].vertex = toStride3(vertice[i] + offsetnormal * GEOMETRY_BLOCK geometryUniform.offset);
-            verts[idc].color = toStride4(colors[i]);
-            verts[idc].texcoord = toStride4(texcoord[i]);
-            verts[idc].modifiers = toStride4(mods[i]);
+            verts[idc].vertex = vec4(vertice[i] + offsetnormal * GEOMETRY_BLOCK geometryUniform.offset, 1.0f);
+            verts[idc].color = vec4(colors[i]);
+            verts[idc].texcoord = vec4(texcoord[i]);
+            verts[idc].modifiers = vec4(mods[i]);
         }
     }
 
@@ -178,15 +178,15 @@ void main()
 
             const int mi = (GEOMETRY_BLOCK attributeUniform.iModifiers0.w > 0 ? ms : m)[i];
             if (mlength(abs(normal[mi])) > 0.00001f && GEOMETRY_BLOCK attributeUniform.haveNormal > 0) {
-                verts[idc].normal = toStride3(normalize(normal[mi]));
+                verts[idc].normal = vec4(normalize(normal[mi]), 1.0f);
             } else {
-                verts[idc].normal = toStride3(normalize(offsetnormal.xyz));
+                verts[idc].normal = vec4(normalize(offsetnormal.xyz), 1.0f);
             }
 
-            verts[idc].vertex = toStride3(vertice[mi] + offsetnormal * GEOMETRY_BLOCK geometryUniform.offset);
-            verts[idc].color = toStride4(colors[mi]);
-            verts[idc].texcoord = toStride4(texcoord[mi]);
-            verts[idc].modifiers = toStride4(mods[mi]);
+            verts[idc].vertex = vec4(vertice[mi] + offsetnormal * GEOMETRY_BLOCK geometryUniform.offset, 1.0f);
+            verts[idc].color = vec4(colors[mi]);
+            verts[idc].texcoord = vec4(texcoord[mi]);
+            verts[idc].modifiers = vec4(mods[mi]);
         }
     }
 }

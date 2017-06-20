@@ -145,12 +145,11 @@ struct HlbvhNode {
 };
 
 struct VboDataStride {
-    Stride3f vertex;
-    Stride3f normal;
-    Stride4f texcoord;
-    Stride4f color;
-    Stride4f modifiers;
-    Stride2f padding;
+    Vc4 vertex;
+    Vc4 normal;
+    Vc4 texcoord;
+    Vc4 color;
+    Vc4 modifiers;
 };
 
 #endif

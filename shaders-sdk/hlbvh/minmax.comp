@@ -20,13 +20,21 @@ bbox getMinMaxPrimitive(in uint idx){
     const uint i3 = clamp(idx, 0u, uint(GEOMETRY_BLOCK geometryUniform.triangleCount-1)) * 3;
     for (int x=0;x<3;x++) {
         const uint j = i3 + x;
-        const vec4 nps = GEOMETRY_BLOCK octreeUniform.project * vec4(toVec3(verts[j].vertex), 1.0f);
+        const vec4 nps = GEOMETRY_BLOCK octreeUniform.project * vec4(verts[j].vertex.xyz, 1.0f);
         triverts[x] = nps / nps.w;
     }
+#ifdef ENABLE_AMD_INSTRUCTION_SET
     return bbox(
-        min(triverts[0], min(triverts[1], triverts[2])), 
-        max(triverts[0], max(triverts[1], triverts[2]))
+        min3(triverts[0], triverts[1], triverts[2]), 
+        max3(triverts[0], triverts[1], triverts[2])
     );
+#else 
+    return bbox(
+        min(min(triverts[0], triverts[1]), triverts[2]), 
+        max(max(triverts[0], triverts[1]), triverts[2])
+    );
+#endif
+    
 }
 
 bbox bboxunion(in bbox b1, in bbox b2) {

@@ -15,11 +15,11 @@
 #define PZERO  2.e-4
 #define NZERO -PZERO
 
+#define ENABLE_NVIDIA_INSTRUCTION_SET
 //#define ENABLE_AMD_INSTRUCTION_SET
 //#define ENABLE_INT16_LOADING // such as Neverball
+//#define ENABLE_UNSUPPOTED_FUNCTIONS
 
-#define ENABLE_UNSUPPOTED_FUNCTIONS
-#define ENABLE_NVIDIA_INSTRUCTION_SET
 #define COMPATIBLE_PRECISION 8388608.0
 
 #define SUNLIGHT_CAUSTICS false
@@ -37,8 +37,17 @@
 
 //#define CULLING
 
+#ifdef ENABLE_AMD_INSTRUCTION_SET
+#extension GL_AMD_gcn_shader : require
+#extension GL_AMD_gpu_shader_half_float : require
+#extension GL_AMD_gpu_shader_int16 : require
+#extension GL_AMD_shader_trinary_minmax : require
+#endif
+
 #ifdef ENABLE_NVIDIA_INSTRUCTION_SET
+#extension GL_NV_gpu_shader5 : require
 #extension GL_NV_shader_atomic_float : require
+#extension GL_NV_shader_atomic_fp16_vector : require
 #endif
 
 #ifdef USE_INT64

@@ -38,11 +38,11 @@ TResult loadInfo(inout TResult res) {
 #pragma optionNV (unroll all)
         for (int x=0;x<3;x++) {
             int j = tri * 3 + x;
-            triverts[x] = toVec3(verts[j].vertex);
-            trinorms[x] = toVec3(verts[j].normal);
-            texcoords[x] = toVec4(verts[j].texcoord);
-            colors[x] = toVec4(verts[j].color);
-            mods[x] = toVec4(verts[j].modifiers);
+            triverts[x] = vec3(verts[j].vertex);
+            trinorms[x] = vec3(verts[j].normal);
+            texcoords[x] = vec4(verts[j].texcoord);
+            colors[x] = vec4(verts[j].color);
+            mods[x] = vec4(verts[j].modifiers);
         }
 
         vec3 deltaPos1 = triverts[1] - triverts[0];

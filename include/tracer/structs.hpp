@@ -123,12 +123,11 @@ namespace Paper {
     };
 
     struct VboDataStride {
-        Vc3 vertex;
-        Vc3 normal;
+        Vc4 vertex;
+        Vc4 normal;
         Vc4 texcoord;
         Vc4 color;
         Vc4 modifiers;
-        Vc2 padding;
     };
 
 

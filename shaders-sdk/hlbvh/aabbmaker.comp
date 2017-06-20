@@ -41,12 +41,17 @@ void main() {
     for (int x=0;x<3;x++) {
         //const int j = indics[tri3 + x];
         const int j = tri3 + x;
-        const vec4 nps = GEOMETRY_BLOCK octreeUniform.project * vec4(toVec3(verts[j].vertex), 1.0f);
+        const vec4 nps = GEOMETRY_BLOCK octreeUniform.project * vec4(verts[j].vertex.xyz, 1.0f);
         triverts[x] = nps.xyz / nps.w;
     }
 
-    mn.xyz = min(triverts[0], min(triverts[1], triverts[2]));
-    mx.xyz = max(triverts[0], max(triverts[1], triverts[2]));
+#ifdef ENABLE_AMD_INSTRUCTION_SET
+    mn.xyz = min3(triverts[0], triverts[1], triverts[2]);
+    mx.xyz = max3(triverts[0], triverts[1], triverts[2]);
+#else
+    mn.xyz = min(min(triverts[0], triverts[1]), triverts[2]);
+    mx.xyz = max(max(triverts[0], triverts[1]), triverts[2]);
+#endif
 
     // Starting from
     bbox stack[1];
