@@ -15,7 +15,7 @@
 #define PZERO  2.e-4
 #define NZERO -PZERO
 
-//#define ENABLE_NVIDIA_INSTRUCTION_SET
+#define ENABLE_NVIDIA_INSTRUCTION_SET
 //#define ENABLE_AMD_INSTRUCTION_SET
 //#define ENABLE_INT16_LOADING // such as Neverball with GLushort
 //#define ENABLE_UNSUPPOTED_FUNCTIONS

@@ -8,7 +8,7 @@
 #include "../include/uniforms.glsl"
 #include "../include/vertex.glsl"
 
-#ifdef ENABLE_AMD_INSTRUCTION_SET
+#if defined(ENABLE_AMD_INSTRUCTION_SET) || defined(ENABLE_NVIDIA_INSTRUCTION_SET)
 #define index16 int16_t
 #define M16(m, i) (m[i])
 #else
