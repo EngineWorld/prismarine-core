@@ -184,9 +184,9 @@ float intersectCubeSingle(in vec3 origin, in vec3 ray, in vec3 cubeMin, in vec3 
     return isCube ? (lessF(tNear, 0.0f) ? tFar : tNear) : INFINITY;
 }
 
+const vec3 padding = vec3(0.0001f);
 const int STACK_SIZE = 32;
 int deferredStack[STACK_SIZE];
-int deferredPtr = 0;
 
 TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     TResult lastRes;
@@ -195,23 +195,22 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     lastRes.triangle = LONGEST;
     lastRes.materialID = LONGEST;
     bakedRange[0] = LONGEST;
-    deferredPtr = 0;
 
-    const vec3 torig = projectVoxels(origin);
-    direct = normalize(direct);
-    vec3 dirproj = (GEOMETRY_BLOCK octreeUniform.project * vec4(direct, 0.0)).xyz;
-    const float dirlen = 1.0f / length(dirproj);
-    dirproj = normalize(dirproj);
-
-    int idx = 0;
-    HlbvhNode node = Nodes[idx];
-    const bbox lbox = node.box; // need to use this fox, because with [0-1] box shows holes
-
-    const vec3 padding = vec3(0.0001f);
-    float near = INFINITY, far = INFINITY;
-    const float d = intersectCubeSingle(torig, dirproj, lbox.mn.xyz, lbox.mx.xyz, near, far);
-    //const float d = intersectCubeSingle(torig, dirproj, vec3(0.0f) - padding, vec3(1.0f) + padding, near, far);
+    // test constants
     const int bakedStep = int(floor(1.f + hit.vmods.w));
+    const vec3 torig = projectVoxels(origin);
+    const vec3 tdirproj = (GEOMETRY_BLOCK octreeUniform.project * vec4(direct, 0.0)).xyz;
+    const float dirlen = 1.0f / length(tdirproj);
+    const vec3 dirproj = normalize(tdirproj);
+
+    // init state
+    int idx = 0, deferredPtr = 0;
+
+    // test with root node
+    HlbvhNode node = Nodes[idx];
+    float near = INFINITY, far = INFINITY;
+    const bbox lbox = node.box;
+    const float d = intersectCubeSingle(torig, dirproj, lbox.mn.xyz, lbox.mx.xyz, near, far);
     lastRes.predist = far * dirlen;
 
     bool validBox = 
@@ -259,7 +258,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
                 const int rightNeeded = rightOverlap ? node.range.y : -1;
 
                 if (leftOverlap && rightOverlap) {
-                    leftOverlap = lefthit <= righthit;
+                    leftOverlap = lessEqualF(lefthit, righthit);
                 }
                 
                 const int farest  = leftOverlap ? rightNeeded : leftNeeded;
