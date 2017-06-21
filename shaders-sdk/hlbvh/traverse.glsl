@@ -14,7 +14,7 @@ void swap(inout int a, inout int b){
 }
 
 // WARP optimized triangle intersection
-float intersectTriangle(in vec3 orig, in vec3 dir, inout vec3 ve[3], inout vec2 UV) {
+float intersectTriangle(in vec3 orig, in vec3 dir, in vec3 ve[3], inout vec2 UV) {
     const vec3 e1 = ve[1] - ve[0];
     const vec3 e2 = ve[2] - ve[0];
     if (
