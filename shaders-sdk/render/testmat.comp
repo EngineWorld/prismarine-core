@@ -207,7 +207,7 @@ void main() {
         reflectionRay.color.xyz *= (1.0f - prom);
 
         // emit reflection ray
-        reflectionRay = reflection(newRay, hit, mix(tx.xyz, clamp(sp.xyz / spic, vec3(0.0f), vec3(1.0f)), refly), normal, refly);
+        reflectionRay = reflection(reflectionRay, hit, mix(tx.xyz, clamp(sp.xyz / spic, vec3(0.0f), vec3(1.0f)), refly), normal, refly);
         reflectionRay.color.xyz *= 1.0f - prom;
         mixed(emitentRay.color.xyz, reflectionRay.color.xyz, spic);
         emitRay(reflectionRay, hit, normal, 1.0f);
@@ -215,9 +215,9 @@ void main() {
         // diffuse and light emission
         bool shadowed = false;
         if (random() < emis) {
-            emitentRay = emissive(newRay, hit, emi.xyz / min(emis, 1.0f), normal);
+            emitentRay = emissive(emitentRay, hit, emi.xyz / min(emis, 1.0f), normal);
         } else {
-            emitentRay = diffuse(newRay, hit, tx.xyz, normal); shadowed = true;
+            emitentRay = diffuse(emitentRay, hit, tx.xyz, normal); shadowed = true;
         }
         
         // emit ray

@@ -79,11 +79,7 @@ namespace Paper {
         int32_t raycountCache = 0;
         int32_t qraycountCache = 0;
 
-#ifdef USE_OPTIMIZED_RT
         glm::vec4 lightColor[6] = { glm::vec4((glm::vec3(255.f, 241.f, 224.f) / 255.f) * 150.f, 40.0f) };
-#else
-        glm::vec4 lightColor[6] = { glm::vec4((glm::vec3(255.f, 241.f, 224.f) / 255.f) * 100.f, 40.0f) };
-#endif
         glm::vec4 lightVector[6] = { glm::vec4(0.4f, 1.0f, 0.1f, 400.0f) };
         glm::vec4 lightOffset[6] = { glm::vec4(0.0f, 0.0f, 0.0f, 0.0f) };
 
