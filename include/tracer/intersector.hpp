@@ -16,6 +16,7 @@ namespace Paper {
         uint32_t maxt = 1024 * 1024 * 1;
         uint32_t worksize = 128;
 
+        GLuint geometryLoaderProgramI16;
         GLuint geometryLoaderProgram2;
         GLuint buildProgramH;
         GLuint aabbMakerProgramH;

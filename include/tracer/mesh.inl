@@ -10,6 +10,10 @@ namespace Paper {
         return nodeCount;
     }
 
+    inline void Mesh::useIndex16bit(bool b16) {
+        index16bit = b16;
+    }
+
     inline void Mesh::setVerticeOffset(float voff) {
         voffset = voff;
     }

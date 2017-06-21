@@ -47,6 +47,7 @@ namespace Paper {
         initShaderCompute("./shaders/hlbvh/aabbmaker.comp", aabbMakerProgramH);
         initShaderCompute("./shaders/hlbvh/minmax.comp", minmaxProgram2);
         initShaderCompute("./shaders/tools/loader.comp", geometryLoaderProgram2);
+        initShaderCompute("./shaders/tools/loader-int16.comp", geometryLoaderProgramI16);
     }
 
     inline void Intersector::init() {
@@ -191,7 +192,12 @@ namespace Paper {
 
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, tcounter);
 
-        glUseProgram(geometryLoaderProgram2);
+        if (gobject->index16bit) {
+            glUseProgram(geometryLoaderProgramI16);
+        }
+        else {
+            glUseProgram(geometryLoaderProgram2);
+        }
         glDispatchCompute(tiled(gobject->nodeCount, worksize), 1, 1);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
 

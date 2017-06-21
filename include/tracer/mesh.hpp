@@ -33,6 +33,7 @@ namespace Paper {
         size_t nodeCount = 0;
         size_t verticeCount = 0;
         float voffset = 0;
+        bool index16bit = false;
 
     public:
         
@@ -42,6 +43,7 @@ namespace Paper {
         void setVerticeOffset(float voff);
         void setColorModifier(glm::vec4 color);
         void setMaterialOffset(int32_t id);
+        void useIndex16bit(bool b16);
 
         void setTransform(const glm::mat4 &t);
         void setTransformTexcoord(const glm::mat4 &t);

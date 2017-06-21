@@ -21,6 +21,7 @@ mkdir %OUTDIR%%RDXI%
 mkdir %OUTDIR%%HLBV%next-gen-sort
 
 call glslc %INDIR%%VXL2%loader.comp        %CMPPROF% %CFLAGS% -o %OUTDIR%%VXL2%loader.comp
+call glslc %INDIR%%VXL2%loader.comp        %CMPPROF% %CFLAGS% -o %OUTDIR%%VXL2%loader-int16.comp -DENABLE_INT16_LOADING
 call glslc %INDIR%%RNDR%render.frag        %FRGPROF% %CFLAGS% -o %OUTDIR%%RNDR%render.frag
 call glslc %INDIR%%RNDR%render.vert        %VRTPROF% %CFLAGS% -o %OUTDIR%%RNDR%render.vert
 call glslc %INDIR%%RNDR%begin.comp         %CMPPROF% %CFLAGS% -o %OUTDIR%%RNDR%begin.comp
