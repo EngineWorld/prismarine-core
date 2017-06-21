@@ -26,9 +26,9 @@ float intersectTriangle(in vec3 orig, in vec3 dir, inout vec3 ve[3], inout vec2 
     const float det = dot(e1, pvec);
 
 #ifndef CULLING
-    if (abs(det) < 0.00001f) return INFINITY;
+    if (abs(det) < 0.0000001f) return INFINITY;
 #else
-    if (det < 0.00001f) return INFINITY;
+    if (det < 0.0000001f) return INFINITY;
 #endif
 
     const vec3 tvec = orig - ve[0];

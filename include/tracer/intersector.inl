@@ -213,7 +213,7 @@ namespace Paper {
         dirty = false;
     }
 
-    inline void Intersector::build(const glm::mat4 &optimization) {
+    inline void Intersector::build(const glm::dmat4 &optimization) {
         if (this->triangleCount <= 0 || !dirty) return;
         this->resolve();
 
@@ -227,10 +227,10 @@ namespace Paper {
         minmaxUniformData.heap = 1;
 
         {
-            glm::mat4 mat(1.0f);
+            glm::dmat4 mat(1.0);
             mat *= glm::inverse(optimization);
-            octreeUniformData.project = *(Vc4x4 *)glm::value_ptr(mat);
-            octreeUniformData.unproject = *(Vc4x4 *)glm::value_ptr(glm::inverse(mat));
+            octreeUniformData.project = *(Vc4x4 *)glm::value_ptr(glm::mat4(mat));
+            octreeUniformData.unproject = *(Vc4x4 *)glm::value_ptr(glm::inverse(glm::mat4(mat)));
         }
 
         this->syncUniforms();
@@ -243,16 +243,15 @@ namespace Paper {
         bbox bound;
         glGetNamedBufferSubData(minmaxBuf, 0, strided<bbox>(1), &bound);
         scale = (glm::make_vec4((float *)&bound.mx) - glm::make_vec4((float *)&bound.mn)).xyz();
-        //scale  = (glm::make_vec4((float *)&bound.mx) - glm::make_vec4((float *)&bound.mn)).xyz() * 1.01f;
         offset = glm::make_vec4((float *)&bound.mn).xyz();
 
         {
-            glm::mat4 mat(1.0f);
-            mat = glm::scale(mat, 1.0f / (scale));
-            mat = glm::translate(mat, -offset);
-            mat *= glm::inverse(optimization);
-            octreeUniformData.project = *(Vc4x4 *)glm::value_ptr(mat);
-            octreeUniformData.unproject = *(Vc4x4 *)glm::value_ptr(glm::inverse(mat));
+            glm::dmat4 mat(1.0f);
+            mat = glm::scale(mat, 1.0 / glm::dvec3(scale));
+            mat = glm::translate(mat, -glm::dvec3(offset));
+            mat *= glm::inverse(glm::dmat4(optimization));
+            octreeUniformData.project = *(Vc4x4 *)glm::value_ptr(glm::mat4(mat));
+            octreeUniformData.unproject = *(Vc4x4 *)glm::value_ptr(glm::inverse(glm::mat4(mat)));
         }
 
         glCopyNamedBufferSubData(lscounterTemp, aabbCounter, 0, 0, strided<uint32_t>(1));

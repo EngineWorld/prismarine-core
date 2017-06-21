@@ -74,7 +74,7 @@ namespace Paper {
         bool isDirty() const;
         void markDirty();
         void resolve();
-        void build(const glm::mat4 &optimization = glm::mat4(1.0f));
+        void build(const glm::dmat4 &optimization = glm::dmat4(1.0));
         void configureIntersection(bool clearDepth);
     };
 }
