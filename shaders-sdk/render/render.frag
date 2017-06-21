@@ -95,5 +95,5 @@ vec4 filtered(in vec2 tx){
 void main() {
     //vec4 color = vec4(0.2f, 0.8f, 1.0f, 1.0f);
     const vec3 color = filtered(texcoord).xyz;
-    outFragColor = vec4(pow(clamp(color.xyz, vec3(0.0f), vec3(1.0f)), vec3(1.0f / GAMMA)), 1.0f);
+    outFragColor = vec4(clamp(color.xyz, vec3(0.0f), vec3(1.0f)), 1.0f);
 }

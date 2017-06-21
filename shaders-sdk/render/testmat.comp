@@ -88,8 +88,6 @@ vec4 fetchDiffuse(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 norma
         result = fetchPart(mat.diffusePart, texcoord);
     }
 
-    result.xyz = pow(result.xyz, vec3(GAMMA));
-    //result = pow(result, vec4(GAMMA));
     return result;
 }
 
@@ -139,7 +137,6 @@ void main() {
             js_getScatter(newRay.direct.xyz, -normalize(lcenter - newRay.origin.xyz), 800.0f) +
             js_getScatter(newRay.direct.xyz,  normalize(lcenter - newRay.origin.xyz), 4000.0f);
         color = 1.0f - exp(-1.0f * color);
-        color = pow(color, vec3(GAMMA));
 
         newRay.final.xyz = newRay.color.xyz * color;
         newRay = unTransformRay(newRay);

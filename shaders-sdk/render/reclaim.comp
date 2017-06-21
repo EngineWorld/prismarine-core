@@ -24,7 +24,7 @@ void main()
     ray.color.xyz = max(vec3(0.0f), ray.color.xyz);
     hit.vmods.w = equalF(hit.dist, 0.f) ? (hit.vmods.w+1.f) : 0.f;
 
-    if (ray.bounce < 0 || hit.shaded <= 0 || lessEqualF(mlength(ray.color.xyz), 0.f)) {
+    if (ray.bounce < 0 || hit.shaded <= 0 || mlength(ray.color.xyz) < 0.0001f) {
         ray.actived = 0;
     }
 

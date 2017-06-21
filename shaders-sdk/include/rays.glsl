@@ -20,10 +20,6 @@ const uint Ut = 3;
 void _collect(inout Ray ray) {
     const vec4 color = max(ray.final, vec4(0.f));
     const float amplitude = mlength(color.xyz);
-    if (lessEqualF(amplitude, 0.f) || greaterF(amplitude, 1000.0f)) {
-        ray.final.xyzw = vec4(0.0f);
-        return;
-    }
 #ifdef ENABLE_NVIDIA_INSTRUCTION_SET
     atomicAdd(texelInfo[ray.texel].samplecolor.x, color.x);
     atomicAdd(texelInfo[ray.texel].samplecolor.y, color.y);
@@ -116,7 +112,7 @@ int createRay(inout Ray original, in int idx) {
     if (
         original.actived < 1 || 
         original.bounce < 0 || 
-        lessEqualF(mlength(original.color.xyz), 0.f)
+        mlength(original.color.xyz) < 0.0001f
     ) return -1; 
     
     atomicMax(arcounter[Ut], 0); // prevent most decreasing
@@ -137,7 +133,7 @@ int createRayIdx(inout Ray original, in int idx, in int rayIndex) {
     if (
         original.actived < 1 || 
         original.bounce < 0 || 
-        lessEqualF(mlength(original.color.xyz), 0.f)
+        mlength(original.color.xyz) < 0.0001f
     ) return -1; 
     
     atomicMax(arcounter[Rt], rayIndex+1);

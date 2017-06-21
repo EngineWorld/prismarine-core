@@ -80,9 +80,7 @@ vec4 fetchDiffuse(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 norma
         result = clamp(fetchPart(mat.diffusePart, texcoord) * mat.diffuse, vec4(0.0f), vec4(1.0f));
         //result = clamp(mat.diffuse, vec4(0.0f), vec4(1.0f));
     }
-
-    result.xyz = pow(result.xyz, vec3(GAMMA));
-    //result = pow(result, vec4(GAMMA));
+    
     return result;
 }
 
@@ -160,7 +158,7 @@ void main() {
     float prom = 1.0f - tx.a;
     if (false
         || haveProp(materialCache, M_ALPHA_TEST) && !alphaTest(materialCache.alphafunc, materialCache.alpharef, tx.a) 
-        || !haveProp(materialCache, M_TWO_SIDED) && dot(prenormal, newRay.direct.xyz) > 0.0f
+        //|| !haveProp(materialCache, M_TWO_SIDED) && dot(prenormal, newRay.direct.xyz) > 0.0f
     ) {
         prom = 1.0f;
     }
