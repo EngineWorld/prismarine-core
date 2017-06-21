@@ -16,38 +16,39 @@ namespace Paper {
         uint32_t maxt = 1024 * 1024 * 1;
         uint32_t worksize = 128;
 
-        GLuint geometryLoaderProgramI16;
-        GLuint geometryLoaderProgram2;
-        GLuint buildProgramH;
-        GLuint aabbMakerProgramH;
-        GLuint refitProgramH;
-        GLuint resortProgramH;
-        GLuint minmaxProgram2;
+        GLuint geometryLoaderProgramI16 = -1;
+        GLuint geometryLoaderProgram2 = -1;
+        GLuint buildProgramH = -1;
+        GLuint aabbMakerProgramH = -1;
+        GLuint refitProgramH = -1;
+        GLuint resortProgramH = -1;
+        GLuint minmaxProgram2 = -1;
 
-        GLuint ebo_triangle_ssbo;
-        GLuint mat_triangle_ssbo;
-        GLuint vbo_triangle_ssbo;
-        GLuint geometryBlockUniform;
+        GLuint ebo_triangle_ssbo = -1;
+        GLuint mat_triangle_ssbo = -1;
+        GLuint vbo_triangle_ssbo = -1;
+        GLuint geometryBlockUniform = -1;
+
         GeometryBlockUniform geometryBlockData;
         MinmaxUniformStruct minmaxUniformData;
         OctreeUniformStruct octreeUniformData;
         GeometryUniformStruct geometryUniformData;
         AttributeUniformStruct attributeUniformData;
 
-        GLuint aabbCounter;
-        GLuint nodeCounter;
-        GLuint numBuffer;
-        GLuint leafBuffer;
-        GLuint leafBufferSorted;
-        GLuint bvhnodesBuffer;
-        GLuint mortonBuffer;
-        GLuint mortonBufferIndex;
+        GLuint aabbCounter = -1;
+        GLuint nodeCounter = -1;
+        GLuint numBuffer = -1;
+        GLuint leafBuffer = -1;
+        GLuint leafBufferSorted = -1;
+        GLuint bvhnodesBuffer = -1;
+        GLuint mortonBuffer = -1;
+        GLuint mortonBufferIndex = -1;
 
-        GLuint bvhflagsBuffer;
-        GLuint lscounterTemp;
-        GLuint tcounter;
-        GLuint minmaxBuf;
-        GLuint minmaxBufRef;
+        GLuint bvhflagsBuffer = -1;
+        GLuint lscounterTemp = -1;
+        GLuint tcounter = -1;
+        GLuint minmaxBuf = -1;
+        GLuint minmaxBufRef = -1;
 
         void initShaderCompute(std::string str, GLuint& prog);
         void initShaders();

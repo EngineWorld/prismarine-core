@@ -11,14 +11,14 @@ namespace Paper {
 
     class Tracer : public PTObject {
     private:
-        GLuint renderProgram;
-        GLuint matProgram;
-        GLuint beginProgram;
-        GLuint reclaimProgram;
-        GLuint cameraProgram;
-        GLuint clearProgram;
-        GLuint samplerProgram;
-        GLuint intersectionProgram;
+        GLuint renderProgram = -1;
+        GLuint matProgram = -1;
+        GLuint beginProgram = -1;
+        GLuint reclaimProgram = -1;
+        GLuint cameraProgram = -1;
+        GLuint clearProgram = -1;
+        GLuint samplerProgram = -1;
+        GLuint intersectionProgram = -1;
 
         GLuint rays = -1;
         GLuint hits = -1;
@@ -30,8 +30,8 @@ namespace Paper {
         GLuint arcounter = -1;
         GLuint arcounterTemp = -1;
 
-        GLuint lightUniform;
-        GLuint rayBlockUniform;
+        GLuint lightUniform = -1;
+        GLuint rayBlockUniform = -1;
         RayBlockUniform rayBlockData;
 
         size_t framenum = 0;
@@ -44,12 +44,12 @@ namespace Paper {
         GLuint presampled = -1;
         GLuint samples = -1;
         GLuint sampleflags = -1;
-        GLuint cubeTex;
-        GLuint vao;
+        GLuint cubeTex = -1;
+        GLuint vao = -1;
 
-        GLuint posBuf;
-        GLuint idcBuf;
-        GLuint posattr;
+        GLuint posBuf = -1;
+        GLuint idcBuf = -1;
+        GLuint posattr = -1;
 
         const int32_t zero[1] = { 0 };
         void initShaderCompute(std::string str, GLuint& prog);
