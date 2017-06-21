@@ -88,7 +88,8 @@ vec4 fetchDiffuse(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 norma
         result = fetchPart(mat.diffusePart, texcoord);
     }
 
-    result.xyz = pow(result.xyz, vec3(GAMMA));
+    //result.xyz = pow(result.xyz, vec3(GAMMA));
+    result = pow(result, vec4(GAMMA));
     return result;
 }
 
@@ -191,54 +192,44 @@ void main() {
 
     vec4 tts = 1.0f - clamp(fetchTransmission(materialCache, hit.texcoord.xy, newRay.direct.xyz, normal), vec4(0.0f), vec4(1.0f));
     vec4 sp = clamp(fetchSpecular(materialCache, hit.texcoord.xy, newRay.direct.xyz, normal), vec4(0.0f), vec4(1.0f));
-    vec4 emi = materialCache.emissive;
+    vec4 emi = materialCache.emissive * tx;
 
-    const float glossiness = clamp(1.0f / log2(materialCache.reflectivity), 0.0f, 1.0f);
-    const float emis = mlength(emi.xyz); emi *= tx;
-    const float spic = mlength(sp.xyz) * (1.0f / glossiness);
+    const float emis = mlength(emi.xyz);
+    const float refly = clamp(1.0f - materialCache.roughness, 0.0f, 1.0f);
+    const float spic = mlength(sp.xyz);
     const float fres = computeFresnel(hit.normal.xyz, newRay.direct.xyz, inior, outior) * (inside <= 0.0f ? 1.0f : 0.0f);
-
-
-    // TODO - refraction support
-
-    const float trns = mlength(tts.xyz);
-    //const float prom = (1.0f - tx.a * (1.0f - trns));
     const float prom = 1.0f - tx.a;
-    tts.xyz = mix(tts.xyz, vec3(1.0f), (1.0f - tx.a));
-    sp.xyz = mix(tx.xyz, sp.xyz, glossiness);
 
-    bool diffused = false;
     bool additiveBlend = false;
-
     {
+        // init emmitents
         Ray emitentRay = newRay;
         Ray reflectionRay = newRay;
-        //Ray transmissionRay = newRay;
 
+        emitentRay.color.xyz *= (1.0f - prom);
+        reflectionRay.color.xyz *= (1.0f - prom);
+
+        // emit reflection ray
+        reflectionRay = reflection(newRay, hit, mix(tx.xyz, clamp(sp.xyz / spic, vec3(0.0f), vec3(1.0f)), refly), normal, refly);
+        reflectionRay.color.xyz *= 1.0f - prom;
+        mixed(emitentRay.color.xyz, reflectionRay.color.xyz, spic);
+        emitRay(reflectionRay, hit, normal, 1.0f);
+
+        // diffuse and light emission
+        bool shadowed = false;
         if (random() < emis) {
             emitentRay = emissive(newRay, hit, emi.xyz / min(emis, 1.0f), normal);
         } else {
-            emitentRay = diffuse(newRay, hit, tx.xyz, normal);
-            diffused = true;
+            emitentRay = diffuse(newRay, hit, tx.xyz, normal); shadowed = true;
         }
-
-        //transmissionRay = refraction(newRay, hit, tts.xyz, normal, inior, outior, glossiness);
-        reflectionRay = reflection(newRay, hit, sp.xyz, normal, glossiness);
-        reflectionRay.color.xyz *= 1.0f - prom;
-        emitentRay.color.xyz *= 1.0f - prom;
-        emitentRay.final.xyz *= 1.0f - prom;
-
-        // reflection
-        //mixed(emitentRay.color.xyz, reflectionRay.color.xyz, spic);
-        //emitRay(reflectionRay, hit, normal, 1.0f);
-
-        // diffuse or emissive
-        if (diffused) {
-            applyLight(directLight(0, emitentRay, hit, vec3(1.0f), normal), emitentRay, surfacenormal);
+        
+        // emit ray
+        if (shadowed) {
+            applyLight(directLight(0, emitentRay, hit, vec3(1.0f), normal), emitentRay, surfacenormal); // push shadow
         }
         emitRay(emitentRay, hit, normal, 1.0f);
 
-        // transparency
+        // transparency ray 
         newRay = promised(newRay, hit, normal);
         newRay.color.xyz *= additiveBlend ? 1.0f : prom;
     }

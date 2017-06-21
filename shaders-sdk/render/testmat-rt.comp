@@ -81,7 +81,8 @@ vec4 fetchDiffuse(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 norma
         //result = clamp(mat.diffuse, vec4(0.0f), vec4(1.0f));
     }
 
-    result.xyz = pow(result.xyz, vec3(GAMMA));
+    //result.xyz = pow(result.xyz, vec3(GAMMA));
+    result = pow(result, vec4(GAMMA));
     return result;
 }
 
@@ -156,8 +157,6 @@ void main() {
     vec4 tx = fetchDiffuse(materialCache, hit.texcoord.xy, newRay.direct.xyz, normal);
     tx *= vec4(hit.vcolor.xyz, hit.vcolor.a);
 
-    bool diffused = false;
-
     float prom = 1.0f - tx.a;
     if (false
         || haveProp(materialCache, M_ALPHA_TEST) && !alphaTest(materialCache.alphafunc, materialCache.alpharef, tx.a) 
@@ -168,40 +167,41 @@ void main() {
 
     {
         // diffuse
+        bool shadowed = false;
         Ray emitentRay = newRay;
-        if (haveProp(materialCache, M_SHADOWED)) {
-            emitentRay = diffuse(newRay, hit, tx.xyz, normal);
-            diffused = true;
-        } else {
-            emitentRay = emissive(newRay, hit, tx.xyz, normal);
-        }
+        Ray reflectionRay = newRay;
 
         emitentRay.color.xyz *= (1.0f - prom);
-        emitentRay.final.xyz *= (1.0f - prom);
+        reflectionRay.color.xyz *= (1.0f - prom);
+
+        if (haveProp(materialCache, M_ENVIRONMENT) && dot(hit.normal.xyz, emitentRay.direct.xyz) < 0.0f) {
+            mixed(emitentRay.color.xyz, reflectionRay.color.xyz, 0.4f);
+        } else {
+            mixed(emitentRay.color.xyz, reflectionRay.color.xyz, 0.0f);
+        }
+
+        if (haveProp(materialCache, M_SHADOWED)) {
+            emitentRay = diffuse(emitentRay, hit, tx.xyz, normal);
+            shadowed = true;
+        } else {
+            emitentRay = emissive(emitentRay, hit, tx.xyz, normal);
+        }
+        if (shadowed) applyLight(directLight(0, emitentRay, hit, vec3(1.0f), normal), emitentRay, surfacenormal);
+        emitRay(emitentRay, hit, normal, 1.0f);
 
         // reflective effects in coins and metals
-        //if (haveProp(materialCache, M_ENVIRONMENT) && dot(hit.normal.xyz, newRay.direct.xyz) < 0.0f) {
-        //    emitRay(reflection(newRay, hit, vec3(1.0f), normal, 0.0f), hit, normal, 0.2f);
-        //    emitentRay.color.xyz *= 0.8f;
-        //}
-
-        // emit diffuse ray
-        if (prom < 1.f) {
-#ifdef DIRECT_LIGHT
-            if (diffused) applyLight(directLight(0, emitentRay, hit, vec3(1.0f), normal), emitentRay, surfacenormal);
-#endif
-            emitRay(emitentRay, hit, normal, 1.0f);
+        if (haveProp(materialCache, M_ENVIRONMENT) && dot(hit.normal.xyz, reflectionRay.direct.xyz) < 0.0f) {
+            emitRay(reflection(reflectionRay, hit, vec3(1.0f), normal, 0.9f), hit, normal, 1.0f);
         }
 
+        // transparency or reflection ray
+        if (!haveProp(materialCache, M_ADDITIVE)) { 
+            newRay.color.xyz *= prom; 
+        }
         if ( haveProp(materialCache, M_REFLECTIVE)) { // mirrors
-            newRay = reflection(newRay, hit, vec3(1.0f), normal, 0.0f);
+            newRay = reflection(newRay, hit, vec3(1.0f), normal, 1.0f);
         } else { // transparency
             newRay = promised(newRay, hit, normal);
-        }
-
-        // push transparency ray
-        if (!haveProp(materialCache, M_ADDITIVE)) {
-            newRay.color.xyz *= prom;
         }
     }
 

@@ -285,7 +285,7 @@ namespace PaperExample {
                 material->Get(AI_MATKEY_COLOR_TRANSPARENT, dcolor);
                 mat.transmission = { dcolor.r, dcolor.g, dcolor.b, dcolor.a };
 
-                material->Get(AI_MATKEY_SHININESS, mat.reflectivity);
+                material->Get(AI_MATKEY_SHININESS_STRENGTH, mat.roughness);
                 material->Get(AI_MATKEY_REFRACTI, mat.ior);
                 mat.flags |= (1 << 6);
 

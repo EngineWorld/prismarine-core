@@ -10,7 +10,7 @@ struct Submat {
     vec4 emissive;
 
     float ior;
-    float reflectivity;
+    float roughness;
     float alpharef;
     float unk0f;
 
@@ -69,7 +69,8 @@ vec4 fetchSpecular(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 norm
     if (validateTexture(mat.specularPart)) {
         specular = fetchPart(mat.specularPart, texcoord);
     }
-    specular.xyz = pow(specular.xyz, vec3(GAMMA));
+    //specular.xyz = pow(specular.xyz, vec3(GAMMA));
+    specular = pow(specular, vec4(GAMMA));
     return specular;
 }
 
@@ -80,7 +81,6 @@ vec4 fetchEmissive(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 norm
     } else {
         emission = fetchPart(mat.emissivePart, texcoord);
     }
-    //emission.xyz = pow(emission.xyz, vec3(GAMMA));
     return emission;
 }
 
@@ -144,9 +144,9 @@ void mixed(inout vec3 src, inout vec3 dst, in vec3 coef){
     src *= 1.0f - coef;
 }
 
-Ray reflection(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal, in float glossiness){
+Ray reflection(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal, in float refly){
     if (newRay.params.w == 1) return newRay;
-    newRay.direct.xyz = glossy(reflect(newRay.direct.xyz, normal), normal, glossiness);
+    newRay.direct.xyz = mix(randomCosine(normal), reflect(newRay.direct.xyz, normal), refly);
     newRay.color.xyz *= color;
     newRay.params.x = SUNLIGHT_CAUSTICS ? 0 : 1;
     newRay.bounce = min(2, newRay.bounce); // easier mode

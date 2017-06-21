@@ -18,7 +18,7 @@ namespace Paper {
             glm::vec4 emissive = glm::vec4(0.0f);
 
             float ior = 1.0f;
-            float reflectivity = 0.0001f;
+            float roughness = 0.0001f;
             float alpharef = 0.0f;
             float unk0f = 0.0f;
 
