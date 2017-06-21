@@ -81,8 +81,8 @@ vec4 fetchDiffuse(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 norma
         //result = clamp(mat.diffuse, vec4(0.0f), vec4(1.0f));
     }
 
-    //result.xyz = pow(result.xyz, vec3(GAMMA));
-    result = pow(result, vec4(GAMMA));
+    result.xyz = pow(result.xyz, vec3(GAMMA));
+    //result = pow(result, vec4(GAMMA));
     return result;
 }
 
@@ -160,7 +160,7 @@ void main() {
     float prom = 1.0f - tx.a;
     if (false
         || haveProp(materialCache, M_ALPHA_TEST) && !alphaTest(materialCache.alphafunc, materialCache.alpharef, tx.a) 
-        //|| !haveProp(materialCache, M_TWO_SIDED) && dot(prenormal, newRay.direct.xyz) > 0.0f
+        || !haveProp(materialCache, M_TWO_SIDED) && dot(prenormal, newRay.direct.xyz) > 0.0f
     ) {
         prom = 1.0f;
     }
@@ -172,10 +172,9 @@ void main() {
         Ray reflectionRay = newRay;
 
         emitentRay.color.xyz *= (1.0f - prom);
-        reflectionRay.color.xyz *= (1.0f - prom);
 
         if (haveProp(materialCache, M_ENVIRONMENT) && dot(hit.normal.xyz, emitentRay.direct.xyz) < 0.0f) {
-            mixed(emitentRay.color.xyz, reflectionRay.color.xyz, 0.4f);
+            mixed(emitentRay.color.xyz, reflectionRay.color.xyz, 0.2f);
         } else {
             mixed(emitentRay.color.xyz, reflectionRay.color.xyz, 0.0f);
         }
@@ -191,7 +190,7 @@ void main() {
 
         // reflective effects in coins and metals
         if (haveProp(materialCache, M_ENVIRONMENT) && dot(hit.normal.xyz, reflectionRay.direct.xyz) < 0.0f) {
-            emitRay(reflection(reflectionRay, hit, vec3(1.0f), normal, 0.9f), hit, normal, 1.0f);
+            emitRay(reflection(reflectionRay, hit, vec3(1.0f), normal, 0.99f), hit, normal, 1.0f);
         }
 
         // transparency or reflection ray

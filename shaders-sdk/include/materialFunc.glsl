@@ -69,8 +69,8 @@ vec4 fetchSpecular(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 norm
     if (validateTexture(mat.specularPart)) {
         specular = fetchPart(mat.specularPart, texcoord);
     }
-    //specular.xyz = pow(specular.xyz, vec3(GAMMA));
-    specular = pow(specular, vec4(GAMMA));
+    specular.xyz = pow(specular.xyz, vec3(GAMMA));
+    //specular = pow(specular, vec4(GAMMA));
     return specular;
 }
 

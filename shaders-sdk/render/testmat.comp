@@ -88,8 +88,8 @@ vec4 fetchDiffuse(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 norma
         result = fetchPart(mat.diffusePart, texcoord);
     }
 
-    //result.xyz = pow(result.xyz, vec3(GAMMA));
-    result = pow(result, vec4(GAMMA));
+    result.xyz = pow(result.xyz, vec3(GAMMA));
+    //result = pow(result, vec4(GAMMA));
     return result;
 }
 
