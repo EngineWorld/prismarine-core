@@ -79,7 +79,7 @@ void main() {
         Leafs[globalID].parent = lid;
     }
 
-    barrier();
+    barrier(); memoryBarrier();
     
     // Set internal nodes
     if (globalID < Range.y-1) {
@@ -97,5 +97,5 @@ void main() {
         Flags[globalID] = 0;
     }
 
-    barrier();
+    barrier(); memoryBarrier();
 }

@@ -56,11 +56,11 @@ void main() {
         sdata[tid] = bboxunion(sdata[tid], bboxunion(getMinMaxPrimitive(i), getMinMaxPrimitive(i + gl_WorkGroupSize.x)));
         i += gridSize;
     };
-    barrier();
+    barrier(); memoryBarrier();
 
 #pragma optionNV (unroll all)
     for (uint i=gl_WorkGroupSize.x;i>=1;i>>=1) {
-        if (tid < i) { sdata[tid] = bboxunion(sdata[tid], sdata[tid + i]); } barrier();
+        if (tid < i) { sdata[tid] = bboxunion(sdata[tid], sdata[tid + i]); } barrier(); memoryBarrier();
     }
 
     if (tid == 0) {

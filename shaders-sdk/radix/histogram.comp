@@ -8,7 +8,7 @@ void main(){
     blocks_info blocks = get_blocks_info(NumKeys, WG_IDX);
     const uint localIdx = WARP_SIZE * LC_IDX + LANE_IDX;
     if (localIdx < RADICES) localHistogram[localIdx] = 0;
-    barrier();
+    barrier(); memoryBarrier();
 
     UVEC_WARP addr = blocks.offset + localIdx;
     for (int i=0;i<blocks.count;i++) {
@@ -33,6 +33,6 @@ void main(){
         addr += BLOCK_SIZE;
     }
 
-    barrier();
+    barrier(); memoryBarrier();
     if (localIdx < RADICES) Histogram[localIdx * WG_COUNT + WG_IDX] = localHistogram[localIdx];
 }

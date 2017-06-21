@@ -63,7 +63,7 @@ void sortBits(inout uint sort, inout uint sortVal){
         // prefix scan for WARP vector
         const uint pscan = prefix_scan(warpKey);
         if (LANE_IDX == 0) warpPScan[LC_IDX] = pscan; // cache by WARP ID
-        barrier();
+        barrier(); memoryBarrier();
 
         // use LANE_IDX as LC_IDX, so we did caching
         if (LC_IDX == 0) {
@@ -74,7 +74,7 @@ void sortBits(inout uint sort, inout uint sortVal){
                 totals[LANE_IDX] = warpTotal;
             }
         }
-        barrier();
+        barrier(); memoryBarrier();
         
         // use generalized local indexing (incl. warps)
         warpKey += psums[LC_IDX];
@@ -82,11 +82,11 @@ void sortBits(inout uint sort, inout uint sortVal){
         const UVEC_WARP destAddr = cmp ? warpKey : (addr - warpKey + totals[LC_IDX]);
         localSort   [destAddr] = sort;
         localSortVal[destAddr] = sortVal;
-        barrier();
+        barrier(); memoryBarrier();
 
         sort    = localSort   [addr];
         sortVal = localSortVal[addr];
-        barrier();
+        barrier(); memoryBarrier();
     }
 }
 
@@ -95,7 +95,7 @@ void main(){
     const UVEC_WARP def = 0xFFFFFFFFu;
 
     if (localIdx < RADICES) localHistogramToCarry[localIdx] = Histogram[localIdx * WG_COUNT + WG_IDX];
-    barrier();
+    barrier(); memoryBarrier();
 
     blocks_info blocks = get_blocks_info(NumKeys, WG_IDX);
     UVEC_WARP addr = blocks.offset + localIdx;
@@ -111,11 +111,11 @@ void main(){
         const UVEC_WARP  histKey = key;
         const UVEC_WARP localKey = key + (LC_IDX / RADICES) * RADICES;
         if (localIdx < WORK_SIZE) localSort[LANE_IDX] = 0;
-        barrier();
+        barrier(); memoryBarrier();
 
         atomicAdd(localSort[localKey], uint(validAddress));
         const UVEC_WARP offset = localHistogramToCarry[k] + localIdx;
-        barrier();
+        barrier(); memoryBarrier();
 
         // Use LANE_IDX as LC_IDX (non-vector mode)
         if (LC_IDX == 0) {
@@ -137,12 +137,12 @@ void main(){
                 localHistogram[LANE_IDX] = warpHistogram;
             }
         }
-        barrier();
+        barrier(); memoryBarrier();
 
         const UVEC_WARP outKey = offset - localHistogram[histKey];
         if (validAddress)   KeyOut[outKey] = data;
         if (validAddress) ValueOut[outKey] = dataValue;
-        barrier();
+        barrier(); memoryBarrier();
 
         addr += BLOCK_SIZE;
     }
