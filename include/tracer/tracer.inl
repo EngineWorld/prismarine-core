@@ -321,6 +321,8 @@ namespace Paper {
     }
 
     inline void Tracer::camera(const glm::mat4 &persp, const glm::mat4 &frontSide) {
+        glFlush();
+
         clearRays();
 
         randomUniformData.time = frandom();
@@ -409,6 +411,7 @@ namespace Paper {
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
         glBindVertexArray(0);
+        glFlush();
     }
 
     inline int Tracer::intersection(Intersector * obj, const int clearDepth) {

@@ -59,12 +59,15 @@ void main() {
     barrier(); memoryBarrier();
 
 #pragma optionNV (unroll all)
-    for (uint i=gl_WorkGroupSize.x;i>=1;i>>=1) {
-        if (tid < i) { sdata[tid] = bboxunion(sdata[tid], sdata[tid + i]); } barrier(); memoryBarrier();
+    for (uint i=(gl_WorkGroupSize.x>>1);i>=1;i>>=1) {
+        if (tid < i) {
+            sdata[tid] = bboxunion(sdata[tid], sdata[tid + i]); 
+        } 
+        barrier(); memoryBarrier();
     }
 
     if (tid == 0) {
-        minmax[gl_WorkGroupID.x*2 + 0] = sdata[0].mn - 0.0001f; 
-        minmax[gl_WorkGroupID.x*2 + 1] = sdata[0].mx + 0.0001f; 
+        minmax[gl_WorkGroupID.x*2 + 0] = sdata[0].mn - 0.00001f; 
+        minmax[gl_WorkGroupID.x*2 + 1] = sdata[0].mx + 0.00001f; 
     }
 }

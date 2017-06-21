@@ -1,7 +1,7 @@
 #ifndef _MATERIALFUNC_H
 #define _MATERIALFUNC_H
 
-#define GAP PZERO*1.01f
+#define GAP PZERO*1.001f
 
 struct Submat {
     vec4 diffuse;
@@ -147,7 +147,7 @@ Ray reflection(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal, in floa
     newRay.direct.xyz = mix(randomCosine(normal), reflect(newRay.direct.xyz, normal), refly);
     newRay.color.xyz *= color;
     newRay.params.x = SUNLIGHT_CAUSTICS ? 0 : 1;
-    newRay.bounce = min(2, newRay.bounce); // easier mode
+    newRay.bounce = min(3, newRay.bounce); // easier mode
     newRay.origin.xyz = fma(faceforward(hit.normal.xyz, newRay.direct.xyz, -hit.normal.xyz), vec3(GAP), newRay.origin.xyz); // padding
     return newRay;
 }

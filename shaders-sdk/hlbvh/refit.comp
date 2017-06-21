@@ -7,8 +7,8 @@
 
 bbox bboxunion(in bbox b1, in bbox b2) {
     return bbox(
-        min(b1.mn, b2.mn),
-        max(b1.mx, b2.mx)
+        min(b1.mn, b2.mn) - 0.00001f,
+        max(b1.mx, b2.mx) + 0.00001f
     );
 }
 

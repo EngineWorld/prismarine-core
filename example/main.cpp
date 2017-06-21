@@ -324,6 +324,9 @@ namespace PaperExample {
 
         glm::mat4 matrix(1.0f);
         matrix = glm::scale(matrix, glm::vec3(mscale));
+        //matrix = glm::rotate(matrix, float(t) / 10000.f, glm::vec3(1.0f, 0.0f, 0.0f));
+        //matrix = glm::rotate(matrix, float(t) / 20000.f, glm::vec3(0.0f, 0.0f, 1.0f));
+
         //matrix = glm::translate(matrix, glm::vec3(1.0f, 0.0f, 0.0f));
         //matrix = glm::rotate(matrix, float(M_PI) / 4.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 

@@ -40,10 +40,8 @@ ivec2 findSpan(in int idx) {
         }
     } while (t > 1);
 
-    ivec2 span;
-    span.x = min(idx, idx + l*d);
-    span.y = max(idx, idx + l*d);
-    return clamp(span, ivec2(0), ivec2(Range.y-1));
+    ivec2 span = ivec2(idx, idx + l*d);
+    return clamp( (span.x > span.y ? span.yx : span.xy) , ivec2(0), ivec2(Range.y-1));
 }
 
 int findSplit(in int left, in int right) {
@@ -64,17 +62,20 @@ int findSplit(in int left, in int right) {
 
 void main() {
     //Start from next childs
-    const int globalID = int(gl_GlobalInvocationID.x); //+ Range.x;
+    const int globalID = int(gl_GlobalInvocationID.x);
     if (globalID == 0) {
         Nodes[globalID].parent = -1;
     }
 
+    barrier(); memoryBarrier();
+
     // Set child
     if (globalID < Range.y) {
         int lid = LEAFIDX(globalID);
-        Nodes[lid].box = Leafs[globalID].box;
-        Nodes[lid].triangle = Leafs[globalID].triangle;
-        Nodes[lid].range = ivec2(lid);
+        Leaf ourLeaf = Leafs[globalID];
+        Nodes[lid].box = ourLeaf.box;
+        Nodes[lid].triangle = ourLeaf.triangle;
+        Nodes[lid].range = ourLeaf.range;
         Flags[lid] = 0;
         Leafs[globalID].parent = lid;
     }

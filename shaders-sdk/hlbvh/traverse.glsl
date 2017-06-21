@@ -18,17 +18,17 @@ float intersectTriangle(in vec3 orig, in vec3 dir, in vec3 ve[3], inout vec2 UV)
     const vec3 e1 = ve[1] - ve[0];
     const vec3 e2 = ve[2] - ve[0];
     if (
-           length(e1) < 0.0001f 
-        && length(e2) < 0.0001f
+           length(e1) < 0.00001f 
+        && length(e2) < 0.00001f
     ) return INFINITY;
 
     const vec3 pvec = cross(dir, e2);
     const float det = dot(e1, pvec);
 
 #ifndef CULLING
-    if (abs(det) < 0.00000001f) return INFINITY;
+    if (abs(det) <= 0.0f) return INFINITY;
 #else
-    if (det < 0.00000001f) return INFINITY;
+    if (det <= 0.0f) return INFINITY;
 #endif
 
     const vec3 tvec = orig - ve[0];
@@ -57,17 +57,12 @@ TResult choiceFirstBaked(inout TResult res, in vec3 orig, in vec3 dir) {
 
     const bool validTriangle = 
         tri >= 0 && 
-        tri != LONGEST && 
-        tri < GEOMETRY_BLOCK geometryUniform.triangleCount && 
-        tri != res.triangle;
+        tri != LONGEST;
     if (!validTriangle) return res;
 
     const vec2 uv = bakedRangeIntersection[0].yz;
     const float _d = bakedRangeIntersection[0].x;
-    const bool near = 
-        validTriangle && 
-        lessF(_d, INFINITY) &&
-        lessEqualF(_d, res.dist);
+    const bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.dist);
 
     if (near) {
         res.dist = _d;
@@ -99,9 +94,7 @@ TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
 
     const bool validTriangle = 
         tri >= 0 && 
-        tri != LONGEST && 
-        tri < GEOMETRY_BLOCK geometryUniform.triangleCount && 
-        tri != res.triangle;
+        tri != LONGEST;
 
     vec2 uv = vec2(0.0f);
     vec3 triverts[3];
@@ -126,9 +119,7 @@ TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
 TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tri, in int step) {
     const bool validTriangle = 
         tri >= 0 && 
-        tri != LONGEST && 
-        tri < GEOMETRY_BLOCK geometryUniform.triangleCount && 
-        tri != res.triangle;
+        tri != LONGEST;
 
     vec2 uv = vec2(0.0f);
     vec3 triverts[3];
@@ -184,7 +175,7 @@ float intersectCubeSingle(in vec3 origin, in vec3 ray, in vec3 cubeMin, in vec3 
     return isCube ? (lessF(tNear, 0.0f) ? tFar : tNear) : INFINITY;
 }
 
-const vec3 padding = vec3(0.0001f);
+const vec3 padding = vec3(0.00001f);
 const int STACK_SIZE = 32;
 int deferredStack[STACK_SIZE];
 

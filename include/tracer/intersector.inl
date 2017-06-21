@@ -205,6 +205,8 @@ namespace Paper {
 
         glGetNamedBufferSubData(tcounter, 0, strided<uint32_t>(1), &triangleCount);
         verticeCount = triangleCount * 3;
+
+        glUseProgram(0);
     }
 
     inline bool Intersector::isDirty() const {

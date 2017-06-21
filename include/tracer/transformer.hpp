@@ -40,7 +40,11 @@ namespace Paper {
             }
 
             void multiply(const float * m) {
-                multiply(*(glm::mat4 *)m);
+                multiply(glm::make_mat4(m));
+            }
+
+            void multiply(const double * m) {
+                multiply(glm::make_mat4(m));
             }
 
             void rotate(double angle, glm::dvec3 rot){

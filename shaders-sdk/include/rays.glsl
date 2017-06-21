@@ -112,7 +112,7 @@ int createRay(inout Ray original, in int idx) {
     if (
         original.actived < 1 || 
         original.bounce < 0 || 
-        mlength(original.color.xyz) < 0.0001f
+        mlength(original.color.xyz) < 0.00001f
     ) return -1; 
     
     atomicMax(arcounter[Ut], 0); // prevent most decreasing
@@ -133,7 +133,7 @@ int createRayIdx(inout Ray original, in int idx, in int rayIndex) {
     if (
         original.actived < 1 || 
         original.bounce < 0 || 
-        mlength(original.color.xyz) < 0.0001f
+        mlength(original.color.xyz) < 0.00001f
     ) return -1; 
     
     atomicMax(arcounter[Rt], rayIndex+1);
