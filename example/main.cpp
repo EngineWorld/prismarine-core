@@ -25,7 +25,7 @@
 #include "tracer/mesh.hpp"
 #include "tracer/material.hpp"
 #include "tracer/radix.hpp"
-
+#include <functional>
 
 namespace PaperExample {
     using namespace Paper;
@@ -77,7 +77,8 @@ namespace PaperExample {
 
 #ifdef EXPERIMENTAL_GLTF
         tinygltf::Model gltfModel;
-        std::vector<Mesh *> meshVec = std::vector<Mesh *>();
+        //std::vector<Mesh *> primitiveVec = std::vector<Mesh *>();
+        std::vector<std::vector<Mesh *>> meshVec = std::vector<std::vector<Mesh *>>();
         std::vector<GLuint> glBuffers = std::vector<GLuint>();
         std::vector<uint32_t> rtTextures = std::vector<uint32_t>();
 #endif
@@ -230,8 +231,10 @@ namespace PaperExample {
         */
 
         // load meshes (better view objectivity)
-        //for (int m = 0; m < gltfModel.meshes.size();m++) {
-        int m = 0; {
+        for (int m = 0; m < gltfModel.meshes.size();m++) {
+        //int m = 0; {
+            std::vector<Mesh *> primitiveVec = std::vector<Mesh *>();
+
             tinygltf::Mesh &glMesh = gltfModel.meshes[m];
             for (int i = 0; i < glMesh.primitives.size();i++) {
                 tinygltf::Primitive & prim = glMesh.primitives[i];
@@ -253,7 +256,7 @@ namespace PaperExample {
 
                     if (it->first.compare("POSITION") == 0) { // vertices
                         geom->attributeUniformData.vertexOffset = bufferView.byteOffset / 4;
-                        geom->attributeUniformData.stride = accessor.byteStride / 4;
+                        geom->attributeUniformData.stride = (bufferView.byteStride <= 4) ? 0 : (bufferView.byteStride / 4);
                         geom->setVertices(glBuffers[bufferView.buffer]);
                     } else
                     
@@ -288,9 +291,11 @@ namespace PaperExample {
 
                 // if triangles, then load mesh
                 if (prim.mode == TINYGLTF_MODE_TRIANGLES) {
-                    meshVec.push_back(geom);
+                    primitiveVec.push_back(geom);
                 }
             }
+
+            meshVec.push_back(primitiveVec);
         }
 #endif
 
@@ -496,11 +501,49 @@ namespace PaperExample {
         object->clearTribuffer();
 #ifdef EXPERIMENTAL_GLTF
         supermat->loadToVGA();
+
+        /*
         for (int g = 0; g < meshVec.size();g++) {
-            Paper::Mesh * geom = meshVec[g];
-            geom->setTransform(matrix);
-            object->loadMesh(geom);
+            std::vector<Paper::Mesh *>& mesh = meshVec[g];
+            for (int p = 0; p < mesh.size();p++) {
+                Paper::Mesh * geom = mesh[p];
+
+
+
+                geom->setTransform(matrix);
+                object->loadMesh(geom);
+
+            }
         }
+        */
+
+        // load tree
+        std::function<void(tinygltf::Node &, glm::dmat4, int)> traverse = [&](tinygltf::Node & node, glm::dmat4 inTransform, int recursive)->void {
+            glm::dmat4 transform = inTransform * (node.matrix.size() >= 16 ? glm::make_mat4(node.matrix.data()) : glm::dmat4(1.0));
+
+            if (node.mesh >= 0) {
+                std::vector<Paper::Mesh *>& mesh = meshVec[node.mesh]; // load mesh object (it just vector of primitives)
+                for (int p = 0; p < mesh.size(); p++) { // load every primitive
+                    Paper::Mesh * geom = mesh[p];
+                    geom->setTransform(transform);
+                    object->loadMesh(geom);
+                }
+            }
+            else
+            if (node.children.size() > 0) {
+                for (int n = 0; n < node.children.size(); n++) {
+                    if (recursive >= 0) traverse(gltfModel.nodes[node.children[n]], transform, recursive-1);
+                }
+            }
+        };
+
+        // load scene
+        uint32_t sceneID = 0;
+        for (int n = 0; n < gltfModel.scenes[sceneID].nodes.size();n++) {
+            tinygltf::Node & node = gltfModel.nodes[gltfModel.scenes[sceneID].nodes[n]];
+            traverse(node, glm::dmat4(matrix), 2);
+        }
+
 #else 
         geom->setTransform(matrix);
         object->loadMesh(geom);

@@ -190,14 +190,14 @@ void main() {
     vec4 tts = 1.0f - clamp(fetchTransmission(materialCache, hit.texcoord.xy, newRay.direct.xyz, normal), vec4(0.0f), vec4(1.0f));
     vec4 sp = clamp(fetchSpecular(materialCache, hit.texcoord.xy, newRay.direct.xyz, normal), vec4(0.0f), vec4(1.0f));
     vec4 emi = materialCache.emissive * fetchEmissive(materialCache, hit.texcoord.xy, newRay.direct.xyz, normal);
-    vec3 dielectric = vec3(0.1f);
+    vec3 dielectric = vec3(0.2f);
     vec3 sc = mix(dielectric, tx.xyz, sp.z);
 
     // we coming to PBR model
     const float refly = clamp(1.0f - sp.y, 0.0f, 1.0f); // roughness
     const float emis = mlength(emi.xyz);
     const float spca = mlength(sc.xyz);
-    const float spic = clamp(sp.x * spca, 0.0f, 1.0f); // diffuse or specular (except AO?)
+    const float spic = clamp(spca, 0.0f, 1.0f); // diffuse or specular (except AO?)
     const float fres = computeFresnel(hit.normal.xyz, newRay.direct.xyz, inior, outior) * (inside <= 0.0f ? 1.0f : 0.0f);
     const float prom = 1.0f - tx.a;
 
