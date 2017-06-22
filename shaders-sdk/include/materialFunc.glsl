@@ -73,10 +73,8 @@ vec4 fetchSpecular(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 norm
 }
 
 vec4 fetchEmissive(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 normal){
-    vec4 emission = vec4(0.0f);
-    if(!validateTexture(mat.emissivePart)) {
-        emission = mat.emissive;
-    } else {
+    vec4 emission = vec4(1.0f);
+    if (validateTexture(mat.emissivePart)) {
         emission = fetchPart(mat.emissivePart, texcoord);
     }
     return emission;

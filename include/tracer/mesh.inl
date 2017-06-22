@@ -132,9 +132,9 @@ namespace Paper {
 #endif
 
     inline void Mesh::bind() {
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, vbo_triangle_ssbo);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, vebo_triangle_ssbo);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, mat_triangle_ssbo);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, vbo_triangle_ssbo != -1 ? vbo_triangle_ssbo : 0);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, vebo_triangle_ssbo != -1 ? vebo_triangle_ssbo : 0);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, mat_triangle_ssbo != -1 ? mat_triangle_ssbo : 0);
     }
 
 }

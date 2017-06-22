@@ -189,11 +189,12 @@ void main() {
 
     vec4 tts = 1.0f - clamp(fetchTransmission(materialCache, hit.texcoord.xy, newRay.direct.xyz, normal), vec4(0.0f), vec4(1.0f));
     vec4 sp = clamp(fetchSpecular(materialCache, hit.texcoord.xy, newRay.direct.xyz, normal), vec4(0.0f), vec4(1.0f));
-    vec4 emi = materialCache.emissive * tx;
+    vec4 emi = materialCache.emissive * fetchEmissive(materialCache, hit.texcoord.xy, newRay.direct.xyz, normal) * tx;
 
+    // we coming to PBR model
     const float emis = mlength(emi.xyz);
-    const float refly = clamp(1.0f - materialCache.roughness, 0.0f, 1.0f);
-    const float spic = mlength(sp.xyz);
+    const float refly = clamp(1.0f - sp.y, 0.0f, 1.0f); // does not support hybrid roughness
+    const float spic  = clamp(1.0f - sp.x, 0.0f, 1.0f); // diffuse or specular
     const float fres = computeFresnel(hit.normal.xyz, newRay.direct.xyz, inior, outior) * (inside <= 0.0f ? 1.0f : 0.0f);
     const float prom = 1.0f - tx.a;
 
@@ -207,7 +208,8 @@ void main() {
         reflectionRay.color.xyz *= (1.0f - prom);
 
         // emit reflection ray
-        reflectionRay = reflection(reflectionRay, hit, mix(tx.xyz, clamp(sp.xyz / spic, vec3(0.0f), vec3(1.0f)), refly), normal, refly);
+        vec3 specularity = vec3(1.0f);
+        reflectionRay = reflection(reflectionRay, hit, mix(specularity, tx.xyz, sp.z), normal, refly);
         reflectionRay.color.xyz *= 1.0f - prom;
         mixed(emitentRay.color.xyz, reflectionRay.color.xyz, spic);
         emitRay(reflectionRay, hit, normal, 1.0f);

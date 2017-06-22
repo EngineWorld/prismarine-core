@@ -77,7 +77,9 @@ namespace PaperExample {
 
 #ifdef EXPERIMENTAL_GLTF
         tinygltf::Model gltfModel;
-
+        std::vector<Mesh *> meshVec = std::vector<Mesh *>();
+        std::vector<GLuint> glBuffers = std::vector<GLuint>();
+        std::vector<uint32_t> rtTextures = std::vector<uint32_t>();
 #endif
 
         double absscale = 0.75f;
@@ -87,6 +89,29 @@ namespace PaperExample {
             float f = 0.0f;
         } goptions;
     };
+
+
+    uint32_t _byType(int &type) {
+        switch (type) {
+            case TINYGLTF_TYPE_VEC4:
+            return 4;
+            break;
+
+            case TINYGLTF_TYPE_VEC3:
+            return 3;
+            break;
+
+            case TINYGLTF_TYPE_VEC2:
+            return 2;
+            break;
+
+            case TINYGLTF_TYPE_SCALAR:
+            return 1;
+            break;
+        }
+        return 1;
+    }
+
 
     PathTracerApplication::PathTracerApplication(const int32_t& argc, const char ** argv, GLFWwindow * wind) {
         window = wind;
@@ -150,11 +175,38 @@ namespace PaperExample {
 #ifdef EXPERIMENTAL_GLTF
         tinygltf::TinyGLTF loader;
         std::string err = "";
-        loader.LoadASCIIFromFile(&gltfModel, &err, model_input.c_str());
+        loader.LoadASCIIFromFile(&gltfModel, &err, model_input);
 
-        std::vector<Mesh *> meshVec = std::vector<Mesh *>();
-        std::vector<GLuint> glBuffers = std::vector<GLuint>();
+        // load textures (TODO - native samplers support in ray tracers)
+        for (int i = 0; i < gltfModel.textures.size(); i++) {
+            tinygltf::Texture& gltfTexture = gltfModel.textures[i];
+            uint32_t rtTexture = supermat->loadTexture(gltfModel.images[gltfTexture.source].uri);
+            // todo with rtTexture processing
+            rtTextures.push_back(rtTexture);
+        }
 
+        // load materials (include PBR)
+        supermat->clearSubmats();
+        for (int i = 0; i < gltfModel.materials.size(); i++) {
+            tinygltf::Material & material = gltfModel.materials[i];
+            Paper::Material::Submat submat;
+
+            // diffuse?
+            submat.diffuse = glm::vec4(1.0f);
+            submat.specular = glm::vec4(1.0f);
+            //submat.diffusePart = rtTextures[material.values["baseColorTexture"].json_double_value["index"]];
+            //submat.specularPart = rtTextures[material.values["metallicRoughnessTexture"].json_double_value["index"]];
+
+            // emission
+            //submat.emissive = glm::vec4(glm::make_vec3(&material.additionalValues["emissiveFactor"].number_array[0]), 1.0f);
+            //submat.emissivePart = rtTextures[material.additionalValues["emissiveTexture"].json_double_value["index"]];
+
+            // normal map
+            //submat.bumpPart = rtTextures[material.additionalValues["normalTexture"].json_double_value["index"]];
+
+            // load material
+            supermat->addSubmat(submat);
+        }
 
         // make buffers for OpenGL/RayTracers
         for (int i = 0; i < gltfModel.bufferViews.size();i++) {
@@ -162,53 +214,79 @@ namespace PaperExample {
 
             GLuint glBuf = -1;
             glCreateBuffers(1, &glBuf);
-            glNamedBufferData(glBuf, bview.byteLength, &gltfModel.buffers[bview.buffer].data[bview.byteOffset], GL_STATIC_DRAW);
+            glNamedBufferData(glBuf, bview.byteLength, &gltfModel.buffers[bview.buffer].data.at(bview.byteOffset), GL_STATIC_DRAW);
 
             glBuffers.push_back(glBuf);
         }
 
-
+        // load meshes (better view objectivity)
         //for (int m = 0; m < gltfModel.meshes.size();m++) {
         int m = 0; {
             tinygltf::Mesh &glMesh = gltfModel.meshes[m];
-            for (int i = 0; i < glMesh.primitives.size;i++) {
+            for (int i = 0; i < glMesh.primitives.size();i++) {
                 tinygltf::Primitive & prim = glMesh.primitives[i];
                 Mesh * geom = new Mesh();
 
+                // make attributes
                 std::map<std::string, int>::const_iterator it(prim.attributes.begin());
                 std::map<std::string, int>::const_iterator itEnd(prim.attributes.end());
 
+                geom->attributeUniformData.haveTexcoord = false;
+                geom->attributeUniformData.haveNormal = false;
+                geom->attributeUniformData.mode = 0;
 
-                // make attributes
                 for (; it != itEnd; it++) {
                     tinygltf::Accessor &accessor = gltfModel.accessors[it->second];
                     if (it->first.compare("POSITION") == 0) { // vertices
                         geom->attributeUniformData.vertexOffset = accessor.byteOffset / 4;
-
-                        // support only single buffers
-                        geom->attributeUniformData.stride = accessor.byteStride / 4;
+                        geom->attributeUniformData.stride = accessor.byteStride ? accessor.byteStride / 4 : _byType(accessor.type);
                         geom->setVertices(glBuffers[accessor.bufferView]);
-                    } else 
+                    }
+                    
+                    /*else 
                     if (it->first.compare("NORMAL") == 0) { // should use same buffer
                         geom->attributeUniformData.haveNormal = true;
                         geom->attributeUniformData.normalOffset = accessor.byteOffset / 4;
+
+                        if (geom->attributeUniformData.stride == 0) {
+                            geom->attributeUniformData.stride = accessor.byteStride / 4;
+                        }
+
                     } else 
                     if (it->first.compare("TEXCOORD_0") == 0) { // should use same buffer
                         geom->attributeUniformData.haveTexcoord = true;
                         geom->attributeUniformData.texcoordOffset = accessor.byteOffset / 4;
+
+                        if (geom->attributeUniformData.stride == 0) {
+                            geom->attributeUniformData.stride = accessor.byteStride / 4;
+                        }
+                    }
+                    */
+                }
+
+                // indices
+                if (prim.indices >= 0) {
+                    tinygltf::Accessor &idcAccessor = gltfModel.accessors[prim.indices];
+                    geom->setNodeCount(idcAccessor.count / 3);
+                    geom->setIndices(glBuffers[idcAccessor.bufferView]);
+                    geom->setIndexed(true);
+
+                    // is 16-bit indices?
+                    if (idcAccessor.componentType == TINYGLTF_COMPONENT_TYPE_SHORT || idcAccessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
+                        geom->useIndex16bit(true);
+                    }
+                    else {
+                        geom->useIndex16bit(false);
                     }
                 }
 
-                tinygltf::Accessor &idcAccessor = gltfModel.accessors[prim.indices];
-                geom->setNodeCount(idcAccessor.count / 3);
-                geom->setIndices(glBuffers[idcAccessor.bufferView]);
-                geom->setIndexed(true);
+                // use material
+                geom->setMaterialOffset(prim.material);
 
-
-
-
-
-                meshVec.push_back(geom);
+                // if triangles, then load mesh
+                if (prim.mode == TINYGLTF_MODE_TRIANGLES) {
+                    meshVec.push_back(geom);
+                }
             }
         }
 #endif
@@ -337,13 +415,6 @@ namespace PaperExample {
         supermat->loadToVGA();
 #endif
 
-#ifdef EXPERIMENTAL_GLTF
-        supermat->submats.resize(0);
-
-
-
-#endif
-
 #ifdef ASSIMP_SUPPORT
         supermat->submats.resize(0);
 
@@ -411,15 +482,25 @@ namespace PaperExample {
         //matrix = glm::translate(matrix, glm::vec3(1.0f, 0.0f, 0.0f));
         //matrix = glm::rotate(matrix, float(M_PI) / 4.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 
-        geom->setTransform(matrix);
         object->clearTribuffer();
-        object->loadMesh(geom);
+        supermat->loadToVGA();
+
+        // load meshes to BVH
+        for (int g = 0; g < meshVec.size();g++) {
+            Paper::Mesh * geom = meshVec[g];
+            geom->setTransform(matrix);
+            object->loadMesh(geom);
+        }
+
+        //geom->setTransform(matrix);
+        //object->loadMesh(geom);
         object->build(matrix);
 
         cam->work(mousepos, diff, lbutton, keys);
         rays->camera(cam->eye, cam->view);
 
         for (int32_t j = 0;j < depth;j++) {
+        //for (int32_t j = 0; j < 1; j++) {
             if (rays->getRayCount() <= 0) break;
             rays->resetHits();
             rays->intersection(object);
