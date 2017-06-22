@@ -30,7 +30,7 @@
 //#define INVERT_TEXCOORD
 //#define CAD_SYSTEM_CUBEMAP
 //#define SYSTEM_180_CUBEMAP
-#define MOTION_BLUR
+//#define MOTION_BLUR
 #define USE_INT64
 //#define INT64_MORTON
 

@@ -58,6 +58,8 @@ void main()
 
         vec4 orig;
         vec4 dir;
+        vec4 eye = vec4(vec3(0.0f), 1.0f);
+        eye = RAY_BLOCK cameraUniform.camInv * eye;
         if (enable360 == 1) {
             orig = RAY_BLOCK cameraUniform.camInv * vec4(0.0f, 0.0f, 0.0f, 1.0f);
             dir = RAY_BLOCK cameraUniform.camInv * (coord.x > 0.5f ? v : -v);
@@ -66,6 +68,15 @@ void main()
             orig = divW(RAY_BLOCK cameraUniform.camInv * RAY_BLOCK cameraUniform.projInv * vec4(coord * 2.0f - 1.0f, 0.0f, 1.0f));
             dir = vec4(normalize(co.xyz - orig.xyz), 0.0f);
         }
+
+        // apply DOF
+        const float dofFocusRadius = 1.f;
+        const float dofFocalRadius = 1.f / 64.f;
+        vec4 defEye = RAY_BLOCK cameraUniform.camInv * vec4(0.0f, 0.0f, 0.0f, 1.0f);
+        vec4 focus = defEye + dir * dofFocusRadius;//length(orig.xyz - defEye.xyz);
+        vec4 offsetEye = RAY_BLOCK cameraUniform.camInv * vec4(randomDirectionInSphere() * dofFocalRadius, 1.0f);
+        orig = offsetEye;
+        dir = vec4(normalize(focus.xyz - offsetEye.xyz), 0.0f);
 
         Ray ray;
         ray.texel = idx;
