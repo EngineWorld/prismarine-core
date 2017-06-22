@@ -193,7 +193,7 @@ namespace PaperExample {
 
             // diffuse?
             submat.diffuse = glm::vec4(1.0f);
-            submat.specular = glm::vec4(1.0f);
+            submat.specular = glm::vec4(0.0f);
             //submat.diffusePart = rtTextures[material.values["baseColorTexture"].json_double_value["index"]];
             //submat.specularPart = rtTextures[material.values["metallicRoughnessTexture"].json_double_value["index"]];
 
@@ -482,18 +482,20 @@ namespace PaperExample {
         //matrix = glm::translate(matrix, glm::vec3(1.0f, 0.0f, 0.0f));
         //matrix = glm::rotate(matrix, float(M_PI) / 4.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 
-        object->clearTribuffer();
-        supermat->loadToVGA();
-
         // load meshes to BVH
+        object->clearTribuffer();
+#ifdef EXPERIMENTAL_GLTF
+        supermat->loadToVGA();
         for (int g = 0; g < meshVec.size();g++) {
             Paper::Mesh * geom = meshVec[g];
             geom->setTransform(matrix);
             object->loadMesh(geom);
         }
+#else 
+        geom->setTransform(matrix);
+        object->loadMesh(geom);
+#endif
 
-        //geom->setTransform(matrix);
-        //object->loadMesh(geom);
         object->build(matrix);
 
         cam->work(mousepos, diff, lbutton, keys);

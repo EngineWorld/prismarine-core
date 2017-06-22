@@ -42,8 +42,8 @@ void main()
     if (gl_GlobalInvocationID.x >= GEOMETRY_BLOCK geometryUniform.triangleCount) return;
 
     const int ctriangle = GEOMETRY_BLOCK geometryUniform.loadOffset + int(gl_GlobalInvocationID.x);
-    const int matID = GEOMETRY_BLOCK geometryUniform.materialID;
-    //const int matID = imats[ctriangle] + GEOMETRY_BLOCK geometryUniform.materialID;
+    //const int matID = GEOMETRY_BLOCK geometryUniform.materialID;
+    const int matID = imats[ctriangle] + GEOMETRY_BLOCK geometryUniform.materialID;
     vec3 vertice[4] = {vec3(0.0f), vec3(0.0f), vec3(0.0f), vec3(0.0f)};
     vec3 normal[4] = {vec3(0.0f), vec3(0.0f), vec3(0.0f), vec3(0.0f)};
     vec4 texcoord[4] = {vec4(0.0f), vec4(0.0f), vec4(0.0f), vec4(0.0f)};
