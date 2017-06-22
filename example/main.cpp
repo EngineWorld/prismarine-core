@@ -15,6 +15,7 @@
 
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
+#include <tiny_gltf.h>
 
 #include "tracer/includes.hpp"
 #include "tracer/utils.hpp"
@@ -72,6 +73,11 @@ namespace PaperExample {
 
         Assimp::Importer importer;
         const aiScene* scene;
+#endif
+
+#ifdef EXPERIMENTAL_GLTF
+        tinygltf::Model gltfModel;
+
 #endif
 
         double absscale = 0.75f;
@@ -140,6 +146,74 @@ namespace PaperExample {
         cam->setRays(rays);
         supermat = new Material();
         geom = new Mesh();
+
+#ifdef EXPERIMENTAL_GLTF
+        tinygltf::TinyGLTF loader;
+        std::string err = "";
+        loader.LoadASCIIFromFile(&gltfModel, &err, model_input.c_str());
+
+        std::vector<Mesh *> meshVec = std::vector<Mesh *>();
+        std::vector<GLuint> glBuffers = std::vector<GLuint>();
+
+
+        // make buffers for OpenGL/RayTracers
+        for (int i = 0; i < gltfModel.bufferViews.size();i++) {
+            tinygltf::BufferView &bview = gltfModel.bufferViews[i];
+
+            GLuint glBuf = -1;
+            glCreateBuffers(1, &glBuf);
+            glNamedBufferData(glBuf, bview.byteLength, &gltfModel.buffers[bview.buffer].data[bview.byteOffset], GL_STATIC_DRAW);
+
+            glBuffers.push_back(glBuf);
+        }
+
+
+        //for (int m = 0; m < gltfModel.meshes.size();m++) {
+        int m = 0; {
+            tinygltf::Mesh &glMesh = gltfModel.meshes[m];
+            for (int i = 0; i < glMesh.primitives.size;i++) {
+                tinygltf::Primitive & prim = glMesh.primitives[i];
+                Mesh * geom = new Mesh();
+
+                std::map<std::string, int>::const_iterator it(prim.attributes.begin());
+                std::map<std::string, int>::const_iterator itEnd(prim.attributes.end());
+
+
+                // make attributes
+                for (; it != itEnd; it++) {
+                    tinygltf::Accessor &accessor = gltfModel.accessors[it->second];
+                    if (it->first.compare("POSITION") == 0) { // vertices
+                        geom->attributeUniformData.vertexOffset = accessor.byteOffset / 4;
+
+                        // support only single buffers
+                        geom->attributeUniformData.stride = accessor.byteStride / 4;
+                        geom->setVertices(glBuffers[accessor.bufferView]);
+                    } else 
+                    if (it->first.compare("NORMAL") == 0) { // should use same buffer
+                        geom->attributeUniformData.haveNormal = true;
+                        geom->attributeUniformData.normalOffset = accessor.byteOffset / 4;
+                    } else 
+                    if (it->first.compare("TEXCOORD_0") == 0) { // should use same buffer
+                        geom->attributeUniformData.haveTexcoord = true;
+                        geom->attributeUniformData.texcoordOffset = accessor.byteOffset / 4;
+                    }
+                }
+
+                tinygltf::Accessor &idcAccessor = gltfModel.accessors[prim.indices];
+                geom->setNodeCount(idcAccessor.count / 3);
+                geom->setIndices(glBuffers[idcAccessor.bufferView]);
+                geom->setIndexed(true);
+
+
+
+
+
+                meshVec.push_back(geom);
+            }
+        }
+#endif
+
+
 
 #ifdef ASSIMP_SUPPORT
         geom->loadMesh(scene->mMeshes, scene->mNumMeshes);
@@ -261,6 +335,13 @@ namespace PaperExample {
         }
 
         supermat->loadToVGA();
+#endif
+
+#ifdef EXPERIMENTAL_GLTF
+        supermat->submats.resize(0);
+
+
+
 #endif
 
 #ifdef ASSIMP_SUPPORT
