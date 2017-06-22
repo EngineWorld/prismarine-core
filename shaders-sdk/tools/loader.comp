@@ -106,7 +106,9 @@ void main()
                 const int tstride = stride <= 0 ? 2 : stride;
                 tx.x = iverts[(vindices) * tstride + GEOMETRY_BLOCK attributeUniform.texcoordOffset + 0];
                 tx.y = iverts[(vindices) * tstride + GEOMETRY_BLOCK attributeUniform.texcoordOffset + 1];
+#ifdef INVERT_TX_Y
                 tx.y = 1.0f - tx.y; // invert Y
+#endif
             }
 
             vec2 lt = vec2(0.0f);
