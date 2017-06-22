@@ -194,15 +194,15 @@ namespace PaperExample {
             // diffuse?
             submat.diffuse = glm::vec4(1.0f);
             submat.specular = glm::vec4(0.0f);
-            //submat.diffusePart = rtTextures[material.values["baseColorTexture"].json_double_value["index"]];
-            //submat.specularPart = rtTextures[material.values["metallicRoughnessTexture"].json_double_value["index"]];
+            submat.diffusePart = rtTextures[material.values["baseColorTexture"].json_double_value["index"]];
+            submat.specularPart = rtTextures[material.values["metallicRoughnessTexture"].json_double_value["index"]];
 
             // emission
-            //submat.emissive = glm::vec4(glm::make_vec3(&material.additionalValues["emissiveFactor"].number_array[0]), 1.0f);
-            //submat.emissivePart = rtTextures[material.additionalValues["emissiveTexture"].json_double_value["index"]];
+            submat.emissive = glm::vec4(glm::make_vec3(&material.additionalValues["emissiveFactor"].number_array[0]), 1.0f);
+            submat.emissivePart = rtTextures[material.additionalValues["emissiveTexture"].json_double_value["index"]];
 
             // normal map
-            //submat.bumpPart = rtTextures[material.additionalValues["normalTexture"].json_double_value["index"]];
+            submat.bumpPart = rtTextures[material.additionalValues["normalTexture"].json_double_value["index"]];
 
             // load material
             supermat->addSubmat(submat);
@@ -304,8 +304,15 @@ namespace PaperExample {
         geom->setTransform(matrix);
 
         object = new Intersector();
-        object->allocate(geom->getNodeCount());
-        object->loadMesh(geom);
+        object->allocate(1024 * 1024);
+
+#ifdef ASSIMP_SUPPORT
+        //object->allocate(geom->getNodeCount());
+        //object->loadMesh(geom);
+#else
+        object = new Intersector();
+        object->allocate(1024 * 1024);
+#endif
 
         time = milliseconds();
         diff = 0;
