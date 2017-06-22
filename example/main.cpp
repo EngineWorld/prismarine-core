@@ -208,7 +208,16 @@ namespace PaperExample {
             supermat->addSubmat(submat);
         }
 
+        // make raw buffers
+        for (int i = 0; i < gltfModel.buffers.size();i++) {
+            GLuint glBuf = -1;
+            glCreateBuffers(1, &glBuf);
+            glNamedBufferData(glBuf, gltfModel.buffers[i].data.size(), &gltfModel.buffers[i].data.at(0), GL_STATIC_DRAW);
+            glBuffers.push_back(glBuf);
+        }
+
         // make buffers for OpenGL/RayTracers
+        /*
         for (int i = 0; i < gltfModel.bufferViews.size();i++) {
             tinygltf::BufferView &bview = gltfModel.bufferViews[i];
 
@@ -218,6 +227,7 @@ namespace PaperExample {
 
             glBuffers.push_back(glBuf);
         }
+        */
 
         // load meshes (better view objectivity)
         //for (int m = 0; m < gltfModel.meshes.size();m++) {
@@ -234,50 +244,43 @@ namespace PaperExample {
                 geom->attributeUniformData.haveTexcoord = false;
                 geom->attributeUniformData.haveNormal = false;
                 geom->attributeUniformData.mode = 0;
+                geom->attributeUniformData.stride = 0;
 
+                // load modern mode
                 for (; it != itEnd; it++) {
                     tinygltf::Accessor &accessor = gltfModel.accessors[it->second];
+                    auto& bufferView = gltfModel.bufferViews[accessor.bufferView];
+
                     if (it->first.compare("POSITION") == 0) { // vertices
-                        geom->attributeUniformData.vertexOffset = accessor.byteOffset / 4;
-                        geom->attributeUniformData.stride = accessor.byteStride ? accessor.byteStride / 4 : _byType(accessor.type);
-                        geom->setVertices(glBuffers[accessor.bufferView]);
-                    }
+                        geom->attributeUniformData.vertexOffset = bufferView.byteOffset / 4;
+                        geom->attributeUniformData.stride = accessor.byteStride / 4;
+                        geom->setVertices(glBuffers[bufferView.buffer]);
+                    } else
                     
-                    /*else 
-                    if (it->first.compare("NORMAL") == 0) { // should use same buffer
+                    if (it->first.compare("NORMAL") == 0) {
                         geom->attributeUniformData.haveNormal = true;
-                        geom->attributeUniformData.normalOffset = accessor.byteOffset / 4;
-
-                        if (geom->attributeUniformData.stride == 0) {
-                            geom->attributeUniformData.stride = accessor.byteStride / 4;
-                        }
-
+                        geom->attributeUniformData.normalOffset = bufferView.byteOffset / 4;
                     } else 
-                    if (it->first.compare("TEXCOORD_0") == 0) { // should use same buffer
-                        geom->attributeUniformData.haveTexcoord = true;
-                        geom->attributeUniformData.texcoordOffset = accessor.byteOffset / 4;
 
-                        if (geom->attributeUniformData.stride == 0) {
-                            geom->attributeUniformData.stride = accessor.byteStride / 4;
-                        }
+                    if (it->first.compare("TEXCOORD_0") == 0) {
+                        geom->attributeUniformData.haveTexcoord = true;
+                        geom->attributeUniformData.texcoordOffset = bufferView.byteOffset / 4;
                     }
-                    */
                 }
 
                 // indices
                 if (prim.indices >= 0) {
                     tinygltf::Accessor &idcAccessor = gltfModel.accessors[prim.indices];
+                    auto& bufferView = gltfModel.bufferViews[idcAccessor.bufferView];
                     geom->setNodeCount(idcAccessor.count / 3);
-                    geom->setIndices(glBuffers[idcAccessor.bufferView]);
+                    geom->setIndices(glBuffers[bufferView.buffer]);
+
+                    bool isInt16 = idcAccessor.componentType == TINYGLTF_COMPONENT_TYPE_SHORT || idcAccessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT;
+                    geom->setLoadingOffset(bufferView.byteOffset / (isInt16 ? 2 : 4));
                     geom->setIndexed(true);
 
                     // is 16-bit indices?
-                    if (idcAccessor.componentType == TINYGLTF_COMPONENT_TYPE_SHORT || idcAccessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
-                        geom->useIndex16bit(true);
-                    }
-                    else {
-                        geom->useIndex16bit(false);
-                    }
+                    geom->useIndex16bit(isInt16);
                 }
 
                 // use material
