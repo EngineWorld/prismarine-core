@@ -42,15 +42,9 @@ ${ApplicationName}.exe -m sponza.obj -s 1.0
 
 🕐 Rendered every roundly 1/2 of minute.
 
-<img src="./screenshots/sponza0.jpg" alt="Sponza" width="400"/>
-<img src="./screenshots/sponza1.jpg" alt="Sponza" width="400"/>
-<img src="./screenshots/sponza2.jpg" alt="Sponza" width="400"/>
-<img src="./screenshots/sponza3.jpg" alt="Sponza" width="400"/>
-<img src="./screenshots/sponza4.jpg" alt="Sponza" width="400"/>
-<img src="./screenshots/sponza5.jpg" alt="Sponza" width="400"/>
-<img src="./screenshots/sponza6.jpg" alt="Sponza" width="400"/>
-<img src="./screenshots/sponza7.jpg" alt="Sponza" width="400"/>
-<img src="./screenshots/sponza8.jpg" alt="Sponza" width="400"/>
+<img src="./screenshots/gltf-pbr0.jpg" alt="Sponza" width="640"/>
+<img src="./screenshots/gltf-pbr1.jpg" alt="Sponza" width="640"/>
+<img src="./screenshots/gltf-pbr2.jpg" alt="Sponza" width="640"/>
 
 ## 🆙 Contributors
 
