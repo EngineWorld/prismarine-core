@@ -260,19 +260,19 @@ namespace PaperExample {
                     auto& bufferView = gltfModel.bufferViews[accessor.bufferView];
 
                     if (it->first.compare("POSITION") == 0) { // vertices
-                        geom->attributeUniformData.vertexOffset = bufferView.byteOffset / 4;
+                        geom->attributeUniformData.vertexOffset = (accessor.byteOffset + bufferView.byteOffset) / 4;
                         geom->attributeUniformData.stride = (bufferView.byteStride <= 4) ? 0 : (bufferView.byteStride / 4);
                         geom->setVertices(glBuffers[bufferView.buffer]);
                     } else
                     
                     if (it->first.compare("NORMAL") == 0) {
                         geom->attributeUniformData.haveNormal = true;
-                        geom->attributeUniformData.normalOffset = bufferView.byteOffset / 4;
+                        geom->attributeUniformData.normalOffset = (accessor.byteOffset + bufferView.byteOffset) / 4;
                     } else 
 
                     if (it->first.compare("TEXCOORD_0") == 0) {
                         geom->attributeUniformData.haveTexcoord = true;
-                        geom->attributeUniformData.texcoordOffset = bufferView.byteOffset / 4;
+                        geom->attributeUniformData.texcoordOffset = (accessor.byteOffset + bufferView.byteOffset) / 4;
                     }
                 }
 
@@ -284,7 +284,7 @@ namespace PaperExample {
                     geom->setIndices(glBuffers[bufferView.buffer]);
 
                     bool isInt16 = idcAccessor.componentType == TINYGLTF_COMPONENT_TYPE_SHORT || idcAccessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT;
-                    geom->setLoadingOffset(bufferView.byteOffset / (isInt16 ? 2 : 4));
+                    geom->setLoadingOffset((bufferView.byteOffset + idcAccessor.byteOffset) / (isInt16 ? 2 : 4));
                     geom->setIndexed(true);
 
                     // is 16-bit indices?
