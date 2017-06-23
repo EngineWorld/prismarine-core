@@ -133,7 +133,7 @@ void main() {
         newRay = transformRay(newRay);
 
         const vec3 lcenter = lightCenterSky(0);
-        vec3 color = //vec3(0.8f, 0.9f, 1.0f);
+        vec3 color = //vec3(0.1f);
             js_getScatter(newRay.direct.xyz, -normalize(lcenter - newRay.origin.xyz), 800.0f) +
             js_getScatter(newRay.direct.xyz,  normalize(lcenter - newRay.origin.xyz), 4000.0f);
         color = 1.0f - exp(-1.0f * color);
@@ -189,7 +189,7 @@ void main() {
 
     vec4 tts = 1.0f - clamp(fetchTransmission(materialCache, hit.texcoord.xy, newRay.direct.xyz, normal), vec4(0.0f), vec4(1.0f));
     vec4 sp = clamp(fetchSpecular(materialCache, hit.texcoord.xy, newRay.direct.xyz, normal), vec4(0.0f), vec4(1.0f));
-    vec4 emi = materialCache.emissive * fetchEmissive(materialCache, hit.texcoord.xy, newRay.direct.xyz, normal);
+    vec4 emi = materialCache.emissive * fetchEmissive(materialCache, hit.texcoord.xy, newRay.direct.xyz, normal) * 3.0f;
     vec3 dielectric = vec3(clamp(0.04f + pow(1.0f - abs(dot(dir, normal)), 5.0f), 0.0f, 1.0f));
     vec3 sc = mix(dielectric, tx.xyz, sp.z);
 
