@@ -142,7 +142,7 @@ void mixed(inout vec3 src, inout vec3 dst, in vec3 coef){
 
 Ray reflection(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal, in float refly){
     if (newRay.params.w == 1) return newRay;
-    newRay.direct.xyz = mix(randomCosine(normal), reflect(newRay.direct.xyz, normal), refly);
+    newRay.direct.xyz = normalize(mix(randomCosine(normal), reflect(newRay.direct.xyz, normal), refly));
     newRay.color.xyz *= color;
     newRay.params.x = SUNLIGHT_CAUSTICS ? 0 : 1;
     newRay.bounce = min(3, newRay.bounce); // easier mode
@@ -250,7 +250,7 @@ Ray directLight(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 n
 Ray diffuse(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal){
     if (newRay.params.w == 1) return newRay;
     newRay.color.xyz *= color;
-    newRay.direct.xyz = randomCosine(normal);
+    newRay.direct.xyz = normalize(randomCosine(normal));
     newRay.bounce = min(2, newRay.bounce);
     newRay.params.z = 1;
     newRay.params.x = 0;
