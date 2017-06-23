@@ -38,9 +38,7 @@ ${ApplicationName}.exe -m sponza.obj -s 1.0
 
 ## 🌐 Screenshots
 
-### Sponza (diffuse only, 08-06-2017)
-
-🕐 Rendered every roundly 1/2 of minute.
+### glTF PBR (24-06-2017)
 
 <img src="./screenshots/gltf-pbr0.jpg" alt="Sponza" width="640"/>
 <img src="./screenshots/gltf-pbr1.jpg" alt="Sponza" width="640"/>
