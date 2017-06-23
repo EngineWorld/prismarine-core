@@ -199,7 +199,12 @@ namespace PaperExample {
             submat.specularPart = rtTextures[material.values["metallicRoughnessTexture"].json_double_value["index"]];
 
             // emission
-            submat.emissive = glm::vec4(glm::make_vec3(&material.additionalValues["emissiveFactor"].number_array[0]), 1.0f);
+            if (material.additionalValues["emissiveFactor"].number_array.size() >= 4) {
+                submat.emissive = glm::vec4(glm::make_vec3(&material.additionalValues["emissiveFactor"].number_array[0]), 1.0f);
+            }
+            else {
+                submat.emissive = glm::vec4(0.0f);
+            }
             submat.emissivePart = rtTextures[material.additionalValues["emissiveTexture"].json_double_value["index"]];
 
             // normal map
