@@ -55,7 +55,7 @@ void main()
     for(int i=0;i<trp;i++){
         const int ctri = ctriangle * trp + i;
         const int ptri = GEOMETRY_BLOCK geometryUniform.loadOffset + ctri;
-        const int vindices = GEOMETRY_BLOCK geometryUniform.unindexed == 1 ? ctri : int( PICK(vindics, ptri) );
+        const int vindices = GEOMETRY_BLOCK geometryUniform.unindexed == 1 ? ptri : int( PICK(vindics, ptri) );
         const int stride = GEOMETRY_BLOCK attributeUniform.stride;
 
         vec3 vpos = vec3(0.0f);
