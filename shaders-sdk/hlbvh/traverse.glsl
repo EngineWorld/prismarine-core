@@ -201,7 +201,8 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     HlbvhNode node = Nodes[idx];
     float near = INFINITY, far = INFINITY;
     const bbox lbox = node.box;
-    const float d = intersectCubeSingle(torig, dirproj, lbox.mn.xyz, lbox.mx.xyz, near, far);
+    //const float d = intersectCubeSingle(torig, dirproj, lbox.mn.xyz, lbox.mx.xyz, near, far);
+    const float d = intersectCubeSingle(torig, dirproj, vec3(0.0f), vec3(1.0f), near, far);
     lastRes.predist = far * dirlen;
 
     bool validBox = 
@@ -210,7 +211,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
         && greaterEqualF(lastRes.predist, near * dirlen)
         ;
 
-    for(int i=0;i<8192;i++) {
+    for(int i=0;i<16384;i++) {
         if ( !validBox ) { break; }
         HlbvhNode node = Nodes[idx];
 
@@ -267,7 +268,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
         idx = valid ? deferredStack[ptr] : -1;
         if (valid) deferredStack[ptr] = -1;
 
-        validBox = validBox && idx >= 0 && valid;
+        validBox = validBox && valid;
         if ( !validBox ) { break; }
     }
 

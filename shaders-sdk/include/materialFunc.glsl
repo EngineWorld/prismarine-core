@@ -1,7 +1,7 @@
 #ifndef _MATERIALFUNC_H
 #define _MATERIALFUNC_H
 
-#define GAP PZERO*1.001f
+#define GAP PZERO*1.0f
 
 struct Submat {
     vec4 diffuse;
