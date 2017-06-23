@@ -198,9 +198,9 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     int idx = 0, deferredPtr = 0;
 
     // test with root node
-    HlbvhNode node = Nodes[idx];
+    //HlbvhNode node = Nodes[idx];
+    //const bbox lbox = node.box;
     float near = INFINITY, far = INFINITY;
-    const bbox lbox = node.box;
     //const float d = intersectCubeSingle(torig, dirproj, lbox.mn.xyz, lbox.mx.xyz, near, far);
     const float d = intersectCubeSingle(torig, dirproj, vec3(0.0f), vec3(1.0f), near, far);
     lastRes.predist = far * dirlen;
