@@ -123,11 +123,11 @@ void main() {
     barrier(); memoryBarrier();
 
     for (int h=0;h<128;h++) {
-        uint workSize = ((lRange[1] - lRange[0]) - 1) / gl_WorkGroupSize.x + 1;
+        const uint workSize = ((lRange[1] - lRange[0]) - 1) / gl_WorkGroupSize.x + 1;
 
         for (int i=0;i<workSize;i++) {
-            uint sWorkID = gl_WorkGroupSize.x * i;
-            uint prID = lRange[0] + (sWorkID + threadID);
+            const uint sWorkID = gl_WorkGroupSize.x * i;
+            const uint prID = lRange[0] + (sWorkID + threadID);
 
             if (prID < lRange[1]) {
                 HlbvhNode parentNode = Nodes[prID];
