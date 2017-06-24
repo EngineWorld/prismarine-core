@@ -56,7 +56,7 @@ float mult4(inout float vec, in mat4 mat){
     return mult4(cvec4(vec), mat);
 }
 
-float mult4(inout mat4 mat, inout float vec){
+float mult4(in mat4 mat, inout float vec){
     return mult4(mat, cvec4(vec));
 }
 
