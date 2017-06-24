@@ -16,29 +16,29 @@ float swiz(in vec4 vc){
 }
 
 // defined lanes
-float x(inout float mem){
+float x(in float mem){
     return readInvocationARB(mem, (gl_SubGroupInvocationARB / 4) * 4);
 }
 
-float y(inout float mem){
+float y(in float mem){
     return readInvocationARB(mem, (gl_SubGroupInvocationARB / 4) * 4 + 1);
 }
 
-float z(inout float mem){
+float z(in float mem){
     return readInvocationARB(mem, (gl_SubGroupInvocationARB / 4) * 4 + 2);
 }
 
-float w(inout float mem){
+float w(in float mem){
     return readInvocationARB(mem, (gl_SubGroupInvocationARB / 4) * 4 + 3);
 }
 
 // read lane from vector4
-float lane(inout float mem, in int l){
+float lane(in float mem, in int l){
     return readInvocationARB(mem, (gl_SubGroupInvocationARB / 4) * 4 + (l % 4));
 }
 
 // compact vector
-vec4 cvec4(inout float mem){
+vec4 cvec4(in float mem){
     return vec4(x(mem), y(mem), z(mem), w(mem));
 }
 
@@ -47,16 +47,16 @@ float mult4(in vec4 vec, in mat4 mat){
     return dot(mat[gl_SubGroupInvocationARB % 4], vec);
 }
 
-float mult4(inout mat4 mat, in vec4 vec){
+float mult4(in mat4 mat, in vec4 vec){
     return dot( vec4(swiz(mat[0]), swiz(mat[1]), swiz(mat[2]), swiz(mat[3])), vec );
 }
 
 // matrix math on WARP%4 lanes (laned version)
-float mult4(inout float vec, in mat4 mat){
+float mult4(in float vec, in mat4 mat){
     return mult4(cvec4(vec), mat);
 }
 
-float mult4(in mat4 mat, inout float vec){
+float mult4(in mat4 mat, in float vec){
     return mult4(mat, cvec4(vec));
 }
 
@@ -66,7 +66,7 @@ bool mt(){
 }
 
 // cross lane "cross product"
-float cross(inout float a, inout float b){
+float cross(in float a, in float b){
     const uint ln = gl_SubGroupInvocationARB % 3;
     return dot(vec2(
         lane(a, (ln + 1) % 3),
