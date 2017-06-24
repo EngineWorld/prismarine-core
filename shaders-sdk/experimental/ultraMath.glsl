@@ -15,6 +15,7 @@ float swiz(in vec4 vc){
     return vc.x;
 }
 
+// defined lanes
 float x(inout float mem){
     return readInvocationARB(mem, (gl_SubGroupInvocationARB / 4) * 4);
 }
@@ -31,6 +32,7 @@ float w(inout float mem){
     return readInvocationARB(mem, (gl_SubGroupInvocationARB / 4) * 4 + 3);
 }
 
+// read lane from vector4
 float lane(inout float mem, in int l){
     return readInvocationARB(mem, (gl_SubGroupInvocationARB / 4) * 4 + (l % 4));
 }
@@ -49,11 +51,19 @@ float mult4(inout mat4 mat, in vec4 vec){
     return dot( vec4(swiz(mat[0]), swiz(mat[1]), swiz(mat[2]), swiz(mat[3])), vec );
 }
 
+// matrix math on WARP%4 lanes (laned version)
+float mult4(inout float vec, in mat4 mat){
+    return mult4(cvec4(vec), mat);
+}
+
+float mult4(inout mat4 mat, inout float vec){
+    return mult4(mat, cvec4(vec));
+}
+
 // is work lane (for most operations)
 bool mt(){
     return (gl_SubGroupInvocationARB % 4) == 0;
 }
-
 
 // cross lane "cross product"
 float cross(inout float a, inout float b){
