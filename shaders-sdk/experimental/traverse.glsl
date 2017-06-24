@@ -161,12 +161,12 @@ TResult testIntersection(inout TResult res, in VEC3 orig, in VEC3 dir, in int tr
 }
 
 VEC3 projectVoxels(in VEC3 orig) {
-    const VEC4 nps = mult4w(GEOMETRY_BLOCK octreeUniform.project, lessl(3) ? orig : 1.0f);
+    const VEC4 nps = mult4w(GEOMETRY_BLOCK octreeUniform.project, eql(3) ? 1.0f : orig);
     return nps / w(nps);
 }
 
 VEC3 unprojectVoxels(in VEC3 orig) {
-    const VEC4 nps = mult4w(GEOMETRY_BLOCK octreeUniform.unproject, lessl(3) ? orig : 1.0f);
+    const VEC4 nps = mult4w(GEOMETRY_BLOCK octreeUniform.unproject, eql(3) ? 1.0f : orig);
     return nps / w(nps);
 }
 
@@ -191,6 +191,10 @@ int deferredStack[STACK_SIZE];
 //TResult traverse(in float distn, in VEC3 origin, in VEC3 direct, in Hit hit) {
 TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
     VEC3 origin = swiz(_origin); VEC3 direct = swiz(_direct);
+    if (eql(3)) {
+        origin = 1.0f;
+        direct = 0.0f;
+    }
 
     TResult lastRes;
     lastRes.dist = INFINITY;
@@ -202,7 +206,7 @@ TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
     // test constants
     const int bakedStep = int(floor(1.f + hit.vmods.w));
     const VEC3 torig = projectVoxels(origin);
-    const VEC3 tdirproj = mult4w(GEOMETRY_BLOCK octreeUniform.project, lessl(3) ? direct : 0.0);
+    const VEC3 tdirproj = mult4w(GEOMETRY_BLOCK octreeUniform.project, direct);
     const float dirlen = 1.0f / length3(tdirproj);
     const VEC3 dirproj = normalize3(tdirproj);
 
