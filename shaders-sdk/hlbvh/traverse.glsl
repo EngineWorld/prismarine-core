@@ -32,6 +32,7 @@ float intersectTriangle(in vec3 orig, in vec3 dir, in vec3 ve[3], inout vec2 UV)
 #else
     if (det <= 0.0f) valid = false;
 #endif
+    if (ballotARB(valid) == 0) return INFINITY;
 
     const vec3 tvec = orig - ve[0];
     const float u = dot(tvec, pvec);

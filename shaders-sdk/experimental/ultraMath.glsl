@@ -6,11 +6,13 @@ uint activeInvocation() {
     return gl_SubGroupInvocationARB;
 }
 
-
+ uint lane4 = (gl_SubGroupInvocationARB % 4);
+ uint offt4 = (gl_SubGroupInvocationARB / 4) * 4;
 
 // get grouped swizzle
-vec4 swiz4(in vec4 vc) {
-    const uint sz = activeInvocation() % 4;
+vec4 swiz4(in vec4 _vc) {
+    const vec4 vc = readInvocationARB(_vc, offt4);
+    const uint sz = lane4;
     if (sz == 1) return vc.yyyy; else 
     if (sz == 2) return vc.zzzz; else 
     if (sz == 3) return vc.wwww; 
@@ -19,35 +21,40 @@ vec4 swiz4(in vec4 vc) {
 
 
 // get swizzle component from packed vectors
-float swiz(in vec4 vc) {
-    const uint sz = activeInvocation() % 4;
+float swiz(in vec4 _vc) {
+    const vec4 vc = readInvocationARB(_vc, offt4);
+    const uint sz = lane4;
     if (sz == 1) return float(vc.y); else 
     if (sz == 2) return float(vc.z); else 
     if (sz == 3) return float(vc.w);
     return float(vc.x);
 }
 
-float swiz(in vec3 vc) {
-    const uint sz = activeInvocation() % 4;
+float swiz(in vec3 _vc) {
+    const vec3 vc = readInvocationARB(_vc, offt4);
+    const uint sz = lane4;
     if (sz == 1) return float(vc.y); else 
     if (sz == 2) return float(vc.z);
     return float(vc.x);
 }
 
-float swiz(in vec2 vc) {
-    const uint sz = activeInvocation() % 4;
+float swiz(in vec2 _vc) {
+    const vec2 vc = readInvocationARB(_vc, offt4);
+    const uint sz = lane4;
     if (sz == 1) return float(vc.y);
     return float(vc.x);
 }
 
-int swiz(in ivec2 vc) {
-    const uint sz = activeInvocation() % 4;
+int swiz(in ivec2 _vc) {
+    const ivec2 vc = readInvocationARB(_vc, offt4);
+    const uint sz = lane4;
     if (sz == 1) return int(vc.y);
     return int(vc.x);
 }
 
-bool swiz(in bvec2 vc) {
-    const uint sz = activeInvocation() % 4;
+bool swiz(in bvec2 _vc) {
+    const bvec2 vc = bvec2(readInvocationARB(uvec2(_vc), offt4));
+    const uint sz = lane4;
     if (sz == 1) return bool(vc.y);
     return bool(vc.x);
 }
@@ -55,19 +62,19 @@ bool swiz(in bvec2 vc) {
 
 // read lane from vector4
 float lane(in float mem, in uint l) {
-    return readInvocationARB(mem, (activeInvocation() / 4) * 4 + (l % 4));
+    return readInvocationARB(mem, offt4 + l);
 }
 
 int lane(in int mem, in uint l) {
-    return readInvocationARB(mem, (activeInvocation() / 4) * 4 + (l % 4));
+    return readInvocationARB(mem, offt4 + l);
 }
 
 uint lane(in uint mem, in uint l) {
-    return readInvocationARB(mem, (activeInvocation() / 4) * 4 + (l % 4));
+    return readInvocationARB(mem, offt4 + l);
 }
 
 bool lane(in bool mem, in uint l) {
-    return bool(readInvocationARB(uint(mem), (activeInvocation() / 4) * 4 + (l % 4)));
+    return bool(readInvocationARB(uint(mem), offt4 + l));
 }
 
 
@@ -96,31 +103,23 @@ bool z(in bool mem) { return lane(mem, 2); }
 bool w(in bool mem) { return lane(mem, 3); }
 
 
-// shifted getter
-float sw1(in float mem){
-    return lane(mem, (activeInvocation() % 4) + 1);
-}
-
-float sw2(in float mem){
-    return lane(mem, (activeInvocation() % 4) + 2);
-}
-
-float sw3(in float mem){
-    return lane(mem, (activeInvocation() % 4) + 3);
-}
-
-
 // swap lanes
 float swapXY(in float mem){
-    return (activeInvocation() % 4) == 1 ? x(mem) : y(mem);
+    const float _x = x(mem);
+    const float _y = y(mem);
+    return lane4 == 1 ? _x : _y;
 }
 
 int swapXY(in int mem){
-    return (activeInvocation() % 4) == 1 ? x(mem) : y(mem);
+    const int _x = x(mem);
+    const int _y = y(mem);
+    return lane4 == 1 ? _x : _y;
 }
 
 uint swapXY(in uint mem){
-    return (activeInvocation() % 4) == 1 ? x(mem) : y(mem);
+    const uint _x = x(mem);
+    const uint _y = y(mem);
+    return lane4 == 1 ? _x : _y;
 }
 
 
@@ -192,31 +191,31 @@ float mult4w(in mat4 mat, in float vec){
 
 // is work lane (for most operations)
 bool mt(){
-    return (activeInvocation() % 4) == 0;
+    return lane4 == 0;
 }
 
 
 // odd even lanes
 bool oddl(){
-    return (activeInvocation() % 2) == 1;
+    return lane4 % 2 == 1;
 }
 
 bool evenl(){
-    return (activeInvocation() % 2) == 0;
+    return lane4 % 2 == 0;
 }
 
 
 // compare lanes (for vector operations)
 bool lessl(in int lane){
-    return (activeInvocation() % 4) < lane;
+    return lane4 < lane;
 }
 
 bool eql(in int lane){
-    return (activeInvocation() % 4) == lane;
+    return lane4 == lane;
 }
 
 bool lessql(in int lane){
-    return (activeInvocation() % 4) <= lane;
+    return lane4 <= lane;
 }
 
 

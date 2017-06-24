@@ -30,6 +30,7 @@ struct TResult {
 
 TResult loadInfo(inout TResult res) {
     int tri = res.triangle;
+    
     if (greaterEqualF(res.dist, 0.0f) && lessF(res.dist, INFINITY) && tri != LONGEST) {
         vec3 trinorms[3];
         vec3 triverts[3];

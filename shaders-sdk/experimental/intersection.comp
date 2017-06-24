@@ -32,7 +32,8 @@ struct TResult {
 // unoptimized at now, and can do dublicate operations
 TResult loadInfo(inout TResult res) {
     int tri = res.triangle;
-    if (greaterEqualF(res.dist, 0.0f) && lessF(res.dist, INFINITY) && tri != LONGEST) {
+
+    if (greaterEqualF(res.dist, 0.0f) && lessF(res.dist, INFINITY) && tri != LONGEST && mt()) {
         vec3 trinorms[3];
         vec3 triverts[3];
         vec4 texcoords[3];
