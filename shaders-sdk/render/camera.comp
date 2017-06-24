@@ -95,7 +95,7 @@ void main()
         ray.params.x = 1;
         ray.params.z = 0; // Show sunlight or not
         ray.params.w = 0;
-        ray.bounce = 5;
+        ray.bounce = 4;
 
         //ray.final = vec4(1.0f, 1.0f, 0.0f, 1.0f);
         //ray.actived = 0;
