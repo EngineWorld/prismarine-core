@@ -63,8 +63,11 @@ vec4 mult4(in vec4 vec, in mat4 mat){
 
 // hardware matrix multiply (experimental)
 vec4 mult4(in mat4 tmat, in vec4 vec){
-    //return mult4(vec, transpose(tmat));
+    // FMA stride version
     return fma(tmat[0], vec.xxxx, fma(tmat[1], vec.yyyy, fma(tmat[2], vec.zzzz, tmat[3] * vec.w)));
+
+    // transpose version
+    //return mult4(vec, transpose(tmat));
 }
 
 
