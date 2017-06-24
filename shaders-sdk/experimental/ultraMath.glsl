@@ -1,9 +1,9 @@
 // get relative invocation ID (active)
 uint activeInvocation() {
-    const uint64_t activeBits = ballotARB(true) & gl_SubGroupLtMaskARB;
-    const uvec2 unpacked = unpackUint2x32(activeBits);
-    return (bitCount(unpacked.x) + bitCount(unpacked.y));
-    //return gl_SubGroupInvocationARB;
+    //const uint64_t activeBits = ballotARB(true) & gl_SubGroupLtMaskARB;
+    //const uvec2 unpacked = unpackUint2x32(activeBits);
+    //return (bitCount(unpacked.x) + bitCount(unpacked.y));
+    return gl_SubGroupInvocationARB;
 }
 
 
@@ -112,15 +112,15 @@ float sw3(in float mem){
 
 // swap lanes
 float swapXY(in float mem){
-    return (activeInvocation() % 2) == 1 ? x(mem) : y(mem);
+    return (activeInvocation() % 4) == 1 ? x(mem) : y(mem);
 }
 
 int swapXY(in int mem){
-    return (activeInvocation() % 2) == 1 ? x(mem) : y(mem);
+    return (activeInvocation() % 4) == 1 ? x(mem) : y(mem);
 }
 
 uint swapXY(in uint mem){
-    return (activeInvocation() % 2) == 1 ? x(mem) : y(mem);
+    return (activeInvocation() % 4) == 1 ? x(mem) : y(mem);
 }
 
 
@@ -152,8 +152,7 @@ bvec2 compbvec(in bool mem){
 
 // get length of vector 3 (optimized)
 float length3(in float a){
-    const vec3 vc = compvec3(a);
-    return sqrt(dot(vc,vc));
+    return length(compvec3(a));
 }
 
 
@@ -251,14 +250,20 @@ int invoc(in int inv){
 
 // cross lane "cross product"
 float cross3(in float a, in float b){
-    const uint ln = activeInvocation() % 3;
+    const uint ln = (activeInvocation() % 4) % 3;
     return dot(vec2(
         lane(a, (ln + 1) % 3),
         lane(b, (ln + 1) % 3)
-    ), -vec2(
-        lane(b, (ln + 2) % 3),
-        lane(a, (ln + 2) % 3)
+    ), vec2(
+         lane(b, (ln + 2) % 3),
+        -lane(a, (ln + 2) % 3)
     ));
+}
+
+
+// normalize function for warp
+float normalize3(in float a){
+    return a / length3(a);
 }
 
 

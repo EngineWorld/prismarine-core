@@ -83,7 +83,7 @@ layout ( local_size_x = 512 ) in;
 
 void main() {
     const int it = invoc(int(gl_GlobalInvocationID.x));
-    if (it >= RAY_BLOCK samplerUniform.rayCount) return;
+    //if (it >= RAY_BLOCK samplerUniform.rayCount) return;
  
     const int t = actived[it];
     Ray ray = fetchRayDirect(t);

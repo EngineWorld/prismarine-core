@@ -121,8 +121,9 @@ TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
     return res;
 }
 
-TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tri, in int step) {
+TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tri, in int step, in bool isValid) {
     const bool validTriangle = 
+        isValid && 
         tri >= 0 && 
         tri != LONGEST;
 
@@ -220,12 +221,10 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     for(int i=0;i<16384;i++) {
         if (ballotARB(validBox) == 0) break;
         HlbvhNode node = Nodes[idx];
+        testIntersection(lastRes, origin, direct, node.triangle, bakedStep, node.range.x == node.range.y && validBox);
 
-        if (node.range.x == node.range.y && validBox) {
-            testIntersection(lastRes, origin, direct, node.triangle, bakedStep);
-        }
-
-        if (node.range.x != node.range.y && validBox) {
+        bool notLeaf = node.range.x != node.range.y && validBox;
+        if (ballotARB(notLeaf) > 0) {
             bool leftOverlap = false, rightOverlap = false;
             float lefthit = INFINITY, righthit = INFINITY;
 
@@ -235,6 +234,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
                 lefthit = intersectCubeSingle(torig, dirproj, lbox.mn.xyz, lbox.mx.xyz, near, far);
                 leftOverlap = 
                     lessF(lefthit, INFINITY) 
+                    && notLeaf 
                     && greaterEqualF(lefthit, 0.0f) 
                     && greaterEqualF(lastRes.predist, near * dirlen)
                     ;
@@ -246,26 +246,28 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
                 righthit = intersectCubeSingle(torig, dirproj, rbox.mn.xyz, rbox.mx.xyz, near, far);
                 rightOverlap = 
                     lessF(righthit, INFINITY) 
+                    && notLeaf
                     && greaterEqualF(righthit, 0.0f) 
                     && greaterEqualF(lastRes.predist, near * dirlen)
                     ;
             }
 
             const bvec2 overlaps = bvec2(leftOverlap, rightOverlap);
-            if (any(overlaps)) {
+            const bool anyOverlap = any(overlaps);
+            if (ballotARB(anyOverlap) > 0) {
                 ivec2 leftright = mix(ivec2(-1), ivec2(node.range.xy), overlaps);
 
                 // order by distance or valid
-                const bool leftOrder = all(overlaps) ? lessEqualF(lefthit, righthit) : overlaps.x;
+                const bool leftOrder = all(overlaps) ? lessEqualF(lefthit, righthit) : leftOverlap;
                 leftright = leftOrder ? leftright.xy : leftright.yx;
 
-                idx = leftright.x;
-                if (deferredPtr < STACK_SIZE && leftright.y != -1) {
-                    deferredStack[deferredPtr++] = leftright.y;
+                if (anyOverlap) {
+                    idx = leftright.x;
+                    if (deferredPtr < STACK_SIZE && leftright.y != -1) {
+                        deferredStack[deferredPtr++] = leftright.y;
+                    }
+                    skip = true;
                 }
-                
-                //continue;
-                skip = true;
             }
         }
 
