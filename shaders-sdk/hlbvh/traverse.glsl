@@ -17,18 +17,20 @@ void swap(inout int a, inout int b){
 float intersectTriangle(in vec3 orig, in vec3 dir, in vec3 ve[3], inout vec2 UV) {
     const vec3 e1 = ve[1] - ve[0];
     const vec3 e2 = ve[2] - ve[0];
-    if (
+
+    bool valid = !(
            length(e1) < 0.00001f 
         && length(e2) < 0.00001f
-    ) return INFINITY;
+    );
+    if (ballotARB(valid) == 0) return INFINITY;
 
     const vec3 pvec = cross(dir, e2);
     const float det = dot(e1, pvec);
 
 #ifndef CULLING
-    if (abs(det) <= 0.0f) return INFINITY;
+    if (abs(det) <= 0.0f) valid = false;
 #else
-    if (det <= 0.0f) return INFINITY;
+    if (det <= 0.0f) valid = false;
 #endif
 
     const vec3 tvec = orig - ve[0];
@@ -40,10 +42,12 @@ float intersectTriangle(in vec3 orig, in vec3 dir, in vec3 ve[3], inout vec2 UV)
     if (
         any(lessThan(uvt.xy, vec2(0.f))) || 
         any(greaterThan(vec2(uvt.x) + vec2(0.f, uvt.y), vec2(1.f))) 
-    ) return INFINITY;
+    ) valid = false;
+    
+    if (ballotARB(valid) == 0) return INFINITY;
 
     UV.xy = uvt.xy;
-    return (lessF(uvt.z, 0.0f)) ? INFINITY : uvt.z;
+    return (lessF(uvt.z, 0.0f) || !valid) ? INFINITY : uvt.z;
 }
 
 float intersectTriangle(in vec3 orig, in vec3 dir, inout vec3 ve[3]) {
@@ -58,7 +62,9 @@ TResult choiceFirstBaked(inout TResult res, in vec3 orig, in vec3 dir) {
     const bool validTriangle = 
         tri >= 0 && 
         tri != LONGEST;
-    if (!validTriangle) return res;
+        
+    //if (!validTriangle) return res;
+    if (ballotARB(validTriangle) == 0) return res;
 
     const vec2 uv = bakedRangeIntersection[0].yz;
     const float _d = bakedRangeIntersection[0].x;
@@ -75,7 +81,6 @@ TResult choiceFirstBaked(inout TResult res, in vec3 orig, in vec3 dir) {
 
 void reorderTriangles() {
     bakedStackCount = min(bakedStackCount, bakedFragments);
-    if (bakedStackCount <= 1) return;
     for (int round = 1; round < bakedStackCount; round++) {
         for (int index = 0; index < bakedStackCount - round; index++) {
             if (bakedStack[index] <= bakedStack[index+1]) {
@@ -211,8 +216,9 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
         && greaterEqualF(lastRes.predist, near * dirlen)
         ;
 
+    bool skip = false;
     for(int i=0;i<16384;i++) {
-        if ( !validBox ) { break; }
+        if (ballotARB(validBox) == 0) break;
         HlbvhNode node = Nodes[idx];
 
         if (node.range.x == node.range.y && validBox) {
@@ -258,18 +264,20 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
                     deferredStack[deferredPtr++] = leftright.y;
                 }
                 
-                continue;
+                //continue;
+                skip = true;
             }
         }
 
-        const int ptr = --deferredPtr;
-        const bool valid = ptr >= 0;
+        if (!skip) {
+            const int ptr = --deferredPtr;
+            const bool valid = ptr >= 0;
 
-        idx = valid ? deferredStack[ptr] : -1;
-        if (valid) deferredStack[ptr] = -1;
+            idx = valid ? deferredStack[ptr] : -1;
+            if (valid) deferredStack[ptr] = -1;
 
-        validBox = validBox && valid && idx >= 0;
-        if ( !validBox ) { break; }
+            validBox = validBox && valid && idx >= 0;
+        } skip = false;
     }
 
     choiceBaked(lastRes, origin, direct, bakedStep);
