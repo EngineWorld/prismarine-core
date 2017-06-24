@@ -158,7 +158,7 @@ void main() {
     float prom = 1.0f - tx.a;
     if (false
         || haveProp(materialCache, M_ALPHA_TEST) && !alphaTest(materialCache.alphafunc, materialCache.alpharef, tx.a) 
-        //|| !haveProp(materialCache, M_TWO_SIDED) && dot(prenormal, newRay.direct.xyz) > 0.0f
+        || !haveProp(materialCache, M_TWO_SIDED) && dot(prenormal, newRay.direct.xyz) > 0.0f
     ) {
         prom = 1.0f;
     }
@@ -171,11 +171,11 @@ void main() {
 
         emitentRay.color.xyz *= (1.0f - prom);
 
-        //if (haveProp(materialCache, M_ENVIRONMENT) && dot(hit.normal.xyz, emitentRay.direct.xyz) < 0.0f) {
-        //    mixed(emitentRay.color.xyz, reflectionRay.color.xyz, 0.2f);
-        //} else {
+        if (haveProp(materialCache, M_ENVIRONMENT) && dot(hit.normal.xyz, emitentRay.direct.xyz) < 0.0f) {
+            mixed(emitentRay.color.xyz, reflectionRay.color.xyz, 0.2f);
+        } else {
             mixed(emitentRay.color.xyz, reflectionRay.color.xyz, 0.0f);
-        //}
+        }
 
         if (haveProp(materialCache, M_SHADOWED)) {
             emitentRay = diffuse(emitentRay, hit, tx.xyz, normal);
