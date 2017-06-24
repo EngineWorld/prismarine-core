@@ -268,7 +268,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
         idx = valid ? deferredStack[ptr] : -1;
         if (valid) deferredStack[ptr] = -1;
 
-        validBox = validBox && valid;
+        validBox = validBox && valid && idx >= 0;
         if ( !validBox ) { break; }
     }
 
