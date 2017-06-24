@@ -5,6 +5,8 @@
 #include "../include/uniforms.glsl"
 #include "./includes.glsl"
 
+LOCAL_SIZE_LAYOUT;
+
 bbox bboxunion(in bbox b1, in bbox b2) {
     return bbox(
         min(b1.mn, b2.mn) - 0.00001f,

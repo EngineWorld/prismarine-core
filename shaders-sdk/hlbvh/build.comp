@@ -8,6 +8,8 @@
 #define LEAFIDX(i) (Range.y + i)
 #define NODEIDX(i) (clamp(i, 1, Range.y-1))
 
+layout ( local_size_x = 1024 ) in;
+
 int nlz (in uint x) {
     return 31-findMSB(x);
 }
@@ -16,6 +18,7 @@ int nlz (in int x) {
     return 31-findMSB(uint(x));
 }
 
+/*
 int delta( in int i1, in int i2) {
     int left  = min(i1, i2);
     int right = max(i1, i2);
@@ -47,6 +50,10 @@ ivec2 findSpan(in int idx) {
 int findSplit(in int left, in int right) {
     uint  leftcode = Mortoncodes[left];
     uint rightcode = Mortoncodes[right];
+    //if (leftcode == rightcode) {
+    //    return ((left + right) >> 1);
+    //}
+
     int numidentical = delta(left, right);
     do {
         int newsplit = (right + left) >> 1;
@@ -57,10 +64,128 @@ int findSplit(in int left, in int right) {
         }
     }
     while (right > left + 1);
-    return clamp(left, 0, Range.y-1);
+    return clamp(left, 0, Range.y-2);
+}
+*/
+
+
+int findSplit( int first, int last)
+{
+    // Identical Morton codes => split the range in the middle.
+    uint firstCode = Mortoncodes[first];
+    uint lastCode = Mortoncodes[last];
+    if (firstCode == lastCode) {
+        return (first + last) >> 1;
+    }
+
+    // Calculate the number of highest bits that are the same
+    // for all objects, using the count-leading-zeros intrinsic.
+    int commonPrefix = nlz(firstCode ^ lastCode);
+
+    // Use binary search to find where the next bit differs.
+    // Specifically, we are looking for the highest object that
+    // shares more than commonPrefix bits with the first one.
+    int split = first; // initial guess
+    int step = last - first;
+    do {
+        step = (step + 1) >> 1; // exponential decrease
+        int newSplit = split + step; // proposed new position
+        if (newSplit < last) {
+            uint splitCode = Mortoncodes[newSplit];
+            int splitPrefix = nlz(firstCode ^ splitCode);
+            if (splitPrefix > commonPrefix)
+                split = newSplit; // accept proposal
+        }
+    }
+    while (step > 1);
+
+    return clamp(split, 0, Range.y-2);
 }
 
+
+shared int lRange[2];
+shared int lCounter;
+
 void main() {
+    const uint threadID = uint(gl_LocalInvocationID.x);
+
+    if (threadID == 0) {
+        lCounter = 1;
+        lRange[0] = 0;
+        lRange[1] = 1;
+
+        Nodes[threadID].parent = -1;
+        Nodes[threadID].range = ivec2(0, Range.y-1);
+        Nodes[threadID].triangle = -1;
+        Flags[threadID] = 0;
+    }
+    
+    barrier(); memoryBarrier();
+
+    for (int h=0;h<128;h++) {
+        uint workSize = ((lRange[1] - lRange[0]) - 1) / gl_WorkGroupSize.x + 1;
+
+        for (int i=0;i<workSize;i++) {
+            uint sWorkID = gl_WorkGroupSize.x * i;
+            uint prID = lRange[0] + (sWorkID + threadID);
+
+            if (prID < lRange[1]) {
+                HlbvhNode parentNode = Nodes[prID];
+
+                if (parentNode.range.x != parentNode.range.y) {
+                    // find split
+                    const int split = findSplit(parentNode.range.x, parentNode.range.y);
+
+                    // add to list
+                    const int hid = atomicAdd(lCounter, 2);
+
+                    HlbvhNode leftNode;
+                    leftNode.parent = int(prID);
+                    leftNode.range = ivec2(parentNode.range.x, split+0);
+                    leftNode.triangle = -1;
+
+                    HlbvhNode rightNode;
+                    rightNode.parent = int(prID);
+                    rightNode.range = ivec2(split+1, parentNode.range.y);
+                    rightNode.triangle = -1;
+
+                    // left node
+                    Nodes[hid + 0] = leftNode;
+                    Flags[hid + 0] = 0;
+
+                    // right node
+                    Nodes[hid + 1] = rightNode;
+                    Flags[hid + 1] = 0;
+
+                    // connect with childrens
+                    parentNode.range.xy = hid + ivec2(0, 1);
+                    Nodes[prID] = parentNode;
+                } else {
+
+                    // make leafs
+                    Leafs[parentNode.range.y].parent = int(prID);
+                    Leaf ourLeaf = Leafs[parentNode.range.y];
+
+                    // load leaf data
+                    parentNode.box = ourLeaf.box;
+                    parentNode.triangle = ourLeaf.triangle;
+                    parentNode.range = ourLeaf.range;
+                    Nodes[prID] = parentNode;
+                }
+            }
+        }
+
+        barrier(); memoryBarrier();
+        if (threadID == 0) {
+            lRange[0] = lRange[1];
+            lRange[1] = lCounter;
+        }
+        barrier(); memoryBarrier();
+
+        if (lRange[1] <= lRange[0]) break;
+    }
+
+    /*
     //Start from next childs
     const int globalID = int(gl_GlobalInvocationID.x);
     if (globalID == 0) {
@@ -99,4 +224,5 @@ void main() {
     }
 
     barrier(); memoryBarrier();
+    */
 }

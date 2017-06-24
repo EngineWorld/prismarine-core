@@ -307,7 +307,8 @@ namespace Paper {
         glNamedBufferSubData(numBuffer, 0, strided<glm::ivec2>(1), &range);
 
         glUseProgram(buildProgramH);
-        glDispatchCompute(tiled(triangleCount, worksize), 1, 1);
+        glDispatchCompute(1, 1, 1);
+        //glDispatchCompute(tiled(triangleCount, worksize), 1, 1);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
         glUseProgram(refitProgramH);
