@@ -63,7 +63,9 @@ void main() {
         if (tid < i) {
             sdata[tid] = bboxunion(sdata[tid], sdata[tid + i]); 
         } 
-        barrier(); memoryBarrier();
+        if (i > gl_SubGroupSizeARB) {
+            barrier(); memoryBarrier();
+        }
     }
 
     if (tid == 0) {
