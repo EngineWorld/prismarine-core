@@ -250,10 +250,10 @@ int invoc(in int inv){
 
 // cross lane "cross product"
 float cross3(in float a, in float b){
-    const uint ln = (activeInvocation() % 4) % 3;
+    const uint ln = (activeInvocation() % 4);
     return dot(vec2(
-        lane(a, (ln + 1) % 3),
-        lane(b, (ln + 1) % 3)
+         lane(a, (ln + 1) % 3),
+         lane(b, (ln + 1) % 3)
     ), vec2(
          lane(b, (ln + 2) % 3),
         -lane(a, (ln + 2) % 3)

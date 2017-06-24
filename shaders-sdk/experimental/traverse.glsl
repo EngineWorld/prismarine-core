@@ -41,8 +41,8 @@ float intersectTriangle(in VEC3 orig, in VEC3 dir, in VEC3 ve[3], inout vec2 UV)
     const VEC3 uvt = (eql(0) ? u : (eql(1) ? v : ts)) / det;
 
     const float vd = y(uvt);
-    const bool invalidU = any2(lessF(uvt, VEC2(0.f)));
-    const bool invalidV = any2(greaterF(VEC2(uvt) + (lessl(1) ? 0.f : vd), VEC2(1.f)));
+    const bool invalidU = any2(uvt < VEC2(0.f));
+    const bool invalidV = any2((VEC2(uvt) + (eql(0) ? 0.f : vd)) > VEC2(1.f));
 
     if (invalidU || invalidV) valid = false;
     if (ballotARB(valid) == 0) return INFINITY;
@@ -259,13 +259,13 @@ TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
             }
 
             const BVEC2 overlaps = eql(0) ? leftOverlap : rightOverlap;
-            const bool overlapAny = any2(overlaps);
+            const bool overlapAny = leftOverlap || rightOverlap;
 
             if (ballotARB(overlapAny) > 0) {
                 IVEC2 leftright = mix(IVEC2(-1), swiz(node.range.xy), overlaps);
 
                 // order by distance or valid
-                const bool leftOrder = all2(overlaps) ? lessEqualF(lefthit, righthit) : leftOverlap;
+                const bool leftOrder = (leftOverlap && rightOverlap) ? lessEqualF(lefthit, righthit) : leftOverlap;
                 IVEC2 swappedLR = swapXY(leftright);
                 leftright = leftOrder ? leftright : swappedLR;
 
