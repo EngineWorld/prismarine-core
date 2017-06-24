@@ -20,16 +20,18 @@ const uint Ut = 3;
 void _collect(inout Ray ray) {
     const vec4 color = max(ray.final, vec4(0.f));
     const float amplitude = mlength(color.xyz);
+    if (amplitude >= 0.00001f) {
 #ifdef ENABLE_NVIDIA_INSTRUCTION_SET
-    atomicAdd(texelInfo[ray.texel].samplecolor.x, color.x);
-    atomicAdd(texelInfo[ray.texel].samplecolor.y, color.y);
-    atomicAdd(texelInfo[ray.texel].samplecolor.z, color.z);
+        atomicAdd(texelInfo[ray.texel].samplecolor.x, color.x);
+        atomicAdd(texelInfo[ray.texel].samplecolor.y, color.y);
+        atomicAdd(texelInfo[ray.texel].samplecolor.z, color.z);
 #else
-    const ivec3 gcol = ivec3(dvec3(color.xyz) * COMPATIBLE_PRECISION);
-    atomicAdd(texelInfo[ray.texel].samplecolor.x, gcol.x);
-    atomicAdd(texelInfo[ray.texel].samplecolor.y, gcol.y);
-    atomicAdd(texelInfo[ray.texel].samplecolor.z, gcol.z);
+        const ivec3 gcol = ivec3(dvec3(color.xyz) * COMPATIBLE_PRECISION);
+        atomicAdd(texelInfo[ray.texel].samplecolor.x, gcol.x);
+        atomicAdd(texelInfo[ray.texel].samplecolor.y, gcol.y);
+        atomicAdd(texelInfo[ray.texel].samplecolor.z, gcol.z);
 #endif
+    }
     ray.final.xyzw = vec4(0.0f);
 }
 
