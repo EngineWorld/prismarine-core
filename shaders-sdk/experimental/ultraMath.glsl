@@ -1,5 +1,5 @@
-
-vec4 swiz4(in vec4 vc){
+// get swizzle component from vec4
+vec4 swiz4(in vec4 vc) {
     const uint sz = gl_SubGroupInvocationARB % 4;
     if (sz == 1) return vc.yyyy;
     if (sz == 2) return vc.zzzz;
@@ -7,7 +7,7 @@ vec4 swiz4(in vec4 vc){
     return vc.xxxx;
 }
 
-float swiz(in vec4 vc){
+float swiz(in vec4 vc) {
     const uint sz = gl_SubGroupInvocationARB % 4;
     if (sz == 1) return vc.y;
     if (sz == 2) return vc.z;
@@ -63,6 +63,15 @@ float mult4(in mat4 mat, in float vec){
 // is work lane (for most operations)
 bool mt(){
     return (gl_SubGroupInvocationARB % 4) == 0;
+}
+
+// divide invocations
+uint invoc(in uint inv){
+    return inv / 4;
+}
+
+int invoc(in int inv){
+    return inv / 4;
 }
 
 // cross lane "cross product"
