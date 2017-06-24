@@ -163,8 +163,9 @@ void main() {
                 } else {
 
                     // make leafs
-                    Leafs[parentNode.range.y].parent = int(prID);
                     Leaf ourLeaf = Leafs[parentNode.range.y];
+                    ourLeaf.parent = int(prID);
+                    Leafs[parentNode.range.y] = ourLeaf;
 
                     // load leaf data
                     parentNode.box = ourLeaf.box;
