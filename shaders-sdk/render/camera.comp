@@ -59,13 +59,18 @@ void main()
         vec4 orig;
         vec4 dir;
         vec4 eye = vec4(vec3(0.0f), 1.0f);
-        eye = RAY_BLOCK cameraUniform.camInv * eye;
+        //eye = RAY_BLOCK cameraUniform.camInv * eye;
+        eye = mult4(RAY_BLOCK cameraUniform.camInv, eye);
         if (enable360 == 1) {
-            orig = RAY_BLOCK cameraUniform.camInv * vec4(0.0f, 0.0f, 0.0f, 1.0f);
-            dir = RAY_BLOCK cameraUniform.camInv * (coord.x > 0.5f ? v : -v);
+            orig = mult4(RAY_BLOCK cameraUniform.camInv, vec4(0.0f, 0.0f, 0.0f, 1.0f));
+             dir = mult4(RAY_BLOCK cameraUniform.camInv, (coord.x > 0.5f ? v : -v));
+            //orig = RAY_BLOCK cameraUniform.camInv * vec4(0.0f, 0.0f, 0.0f, 1.0f);
+            //dir = RAY_BLOCK cameraUniform.camInv * (coord.x > 0.5f ? v : -v);
         } else {
-            vec4 co = divW(RAY_BLOCK cameraUniform.camInv * RAY_BLOCK cameraUniform.projInv * vec4(coord * 2.0f - 1.0f, 0.999f, 1.0f));
-            orig = divW(RAY_BLOCK cameraUniform.camInv * RAY_BLOCK cameraUniform.projInv * vec4(coord * 2.0f - 1.0f, 0.0f, 1.0f));
+            vec4 co = divW(mult4(RAY_BLOCK cameraUniform.camInv, mult4(RAY_BLOCK cameraUniform.projInv, vec4(coord * 2.0f - 1.0f, 0.999f, 1.0f))));
+            orig = divW(mult4(RAY_BLOCK cameraUniform.camInv, mult4(RAY_BLOCK cameraUniform.projInv, vec4(coord * 2.0f - 1.0f, 0.0f, 1.0f))));
+            //vec4 co = divW(RAY_BLOCK cameraUniform.camInv * RAY_BLOCK cameraUniform.projInv * vec4(coord * 2.0f - 1.0f, 0.999f, 1.0f));
+            //orig = divW(RAY_BLOCK cameraUniform.camInv * RAY_BLOCK cameraUniform.projInv * vec4(coord * 2.0f - 1.0f, 0.0f, 1.0f));
             dir = vec4(normalize(co.xyz - orig.xyz), 0.0f);
         }
 

@@ -7,6 +7,7 @@
 #include "../include/structs.glsl"
 #include "../include/uniforms.glsl"
 #include "../include/vertex.glsl"
+#include "../include/STOmath.glsl"
 
 #if defined(ENABLE_AMD_INSTRUCTION_SET) || defined(ENABLE_NVIDIA_INSTRUCTION_SET)
 #define INDEX16 uint16_t
@@ -32,10 +33,6 @@ LOCAL_SIZE_LAYOUT;
 
 const int m[3] = {3, 0, 2};
 const int ms[3] = {2, 1, 3};
-
-float mlength(in vec3 mcolor){
-    return max(mcolor.x, max(mcolor.y, mcolor.z));
-}
 
 void main()
 {
@@ -143,8 +140,8 @@ void main()
             modf = vec4(ml, vec2(0.0f));
         }
 
-        vec4 normalf = vec4(vnorm, 0.0f) * GEOMETRY_BLOCK geometryUniform.transformInv;
-        vec4 verticef = GEOMETRY_BLOCK geometryUniform.transform * vec4(vpos, 1.0f);
+        vec4 normalf = mult4(vec4(vnorm, 0.0f), GEOMETRY_BLOCK geometryUniform.transformInv);
+        vec4 verticef = mult4(GEOMETRY_BLOCK geometryUniform.transform, vec4(vpos, 1.0f));
         verticef.xyz /= verticef.w;
 
         vertice[i] = verticef.xyz;
