@@ -18,6 +18,8 @@ namespace Paper {
                 char * log = new char[1024];
                 GLsizei len = 0;
 
+                std::cout << str << std::endl;
+
                 glGetShaderInfoLog(comp, 1024, &len, log);
                 std::string logStr = std::string(log, len);
                 std::cerr << logStr << std::endl;

@@ -5,7 +5,7 @@
 // hardware or driver options
 #define USE_INT64
 #define USE_ARB_CLOCK
-#define ENABLE_NVIDIA_INSTRUCTION_SET
+//#define ENABLE_NVIDIA_INSTRUCTION_SET
 //#define ENABLE_AMD_INSTRUCTION_SET
 //#define ENABLE_INT16_LOADING // such as Neverball with GLushort
 //#define ENABLE_UNSUPPOTED_FUNCTIONS

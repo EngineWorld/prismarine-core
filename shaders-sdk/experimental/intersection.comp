@@ -1,0 +1,118 @@
+#version 450
+
+#extension GL_ARB_separate_shader_objects : require
+#extension GL_ARB_shading_language_420pack : require
+#extension GL_ARB_shader_ballot : require
+//#extension GL_ARB_shader_group_vote : require
+
+#include "../include/constants.glsl"
+#include "../include/structs.glsl"
+#include "../include/uniforms.glsl"
+#include "../include/rays.glsl"
+#include "../include/vertex.glsl"
+#include "../include/morton.glsl"
+#include "../include/STOmath.glsl"
+#include "../experimental/ultraMath.glsl"
+
+struct TResult {
+    float dist;
+    float predist;
+    int triangle;
+    int materialID;
+
+    vec3 normal;
+    vec3 tangent;
+    vec2 uv;
+
+    vec4 mods;
+    vec4 texcoord;
+    vec4 color;
+};
+
+// unoptimized at now, and can do dublicate operations
+TResult loadInfo(inout TResult res) {
+    int tri = res.triangle;
+    if (greaterEqualF(res.dist, 0.0f) && lessF(res.dist, INFINITY) && tri != LONGEST) {
+        vec3 trinorms[3];
+        vec3 triverts[3];
+        vec4 texcoords[3];
+        vec4 colors[3];
+        vec4 mods[3];
+
+#pragma optionNV (unroll all)
+        for (int x=0;x<3;x++) {
+            int j = tri * 3 + x;
+            triverts[x] = vec3(verts[j].vertex);
+            trinorms[x] = vec3(verts[j].normal);
+            texcoords[x] = vec4(verts[j].texcoord);
+            colors[x] = vec4(verts[j].color);
+            mods[x] = vec4(verts[j].modifiers);
+        }
+
+        vec3 deltaPos1 = triverts[1] - triverts[0];
+        vec3 deltaPos2 = triverts[2] - triverts[0];
+
+        vec2 uv = res.uv.xy;
+        vec3 nor = normalize(cross(deltaPos1, deltaPos2));
+        vec3 normal = fma(trinorms[0], vec3(1.0f - uv.x - uv.y), fma(trinorms[1], vec3(uv.x), trinorms[2] * vec3(uv.y)));
+        normal = lessF(length(normal), 0.f) ? nor : normalize(normal);
+        normal = faceforward(normal, nor, -normal);
+
+        bool delta = all(equal(texcoords[0].xy, texcoords[1].xy)) && all(equal(texcoords[0].xy, texcoords[2].xy));
+        vec2 deltaUV1 = delta ? vec2(1.0f, 0.0f) : texcoords[1].xy - texcoords[0].xy;
+        vec2 deltaUV2 = delta ? vec2(0.0f, 1.0f) : texcoords[2].xy - texcoords[0].xy;
+
+        float f = 1.0f / fma(deltaUV1.x, deltaUV2.y, -deltaUV1.y * deltaUV2.x);
+        vec3 tan = fma(deltaPos1, vec3(deltaUV2.y), -deltaPos2 * deltaUV1.y) * f;
+
+        res.mods = fma(mods[0], vec4(1.0f - uv.x - uv.y), fma(mods[1], vec4(uv.x), mods[2] * vec4(uv.y)));;
+        res.normal = normal;
+
+        res.texcoord = fma(texcoords[0], vec4(1.0f - uv.x - uv.y), fma(texcoords[1], vec4(uv.x), texcoords[2] * vec4(uv.y)));;
+        res.materialID = mats[tri];
+        res.tangent = normalize(tan - faceforward(normal, tan, -normal));
+        res.color = fma(colors[0], vec4(1.0f - uv.x - uv.y), fma(colors[1], vec4(uv.x), colors[2] * vec4(uv.y)));
+    }
+
+    return res;
+}
+
+#include "../experimental/traverse.glsl"
+
+layout ( local_size_x = 512 ) in;
+
+void main() {
+    const int it = invoc(int(gl_GlobalInvocationID.x));
+    if (it >= RAY_BLOCK samplerUniform.rayCount) return;
+ 
+    const int t = actived[it];
+    Ray ray = fetchRayDirect(t);
+    Hit hit = fetchHitDirect(t);
+    TResult res = traverse(hit.dist, ray.origin.xyz, ray.direct.xyz, hit);
+
+    if (
+        greaterEqualF(res.dist, 0.0f) &&
+        lessF(res.dist, INFINITY) &&
+
+        (lessEqualF(res.dist, hit.dist) || GEOMETRY_BLOCK geometryUniform.clearDepth > 0) &&
+        
+        res.materialID >= 0 &&
+        res.materialID != LONGEST
+    ) {
+        Hit newHit = hit;
+        newHit.shaded = 0;
+        newHit.dist = res.dist;
+        newHit.normal.xyz = res.normal.xyz;
+        newHit.triangle = res.triangle;
+        newHit.materialID = res.materialID;
+        newHit.texcoord = res.texcoord;
+        newHit.tangent.xyz = res.tangent.xyz;
+        newHit.vcolor.xyzw = res.color.xyzw;
+
+        vec4 sysmod = newHit.vmods;
+        newHit.vmods.xyzw = res.mods.xyzw;
+        newHit.vmods.w = sysmod.w;
+
+        if (mt()) storeHit(t, newHit);
+    }
+}
