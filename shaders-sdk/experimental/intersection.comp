@@ -80,7 +80,7 @@ TResult loadInfo(inout TResult res) {
 
 #include "../experimental/traverse.glsl"
 
-layout ( local_size_x = 512 ) in;
+layout ( local_size_x = 256 ) in;
 
 void main() {
     const int it = invoc(int(gl_GlobalInvocationID.x));

@@ -186,10 +186,13 @@ float intersectCubeSingle(in VEC3 origin, in VEC3 ray, in VEC3 cubeMin, in VEC3 
 
 const VEC3 padding = VEC3(0.00001f);
 const int STACK_SIZE = 32;
-int deferredStack[STACK_SIZE];
+//int deferredStack[STACK_SIZE];
+shared int deferredStack[WORK_SIZE][STACK_SIZE];
 
 //TResult traverse(in float distn, in VEC3 origin, in VEC3 direct, in Hit hit) {
 TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
+    const uint L = invoc(gl_LocalInvocationID.x);
+
     VEC3 origin = swiz(_origin); VEC3 direct = swiz(_direct);
     if (eql(3)) {
         origin = 1.0f;
@@ -281,7 +284,8 @@ TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
                 if (overlapAny) {
                     idx = nearer;
                     if (deferredPtr < STACK_SIZE && ranger != -1) {
-                        deferredStack[deferredPtr++] = ranger;
+                        int ptr = deferredPtr++;
+                        if (mt()) deferredStack[L][ptr] = ranger;
                     }
                     skip = true;
                 }
@@ -292,8 +296,8 @@ TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
             const int ptr = --deferredPtr;
             const bool valid = ptr >= 0;
 
-            idx = valid ? deferredStack[ptr] : -1;
-            if (valid) deferredStack[ptr] = -1;
+            idx = valid ? deferredStack[L][ptr] : -1;
+            if (valid && mt()) deferredStack[L][ptr] = -1;
 
             validBox = validBox && valid && idx >= 0;
         } skip = false;
