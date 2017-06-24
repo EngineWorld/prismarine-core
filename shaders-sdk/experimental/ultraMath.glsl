@@ -89,3 +89,15 @@ float cross(in float a, in float b){
         lane(a, (ln + 2) % 3)
     ));
 }
+
+// warp based types
+#define VEC4 float
+#define VEC3 float
+#define VEC2 float
+#define IVEC4 int
+#define IVEC3 int
+#define IVEC2 int
+#define UVEC4 uint
+#define UVEC3 uint
+#define UVEC2 uint
+
