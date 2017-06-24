@@ -1,10 +1,10 @@
 #ifndef _RANDOM_H
 #define _RANDOM_H
 
-float counter = 0.0f;
-int globalInvocationSMP = 0;
+uint randomClocks = 0u;
+uint globalInvocationSMP = 0;
 
-int hash( in int x ) {
+uint hash( in uint x ) {
     x += ( x << 10 );
     x ^= ( x >>  6 );
     x += ( x <<  3 );
@@ -13,28 +13,29 @@ int hash( in int x ) {
     return x;
 }
 
-int hash( in ivec2 v ) { return hash( v.x ^ hash(v.y)                         ); }
-int hash( in ivec3 v ) { return hash( v.x ^ hash(v.y) ^ hash(v.z)             ); }
-int hash( in ivec4 v ) { return hash( v.x ^ hash(v.y) ^ hash(v.z) ^ hash(v.w) ); }
+uint hash( in uvec2 v ) { return hash( v.x ^ hash(v.y)                         ); }
+uint hash( in uvec3 v ) { return hash( v.x ^ hash(v.y) ^ hash(v.z)             ); }
+uint hash( in uvec4 v ) { return hash( v.x ^ hash(v.y) ^ hash(v.z) ^ hash(v.w) ); }
 
-float floatConstruct( in int m ) {
-    const int ieeeMantissa = 0x007FFFFF; // binary32 mantissa bitmask
-    const int ieeeOne      = 0x3F800000; // 1.0 in IEEE binary32
+float floatConstruct( in uint m ) {
+    const uint ieeeMantissa = 0x007FFFFFu; // binary32 mantissa bitmask
+    const uint ieeeOne      = 0x3F800000u; // 1.0 in IEEE binary32
     m &= ieeeMantissa;                   // Keep only mantissa bits (fractional part)
     m |= ieeeOne;                        // Add fractional part to 1.0
     return fract(uintBitsToFloat( m ));  // Range [0:1]
 }
 
-float random( in float x ) { return floatConstruct(hash(floatBitsToInt(x))); }
-float random( in vec2  v ) { return floatConstruct(hash(floatBitsToInt(v))); }
-float random( in vec3  v ) { return floatConstruct(hash(floatBitsToInt(v))); }
-float random( in vec4  v ) { return floatConstruct(hash(floatBitsToInt(v))); }
+float random( in uint   x ) { return floatConstruct(hash(x)); }
+float random( in uvec2  v ) { return floatConstruct(hash(v)); }
+float random( in uvec3  v ) { return floatConstruct(hash(v)); }
+float random( in uvec4  v ) { return floatConstruct(hash(v)); }
 
 float random() {
-    const float x = float(globalInvocationSMP);
-    const float y = counter + RAY_BLOCK randomUniform.time;
-    counter = random(vec2(x, y));
-    return counter;
+#ifdef USE_ARB_CLOCK
+    return random(uvec4( globalInvocationSMP, RAY_BLOCK randomUniform.time, clock2x32ARB()));
+#else
+    return random(uvec3( globalInvocationSMP, RAY_BLOCK randomUniform.time, randomClocks++));
+#endif
 }
 
 vec3 randomCosine(in vec3 normal) {
