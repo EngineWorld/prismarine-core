@@ -42,6 +42,10 @@ vec4 cvec4(in float mem){
     return vec4(x(mem), y(mem), z(mem), w(mem));
 }
 
+vec2 cvec2(in float mem){
+    return vec2(x(mem), y(mem));
+}
+
 // matrix math on WARP%4 lanes (require compacted vector)
 float mult4(in vec4 vec, in mat4 mat){
     return dot(mat[gl_SubGroupInvocationARB % 4], vec);
