@@ -34,11 +34,9 @@ void main() {
 
     vec4 mn = vec4(INFINITY);
     vec4 mx = vec4(-INFINITY);
+
     vec3 triverts[3];
-
     const int tri3 = t * 3;
-
-#pragma optionNV (unroll all)
     for (int x=0;x<3;x++) {
         //const int j = indics[tri3 + x];
         const int j = tri3 + x;
@@ -67,7 +65,6 @@ void main() {
 
     // check 
     vec3 tp[3];
-#pragma optionNV (unroll all)
     for (int i=0;i<3;i++) {
         tp[i] = triverts[i] - tcenter;
     }

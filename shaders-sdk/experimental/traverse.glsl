@@ -58,7 +58,7 @@ float intersectTriangle(in VEC3 orig, in VEC3 dir, inout VEC3 ve[3]) {
     return intersectTriangle(orig, dir, ve, uv);
 }
 
-TResult choiceFirstBaked(inout TResult res, in VEC3 orig, in VEC3 dir) {
+TResult choiceFirstBaked(inout TResult res) {
     const int tri = bakedRange[0];
     bakedRange[0] = LONGEST;
 
@@ -94,7 +94,7 @@ void reorderTriangles() {
 }
 
 TResult choiceBaked(inout TResult res, in VEC3 orig, in VEC3 dir, in int tpi) {
-    choiceFirstBaked(res, orig, dir);
+    choiceFirstBaked(res);
     reorderTriangles();
 
     const int tri = tpi < bakedStackCount ? bakedStack[tpi] : LONGEST;
@@ -105,8 +105,6 @@ TResult choiceBaked(inout TResult res, in VEC3 orig, in VEC3 dir, in int tpi) {
         tri != LONGEST;
 
     VEC3 triverts[3];
-
-#pragma optionNV (unroll all)
     for (int x=0;x<3;x++) {
         const VEC3 swizVertex = swiz(verts[tri * 3 + x].vertex);
         triverts[x] = validTriangle ? swizVertex : VEC3(0.0f);
@@ -132,8 +130,6 @@ TResult testIntersection(inout TResult res, in VEC3 orig, in VEC3 dir, in int tr
         tri != LONGEST;
 
     VEC3 triverts[3];
-
-#pragma optionNV (unroll all)
     for (int x=0;x<3;x++) {
         const VEC3 swizVertex = swiz(verts[tri * 3 + x].vertex);
         triverts[x] = validTriangle ? swizVertex : VEC3(0.0f);
@@ -244,10 +240,10 @@ TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
 
     // test constants
     const int bakedStep = int(floor(1.f + hit.vmods.w));
-    const VEC3 torig = projectVoxels(origin);
-    const VEC3 tdirproj = mult4w(GEOMETRY_BLOCK octreeUniform.project, direct);
+    const VEC4 torig = projectVoxels(origin);
+    const VEC4 tdirproj = mult4w(GEOMETRY_BLOCK octreeUniform.project, direct);
     const float dirlen = 1.0f / length3(tdirproj);
-    const VEC3 dirproj = normalize3(tdirproj);
+    const VEC4 dirproj = normalize3(tdirproj);
     
     const vec3 torigUnif = compvec3(torig);
     const vec3 dirprojUnif = compvec3(dirproj);

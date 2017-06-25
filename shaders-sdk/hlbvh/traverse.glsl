@@ -102,14 +102,12 @@ TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
         tri >= 0 && 
         tri != LONGEST;
 
-    vec2 uv = vec2(0.0f);
     vec3 triverts[3];
-
-#pragma optionNV (unroll all)
     for (int x=0;x<3;x++) {
         triverts[x] = validTriangle ? vec3(verts[tri * 3 + x].vertex) : vec3(0.0f);
     }
 
+    vec2 uv = vec2(0.0f);
     const float _d = intersectTriangle(orig, dir, triverts, uv);
     const bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.dist);
 
@@ -128,14 +126,12 @@ TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tr
         tri >= 0 && 
         tri != LONGEST;
 
-    vec2 uv = vec2(0.0f);
     vec3 triverts[3];
-
-#pragma optionNV (unroll all)
     for (int x=0;x<3;x++) {
         triverts[x] = validTriangle ? vec3(verts[tri * 3 + x].vertex) : vec3(0.0f);
     }
 
+    vec2 uv = vec2(0.0f);
     const float _d = intersectTriangle(orig, dir, triverts, uv);
     const bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.predist) && greaterEqualF(_d, 0.0f);
     const bool inbaked = equalF(_d, 0.0f);

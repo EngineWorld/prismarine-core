@@ -41,7 +41,6 @@ TResult loadInfo(inout TResult res) {
         vec4 colors[3];
         vec4 mods[3];
 
-#pragma optionNV (unroll all)
         for (int x=0;x<3;x++) {
             int j = tri * 3 + x;
             triverts[x] = vec3(verts[j].vertex);

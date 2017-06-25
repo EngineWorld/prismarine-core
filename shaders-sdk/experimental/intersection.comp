@@ -45,7 +45,6 @@ TResult loadInfo(inout TResult res) {
     const bool valid = greaterEqualF(res.dist, 0.0f) && lessF(res.dist, INFINITY) && tri != LONGEST;
     if (bs(valid)) {
 
-#pragma optionNV (unroll all)
         for (int x=0;x<3;x++) {
             int j = tri * 3 + x;
             triverts[x] = swiz(verts[j].vertex);
