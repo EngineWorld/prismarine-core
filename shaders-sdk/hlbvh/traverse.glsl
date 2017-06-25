@@ -133,8 +133,7 @@ TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tr
     const bool changed = !isbaked && !inbaked;
 
     if (near) {
-        if (changed) res.predist = _d;
-
+        if ( changed ) res.predist = _d;
         if ( inbaked ) {
             bakedStack[bakedStackCount++] = tri;
         } else 
@@ -142,7 +141,6 @@ TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tr
             bakedRange[0] = tri;
             bakedRangeIntersection[0] = vec4(_d, uv, 0.f);
         }
-        
     }
 
     return res;

@@ -145,7 +145,6 @@ TResult testIntersection(inout TResult res, in VEC3 orig, in VEC3 dir, in int tr
             bakedRange[0] = tri;
             bakedRangeIntersection[0] = vec4(_d, uv.xy, 0.0f);
         }
-        
     }
 
     return res;
