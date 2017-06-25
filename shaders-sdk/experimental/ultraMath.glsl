@@ -6,7 +6,7 @@ uint activeInvocation() {
     return gl_SubGroupInvocationARB;
 }
 
-const uint SCALARS = 8;
+const uint SCALARS = 8; // use between 4 or 8 in NVidia GPU
 uint laneP = (gl_SubGroupInvocationARB % SCALARS);
 uint offtP = (gl_SubGroupInvocationARB / SCALARS) * SCALARS;
 
