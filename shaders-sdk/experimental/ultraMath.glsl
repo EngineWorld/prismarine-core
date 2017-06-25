@@ -6,8 +6,12 @@ uint activeInvocation() {
     return gl_SubGroupInvocationARB;
 }
 
- uint lane4 = (gl_SubGroupInvocationARB % 4);
- uint offt4 = (gl_SubGroupInvocationARB / 4) * 4;
+const uint SCALARS = 8;
+uint laneP = (gl_SubGroupInvocationARB % SCALARS);
+uint offtP = (gl_SubGroupInvocationARB / SCALARS) * SCALARS;
+
+uint lane4 = (gl_SubGroupInvocationARB % 4);
+uint offt4 = (gl_SubGroupInvocationARB / 4) * 4;
 
 // get grouped swizzle
 vec4 swiz4(in vec4 _vc) {
@@ -62,19 +66,19 @@ bool swiz(in bvec2 _vc) {
 
 // read lane from vector4
 float lane(in float mem, in uint l) {
-    return readInvocationARB(mem, offt4 + l);
+    return readInvocationARB(mem, offtP + l);
 }
 
 int lane(in int mem, in uint l) {
-    return readInvocationARB(mem, offt4 + l);
+    return readInvocationARB(mem, offtP + l);
 }
 
 uint lane(in uint mem, in uint l) {
-    return readInvocationARB(mem, offt4 + l);
+    return readInvocationARB(mem, offtP + l);
 }
 
 bool lane(in bool mem, in uint l) {
-    return bool(readInvocationARB(uint(mem), offt4 + l));
+    return bool(readInvocationARB(uint(mem), offtP + l));
 }
 
 
@@ -107,19 +111,19 @@ bool w(in bool mem) { return lane(mem, 3); }
 float swapXY(in float mem){
     const float _x = x(mem);
     const float _y = y(mem);
-    return lane4 == 1 ? _x : _y;
+    return laneP == 1 ? _x : _y;
 }
 
 int swapXY(in int mem){
     const int _x = x(mem);
     const int _y = y(mem);
-    return lane4 == 1 ? _x : _y;
+    return laneP == 1 ? _x : _y;
 }
 
 uint swapXY(in uint mem){
     const uint _x = x(mem);
     const uint _y = y(mem);
-    return lane4 == 1 ? _x : _y;
+    return laneP == 1 ? _x : _y;
 }
 
 
@@ -191,31 +195,31 @@ float mult4w(in mat4 mat, in float vec){
 
 // is work lane (for most operations)
 bool mt(){
-    return lane4 == 0;
+    return laneP == 0;
 }
 
 
 // odd even lanes
 bool oddl(){
-    return lane4 % 2 == 1;
+    return laneP % 2 == 1;
 }
 
 bool evenl(){
-    return lane4 % 2 == 0;
+    return laneP % 2 == 0;
 }
 
 
 // compare lanes (for vector operations)
 bool lessl(in int lane){
-    return lane4 < lane;
+    return laneP < lane;
 }
 
 bool eql(in int lane){
-    return lane4 == lane;
+    return laneP == lane;
 }
 
 bool lessql(in int lane){
-    return lane4 <= lane;
+    return laneP <= lane;
 }
 
 
@@ -239,17 +243,17 @@ bool all3(in bool bl){
 
 // divide invocations
 uint invoc(in uint inv){
-    return inv / 4;
+    return inv / SCALARS;
 }
 
 int invoc(in int inv){
-    return inv / 4;
+    return inv / int(SCALARS);
 }
 
 
 // cross lane "cross product"
 float cross3(in float a, in float b){
-    const uint ln = (activeInvocation() % 4);
+    const uint ln = laneP % 4;
     return dot(vec2(
          lane(a, (ln + 1) % 3),
          lane(b, (ln + 1) % 3)
