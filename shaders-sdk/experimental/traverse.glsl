@@ -109,7 +109,8 @@ TResult choiceBaked(inout TResult res, in VEC3 orig, in VEC3 dir, in int tpi) {
 
 #pragma optionNV (unroll all)
     for (int x=0;x<3;x++) {
-        triverts[x] = validTriangle ? swiz(verts[tri * 3 + x].vertex) : VEC3(0.0f);
+        const VEC3 swizVertex = swiz(verts[tri * 3 + x].vertex);
+        triverts[x] = validTriangle ? swizVertex : VEC3(0.0f);
     }
 
     const float _d = intersectTriangle(orig, dir, triverts, uv);
@@ -135,7 +136,8 @@ TResult testIntersection(inout TResult res, in VEC3 orig, in VEC3 dir, in int tr
 
 #pragma optionNV (unroll all)
     for (int x=0;x<3;x++) {
-        triverts[x] = validTriangle ? swiz(verts[tri * 3 + x].vertex) : VEC3(0.0f);
+        const VEC3 swizVertex = swiz(verts[tri * 3 + x].vertex);
+        triverts[x] = validTriangle ? swizVertex : VEC3(0.0f);
     }
 
     const float _d = intersectTriangle(orig, dir, triverts, uv);
@@ -193,7 +195,8 @@ shared int deferredStack[WORK_SIZE][STACK_SIZE];
 TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
     const uint L = invoc(gl_LocalInvocationID.x);
 
-    VEC3 origin = swiz(_origin); VEC3 direct = swiz(_direct);
+     VEC3 origin = swiz(_origin); 
+     VEC3 direct = swiz(_direct);
     if (eql(3)) {
         origin = 1.0f;
         direct = 0.0f;
@@ -272,7 +275,8 @@ TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
             const bool leftOvp = leftOverlap;//x(overlaps);
 
             if (ballotARB(overlapAny) > 0) {
-                IVEC2 leftright = mix(IVEC2(-1), swiz(node.range.xy), overlaps);
+                IVEC2 leftrightSwiz = swiz(node.range.xy);
+                IVEC2 leftright = overlaps ? leftrightSwiz : IVEC2(-1);
 
                 // order by distance or valid
                 const bool leftOrder = overlapAll ? lessEqualF(lefthit, righthit) : leftOvp;
