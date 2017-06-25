@@ -7,12 +7,6 @@ const int bakedFragments = 16;
 int bakedStack[bakedFragments];
 int bakedStackCount = 0;
 
-void swap(inout int a, inout int b){
-    const int t = a;
-    a = b;
-    b = t;
-}
-
 // WARP optimized triangle intersection
 float intersectTriangle(in vec3 orig, in vec3 dir, in vec3 ve[3], inout vec2 UV) {
     const vec3 e1 = ve[1] - ve[0];

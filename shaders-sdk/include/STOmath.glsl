@@ -72,6 +72,14 @@ vec4 mult4(in mat4 tmat, in vec4 vec){
 
 
 
+void swap(inout int a, inout int b){
+    const int t = a;
+    a = b;
+    b = t;
+}
+
+
+
 // for unsupported systems
 
 
@@ -115,8 +123,6 @@ uvec4 unpackUint4x8(in uint base){
         bitfieldExtract(base, 24, 8)
     );
 }
-
-
 
 // 2x16
 
