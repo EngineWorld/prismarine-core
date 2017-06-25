@@ -267,13 +267,12 @@ TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
             const int distrb = eql(0) ? 0 : 1;
             const float leftrighthit = calculateRealDistance(hnears[distrb], hfars[distrb], nearLR, farLR);
             const bool overlapsVc = notLeaf && lessF(leftrighthit, INFINITY) && greaterEqualF(leftrighthit, 0.0f) && greaterEqualF(lastRes.predist, near * dirlen);
-            const bool overlapAny = any2(overlapsVc);
-
+            
             // compose results
+            const bvec2 overlaps = compbvec2(overlapsVc);
+            const bool overlapAny = any(overlaps);
             if (bs(overlapAny)) {
-                const bvec2 overlaps = compbvec2(overlapsVc);
                 const bool leftNearb = lessEqualF(x(leftrighthit), y(leftrighthit));
-
                 if (overlapAny && mt()) {
                     const bool leftOrder = all(overlaps) ? leftNearb : overlaps.x;
                     ivec2 leftright = mix(ivec2(-1), node.range.xy, overlaps);
