@@ -14,6 +14,9 @@
 #include "../include/STOmath.glsl"
 #include "../experimental/ultraMath.glsl"
 
+#undef WORK_SIZE
+#define WORK_SIZE 32
+
 struct TResult {
     float dist;
     float predist;
