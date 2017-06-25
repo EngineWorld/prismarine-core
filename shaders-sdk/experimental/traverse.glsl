@@ -271,28 +271,18 @@ TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
                     ;
             }
 
-            const BVEC2 overlaps = eql(0) ? leftOverlap : rightOverlap;
-            const bool overlapAny = any2(overlaps);
-            const bool overlapAll = all2(overlaps);
-            const bool leftOvp = x(overlaps);
+            const bvec2 overlapsVc = bvec2(leftOverlap, rightOverlap);
+            const bool overlapAny = any(overlapsVc);
+            if (ballotARB(overlapAny) > 0 && mt()) {
+                ivec2 leftright = mix(ivec2(-1), node.range.xy, overlapsVc);
+                const bool leftOrder = all(overlapsVc) ? lessEqualF(lefthit, righthit) : overlapsVc.x;
+                leftright = leftOrder ? leftright : leftright.yx;
 
-            if (ballotARB(overlapAny) > 0) {
-                IVEC2 leftrightSwiz = swiz(node.range.xy);
-                IVEC2 leftright = overlaps ? leftrightSwiz : IVEC2(-1);
-
-                // order by distance or valid
-                const bool leftOrder = overlapAll ? lessEqualF(lefthit, righthit) : leftOvp;
-                const IVEC2 swappedLR = swapXY(leftright);
-                leftright = leftOrder ? leftright : swappedLR;
-
-                const int nearer = x(leftright);
-                const int ranger = y(leftright);
-                if (overlapAny && mt()) {
-                    idx[L] = nearer;
-                    if (deferredPtr[L] < STACK_SIZE && ranger != -1) {
-                        int ptr = deferredPtr[L]++;
-                        deferredStack[L][ptr] = ranger;
+                if (overlapAny) {
+                    if (deferredPtr[L] < STACK_SIZE && leftright.y != -1) {
+                        deferredStack[L][deferredPtr[L]++] = leftright.y;
                     }
+                    idx[L] = leftright.x;
                     skip[L] = true;
                 }
             }

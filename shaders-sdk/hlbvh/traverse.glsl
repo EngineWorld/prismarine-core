@@ -185,6 +185,8 @@ float intersectCubeSingle(in vec3 origin, in vec3 ray, in vec3 cubeMin, in vec3 
 const vec3 padding = vec3(0.00001f);
 const int STACK_SIZE = 32;
 int deferredStack[STACK_SIZE];
+int idx = 0, deferredPtr = 0;
+bool validBox = false;
 
 TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     TResult lastRes;
@@ -201,9 +203,6 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     const float dirlen = 1.0f / length(tdirproj);
     const vec3 dirproj = normalize(tdirproj);
 
-    // init state
-    int idx = 0, deferredPtr = 0;
-
     // test with root node
     //HlbvhNode node = Nodes[idx];
     //const bbox lbox = node.box;
@@ -212,11 +211,15 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     const float d = intersectCubeSingle(torig, dirproj, vec3(0.0f), vec3(1.0f), near, far);
     lastRes.predist = far * dirlen;
 
-    bool validBox = 
-        lessF(d, INFINITY) 
-        && greaterEqualF(d, 0.0f) 
-        && greaterEqualF(lastRes.predist, near * dirlen)
-        ;
+    // init state
+    {
+        idx = 0, deferredPtr = 0;
+        validBox = 
+            lessF(d, INFINITY) 
+            && greaterEqualF(d, 0.0f) 
+            && greaterEqualF(lastRes.predist, near * dirlen)
+            ;
+    }
 
     bool skip = false;
     for(int i=0;i<16384;i++) {
@@ -256,31 +259,31 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
             const bvec2 overlaps = bvec2(leftOverlap, rightOverlap);
             const bool anyOverlap = any(overlaps);
             if (ballotARB(anyOverlap) > 0) {
-                ivec2 leftright = mix(ivec2(-1), ivec2(node.range.xy), overlaps);
-
-                // order by distance or valid
+                ivec2 leftright = mix(ivec2(-1), node.range.xy, overlaps);
                 const bool leftOrder = all(overlaps) ? lessEqualF(lefthit, righthit) : leftOverlap;
                 leftright = leftOrder ? leftright.xy : leftright.yx;
 
                 if (anyOverlap) {
-                    idx = leftright.x;
                     if (deferredPtr < STACK_SIZE && leftright.y != -1) {
                         deferredStack[deferredPtr++] = leftright.y;
                     }
+                    idx = leftright.x;
                     skip = true;
                 }
             }
         }
 
-        if (!skip) {
-            const int ptr = --deferredPtr;
-            const bool valid = ptr >= 0;
-
-            idx = valid ? deferredStack[ptr] : -1;
-            if (valid) deferredStack[ptr] = -1;
-
-            validBox = validBox && valid && idx >= 0;
-        } skip = false;
+        {
+            if (!skip) {
+                const int ptr = --deferredPtr;
+                const bool valid = ptr >= 0;
+                {
+                    idx = valid ? deferredStack[ptr] : -1;
+                    if (valid) deferredStack[ptr] = -1;
+                }
+                validBox = validBox && valid && idx >= 0;
+            } skip = false;
+        }
     }
 
     choiceBaked(lastRes, origin, direct, bakedStep);
