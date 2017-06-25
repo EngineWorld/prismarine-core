@@ -198,13 +198,8 @@ shared bool validBox[WORK_SIZE];
 //TResult traverse(in float distn, in VEC3 origin, in VEC3 direct, in Hit hit) {
 TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
     const uint L = invoc(gl_LocalInvocationID.x);
-
-     VEC3 origin = swiz(_origin); 
-     VEC3 direct = swiz(_direct);
-    if (eql(3)) {
-        origin = 1.0f;
-        direct = 0.0f;
-    }
+    const VEC4 origin = eql(3) ? 1.0f : swiz(_origin); 
+    const VEC4 direct = eql(3) ? 0.0f : swiz(_direct);
 
     TResult lastRes;
     lastRes.dist = INFINITY;
