@@ -251,13 +251,20 @@ int invoc(in int inv){
     return inv / int(SCALARS);
 }
 
+// constants bank of cross lanes
+const uint cslnsX[4] = {1, 2, 0, 3};
+const uint cslnsY[4] = {2, 0, 1, 3};
 
 // cross lane "cross product"
 float cross3(in float a, in float b){
     const uint ln = laneP&3;
-    const uint ln1 = (ln+1)%3;
-    const uint ln2 = (ln+2)%3;
-    return dot(vec2(lane(a, ln1), lane(b, ln1)), vec2(lane(b, ln2), -lane(a, ln2)));
+    return dot(vec2(
+         lane(a, cslnsX[ln]), 
+         lane(b, cslnsX[ln])
+    ), vec2(
+         lane(b, cslnsY[ln]), 
+        -lane(a, cslnsY[ln])
+    ));
 }
 
 
