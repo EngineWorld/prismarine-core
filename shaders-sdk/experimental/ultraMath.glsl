@@ -19,8 +19,8 @@ vec4 swiz4(in vec4 _vc) {
     const uint sz = lane4;
     if (sz == 1) return vc.yyyy; else 
     if (sz == 2) return vc.zzzz; else 
-    if (sz == 3) return vc.wwww; 
-    return vc.xxxx;
+    if (sz == 3) return vc.wwww; else 
+                 return vc.xxxx;
 }
 
 
@@ -30,37 +30,37 @@ float swiz(in vec4 _vc) {
     const uint sz = lane4;
     if (sz == 1) return vc.y; else 
     if (sz == 2) return vc.z; else 
-    if (sz == 3) return vc.w;
-    return float(vc.x);
+    if (sz == 3) return vc.w; else 
+                 return vc.x;
 }
 
 float swiz(in vec3 _vc) {
     const vec3 vc = readInvocationARB(_vc, offt4);
     const uint sz = lane4;
     if (sz == 1) return vc.y; else 
-    if (sz == 2) return vc.z;
-    return vc.x;
+    if (sz == 2) return vc.z; else 
+                 return vc.x;
 }
 
 float swiz(in vec2 _vc) {
     const vec2 vc = readInvocationARB(_vc, offt4);
     const uint sz = lane4;
-    if (sz == 1) return vc.y;
-    return vc.x;
+    if (sz == 1) return vc.y; else 
+                 return vc.x;
 }
 
 int swiz(in ivec2 _vc) {
     const ivec2 vc = readInvocationARB(_vc, offt4);
     const uint sz = lane4;
-    if (sz == 1) return vc.y;
-    return vc.x;
+    if (sz == 1) return vc.y; else 
+                 return vc.x;
 }
 
 bool swiz(in bvec2 _vc) {
     const bvec2 vc = bvec2(readInvocationARB(uvec2(_vc), offt4));
     const uint sz = lane4;
-    if (sz == 1) return vc.y;
-    return vc.x;
+    if (sz == 1) return vc.y; else 
+                 return vc.x;
 }
 
 
