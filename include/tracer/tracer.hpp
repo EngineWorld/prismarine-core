@@ -11,6 +11,8 @@ namespace Paper {
 
     class Tracer : public PTObject {
     private:
+        RadixSort * sorter;
+
         GLuint renderProgram = -1;
         GLuint matProgram = -1;
         GLuint beginProgram = -1;
@@ -73,7 +75,7 @@ namespace Paper {
         void resize(const uint32_t & w, const uint32_t & h);
         void resizeBuffers(const uint32_t & w, const uint32_t & h);
         void syncUniforms();
-        void reloadQueuedRays();
+        void reloadQueuedRays(bool doSort = false);
 
         LightUniformStruct * lightUniformData;
         int32_t raycountCache = 0;

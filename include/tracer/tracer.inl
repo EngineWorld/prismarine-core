@@ -121,6 +121,7 @@ namespace Paper {
     inline void Tracer::init() {
         initShaders();
         lightUniformData = new LightUniformStruct[6];
+        sorter = new RadixSort();
 
         glCreateBuffers(1, &arcounter);
         glNamedBufferStorage(arcounter, strided<int32_t>(4), nullptr, GL_DYNAMIC_STORAGE_BIT);
@@ -338,7 +339,7 @@ namespace Paper {
         glDispatchCompute(tiled(width * height, worksize), 1, 1);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
-        reloadQueuedRays();
+        reloadQueuedRays(true);
     }
 
     inline void Tracer::camera(const glm::vec3 &eye, const glm::vec3 &view, const glm::mat4 &persp) {
@@ -369,7 +370,7 @@ namespace Paper {
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
     }
 
-    inline void Tracer::reloadQueuedRays() {
+    inline void Tracer::reloadQueuedRays(bool doSort) {
         glGetNamedBufferSubData(arcounter, 0 * sizeof(uint32_t), sizeof(uint32_t), &raycountCache);
         samplerUniformData.rayCount = raycountCache;
         syncUniforms();
@@ -388,6 +389,13 @@ namespace Paper {
             glCopyNamedBufferSubData(freedoms, availables, 0, 0, strided<uint32_t>(availableCount));
         }
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
+        // sort actives by index
+        if (raycountCache > 0 && doSort) {
+            sorter->sort(activel, activel, raycountCache);
+        }
+
+        // TODO sort by quantization
     }
 
     inline void Tracer::reclaim() {
@@ -399,7 +407,7 @@ namespace Paper {
         glUseProgram(reclaimProgram);
         glDispatchCompute(tiled(rsize, worksize), 1, 1);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
-        reloadQueuedRays();
+        reloadQueuedRays(true);
     }
 
     inline void Tracer::render() {
