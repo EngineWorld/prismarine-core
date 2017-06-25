@@ -186,6 +186,22 @@ float intersectCubeSingle(in VEC3 origin, in VEC3 ray, in VEC3 cubeMin, in VEC3 
     return isCube ? (lessF(tNear, 0.0f) ? tFar : tNear) : INFINITY;
 }
 
+float intersectCubeSingle2(in vec3 origin, in vec3 ray, in vec3 cubeMin, in vec3 cubeMax, inout float near, inout float far) {
+    const vec3 dr = 1.0f / ray;
+    const vec3 tMin = (cubeMin - origin) * dr;
+    const vec3 tMax = (cubeMax - origin) * dr;
+    const vec3 t1 = min(tMin, tMax);
+    const vec3 t2 = max(tMin, tMax);
+    const float tNear = max(max(t1.x, t1.y), t1.z);
+    const float tFar  = min(min(t2.x, t2.y), t2.z);
+    const bool isCube = tFar >= tNear && greaterEqualF(tFar, 0.0f);
+    near = isCube ? tNear : INFINITY;
+    far  = isCube ? tFar  : INFINITY;
+    return isCube ? (lessF(tNear, 0.0f) ? tFar : tNear) : INFINITY;
+}
+
+
+
 const VEC3 padding = VEC3(0.00001f);
 const int STACK_SIZE = 32;
 //int deferredStack[STACK_SIZE];
@@ -215,6 +231,9 @@ TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
     const float dirlen = 1.0f / length3(tdirproj);
     const VEC3 dirproj = normalize3(tdirproj);
     
+    const vec3 torigUnif = compvec3(torig);
+    const vec3 dirprojUnif = compvec3(dirproj);
+
     // test with root node
     //HlbvhNode node = Nodes[idx];
     //const bbox lbox = node.box;
@@ -244,9 +263,14 @@ TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
             bool leftOverlap = false, rightOverlap = false;
             float lefthit = INFINITY, righthit = INFINITY;
 
+            // do work together
+            const int distrb = eql(0) ? x(node.range.x) : x(node.range.y);
+            float nearLR = INFINITY, farLR = INFINITY;
+            float leftrighthit = intersectCubeSingle2(torigUnif, dirprojUnif, Nodes[distrb].box.mn.xyz, Nodes[distrb].box.mx.xyz, nearLR, farLR);
+
             {
-                float near = INFINITY, far = INFINITY;
-                lefthit = intersectCubeSingle(torig, dirproj, swiz(Nodes[node.range.x].box.mn), swiz(Nodes[node.range.x].box.mx), near, far);
+                float near = x(nearLR), far = x(farLR);
+                lefthit = x(leftrighthit);
                 leftOverlap = 
                     notLeaf 
                     && lessF(lefthit, INFINITY) 
@@ -256,8 +280,8 @@ TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
             }
 
             {
-                float near = INFINITY, far = INFINITY;
-                righthit = intersectCubeSingle(torig, dirproj, swiz(Nodes[node.range.y].box.mn), swiz(Nodes[node.range.y].box.mx), near, far);
+                float near = y(nearLR), far = y(farLR);
+                righthit = y(leftrighthit);
                 rightOverlap = 
                     notLeaf 
                     && lessF(righthit, INFINITY) 
