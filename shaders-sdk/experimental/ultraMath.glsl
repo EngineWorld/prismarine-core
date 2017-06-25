@@ -284,6 +284,23 @@ bool ibs(in bool valid) {
 }
 
 
+float compmax3(in float t1){
+#ifdef ENABLE_AMD_INSTRUCTION_SET
+    return max3(x(t1), y(t1), z(t1));
+#else
+    return max(max(x(t1), y(t1)), z(t1));
+#endif
+}
+
+float compmin3(in float t1){
+#ifdef ENABLE_AMD_INSTRUCTION_SET
+    return min3(x(t1), y(t1), z(t1));
+#else
+    return min(min(x(t1), y(t1)), z(t1));
+#endif
+}
+
+
 // warp based types
 #define VEC4 float
 #define VEC3 float

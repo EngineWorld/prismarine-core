@@ -174,13 +174,8 @@ float intersectCubeSingle(in VEC3 origin, in VEC3 ray, in VEC3 cubeMin, in VEC3 
     const VEC3 tMax = (cubeMax - origin) * dr;
     const VEC3 t1 = min(tMin, tMax);
     const VEC3 t2 = max(tMin, tMax);
-#ifdef ENABLE_AMD_INSTRUCTION_SET
-    const float tNear = max3(x(t1), y(t1), z(t1));
-    const float tFar  = min3(x(t2), y(t2), z(t2));
-#else
-    const float tNear = max(max(x(t1), y(t1)), z(t1));
-    const float tFar  = min(min(x(t2), y(t2)), z(t2));
-#endif
+    const float tNear = compmax3(t1);
+    const float tFar  = compmin3(t2);
     const bool isCube = tFar >= tNear && greaterEqualF(tFar, 0.0f);
     near = isCube ? tNear : INFINITY;
     far  = isCube ? tFar  : INFINITY;
@@ -201,14 +196,7 @@ vec2 intersectCubeSingleApart(in VEC3 origin, in VEC3 ray, in VEC3 cubeMin, in V
     return vec2(t1, t2);
 }
 
-float intersectCubeSingle2(in vec3 t1, in vec3 t2, inout float near, inout float far) {
-#ifdef ENABLE_AMD_INSTRUCTION_SET
-    const float tNear = max3(t1.x, t1.y, t1.z);
-    const float tFar  = min3(t2.x, t2.y, t2.z);
-#else
-    const float tNear = max(max(t1.x, t1.y), t1.z);
-    const float tFar  = min(min(t2.x, t2.y), t2.z);
-#endif
+float calculateRealDistance(in float tNear, in float tFar, inout float near, inout float far) {
     const bool isCube = tFar >= tNear && greaterEqualF(tFar, 0.0f);
     near = isCube ? tNear : INFINITY;
     far  = isCube ? tFar  : INFINITY;
@@ -283,20 +271,20 @@ TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
             };
             
             // transpose from both nodes
-            const vec3 t1[2] = {
-                compvec3(t12_leftright[0].x),
-                compvec3(t12_leftright[1].x)
+            const float hnears[2] = {
+                compmax3(t12_leftright[0].x),
+                compmax3(t12_leftright[1].x)
             };
 
-            const vec3 t2[2] = {
-                compvec3(t12_leftright[0].y),
-                compvec3(t12_leftright[1].y)
+            const float hfars[2] = {
+                compmin3(t12_leftright[0].y),
+                compmin3(t12_leftright[1].y)
             };
 
             // determine parallel (2 lanes occupy)
             float nearLR = INFINITY, farLR = INFINITY;
             const int distrb = eql(0) ? 0 : 1;
-            const float leftrighthit = intersectCubeSingle2(t1[distrb], t2[distrb], nearLR, farLR);
+            const float leftrighthit = calculateRealDistance(hnears[distrb], hfars[distrb], nearLR, farLR);
 
             {
                 float near = x(nearLR), far = x(farLR);
