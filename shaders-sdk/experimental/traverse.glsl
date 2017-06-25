@@ -247,8 +247,7 @@ TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
 
             {
                 float near = INFINITY, far = INFINITY;
-                const bbox lbox = Nodes[node.range.x].box;
-                lefthit = intersectCubeSingle(torig, dirproj, swiz(lbox.mn.xyz), swiz(lbox.mx.xyz), near, far);
+                lefthit = intersectCubeSingle(torig, dirproj, swiz(Nodes[node.range.x].box.mn), swiz(Nodes[node.range.x].box.mx), near, far);
                 leftOverlap = 
                     notLeaf 
                     && lessF(lefthit, INFINITY) 
@@ -259,8 +258,7 @@ TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
 
             {
                 float near = INFINITY, far = INFINITY;
-                const bbox rbox = Nodes[node.range.y].box;
-                righthit = intersectCubeSingle(torig, dirproj, swiz(rbox.mn.xyz), swiz(rbox.mx.xyz), near, far);
+                righthit = intersectCubeSingle(torig, dirproj, swiz(Nodes[node.range.y].box.mn), swiz(Nodes[node.range.y].box.mx), near, far);
                 rightOverlap = 
                     notLeaf 
                     && lessF(righthit, INFINITY) 
