@@ -22,7 +22,7 @@ float intersectTriangle(in VEC3 orig, in VEC3 dir, in VEC3 ve[3], inout vec2 UV)
            length3(e1) < 0.00001f 
         && length3(e2) < 0.00001f
     );
-    if (ballotARB(valid) == 0) return INFINITY;
+    if (ibs(valid)) return INFINITY;
 
     const VEC3 pvec = cross3(dir, e2);
     const float det = dot3(e1, pvec);
@@ -32,7 +32,7 @@ float intersectTriangle(in VEC3 orig, in VEC3 dir, in VEC3 ve[3], inout vec2 UV)
 #else
     if (det <= 0.0f) valid = false;
 #endif
-    if (ballotARB(valid) == 0) return INFINITY;
+    if (ibs(valid)) return INFINITY;
 
     const VEC3 tvec = orig - ve[0];
     const float u = dot3(tvec, pvec);
@@ -46,7 +46,7 @@ float intersectTriangle(in VEC3 orig, in VEC3 dir, in VEC3 ve[3], inout vec2 UV)
     const bool invalidV = any2((VEC2(uvt) + (eql(0) ? 0.f : vd)) > VEC2(1.f));
 
     if (invalidU || invalidV) valid = false;
-    if (ballotARB(valid) == 0) return INFINITY;
+    if (ibs(valid)) return INFINITY;
 
     UV.xy = compvec2(uvt);
     const float dst = z(uvt);
@@ -67,7 +67,7 @@ TResult choiceFirstBaked(inout TResult res, in VEC3 orig, in VEC3 dir) {
         tri != LONGEST;
         
     //if (!validTriangle) return res;
-    if (ballotARB(validTriangle) == 0) return res;
+    if (ibs(validTriangle)) return res;
 
     const vec2 uv = bakedRangeIntersection[0].yz;
     const float _d = bakedRangeIntersection[0].x;
@@ -263,13 +263,12 @@ TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
     }
 
     for(int i=0;i<16384;i++) {
-        if (ballotARB(validBox[L]) == 0) break;
+        if (ibs(validBox[L])) break;
         HlbvhNode node = Nodes[idx[L]];
         testIntersection(lastRes, origin, direct, node.triangle, bakedStep, node.range.x == node.range.y && validBox[L]);
 
         bool notLeaf = node.range.x != node.range.y && validBox[L];
-        //if (node.range.x != node.range.y && validBox) {
-        if (ballotARB(notLeaf) > 0) {
+        if (bs(notLeaf)) {
             bool leftOverlap = false, rightOverlap = false;
             float lefthit = INFINITY, righthit = INFINITY;
 
@@ -300,19 +299,21 @@ TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
                     ;
             }
 
-            const bvec2 overlapsVc = bvec2(leftOverlap, rightOverlap);
-            const bool overlapAny = any(overlapsVc);
-            if (ballotARB(overlapAny) > 0 && mt()) {
-                ivec2 leftright = mix(ivec2(-1), node.range.xy, overlapsVc);
-                const bool leftOrder = all(overlapsVc) ? lessEqualF(lefthit, righthit) : overlapsVc.x;
-                leftright = leftOrder ? leftright : leftright.yx;
+            if (mt()) {
+                const bvec2 overlapsVc = bvec2(leftOverlap, rightOverlap);
+                const bool overlapAny = any(overlapsVc);
+                if (bs(overlapAny)) { // in current invocations
+                    ivec2 leftright = mix(ivec2(-1), node.range.xy, overlapsVc);
+                    const bool leftOrder = all(overlapsVc) ? lessEqualF(lefthit, righthit) : overlapsVc.x;
+                    leftright = leftOrder ? leftright : leftright.yx;
 
-                if (overlapAny) {
-                    if (deferredPtr[L] < STACK_SIZE && leftright.y != -1) {
-                        deferredStack[L][deferredPtr[L]++] = leftright.y;
+                    if (overlapAny) {
+                        if (deferredPtr[L] < STACK_SIZE && leftright.y != -1) {
+                            deferredStack[L][deferredPtr[L]++] = leftright.y;
+                        }
+                        idx[L] = leftright.x;
+                        skip[L] = true;
                     }
-                    idx[L] = leftright.x;
-                    skip[L] = true;
                 }
             }
         }

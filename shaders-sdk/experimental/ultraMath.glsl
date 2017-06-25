@@ -263,6 +263,15 @@ void putv3(in float inp, inout vec3 mem, inout int loc){
     if (loc == 2) mem.z = inp;
 }
 
+// if any valid
+bool bs(in bool valid) {
+    return ballotARB(valid && mt()) != 0;
+}
+
+// if all invalid
+bool ibs(in bool valid) {
+    return ballotARB(valid && mt()) == 0;
+}
 
 
 // warp based types
