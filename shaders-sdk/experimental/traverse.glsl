@@ -104,7 +104,6 @@ TResult choiceBaked(inout TResult res, in VEC3 orig, in VEC3 dir, in int tpi) {
         tri >= 0 && 
         tri != LONGEST;
 
-    vec2 uv = vec2(0.0f);
     VEC3 triverts[3];
 
 #pragma optionNV (unroll all)
@@ -113,6 +112,7 @@ TResult choiceBaked(inout TResult res, in VEC3 orig, in VEC3 dir, in int tpi) {
         triverts[x] = validTriangle ? swizVertex : VEC3(0.0f);
     }
 
+    vec2 uv = vec2(0.0f);
     const float _d = intersectTriangle(orig, dir, triverts, uv);
     const bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.dist);
 
@@ -131,7 +131,6 @@ TResult testIntersection(inout TResult res, in VEC3 orig, in VEC3 dir, in int tr
         tri >= 0 && 
         tri != LONGEST;
 
-    vec2 uv = vec2(0.0f);
     VEC3 triverts[3];
 
 #pragma optionNV (unroll all)
@@ -140,6 +139,7 @@ TResult testIntersection(inout TResult res, in VEC3 orig, in VEC3 dir, in int tr
         triverts[x] = validTriangle ? swizVertex : VEC3(0.0f);
     }
 
+    vec2 uv = vec2(0.0f);
     const float _d = intersectTriangle(orig, dir, triverts, uv);
     const bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.predist) && greaterEqualF(_d, 0.0f);
     const bool inbaked = equalF(_d, 0.0f);

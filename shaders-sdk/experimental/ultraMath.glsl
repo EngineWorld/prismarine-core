@@ -7,20 +7,17 @@ uint activeInvocation() {
 }
 
 const uint SCALARS = 4; // use between 4 or 8 in NVidia GPU
-uint laneP = (gl_SubGroupInvocationARB % SCALARS);
-uint offtP = (gl_SubGroupInvocationARB / SCALARS) * SCALARS;
+uint laneP = (gl_SubGroupInvocationARB%SCALARS);
+uint offtP = (gl_SubGroupInvocationARB/SCALARS)*SCALARS;
 
-uint lane4 = (gl_SubGroupInvocationARB % 4);
-uint offt4 = (gl_SubGroupInvocationARB / 4) * 4;
+uint lane4 = (gl_SubGroupInvocationARB&3);
+uint offt4 = (gl_SubGroupInvocationARB>>2)<<2;
 
 // get grouped swizzle
 vec4 swiz4(in vec4 _vc) {
     const vec4 vc = readInvocationARB(_vc, offt4);
     const uint sz = lane4;
-    if (sz == 1) return vc.yyyy; else 
-    if (sz == 2) return vc.zzzz; else 
-    if (sz == 3) return vc.wwww; else 
-                 return vc.xxxx;
+    return ((sz == 1) ? vc.yyyy : ((sz == 2) ? vc.zzzz : ((sz == 3) ? vc.wwww : vc.xxxx)));
 }
 
 
@@ -28,39 +25,31 @@ vec4 swiz4(in vec4 _vc) {
 float swiz(in vec4 _vc) {
     const vec4 vc = readInvocationARB(_vc, offt4);
     const uint sz = lane4;
-    if (sz == 1) return vc.y; else 
-    if (sz == 2) return vc.z; else 
-    if (sz == 3) return vc.w; else 
-                 return vc.x;
+    return ((sz == 1) ? vc.y : ((sz == 2) ? vc.z : ((sz == 3) ? vc.w : vc.x)));
 }
 
 float swiz(in vec3 _vc) {
     const vec3 vc = readInvocationARB(_vc, offt4);
     const uint sz = lane4;
-    if (sz == 1) return vc.y; else 
-    if (sz == 2) return vc.z; else 
-                 return vc.x;
+    return ((sz == 1) ? vc.y : ((sz == 2) ? vc.z : vc.x));
 }
 
 float swiz(in vec2 _vc) {
     const vec2 vc = readInvocationARB(_vc, offt4);
     const uint sz = lane4;
-    if (sz == 1) return vc.y; else 
-                 return vc.x;
+    return ((sz == 1) ? vc.y : vc.x);
 }
 
 int swiz(in ivec2 _vc) {
     const ivec2 vc = readInvocationARB(_vc, offt4);
     const uint sz = lane4;
-    if (sz == 1) return vc.y; else 
-                 return vc.x;
+    return ((sz == 1) ? vc.y : vc.x);
 }
 
 bool swiz(in bvec2 _vc) {
     const bvec2 vc = bvec2(readInvocationARB(uvec2(_vc), offt4));
     const uint sz = lane4;
-    if (sz == 1) return vc.y; else 
-                 return vc.x;
+    return ((sz == 1) ? vc.y : vc.x);
 }
 
 
@@ -140,15 +129,15 @@ vec2 compvec2(in float mem){
     return vec2(x(mem), y(mem));
 }
 
-ivec2 compivec(in int mem){
+ivec2 compivec2(in int mem){
     return ivec2(x(mem), y(mem));
 }
 
-uvec2 compuvec(in int mem){
+uvec2 compuvec2(in uint mem){
     return uvec2(x(mem), y(mem));
 }
 
-bvec2 compbvec(in bool mem){
+bvec2 compbvec2(in bool mem){
     return bvec2(x(mem), y(mem));
 }
 
@@ -175,7 +164,7 @@ float dot4(in float a, in float b){
 
 // matrix math on WARP%4 lanes (require compacted vector)
 float mult4w(in vec4 vec, in mat4 mat){
-    return dot(mat[gl_SubGroupInvocationARB % 4], vec);
+    return dot(mat[laneP&3], vec);
 }
 
 float mult4w(in mat4 mat, in vec4 vec){
@@ -201,11 +190,11 @@ bool mt(){
 
 // odd even lanes
 bool oddl(){
-    return laneP % 2 == 1;
+    return (laneP&1) == 1;
 }
 
 bool evenl(){
-    return laneP % 2 == 0;
+    return (laneP&1) == 0;
 }
 
 
@@ -253,14 +242,10 @@ int invoc(in int inv){
 
 // cross lane "cross product"
 float cross3(in float a, in float b){
-    const uint ln = laneP % 4;
-    return dot(vec2(
-         lane(a, (ln + 1) % 3),
-         lane(b, (ln + 1) % 3)
-    ), vec2(
-         lane(b, (ln + 2) % 3),
-        -lane(a, (ln + 2) % 3)
-    ));
+    const uint ln = laneP&3;
+    const uint ln1 = (ln+1)%3;
+    const uint ln2 = (ln+2)%3;
+    return dot(vec2(lane(a, ln1), lane(b, ln1)), vec2(lane(b, ln2), -lane(a, ln2)));
 }
 
 
