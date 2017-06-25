@@ -178,8 +178,13 @@ float intersectCubeSingle(in VEC3 origin, in VEC3 ray, in VEC3 cubeMin, in VEC3 
     const VEC3 tMax = (cubeMax - origin) * dr;
     const VEC3 t1 = min(tMin, tMax);
     const VEC3 t2 = max(tMin, tMax);
+#ifdef ENABLE_AMD_INSTRUCTION_SET
+    const float tNear = max3(x(t1), y(t1), z(t1));
+    const float tFar  = min3(x(t2), y(t2), z(t2));
+#else
     const float tNear = max(max(x(t1), y(t1)), z(t1));
     const float tFar  = min(min(x(t2), y(t2)), z(t2));
+#endif
     const bool isCube = tFar >= tNear && greaterEqualF(tFar, 0.0f);
     near = isCube ? tNear : INFINITY;
     far  = isCube ? tFar  : INFINITY;
@@ -192,8 +197,13 @@ float intersectCubeSingle2(in vec3 origin, in vec3 ray, in vec3 cubeMin, in vec3
     const vec3 tMax = (cubeMax - origin) * dr;
     const vec3 t1 = min(tMin, tMax);
     const vec3 t2 = max(tMin, tMax);
+#ifdef ENABLE_AMD_INSTRUCTION_SET
+    const float tNear = max3(t1.x, t1.y, t1.z);
+    const float tFar  = min3(t2.x, t2.y, t2.z);
+#else
     const float tNear = max(max(t1.x, t1.y), t1.z);
     const float tFar  = min(min(t2.x, t2.y), t2.z);
+#endif
     const bool isCube = tFar >= tNear && greaterEqualF(tFar, 0.0f);
     near = isCube ? tNear : INFINITY;
     far  = isCube ? tFar  : INFINITY;
