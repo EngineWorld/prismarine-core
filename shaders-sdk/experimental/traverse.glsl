@@ -8,18 +8,14 @@ int bakedStack[bakedFragments];
 int bakedStackCount = 0;
 
 // WARP optimized triangle intersection
-float intersectTriangle(in VEC3 orig, in VEC3 dir, in VEC3 ve[3], inout vec2 UV) {
-    const VEC3 e1 = ve[1] - ve[0];
-    const VEC3 e2 = ve[2] - ve[0];
+float intersectTriangle(in VEC3 orig, in VEC3 dir, in vec3 ve, inout vec2 UV) {
+    const vec2 e12 = ve.yz - ve.x;
 
-    bool valid = !(
-           length3(e1) < 0.00001f 
-        && length3(e2) < 0.00001f
-    );
+    bool valid = !(length3(e12.x) < 0.00001f && length3(e12.y) < 0.00001f);
     if (ibs(valid)) return INFINITY;
 
-    const VEC3 pvec = cross3(dir, e2);
-    const float det = dot3(e1, pvec);
+    const VEC3 pvec = cross3(dir, e12.y);
+    const float det = dot3(e12.x, pvec);
 
 #ifndef CULLING
     if (abs(det) <= 0.0f) valid = false;
@@ -28,11 +24,11 @@ float intersectTriangle(in VEC3 orig, in VEC3 dir, in VEC3 ve[3], inout vec2 UV)
 #endif
     if (ibs(valid)) return INFINITY;
 
-    const VEC3 tvec = orig - ve[0];
+    const VEC3 tvec = orig - ve.x;
     const float u = dot3(tvec, pvec);
-    const VEC3 qvec = cross3(tvec, e1);
+    const VEC3 qvec = cross3(tvec, e12.x);
     const float v = dot3(dir, qvec);
-    const float ts = dot3(e2, qvec);
+    const float ts = dot3(e12.y, qvec);
     const VEC3 uvt = (eql(0) ? u : (eql(1) ? v : ts)) / det;
 
     const float vd = x(uvt);
@@ -45,11 +41,6 @@ float intersectTriangle(in VEC3 orig, in VEC3 dir, in VEC3 ve[3], inout vec2 UV)
     UV.xy = compvec2(uvt);
     const float dst = z(uvt);
     return (lessF(dst, 0.0f) || !valid) ? INFINITY : dst;
-}
-
-float intersectTriangle(in VEC3 orig, in VEC3 dir, inout VEC3 ve[3]) {
-    vec2 uv = vec2(0.0f);
-    return intersectTriangle(orig, dir, ve, uv);
 }
 
 TResult choiceFirstBaked(inout TResult res) {
@@ -98,10 +89,10 @@ TResult choiceBaked(inout TResult res, in VEC3 orig, in VEC3 dir, in int tpi) {
         tri >= 0 && 
         tri != LONGEST;
 
-    VEC3 triverts[3];
+    vec3 triverts;
     for (int x=0;x<3;x++) {
         const VEC3 swizVertex = swiz(verts[tri * 3 + x].vertex);
-        triverts[x] = validTriangle ? swizVertex : VEC3(0.0f);
+        putv3(validTriangle ? swizVertex : VEC3(0.0f), triverts, x);
     }
 
     vec2 uv = vec2(0.0f);
@@ -123,10 +114,10 @@ TResult testIntersection(inout TResult res, in VEC3 orig, in VEC3 dir, in int tr
         tri >= 0 && 
         tri != LONGEST;
 
-    VEC3 triverts[3];
+    vec3 triverts;
     for (int x=0;x<3;x++) {
         const VEC3 swizVertex = swiz(verts[tri * 3 + x].vertex);
-        triverts[x] = validTriangle ? swizVertex : VEC3(0.0f);
+        putv3(validTriangle ? swizVertex : VEC3(0.0f), triverts, x);
     }
 
     vec2 uv = vec2(0.0f);
@@ -253,9 +244,7 @@ TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
 
         bool notLeaf = node.range.x != node.range.y && validBox[L];
         if (bs(notLeaf)) {
-            bool leftOverlap = false, rightOverlap = false;
-            float lefthit = INFINITY, righthit = INFINITY;
-            
+
             // search intersection worklets (3 lanes occupy)
             const vec2 t12_leftright[2] = {
                 intersectCubeSingleApart(torig, dirproj, swiz(Nodes[node.range.x].box.mn), swiz(Nodes[node.range.x].box.mx)),
@@ -278,34 +267,22 @@ TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
             const int distrb = eql(0) ? 0 : 1;
             const float leftrighthit = calculateRealDistance(hnears[distrb], hfars[distrb], nearLR, farLR);
 
-            {
-                float near = x(nearLR), far = x(farLR);
-                lefthit = x(leftrighthit);
-                leftOverlap = 
-                    notLeaf 
-                    && lessF(lefthit, INFINITY) 
-                    && greaterEqualF(lefthit, 0.0f) 
-                    && greaterEqualF(lastRes.predist, near * dirlen)
-                    ;
-            }
-
-            {
-                float near = y(nearLR), far = y(farLR);
-                righthit = y(leftrighthit);
-                rightOverlap = 
-                    notLeaf 
-                    && lessF(righthit, INFINITY) 
-                    && greaterEqualF(righthit, 0.0f) 
-                    && greaterEqualF(lastRes.predist, near * dirlen)
-                    ;
-            }
-
+            // compact to one lane, for comparsions
+            const vec2 near = compvec2(nearLR);
+            const vec2 far = compvec2(farLR);
+            const vec2 leftrightdist = compvec2(leftrighthit);
+            
             if (mt()) {
-                const bvec2 overlapsVc = bvec2(leftOverlap, rightOverlap);
+                 bvec2 overlapsVc = 
+                    bvec2(notLeaf) && 
+                    lessThanEqual(leftrightdist, vec2(INFINITY - PZERO)) && 
+                    greaterThan(leftrightdist, vec2(-PZERO)) && 
+                    greaterThan(vec2(lastRes.predist), near * dirlen - PZERO);
+
                 const bool overlapAny = any(overlapsVc);
                 if (bs(overlapAny)) { // in current invocations
                     ivec2 leftright = mix(ivec2(-1), node.range.xy, overlapsVc);
-                    const bool leftOrder = all(overlapsVc) ? lessEqualF(lefthit, righthit) : overlapsVc.x;
+                    const bool leftOrder = all(overlapsVc) ? lessEqualF(leftrightdist.x, leftrightdist.y) : overlapsVc.x;
                     leftright = leftOrder ? leftright : leftright.yx;
 
                     if (overlapAny) {
