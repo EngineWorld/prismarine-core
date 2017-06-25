@@ -60,6 +60,10 @@ float lane(in float mem, in uint l) {
     return readInvocationARB(mem, offtP + l);
 }
 
+vec2 lane(in vec2 mem, in uint l) {
+    return readInvocationARB(mem, offtP + l);
+}
+
 int lane(in int mem, in uint l) {
     return readInvocationARB(mem, offtP + l);
 }
@@ -78,6 +82,12 @@ float x(in float mem) { return lane(mem, 0); }
 float y(in float mem) { return lane(mem, 1); }
 float z(in float mem) { return lane(mem, 2); }
 float w(in float mem) { return lane(mem, 3); }
+
+// vec2 lanes
+vec2 x(in vec2 mem) { return lane(mem, 0); }
+vec2 y(in vec2 mem) { return lane(mem, 1); }
+vec2 z(in vec2 mem) { return lane(mem, 2); }
+vec2 w(in vec2 mem) { return lane(mem, 3); }
 
 // int lanes
 int x(in int mem) { return lane(mem, 0); }

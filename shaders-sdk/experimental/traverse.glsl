@@ -191,12 +191,21 @@ float intersectCubeSingle(in VEC3 origin, in VEC3 ray, in VEC3 cubeMin, in VEC3 
     return isCube ? (lessF(tNear, 0.0f) ? tFar : tNear) : INFINITY;
 }
 
-float intersectCubeSingle2(in vec3 origin, in vec3 ray, in vec3 cubeMin, in vec3 cubeMax, inout float near, inout float far) {
-    const vec3 dr = 1.0f / ray;
-    const vec3 tMin = (cubeMin - origin) * dr;
-    const vec3 tMax = (cubeMax - origin) * dr;
-    const vec3 t1 = min(tMin, tMax);
-    const vec3 t2 = max(tMin, tMax);
+
+
+
+// optimized by WARP and SIMD intersection boxes
+
+vec2 intersectCubeSingleApart(in VEC3 origin, in VEC3 ray, in VEC3 cubeMin, in VEC3 cubeMax) {
+    const VEC3 dr = 1.0f / ray;
+    const VEC3 tMin = (cubeMin - origin) * dr;
+    const VEC3 tMax = (cubeMax - origin) * dr;
+    const VEC3 t1 = min(tMin, tMax);
+    const VEC3 t2 = max(tMin, tMax);
+    return vec2(t1, t2);
+}
+
+float intersectCubeSingle2(in vec3 t1, in vec3 t2, inout float near, inout float far) {
 #ifdef ENABLE_AMD_INSTRUCTION_SET
     const float tNear = max3(t1.x, t1.y, t1.z);
     const float tFar  = min3(t2.x, t2.y, t2.z);
@@ -214,7 +223,6 @@ float intersectCubeSingle2(in vec3 origin, in vec3 ray, in vec3 cubeMin, in vec3
 
 const VEC3 padding = VEC3(0.00001f);
 const int STACK_SIZE = 32;
-//int deferredStack[STACK_SIZE];
 shared int deferredStack[WORK_SIZE][STACK_SIZE];
 shared int deferredPtr[WORK_SIZE];
 shared int idx[WORK_SIZE];
@@ -271,11 +279,28 @@ TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
         if (bs(notLeaf)) {
             bool leftOverlap = false, rightOverlap = false;
             float lefthit = INFINITY, righthit = INFINITY;
+            
+            // search intersection worklets (3 lanes occupy)
+            const vec2 t12_leftright[2] = {
+                intersectCubeSingleApart(torig, dirproj, swiz(Nodes[node.range.x].box.mn), swiz(Nodes[node.range.x].box.mx)),
+                intersectCubeSingleApart(torig, dirproj, swiz(Nodes[node.range.y].box.mn), swiz(Nodes[node.range.y].box.mx))
+            };
+            
+            // transpose from both nodes
+            const vec3 t1[2] = {
+                compvec3(t12_leftright[0].x),
+                compvec3(t12_leftright[1].x)
+            };
 
-            // do work together
-            const int distrb = eql(0) ? x(node.range.x) : x(node.range.y);
+            const vec3 t2[2] = {
+                compvec3(t12_leftright[0].y),
+                compvec3(t12_leftright[1].y)
+            };
+
+            // determine parallel (2 lanes occupy)
             float nearLR = INFINITY, farLR = INFINITY;
-            float leftrighthit = intersectCubeSingle2(torigUnif, dirprojUnif, Nodes[distrb].box.mn.xyz, Nodes[distrb].box.mx.xyz, nearLR, farLR);
+            const int distrb = eql(0) ? 0 : 1;
+            const float leftrighthit = intersectCubeSingle2(t1[distrb], t2[distrb], nearLR, farLR);
 
             {
                 float near = x(nearLR), far = x(farLR);
