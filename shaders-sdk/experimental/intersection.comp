@@ -15,7 +15,7 @@
 #include "../experimental/ultraMath.glsl"
 
 #undef WORK_SIZE
-#define WORK_SIZE 32
+#define WORK_SIZE 64
 
 struct TResult {
     float dist;

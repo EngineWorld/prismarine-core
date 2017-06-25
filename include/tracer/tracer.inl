@@ -427,7 +427,7 @@ namespace Paper {
         obj->bindBVH();
         this->bind();
 
-        const size_t worksize = 32;
+        const size_t worksize = 64;
         glUseProgram(intersectionProgram);
         glDispatchCompute(tiled(rsize, worksize), 1, 1);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
