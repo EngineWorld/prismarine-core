@@ -13,10 +13,12 @@ uint offtP = (gl_SubGroupInvocationARB/SCALARS)*SCALARS;
 uint lane4 = (gl_SubGroupInvocationARB&3);
 uint offt4 = (gl_SubGroupInvocationARB>>2)<<2;
 
+#define sz lane4 // redirect
+
 // get grouped swizzle
 vec4 swiz4(in vec4 _vc) {
     const vec4 vc = readInvocationARB(_vc, offt4);
-    const uint sz = lane4;
+    //const uint sz = lane4;
     return ((sz == 1) ? vc.yyyy : ((sz == 2) ? vc.zzzz : ((sz == 3) ? vc.wwww : vc.xxxx)));
 }
 
@@ -24,31 +26,31 @@ vec4 swiz4(in vec4 _vc) {
 // get swizzle component from packed vectors
 float swiz(in vec4 _vc) {
     const vec4 vc = readInvocationARB(_vc, offt4);
-    const uint sz = lane4;
+    //const uint sz = lane4;
     return ((sz == 1) ? vc.y : ((sz == 2) ? vc.z : ((sz == 3) ? vc.w : vc.x)));
 }
 
 float swiz(in vec3 _vc) {
     const vec3 vc = readInvocationARB(_vc, offt4);
-    const uint sz = lane4;
+    //const uint sz = lane4;
     return ((sz == 1) ? vc.y : ((sz == 2) ? vc.z : vc.x));
 }
 
 float swiz(in vec2 _vc) {
     const vec2 vc = readInvocationARB(_vc, offt4);
-    const uint sz = lane4;
+    //const uint sz = lane4;
     return ((sz == 1) ? vc.y : vc.x);
 }
 
 int swiz(in ivec2 _vc) {
     const ivec2 vc = readInvocationARB(_vc, offt4);
-    const uint sz = lane4;
+    //const uint sz = lane4;
     return ((sz == 1) ? vc.y : vc.x);
 }
 
 bool swiz(in bvec2 _vc) {
     const bvec2 vc = bvec2(readInvocationARB(uvec2(_vc), offt4));
-    const uint sz = lane4;
+    //const uint sz = lane4;
     return ((sz == 1) ? vc.y : vc.x);
 }
 
