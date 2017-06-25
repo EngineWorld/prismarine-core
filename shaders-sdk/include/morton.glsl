@@ -48,6 +48,25 @@ uint part1By2_64(in uint a){
     return x;
 }
 
+
+uint part1By5(in uint x){
+    uint answer = 0;
+    for (uint i = 0; i < 32 / 6; ++i) {
+        answer |= ((x & (1u << i)) << 5u*i);
+    }
+    return answer;
+}
+
+uint encodeMorton3_64(in uvec3 a, in uvec3 b)
+{
+    return 
+        (part1By5(a.x) << 0) | (part1By5(a.y) << 1) | (part1By5(a.z) << 2) | 
+        (part1By5(b.x) << 3) | (part1By5(b.y) << 4) | (part1By5(b.z) << 5);
+}
+
+
+
+
 uint encodeMorton3_64(in uvec3 a)
 {
     return part1By2_64(a.x) | (part1By2_64(a.y) << 1) | (part1By2_64(a.z) << 2);

@@ -2,6 +2,7 @@
 #define _RAYS_H
 
 #include "../include/STOmath.glsl"
+#include "../include/morton.glsl"
 
 layout ( std430, binding = 0 ) buffer RaysSSBO { Ray rays[]; };
 layout ( std430, binding = 1 ) buffer HitsSSBO { Hit hits[]; };
@@ -165,5 +166,21 @@ Hit fetchHitDirect(in int texel) {
 Hit fetchHit(in Ray ray){
     return hits[ray.idx];
 }
+
+
+
+uvec3 _roundly(in vec3 o){
+    return clamp(
+        uvec3(floor(clamp(o, vec3(0.00001f), vec3(0.99999f)) * 1024.0f)), 
+        uvec3(0), uvec3(1023));
+}
+
+uint quantizeRay(in Ray ray, in vec3 mn, in vec3 mx){
+    vec3 origin = (ray.origin.xyz - mn) / (mx - mn);
+    vec3 direct = fma(normalize(ray.direct.xyz),vec3(0.5f),vec3(0.5f));
+    return encodeMorton3_64(_roundly(origin), _roundly(direct));
+}
+
+
 
 #endif
