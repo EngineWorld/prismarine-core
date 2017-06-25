@@ -266,32 +266,23 @@ TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
             float nearLR = INFINITY, farLR = INFINITY;
             const int distrb = eql(0) ? 0 : 1;
             const float leftrighthit = calculateRealDistance(hnears[distrb], hfars[distrb], nearLR, farLR);
+            const bool overlapsVc = notLeaf && lessF(leftrighthit, INFINITY) && greaterEqualF(leftrighthit, 0.0f) && greaterEqualF(lastRes.predist, near * dirlen);
+            const bool overlapAny = any2(overlapsVc);
 
-            // compact to one lane, for comparsions
-            const vec2 near = compvec2(nearLR);
-            const vec2 far = compvec2(farLR);
-            const vec2 leftrightdist = compvec2(leftrighthit);
-            
-            if (mt()) {
-                 bvec2 overlapsVc = 
-                    bvec2(notLeaf) && 
-                    lessThanEqual(leftrightdist, vec2(INFINITY - PZERO)) && 
-                    greaterThan(leftrightdist, vec2(-PZERO)) && 
-                    greaterThan(vec2(lastRes.predist), near * dirlen - PZERO);
+            // compose results
+            if (bs(overlapAny)) {
+                const bool leftOverp = x(overlapsVc);
+                const bool leftNearb = lessEqualF(x(leftrighthit), y(leftrighthit));
+                const bool leftOrder = all2(overlapsVc) ? leftNearb : leftOverp;
+                ivec2 leftright = mix(ivec2(-1), node.range.xy, compbvec2(overlapsVc));
 
-                const bool overlapAny = any(overlapsVc);
-                if (bs(overlapAny)) { // in current invocations
-                    ivec2 leftright = mix(ivec2(-1), node.range.xy, overlapsVc);
-                    const bool leftOrder = all(overlapsVc) ? lessEqualF(leftrightdist.x, leftrightdist.y) : overlapsVc.x;
+                if (overlapAny && mt()) {
                     leftright = leftOrder ? leftright : leftright.yx;
-
-                    if (overlapAny) {
-                        if (deferredPtr[L] < STACK_SIZE && leftright.y != -1) {
-                            deferredStack[L][deferredPtr[L]++] = leftright.y;
-                        }
-                        idx[L] = leftright.x;
-                        skip[L] = true;
+                    if (deferredPtr[L] < STACK_SIZE && leftright.y != -1) {
+                        deferredStack[L][deferredPtr[L]++] = leftright.y;
                     }
+                    idx[L] = leftright.x;
+                    skip[L] = true;
                 }
             }
         }
