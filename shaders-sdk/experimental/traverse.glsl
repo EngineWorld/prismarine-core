@@ -273,7 +273,7 @@ TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
             if (bs(overlapAny)) {
                 const bvec2 overlaps = compbvec2(overlapsVc);
                 const bool leftNearb = lessEqualF(x(leftrighthit), y(leftrighthit));
-                const bool leftOrder = all2(overlapsVc) ? leftNearb : overlaps.x;
+                const bool leftOrder = all(overlaps) ? leftNearb : overlaps.x;
                 ivec2 leftright = mix(ivec2(-1), node.range.xy, overlaps);
 
                 if (overlapAny && mt()) {
