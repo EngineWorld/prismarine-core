@@ -190,6 +190,10 @@ const VEC3 padding = VEC3(0.00001f);
 const int STACK_SIZE = 32;
 //int deferredStack[STACK_SIZE];
 shared int deferredStack[WORK_SIZE][STACK_SIZE];
+shared int deferredPtr[WORK_SIZE];
+shared int idx[WORK_SIZE];
+shared bool skip[WORK_SIZE];
+shared bool validBox[WORK_SIZE];
 
 //TResult traverse(in float distn, in VEC3 origin, in VEC3 direct, in Hit hit) {
 TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
@@ -215,10 +219,7 @@ TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
     const VEC3 tdirproj = mult4w(GEOMETRY_BLOCK octreeUniform.project, direct);
     const float dirlen = 1.0f / length3(tdirproj);
     const VEC3 dirproj = normalize3(tdirproj);
-
-    // init state
-    int idx = 0, deferredPtr = 0;
-
+    
     // test with root node
     //HlbvhNode node = Nodes[idx];
     //const bbox lbox = node.box;
@@ -227,19 +228,22 @@ TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
     const float d = intersectCubeSingle(torig, dirproj, VEC3(0.0f), VEC3(1.0f), near, far);
     lastRes.predist = far * dirlen;
 
-    bool validBox = 
-        lessF(d, INFINITY) 
-        && greaterEqualF(d, 0.0f) 
-        && greaterEqualF(lastRes.predist, near * dirlen)
-        ;
+    // init state
+    if (mt()) {
+        idx[L] = 0, deferredPtr[L] = 0;
+        validBox[L] = 
+            lessF(d, INFINITY) 
+            && greaterEqualF(d, 0.0f) 
+            && greaterEqualF(lastRes.predist, near * dirlen)
+            ;
+    }
 
-    bool skip = false;
     for(int i=0;i<16384;i++) {
-        if (ballotARB(validBox) == 0) break;
-        HlbvhNode node = Nodes[idx];
-        testIntersection(lastRes, origin, direct, node.triangle, bakedStep, node.range.x == node.range.y && validBox);
+        if (ballotARB(validBox[L]) == 0) break;
+        HlbvhNode node = Nodes[idx[L]];
+        testIntersection(lastRes, origin, direct, node.triangle, bakedStep, node.range.x == node.range.y && validBox[L]);
 
-        bool notLeaf = node.range.x != node.range.y && validBox;
+        bool notLeaf = node.range.x != node.range.y && validBox[L];
         //if (node.range.x != node.range.y && validBox) {
         if (ballotARB(notLeaf) > 0) {
             bool leftOverlap = false, rightOverlap = false;
@@ -268,9 +272,9 @@ TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
             }
 
             const BVEC2 overlaps = eql(0) ? leftOverlap : rightOverlap;
-            const bool overlapAny = leftOverlap || rightOverlap;//any2(overlaps);
-            const bool overlapAll = leftOverlap && rightOverlap;//all2(overlaps);
-            const bool leftOvp = leftOverlap;//x(overlaps);
+            const bool overlapAny = any2(overlaps);
+            const bool overlapAll = all2(overlaps);
+            const bool leftOvp = x(overlaps);
 
             if (ballotARB(overlapAny) > 0) {
                 IVEC2 leftrightSwiz = swiz(node.range.xy);
@@ -283,26 +287,28 @@ TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
 
                 const int nearer = x(leftright);
                 const int ranger = y(leftright);
-                if (overlapAny) {
-                    idx = nearer;
-                    if (deferredPtr < STACK_SIZE && ranger != -1) {
-                        int ptr = deferredPtr++;
-                        if (mt()) deferredStack[L][ptr] = ranger;
+                if (overlapAny && mt()) {
+                    idx[L] = nearer;
+                    if (deferredPtr[L] < STACK_SIZE && ranger != -1) {
+                        int ptr = deferredPtr[L]++;
+                        deferredStack[L][ptr] = ranger;
                     }
-                    skip = true;
+                    skip[L] = true;
                 }
             }
         }
 
-        if (!skip) {
-            const int ptr = --deferredPtr;
-            const bool valid = ptr >= 0;
-
-            idx = valid ? deferredStack[L][ptr] : -1;
-            if (valid && mt()) deferredStack[L][ptr] = -1;
-
-            validBox = validBox && valid && idx >= 0;
-        } skip = false;
+        if (mt()) {
+            if (!skip[L]) {
+                const int ptr = --deferredPtr[L];
+                const bool valid = ptr >= 0;
+                {
+                    idx[L] = valid ? deferredStack[L][ptr] : -1;
+                    if (valid) deferredStack[L][ptr] = -1;
+                }
+                validBox[L] = validBox[L] && valid && idx[L] >= 0;
+            } skip[L] = false;
+        }
     }
 
     choiceBaked(lastRes, origin, direct, bakedStep);
