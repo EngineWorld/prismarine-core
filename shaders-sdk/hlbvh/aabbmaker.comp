@@ -38,9 +38,8 @@ void main() {
     vec3 triverts[3];
     const int tri3 = t * 3;
     for (int x=0;x<3;x++) {
-        //const int j = indics[tri3 + x];
         const int j = tri3 + x;
-        const vec4 nps = mult4(GEOMETRY_BLOCK octreeUniform.project, vec4(verts[j].vertex.xyz, 1.0f));
+        const vec4 nps = mult4(vec4(verts[j].vertex.xyz, 1.0f), GEOMETRY_BLOCK octreeUniform.project);
         triverts[x] = nps.xyz / nps.w;
     }
 

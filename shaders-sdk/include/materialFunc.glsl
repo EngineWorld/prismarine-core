@@ -177,42 +177,9 @@ Ray refraction(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal, in floa
     return newRay;
 }
 
-Ray transformRay(in Ray directRay){
-    directRay.origin.xyz = mult4(inverse(RAY_BLOCK materialUniform.transformModifier), vec4(directRay.origin.xyz, 1.0f)).xyz;
-    directRay.direct.xyz = normalize(mult4(inverse(RAY_BLOCK materialUniform.transformModifier), vec4(directRay.direct.xyz, 0.0f)).xyz);
-    return directRay;
-}
-
-
-vec3 transformNormal(in vec3 norm){
-    norm.xyz = normalize(mult4(vec4(norm, 0.0f), (RAY_BLOCK materialUniform.transformModifier)).xyz);
-    return norm;
-}
-
-vec3 unTransformNormal(in vec3 norm){
-    norm.xyz = normalize(mult4(vec4(norm, 0.0f), inverse(RAY_BLOCK materialUniform.transformModifier)).xyz);
-    return norm;
-}
-
-Ray transformRay(in Ray directRay, inout float distModifier){
-    directRay.origin.xyz = mult4(inverse(RAY_BLOCK materialUniform.transformModifier), vec4(directRay.origin.xyz, 1.0f)).xyz;
-
-    const vec3 backup = directRay.direct.xyz;
-    directRay.direct.xyz = mult4(inverse(RAY_BLOCK materialUniform.transformModifier), vec4(directRay.direct.xyz, 0.0f)).xyz;
-    distModifier = length(directRay.direct.xyz) / length(backup);
-    directRay.direct.xyz = normalize(directRay.direct.xyz);
-
-    return directRay;
-}
-
-Ray unTransformRay(in Ray directRay){
-    directRay.origin.xyz = mult4(RAY_BLOCK materialUniform.transformModifier, vec4(directRay.origin.xyz, 1.0f)).xyz;
-    directRay.direct.xyz = normalize(mult4(RAY_BLOCK materialUniform.transformModifier, vec4(directRay.direct.xyz, 0.0f)).xyz);
-    return directRay;
-}
 
 vec3 lightCenter(in int i){
-    const vec3 playerCenter = mult4(inverse(RAY_BLOCK materialUniform.transformModifier), vec4(vec3(0.0f), 1.0f)).xyz;
+    const vec3 playerCenter = vec3(0.0f);
     const vec3 lvec = normalize(lightUniform[i].lightVector.xyz) * (lightUniform[i].lightVector.y < 0.0f ? -1.0f : 1.0f);
     return fma(lvec, vec3(lightUniform[i].lightVector.w), (lightUniform[i].lightOffset.xyz + playerCenter.xyz));
 }
@@ -234,7 +201,6 @@ int applyLight(in Ray directRay, inout Ray newRay, in vec3 normal){
 
 Ray directLight(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 normal){
     if (directRay.params.w == 1) return directRay;
-    directRay = transformRay(directRay);
     directRay.bounce = min(1, directRay.bounce);
     directRay.actived = 1;
     directRay.params.w = 1;
@@ -243,8 +209,7 @@ Ray directLight(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 n
 
     const float cos_a_max = sqrt(1.f - clamp(lightUniform[i].lightColor.w * lightUniform[i].lightColor.w / sqlen(lightCenter(i).xyz-directRay.origin.xyz), 0.f, 1.f));
     directRay.direct.xyz = normalize(sLight(i) - directRay.origin.xyz);
-    directRay.color.xyz *= color * clamp(dot(directRay.direct.xyz, transformNormal(normal)), 0.0f, 1.0f) * ((1.0f - cos_a_max) * 2.0f);
-    directRay = unTransformRay(directRay);
+    directRay.color.xyz *= color * clamp(dot(directRay.direct.xyz, normal), 0.0f, 1.0f) * ((1.0f - cos_a_max) * 2.0f);
     return directRay;
 }
 
@@ -283,7 +248,7 @@ int emitRay(in Ray directRay, in Hit hit, in vec3 normal, in float coef){
 }
 
 vec3 lightCenterSky(in int i) {
-    const vec3 playerCenter = mult4(inverse(RAY_BLOCK materialUniform.transformModifier), vec4(vec3(0.0f), 1.0f)).xyz;
+    const vec3 playerCenter = vec3(0.0f);
     const vec3 lvec = normalize(lightUniform[i].lightVector.xyz) * 1000.0f;
     return lightUniform[i].lightOffset.xyz + lvec + playerCenter.xyz;
 }

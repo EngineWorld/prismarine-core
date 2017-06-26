@@ -179,7 +179,7 @@ namespace Paper {
         geometryUniformData.materialID = gobject->materialID;
         geometryUniformData.triangleOffset = triangleCount;
         geometryUniformData.triangleCount = gobject->nodeCount;
-        geometryUniformData.transform = *(Vc4x4 *)glm::value_ptr(gobject->trans);
+        geometryUniformData.transform = *(Vc4x4 *)glm::value_ptr(glm::transpose(gobject->trans));
         geometryUniformData.transformInv = *(Vc4x4 *)glm::value_ptr(glm::inverse(gobject->trans));
         geometryUniformData.texmatrix = *(Vc4x4 *)glm::value_ptr(gobject->texmat);
         geometryUniformData.colormod = *(Vc4 *)glm::value_ptr(gobject->colormod);
@@ -237,8 +237,8 @@ namespace Paper {
         {
             glm::dmat4 mat(1.0);
             mat *= glm::inverse(optimization);
-            octreeUniformData.project = *(Vc4x4 *)glm::value_ptr(glm::mat4(mat));
-            octreeUniformData.unproject = *(Vc4x4 *)glm::value_ptr(glm::inverse(glm::mat4(mat)));
+            octreeUniformData.project = *(Vc4x4 *)glm::value_ptr(glm::transpose(glm::mat4(mat)));
+            octreeUniformData.unproject = *(Vc4x4 *)glm::value_ptr(glm::transpose(glm::inverse(glm::mat4(mat))));
         }
 
         this->syncUniforms();
@@ -259,8 +259,8 @@ namespace Paper {
             mat = glm::translate(mat, -glm::dvec3(offset));
             mat *= glm::inverse(glm::dmat4(optimization));
 
-            octreeUniformData.project = *(Vc4x4 *)glm::value_ptr(glm::mat4(mat));
-            octreeUniformData.unproject = *(Vc4x4 *)glm::value_ptr(glm::inverse(glm::mat4(mat)));
+            octreeUniformData.project = *(Vc4x4 *)glm::value_ptr(glm::transpose(glm::mat4(mat)));
+            octreeUniformData.unproject = *(Vc4x4 *)glm::value_ptr(glm::transpose(glm::inverse(glm::mat4(mat))));
         }
 
         glCopyNamedBufferSubData(lscounterTemp, aabbCounter, 0, 0, strided<uint32_t>(1));

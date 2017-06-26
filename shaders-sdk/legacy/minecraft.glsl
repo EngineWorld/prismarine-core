@@ -63,7 +63,7 @@
 
     if (isWater) {
         const float frameTimeCounter = float(double(RAY_BLOCK materialUniform.iModifiers0.w) / 60000.0f) * 4.0f;
-        vec3 posxz = (inverse(RAY_BLOCK materialUniform.transformModifier) * vec4(newRay.origin.xyz, 1.0f)).xyz;
+        vec3 posxz = vec4(newRay.origin.xyz, 1.0f).xyz;
         posxz.x += sin(posxz.z+frameTimeCounter)*0.25;
         posxz.z += cos(posxz.x+frameTimeCounter*0.5)*0.25;
 

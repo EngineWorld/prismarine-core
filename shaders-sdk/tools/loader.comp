@@ -140,8 +140,8 @@ void main()
             modf = vec4(ml, vec2(0.0f));
         }
 
-        vec4 normalf = mult4(vec4(vnorm, 0.0f), GEOMETRY_BLOCK geometryUniform.transformInv);
-        vec4 verticef = mult4(GEOMETRY_BLOCK geometryUniform.transform, vec4(vpos, 1.0f));
+        vec4 normalf  = mult4(vec4(vnorm, 0.0f), GEOMETRY_BLOCK geometryUniform.transformInv);
+        vec4 verticef = mult4(vec4(vpos , 1.0f), GEOMETRY_BLOCK geometryUniform.transform);
         verticef.xyz /= verticef.w;
 
         vertice[i] = verticef.xyz;

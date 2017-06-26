@@ -102,8 +102,7 @@ void main() {
     for (int i=0;i<RAY_BLOCK materialUniform.lightcount;i++) {
         if ( newRay.params.x < 1 && (newRay.params.z > 0 || newRay.params.w > 0 )) {
             float md = 1.0f;
-            Ray tempRay = transformRay(newRay, md);
-            const float dt = intersectSphere(tempRay.origin.xyz, tempRay.direct.xyz, lightCenter(i).xyz, lightUniform[i].lightColor.w + GAP);
+            const float dt = intersectSphere(newRay.origin.xyz, newRay.direct.xyz, lightCenter(i).xyz, lightUniform[i].lightColor.w + GAP);
             const float t = md * dt;
             if (lessF(dt, INFINITY) && lessEqualF(t, hit.dist)) {
                 lc = i;
