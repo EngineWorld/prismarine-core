@@ -12,10 +12,7 @@ float intersectTriangle(in vec3 orig, in vec3 dir, in vec3 ve[3], inout vec2 UV)
     const vec3 e1 = ve[1] - ve[0];
     const vec3 e2 = ve[2] - ve[0];
 
-    bool valid = !(
-           length(e1) < 0.00001f 
-        && length(e2) < 0.00001f
-    );
+    bool valid = !(length(e1) < 0.00001f && length(e2) < 0.00001f);
     if (ballotARB(valid) == 0) return INFINITY;
 
     const vec3 pvec = cross(dir, e2);
@@ -38,21 +35,14 @@ float intersectTriangle(in vec3 orig, in vec3 dir, in vec3 ve[3], inout vec2 UV)
         any(lessThan(uvt.xy, vec2(0.f))) || 
         any(greaterThan(vec2(uvt.x) + vec2(0.f, uvt.y), vec2(1.f))) 
     ) valid = false;
-    
     if (ballotARB(valid) == 0) return INFINITY;
 
     UV.xy = uvt.xy;
     return (lessF(uvt.z, 0.0f) || !valid) ? INFINITY : uvt.z;
 }
 
-float intersectTriangle(in vec3 orig, in vec3 dir, inout vec3 ve[3]) {
-    vec2 uv = vec2(0.0f);
-    return intersectTriangle(orig, dir, ve, uv);
-}
-
-TResult choiceFirstBaked(inout TResult res, in vec3 orig, in vec3 dir) {
-    const int tri = bakedRange[0];
-    bakedRange[0] = LONGEST;
+TResult choiceFirstBaked(inout TResult res) {
+    const int tri = exchange(bakedRange[0], LONGEST);
 
     const bool validTriangle = 
         tri >= 0 && 
@@ -86,11 +76,10 @@ void reorderTriangles() {
 }
 
 TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
-    choiceFirstBaked(res, orig, dir);
+    choiceFirstBaked(res);
     reorderTriangles();
 
-    const int tri = tpi < bakedStackCount ? bakedStack[tpi] : LONGEST;
-    bakedStackCount = 0;
+    const int tri = tpi < exchange(bakedStackCount, 0) ? bakedStack[tpi] : LONGEST;
 
     const bool validTriangle = 
         tri >= 0 && 
@@ -114,7 +103,7 @@ TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
     return res;
 }
 
-TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tri, in int step, in bool isValid) {
+TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tri, in bool isValid) {
     const bool validTriangle = 
         isValid && 
         tri >= 0 && 
@@ -218,42 +207,31 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     for(int i=0;i<16384;i++) {
         if (ballotARB(validBox) == 0) break;
         HlbvhNode node = Nodes[idx];
-        testIntersection(lastRes, origin, direct, node.triangle, bakedStep, node.range.x == node.range.y && validBox);
+
+        // is leaf
+        const bool isLeaf = node.range.x == node.range.y && validBox;
+        if (ballotARB(isLeaf) > 0) {
+            testIntersection(lastRes, origin, direct, node.triangle, isLeaf);
+        }
 
         bool notLeaf = node.range.x != node.range.y && validBox;
         if (ballotARB(notLeaf) > 0) {
-            bool leftOverlap = false, rightOverlap = false;
-            float lefthit = INFINITY, righthit = INFINITY;
+            vec2 nears = vec2(INFINITY);
+            vec2  fars = vec2(INFINITY);
 
-            {
-                float near = INFINITY, far = INFINITY;
-                const bbox lbox = Nodes[node.range.x].box;
-                lefthit = intersectCubeSingle(torig, dirproj, lbox.mn.xyz, lbox.mx.xyz, near, far);
-                leftOverlap = 
-                    lessF(lefthit, INFINITY) 
-                    && notLeaf 
-                    && greaterEqualF(lefthit, 0.0f) 
-                    && greaterEqualF(lastRes.predist, near * dirlen)
-                    ;
-            }
+            const bbox lbox = Nodes[node.range.x].box;
+            const bbox rbox = Nodes[node.range.y].box;
+            const vec2 hits = vec2(
+                intersectCubeSingle(torig, dirproj, lbox.mn.xyz, lbox.mx.xyz, nears.x, fars.x),
+                intersectCubeSingle(torig, dirproj, rbox.mn.xyz, rbox.mx.xyz, nears.y, fars.y)
+            );
 
-            {
-                float near = INFINITY, far = INFINITY;
-                const bbox rbox = Nodes[node.range.y].box;
-                righthit = intersectCubeSingle(torig, dirproj, rbox.mn.xyz, rbox.mx.xyz, near, far);
-                rightOverlap = 
-                    lessF(righthit, INFINITY) 
-                    && notLeaf
-                    && greaterEqualF(righthit, 0.0f) 
-                    && greaterEqualF(lastRes.predist, near * dirlen)
-                    ;
-            }
-
-            const bvec2 overlaps = bvec2(leftOverlap, rightOverlap);
+            const bvec2 overlaps = bvec2(notLeaf) && lessThanEqual(hits, vec2(INFINITY-PZERO)) && greaterThan(hits, -vec2(PZERO)) && greaterThan(vec2(lastRes.predist), nears * dirlen - PZERO);
             const bool anyOverlap = any(overlaps);
             if (ballotARB(anyOverlap) > 0) {
+                const bool leftOrder = all(overlaps) ? lessEqualF(hits.x, hits.y) : overlaps.x;
+
                 ivec2 leftright = mix(ivec2(-1), node.range.xy, overlaps);
-                const bool leftOrder = all(overlaps) ? lessEqualF(lefthit, righthit) : leftOverlap;
                 leftright = leftOrder ? leftright.xy : leftright.yx;
 
                 if (anyOverlap) {
@@ -271,8 +249,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
                 const int ptr = --deferredPtr;
                 const bool valid = ptr >= 0;
                 {
-                    idx = valid ? deferredStack[ptr] : -1;
-                    if (valid) deferredStack[ptr] = -1;
+                    idx = valid ? exchange(deferredStack[ptr], -1) : -1;
                 }
                 validBox = validBox && valid && idx >= 0;
             } skip = false;

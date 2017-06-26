@@ -44,14 +44,12 @@ float intersectTriangle(in VEC3 orig, in VEC3 dir, in vec3 ve, inout vec2 UV) {
 }
 
 TResult choiceFirstBaked(inout TResult res) {
-    const int tri = bakedRange[0];
-    bakedRange[0] = LONGEST;
+    const int tri = exchange(bakedRange[0], LONGEST);
 
     const bool validTriangle = 
         tri >= 0 && 
         tri != LONGEST;
         
-    //if (!validTriangle) return res;
     if (ibs(validTriangle)) return res;
 
     const vec2 uv = bakedRangeIntersection[0].yz;
@@ -82,8 +80,7 @@ TResult choiceBaked(inout TResult res, in VEC3 orig, in VEC3 dir, in int tpi) {
     choiceFirstBaked(res);
     reorderTriangles();
 
-    const int tri = tpi < bakedStackCount ? bakedStack[tpi] : LONGEST;
-    bakedStackCount = 0;
+    const int tri = tpi < exchange(bakedStackCount, 0) ? bakedStack[tpi] : LONGEST;
 
     const bool validTriangle = 
         tri >= 0 && 
@@ -291,8 +288,7 @@ TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
                 const int ptr = --deferredPtr[L];
                 const bool valid = ptr >= 0;
                 {
-                    idx[L] = valid ? deferredStack[L][ptr] : -1;
-                    if (valid) deferredStack[L][ptr] = -1;
+                    idx[L] = valid ? exchange(deferredStack[L][ptr], -1) : -1;
                 }
                 validBox[L] = validBox[L] && valid && idx[L] >= 0;
             } skip[L] = false;

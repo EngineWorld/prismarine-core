@@ -53,21 +53,25 @@ vec4 divW(in vec4 aw){
 
 // hardware matrix multiply transposed (experimental)
 vec4 mult4(in vec4 vec, in mat4 mat){
-    return vec4(
-        dot(mat[0], vec),
-        dot(mat[1], vec),
-        dot(mat[2], vec),
-        dot(mat[3], vec)
-    );
+    //return vec4(
+    //    dot(mat[0], vec),
+    //    dot(mat[1], vec),
+    //    dot(mat[2], vec),
+    //    dot(mat[3], vec)
+    //);
+
+    return vec * mat;
 }
 
 // hardware matrix multiply (experimental)
 vec4 mult4(in mat4 tmat, in vec4 vec){
     // FMA stride version
-    return fma(tmat[0], vec.xxxx, fma(tmat[1], vec.yyyy, fma(tmat[2], vec.zzzz, tmat[3] * vec.w)));
+    //return fma(tmat[0], vec.xxxx, fma(tmat[1], vec.yyyy, fma(tmat[2], vec.zzzz, tmat[3] * vec.w)));
 
     // transpose version
     //return mult4(vec, transpose(tmat));
+
+    return tmat * vec;
 }
 
 
@@ -76,6 +80,14 @@ void swap(inout int a, inout int b){
     const int t = a;
     a = b;
     b = t;
+}
+
+uint exchange(inout uint mem, in uint v){
+    const uint tmp = mem; mem = v; return tmp;
+}
+
+int exchange(inout int mem, in int v){
+    const int tmp = mem; mem = v; return tmp;
 }
 
 
