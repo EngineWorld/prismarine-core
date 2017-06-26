@@ -154,24 +154,6 @@ bvec2 compbvec2(in bool mem){
 }
 
 
-// get length of vector 3 (optimized)
-float length3(in float a){
-    return length(compvec3(a));
-}
-
-
-// dot product between lanes
-float dot2(in float a, in float b){
-    return dot(compvec2(a), compvec2(b));
-}
-
-float dot3(in float a, in float b){
-    return dot(compvec3(a), compvec3(b));
-}
-
-float dot4(in float a, in float b){
-    return dot(compvec4(a), compvec4(b));
-}
 
 
 // matrix math on WARP%4 lanes (require compacted vector)
@@ -222,6 +204,37 @@ bool eql(in int lane){
 bool lessql(in int lane){
     return laneP <= lane;
 }
+
+
+
+// dot product between lanes, uses basic reduction
+float dot2(in float a, in float b) { // generally, only 2 ops only
+    //return dot(compvec2(a), compvec2(b));
+    const float c = a * b;
+    return x(c) + y(c);
+}
+
+float dot3(in float a, in float b) { // generally, only 3 ops only
+    //return dot(compvec3(a), compvec3(b));
+    const float c = a * b;
+    const float pl = lessl(2) ? (x(c) + y(c)) : (z(c) + 0.0f);
+    return x(pl) + z(pl);
+}
+
+float dot4(in float a, in float b) { // generally, only 3 ops only
+    //return dot(compvec4(a), compvec4(b));
+    const float c = a * b;
+    const float pl = lessl(2) ? (x(c) + y(c)) : (z(c) + w(c));
+    return x(pl) + z(pl);
+}
+
+
+
+// get length of vector 3 (optimized)
+float length3(in float a){
+    return sqrt(dot3(a, a));//length(compvec3(a));
+}
+
 
 
 // boolean voting
