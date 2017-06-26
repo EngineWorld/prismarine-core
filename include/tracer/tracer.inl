@@ -391,9 +391,9 @@ namespace Paper {
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
         // sort actives by index
-        if (raycountCache > 0 && doSort) {
-            sorter->sort(activel, activel, raycountCache);
-        }
+        //if (raycountCache > 0 && doSort) {
+        //    sorter->sort(activel, activel, raycountCache);
+        //}
 
         // TODO sort by quantization
     }
