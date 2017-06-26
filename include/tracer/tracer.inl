@@ -218,7 +218,7 @@ namespace Paper {
         if (availables != -1) glDeleteBuffers(1, &availables);
 
         const int32_t wrsize = width * height;
-        currentRayLimit = std::min(wrsize * 4, 4096 * 4096);
+        currentRayLimit = std::min(wrsize * 8, 4096 * 4096);
 
         glCreateBuffers(1, &rays);
         glCreateBuffers(1, &hits);
