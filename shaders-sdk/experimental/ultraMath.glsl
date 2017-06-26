@@ -156,25 +156,6 @@ bvec2 compbvec2(in bool mem){
 
 
 
-// matrix math on WARP%4 lanes (require compacted vector)
-float mult4w(in vec4 vec, in mat4 mat){
-    return dot(mat[laneP&3], vec);
-}
-
-float mult4w(in mat4 mat, in vec4 vec){
-    return dot( vec4(swiz(mat[0]), swiz(mat[1]), swiz(mat[2]), swiz(mat[3])), vec );
-}
-
-
-// matrix math on WARP%4 lanes (laned version)
-float mult4w(in float vec, in mat4 mat){
-    return mult4w(compvec4(vec), mat);
-}
-
-float mult4w(in mat4 mat, in float vec){
-    return mult4w(mat, compvec4(vec));
-}
-
 
 // is work lane (for most operations)
 bool mt(){
@@ -228,6 +209,15 @@ float dot4(in float a, in float b) { // generally, only 3 ops only
     return x(pl) + z(pl);
 }
 
+
+// matrix math on WARP%4 lanes (laned version)
+float mult4w(in float vec, in mat4 mat){
+    return dot(mat[lane4], compvec4(vec));
+}
+
+float mult4w(in mat4 mat, in float vec){
+    return dot(vec4(swiz(mat[0]), swiz(mat[1]), swiz(mat[2]), swiz(mat[3])), compvec4(vec));
+}
 
 
 // get length of vector 3 (optimized)
