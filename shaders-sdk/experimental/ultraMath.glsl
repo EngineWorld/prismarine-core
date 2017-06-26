@@ -288,8 +288,8 @@ float normalize3(in float a){
 
 
 void putv3(in float inp, inout vec3 mem, inout int loc){
-    if (loc == 0) mem.x = inp;
-    if (loc == 1) mem.y = inp;
+    if (loc == 0) mem.x = inp; else
+    if (loc == 1) mem.y = inp; else
     if (loc == 2) mem.z = inp;
 }
 
