@@ -44,12 +44,15 @@ vec4 median(in vec4 cl[3], in int n){
 
 
 vec4 checkerFetch(in sampler2D samples, in ivec2 tx, in int lod){ 
-    vec2 size = textureSize(samples, lod);
     vec4 t00 = texelFetch(samples, tx, lod);
-    vec4 t10 = texelFetch(samples, tx + ivec2(1, 0), lod);
-    vec4 t01 = texelFetch(samples, tx + ivec2(0, 1), lod);
-    vec4 xyf[3] = {t10, t00, t01};
-    return median(xyf, 3) * 0.5f + t00 * 0.5f;
+    if (RAY_BLOCK cameraUniform.interlace == 1){
+        vec4 t10 = texelFetch(samples, tx + ivec2(1, 0), lod);
+        vec4 t01 = texelFetch(samples, tx + ivec2(0, 1), lod);
+        vec4 xyf[3] = {t10, t00, t01};
+        return median(xyf, 3) * 0.5f + t00 * 0.5f;
+    } else {
+        return t00;
+    }
 }
 
 

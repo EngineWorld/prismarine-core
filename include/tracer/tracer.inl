@@ -331,7 +331,7 @@ namespace Paper {
         randomUniformData.time = frandom();
         cameraUniformData.camInv = *(Vc4x4 *)glm::value_ptr(glm::inverse(frontSide));
         cameraUniformData.projInv = *(Vc4x4 *)glm::value_ptr(glm::inverse(persp));
-        cameraUniformData.interlace = 1;
+        cameraUniformData.interlace = 0;
         cameraUniformData.interlaceStage = (framenum++) % 2;
 
         this->bind();
@@ -435,7 +435,7 @@ namespace Paper {
         obj->bindBVH();
         this->bind();
 
-        const size_t worksize = 64;
+        //const size_t worksize = 64;
         glUseProgram(intersectionProgram);
         glDispatchCompute(tiled(rsize, worksize), 1, 1);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
