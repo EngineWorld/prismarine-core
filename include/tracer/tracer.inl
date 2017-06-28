@@ -360,7 +360,7 @@ namespace Paper {
         glDispatchCompute(tiled(width * height, worksize), 1, 1);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
-        reloadQueuedRays();
+        reloadQueuedRays(true);
     }
 
     inline void Tracer::camera(const glm::vec3 &eye, const glm::vec3 &view, const glm::mat4 &persp) {
