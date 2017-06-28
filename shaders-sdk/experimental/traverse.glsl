@@ -3,7 +3,7 @@ layout ( std430, binding = 9 ) readonly buffer NodesBlock { HlbvhNode Nodes[]; }
 vec4 bakedRangeIntersection[1];
 int bakedRange[1];
 
-const int bakedFragments = 16;
+const int bakedFragments = 8;
 int bakedStack[bakedFragments];
 int bakedStackCount = 0;
 

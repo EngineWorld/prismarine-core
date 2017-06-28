@@ -104,8 +104,7 @@ void main() {
             } else 
             if (equalF(longest, diff.y)) {
                 rightBox.mn.y = leftBox.mx.y = center.y;
-            } else 
-            if (equalF(longest, diff.z)) {
+            } else {
                 rightBox.mn.z = leftBox.mx.z = center.z;
             }
             
