@@ -74,7 +74,7 @@ void reorderTriangles() {
             }
         }
     }
-
+    
     // clean from dublicates
     int cleanBakedStack[bakedFragments];
     int cleanBakedStackCount = 0;
@@ -84,6 +84,7 @@ void reorderTriangles() {
             cleanBakedStack[cleanBakedStackCount++] = bakedStack[round];
         }
     }
+
     // set originally
     bakedStack = cleanBakedStack;
     bakedStackCount = cleanBakedStackCount;
