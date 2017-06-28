@@ -99,13 +99,13 @@ void main() {
             bbox rightBox = current;
 
             float longest = max(max(diff.x, diff.y), diff.z);
-            if (longest == diff.x) {
+            if (equalF(longest, diff.x)) {
                 rightBox.mn.x = leftBox.mx.x = center.x;
             } else 
-            if (longest == diff.y) {
+            if (equalF(longest, diff.y)) {
                 rightBox.mn.y = leftBox.mx.y = center.y;
             } else 
-            if (longest == diff.z) {
+            if (equalF(longest, diff.z)) {
                 rightBox.mn.z = leftBox.mx.z = center.z;
             }
             
