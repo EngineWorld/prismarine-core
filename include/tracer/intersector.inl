@@ -107,22 +107,22 @@ namespace Paper {
 
 
         glCreateBuffers(1, &mortonBuffer);
-        glNamedBufferStorage(mortonBuffer, strided<int32_t>(maxt), nullptr, GL_DYNAMIC_STORAGE_BIT);
+        glNamedBufferStorage(mortonBuffer, strided<int32_t>(maxt * 2), nullptr, GL_DYNAMIC_STORAGE_BIT);
 
         glCreateBuffers(1, &mortonBufferIndex);
-        glNamedBufferStorage(mortonBufferIndex, strided<int32_t>(maxt), nullptr, GL_DYNAMIC_STORAGE_BIT);
+        glNamedBufferStorage(mortonBufferIndex, strided<int32_t>(maxt * 2), nullptr, GL_DYNAMIC_STORAGE_BIT);
 
         glCreateBuffers(1, &bvhnodesBuffer);
-        glNamedBufferStorage(bvhnodesBuffer, strided<HlbvhNode>(maxt * 2), nullptr, GL_DYNAMIC_STORAGE_BIT);
+        glNamedBufferStorage(bvhnodesBuffer, strided<HlbvhNode>(maxt * 4), nullptr, GL_DYNAMIC_STORAGE_BIT);
 
         glCreateBuffers(1, &bvhflagsBuffer);
-        glNamedBufferStorage(bvhflagsBuffer, strided<uint32_t>(maxt * 2), nullptr, GL_DYNAMIC_STORAGE_BIT);
+        glNamedBufferStorage(bvhflagsBuffer, strided<uint32_t>(maxt * 4), nullptr, GL_DYNAMIC_STORAGE_BIT);
 
         glCreateBuffers(1, &leafBufferSorted);
-        glNamedBufferStorage(leafBufferSorted, strided<Leaf>(maxt), nullptr, GL_DYNAMIC_STORAGE_BIT);
+        glNamedBufferStorage(leafBufferSorted, strided<Leaf>(maxt * 2), nullptr, GL_DYNAMIC_STORAGE_BIT);
 
         glCreateBuffers(1, &leafBuffer);
-        glNamedBufferStorage(leafBuffer, strided<Leaf>(maxt), nullptr, GL_DYNAMIC_STORAGE_BIT);
+        glNamedBufferStorage(leafBuffer, strided<Leaf>(maxt * 2), nullptr, GL_DYNAMIC_STORAGE_BIT);
 
         clearTribuffer();
     }

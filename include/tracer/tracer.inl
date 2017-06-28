@@ -413,7 +413,7 @@ namespace Paper {
 
         // sort actives by index
         if (raycountCache > 0 && doSort) {
-            sorter->sort(activel, quantized, raycountCache);
+        //    sorter->sort(activel, quantized, raycountCache);
         }
 
         // sort quantized

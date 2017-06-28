@@ -3,7 +3,7 @@ layout ( std430, binding = 9 ) readonly buffer NodesBlock { HlbvhNode Nodes[]; }
 vec4 bakedRangeIntersection[1];
 int bakedRange[1];
 
-const int bakedFragments = 16;
+const int bakedFragments = 8;
 int bakedStack[bakedFragments];
 int bakedStackCount = 0;
 
@@ -73,6 +73,20 @@ void reorderTriangles() {
             }
         }
     }
+
+    // clean from dublicates
+    int cleanBakedStack[bakedFragments];
+    int cleanBakedStackCount = 0;
+    cleanBakedStack[cleanBakedStackCount++] = bakedStack[0];
+    for (int round = 1; round < bakedStackCount; round++) {
+        if(bakedStack[round-1] != bakedStack[round]) {
+            cleanBakedStack[cleanBakedStackCount++] = bakedStack[round];
+        }
+    }
+
+    // set originally
+    bakedStack = cleanBakedStack;
+    bakedStackCount = cleanBakedStackCount;
 }
 
 TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
@@ -107,6 +121,7 @@ TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tr
     const bool validTriangle = 
         isValid && 
         tri >= 0 && 
+        tri != res.triangle &&
         tri != LONGEST;
 
     vec3 triverts[3];
@@ -122,7 +137,10 @@ TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tr
     const bool changed = !isbaked && !inbaked;
 
     if (near) {
-        if ( changed ) res.predist = _d;
+        if ( changed ) {
+            res.predist = _d;
+            res.triangle = tri;
+        }
         if ( inbaked ) {
             bakedStack[bakedStackCount++] = tri;
         } else 
