@@ -75,7 +75,12 @@ namespace Paper {
         iVc4 mx;
     };
 
-    typedef Minmax bbox;
+    //typedef Minmax bbox;
+
+    struct bbox {
+        glm::vec4 mn;
+        glm::vec4 mx;
+    };
 
 
     struct Ray {

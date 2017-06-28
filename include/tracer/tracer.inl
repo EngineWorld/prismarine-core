@@ -123,6 +123,16 @@ namespace Paper {
         lightUniformData = new LightUniformStruct[6];
         sorter = new RadixSort();
 
+        bound.mn.x = 100000.f;
+        bound.mn.y = 100000.f;
+        bound.mn.z = 100000.f;
+        bound.mn.w = 100000.f;
+        bound.mx.x = -100000.f;
+        bound.mx.y = -100000.f;
+        bound.mx.z = -100000.f;
+        bound.mx.w = -100000.f;
+
+
         glCreateBuffers(1, &arcounter);
         glNamedBufferStorage(arcounter, strided<int32_t>(4), nullptr, GL_DYNAMIC_STORAGE_BIT);
 
@@ -216,10 +226,12 @@ namespace Paper {
         if (texels     != -1) glDeleteBuffers(1, &texels);
         if (freedoms   != -1) glDeleteBuffers(1, &freedoms);
         if (availables != -1) glDeleteBuffers(1, &availables);
+        if (quantized  != -1) glDeleteBuffers(1, &quantized);
 
         const int32_t wrsize = width * height;
         currentRayLimit = std::min(wrsize * 8, 4096 * 4096);
 
+        glCreateBuffers(1, &quantized);
         glCreateBuffers(1, &rays);
         glCreateBuffers(1, &hits);
         glCreateBuffers(1, &activel);
@@ -235,6 +247,7 @@ namespace Paper {
         glNamedBufferStorage(texels, strided<Texel>(wrsize), nullptr, GL_DYNAMIC_STORAGE_BIT);
         glNamedBufferStorage(freedoms, strided<int32_t>(currentRayLimit), nullptr, GL_DYNAMIC_STORAGE_BIT);
         glNamedBufferStorage(availables, strided<int32_t>(currentRayLimit), nullptr, GL_DYNAMIC_STORAGE_BIT);
+        glNamedBufferStorage(quantized, strided<int32_t>(currentRayLimit), nullptr, GL_DYNAMIC_STORAGE_BIT);
 
         samplerUniformData.sceneRes = { float(width), float(height) };
         samplerUniformData.currentRayLimit = currentRayLimit;
@@ -292,6 +305,14 @@ namespace Paper {
     }
 
     inline void Tracer::clearRays() {
+        bound.mn.x = 100000.f;
+        bound.mn.y = 100000.f;
+        bound.mn.z = 100000.f;
+        bound.mn.w = 100000.f;
+        bound.mx.x = -100000.f;
+        bound.mx.y = -100000.f;
+        bound.mx.z = -100000.f;
+        bound.mx.w = -100000.f;
         for (int i = 0; i < 4;i++) {
             glCopyNamedBufferSubData(arcounterTemp, arcounter, 0, sizeof(uint32_t) * i, sizeof(uint32_t));
         }
@@ -339,7 +360,7 @@ namespace Paper {
         glDispatchCompute(tiled(width * height, worksize), 1, 1);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
-        reloadQueuedRays(true);
+        reloadQueuedRays();
     }
 
     inline void Tracer::camera(const glm::vec3 &eye, const glm::vec3 &view, const glm::mat4 &persp) {
@@ -370,7 +391,7 @@ namespace Paper {
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
     }
 
-    inline void Tracer::reloadQueuedRays(bool doSort) {
+    inline void Tracer::reloadQueuedRays(bool doSort, bool sortMortons) {
         glGetNamedBufferSubData(arcounter, 0 * sizeof(uint32_t), sizeof(uint32_t), &raycountCache);
         samplerUniformData.rayCount = raycountCache;
         syncUniforms();
@@ -391,9 +412,18 @@ namespace Paper {
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
         // sort actives by index
-        //if (raycountCache > 0 && doSort) {
-        //    sorter->sort(activel, activel, raycountCache);
-        //}
+        if (raycountCache > 0 && doSort) {
+            sorter->sort(activel, quantized, raycountCache);
+        }
+
+        // sort quantized
+        if (raycountCache > 0 && sortMortons) {
+        //    sorter->sort(quantized, activel, raycountCache);
+        }
+
+        //std::vector<int32_t> quants(raycountCache);
+        //glGetNamedBufferSubData(activel, 0, sizeof(uint32_t)*raycountCache, quants.data());
+        //GLuint block = 0;
 
         // TODO sort by quantization
     }
@@ -404,10 +434,18 @@ namespace Paper {
 
         this->bind();
 
+        GLuint boundBuf;
+        glCreateBuffers(1, &boundBuf);
+        glNamedBufferData(boundBuf, strided<bbox>(1), &bound, GL_STATIC_DRAW);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, quantized);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, boundBuf);
+
         glUseProgram(reclaimProgram);
         glDispatchCompute(tiled(rsize, worksize), 1, 1);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
-        reloadQueuedRays(true);
+
+        glDeleteBuffers(1, &boundBuf);
+        reloadQueuedRays(true, true);
     }
 
     inline void Tracer::render() {
@@ -429,6 +467,9 @@ namespace Paper {
 
         int32_t rsize = getRayCount();
         if (rsize <= 0) return 0;
+
+        bound.mn = glm::min(obj->bound.mn, bound.mn);
+        bound.mx = glm::max(obj->bound.mx, bound.mx);
 
         obj->configureIntersection(clearDepth);
         obj->bind();

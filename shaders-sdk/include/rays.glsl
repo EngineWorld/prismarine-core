@@ -47,15 +47,16 @@ void storeHit(inout Ray ray, inout Hit hit) {
     storeHit(ray.idx, hit);
 }
 
-void storeRay(in int rayIndex, inout Ray ray) {
+int storeRay(in int rayIndex, inout Ray ray) {
     if (rayIndex == -1 || rayIndex == LONGEST || rayIndex >= RAY_BLOCK samplerUniform.currentRayLimit) {
-        return;
+        return -1;
     }
     _collect(ray);
 
+    int actived = -1;
     if (ray.actived == 1) {
         const int act = atomicAdd(arcounter[At], 1);
-        qrays[act] = rayIndex;
+        qrays[act] = rayIndex; actived = act;
     } else { // if not actived, why need?
         const int freed = atomicAdd(arcounter[Qt], 1);
         freedoms[freed] = rayIndex;
@@ -63,6 +64,7 @@ void storeRay(in int rayIndex, inout Ray ray) {
 
     ray.idx = rayIndex;
     rays[rayIndex] = ray;
+    return actived;
 }
 
 void storeRay(inout Ray ray) {
@@ -179,6 +181,7 @@ uint quantizeRay(in Ray ray, in vec3 mn, in vec3 mx){
     vec3 origin = (ray.origin.xyz - mn) / (mx - mn);
     vec3 direct = fma(normalize(ray.direct.xyz),vec3(0.5f),vec3(0.5f));
     return encodeMorton3_64(_roundly(origin), _roundly(direct));
+    //return encodeMorton3_64(_roundly(direct), _roundly(origin));
 }
 
 

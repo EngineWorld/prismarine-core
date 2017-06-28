@@ -22,6 +22,7 @@ namespace Paper {
         GLuint samplerProgram = -1;
         GLuint intersectionProgram = -1;
 
+        GLuint quantized = -1;
         GLuint rays = -1;
         GLuint hits = -1;
         GLuint texels = -1;
@@ -63,6 +64,8 @@ namespace Paper {
         SamplerUniformStruct samplerUniformData;
         CameraUniformStruct cameraUniformData;
 
+        bbox bound;
+
     public:
         Tracer() { init(); }
 
@@ -75,7 +78,7 @@ namespace Paper {
         void resize(const uint32_t & w, const uint32_t & h);
         void resizeBuffers(const uint32_t & w, const uint32_t & h);
         void syncUniforms();
-        void reloadQueuedRays(bool doSort = false);
+        void reloadQueuedRays(bool doSort = false, bool sortMortons = false);
 
         LightUniformStruct * lightUniformData;
         int32_t raycountCache = 0;

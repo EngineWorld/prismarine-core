@@ -69,7 +69,6 @@ namespace Paper {
         glCreateBuffers(1, &geometryBlockUniform);
         glNamedBufferStorage(geometryBlockUniform, strided<GeometryBlockUniform>(1), nullptr, GL_DYNAMIC_STORAGE_BIT);
 
-        bbox bound;
         bound.mn.x = 100000.f;
         bound.mn.y = 100000.f;
         bound.mn.z = 100000.f;
@@ -248,7 +247,6 @@ namespace Paper {
         glDispatchCompute(1, 1, 1);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
-        bbox bound;
         glGetNamedBufferSubData(minmaxBuf, 0, strided<bbox>(1), &bound);
         scale = (glm::make_vec4((float *)&bound.mx) - glm::make_vec4((float *)&bound.mn)).xyz();
         offset = glm::make_vec4((float *)&bound.mn).xyz();

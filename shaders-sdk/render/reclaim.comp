@@ -11,6 +11,9 @@
 
 LOCAL_SIZE_LAYOUT;
 
+layout ( std430, binding = 4 ) buffer RayMortons {uint rayMorton[];};
+layout ( std430, binding = 5 ) buffer BoundingBox {bbox inbound;};
+
 void main()
 {
     const int it = int(gl_GlobalInvocationID.x);
@@ -29,5 +32,8 @@ void main()
     }
 
     storeHit(t, hit);
-    storeRay(t, ray);
+    int ait = storeRay(t, ray);
+    if (ait >= 0) {
+        rayMorton[ait] = quantizeRay(ray, inbound.mn.xyz, inbound.mx.xyz);
+    }
 }
