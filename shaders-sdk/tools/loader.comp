@@ -14,7 +14,7 @@
 #define M16(m, i) (m[i])
 #else
 #define INDEX16 uint
-#define M16(m, i) (bitfieldExtract(m[i/2], 16*(i%2), 16))
+#define M16(m, i) (bitfieldExtract(m[i/2], int(16*(i%2)), 16))
 #endif
 
 #ifdef ENABLE_INT16_LOADING
@@ -50,10 +50,10 @@ void main()
     const int mode = GEOMETRY_BLOCK attributeUniform.mode;
     const int trp = mode == 1 ? 4 : 3;
     for(int i=0;i<trp;i++){
-        const int ctri = ctriangle * trp + i;
-        const int ptri = GEOMETRY_BLOCK geometryUniform.loadOffset + ctri;
-        const int vindices = GEOMETRY_BLOCK geometryUniform.unindexed == 1 ? ptri : int( PICK(vindics, ptri) );
-        const int stride = GEOMETRY_BLOCK attributeUniform.stride;
+        const uint ctri = ctriangle * trp + i;
+        const uint ptri = uint(GEOMETRY_BLOCK geometryUniform.loadOffset) + ctri;
+        const uint vindices = GEOMETRY_BLOCK geometryUniform.unindexed == 1 ? ptri : uint( PICK(vindics, ptri) );
+        const uint stride = GEOMETRY_BLOCK attributeUniform.stride;
 
         vec3 vpos = vec3(0.0f);
         vec4 vtex = vec4(0.0f);
@@ -63,7 +63,7 @@ void main()
 
         {
             const bool is2D = GEOMETRY_BLOCK attributeUniform.iModifiers0.z == 1;
-            const int vstride = stride <= 0 ? (is2D ? 2 : 3) : stride;
+            const uint vstride = stride <= 0 ? (is2D ? 2 : 3) : stride;
             vpos = vec3(
                 iverts[(vindices) * vstride + GEOMETRY_BLOCK attributeUniform.vertexOffset + 0],
                 iverts[(vindices) * vstride + GEOMETRY_BLOCK attributeUniform.vertexOffset + 1],
@@ -74,7 +74,7 @@ void main()
             );
 
             if (GEOMETRY_BLOCK attributeUniform.haveNormal > 0) {
-                const int nstride = stride <= 0 ? 3 : stride;
+                const uint nstride = stride <= 0 ? 3 : stride;
                 vnorm = vec3(
                     iverts[(vindices) * nstride + GEOMETRY_BLOCK attributeUniform.normalOffset + 0],
                     iverts[(vindices) * nstride + GEOMETRY_BLOCK attributeUniform.normalOffset + 1],
@@ -84,7 +84,7 @@ void main()
 
             if (GEOMETRY_BLOCK attributeUniform.haveColor > 0) {
                 if (GEOMETRY_BLOCK attributeUniform.colorFormat == 0) {
-                    const int cstride = stride <= 0 ? 4 : stride;
+                    const uint cstride = stride <= 0 ? 4 : stride;
                     color = vec4(
                         iverts[(vindices) * cstride + GEOMETRY_BLOCK attributeUniform.colorOffset + 0],
                         iverts[(vindices) * cstride + GEOMETRY_BLOCK attributeUniform.colorOffset + 1],
@@ -100,7 +100,7 @@ void main()
 
             vec2 tx = vec2(0.0f);
             if (GEOMETRY_BLOCK attributeUniform.haveTexcoord > 0) {
-                const int tstride = stride <= 0 ? 2 : stride;
+                const uint tstride = stride <= 0 ? 2 : stride;
                 tx.x = iverts[(vindices) * tstride + GEOMETRY_BLOCK attributeUniform.texcoordOffset + 0];
                 tx.y = iverts[(vindices) * tstride + GEOMETRY_BLOCK attributeUniform.texcoordOffset + 1];
 #ifdef INVERT_TX_Y
@@ -121,7 +121,7 @@ void main()
                     lt.xy = vec2(bts.x / 15.f, bts.z);
 
                 } else {
-                    const int lstride = stride <= 0 ? 2 : stride;
+                    const uint lstride = stride <= 0 ? 2 : stride;
                     lt.x = iverts[(vindices) * lstride + GEOMETRY_BLOCK attributeUniform.lightcoordOffset + 0];
                     lt.y = iverts[(vindices) * lstride + GEOMETRY_BLOCK attributeUniform.lightcoordOffset + 1];
                 }
@@ -129,7 +129,7 @@ void main()
 
             vec2 ml = vec2(0.0f);
             if (GEOMETRY_BLOCK attributeUniform.iModifiers0.y == 1) {
-                const int nstride = stride <= 0 ? 1 : stride;
+                const uint nstride = stride <= 0 ? 1 : stride;
                 ml.xy = unpackUnorm2x16(floatBitsToUint(iverts[(vindices) * nstride + GEOMETRY_BLOCK attributeUniform.iModifiers1.y]));
             }
 

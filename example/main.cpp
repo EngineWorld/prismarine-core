@@ -316,15 +316,12 @@ namespace PaperExample {
         geom->setMaterialOffset(0);
         geom->setTransform(matrix);
 
-        object = new Intersector();
-        object->allocate(1024 * 1024);
-
 #ifdef ASSIMP_SUPPORT
         //object->allocate(geom->getNodeCount());
         //object->loadMesh(geom);
 #else
         object = new Intersector();
-        object->allocate(1024 * 1024);
+        object->allocate(1024 * 1024 * 2);
 #endif
 
         time = milliseconds();
