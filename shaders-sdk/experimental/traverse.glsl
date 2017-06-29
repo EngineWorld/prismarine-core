@@ -203,7 +203,7 @@ float calculateRealDistance(in float tNear, in float tFar, inout float near, ino
 
 
 const VEC3 padding = VEC3(0.00001f);
-const int STACK_SIZE = 32;
+const int STACK_SIZE = 16;
 shared int deferredStack[WORK_SIZE][STACK_SIZE];
 shared int deferredPtr[WORK_SIZE];
 shared int idx[WORK_SIZE];

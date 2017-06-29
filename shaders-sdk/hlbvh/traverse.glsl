@@ -183,7 +183,7 @@ float intersectCubeSingle(in vec3 origin, in vec3 ray, in vec3 cubeMin, in vec3 
 }
 
 const vec3 padding = vec3(0.00001f);
-const int STACK_SIZE = 32;
+const int STACK_SIZE = 16;
 int deferredStack[STACK_SIZE];
 int idx = 0, deferredPtr = 0;
 bool validBox = false;
