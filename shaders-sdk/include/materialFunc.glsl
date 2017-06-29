@@ -113,7 +113,7 @@ vec3 getNormalMapping(in Submat mat, vec2 texcoordi, in vec3 direct, in vec3 nor
         vec3 p10 = vec3(0.0f, size, fetchNormal(mat, texcoordi, off.yz, direct, normal).x * pike);
         return normalize(cross(p10 - p00, p01 - p00));
     } else {
-        return normalize(fma(tc, vec3(2.0f), vec3(-1.0f)));
+        return normalize(mix(vec3(0.0f, 0.0f, 1.0f), fma(tc, vec3(2.0f), vec3(-1.0f)), vec3(1.0f)));
     }
     return vec3(0.0, 0.0, 1.0);
 }
