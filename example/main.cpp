@@ -524,7 +524,16 @@ namespace PaperExample {
 
         // load tree
         std::function<void(tinygltf::Node &, glm::dmat4, int)> traverse = [&](tinygltf::Node & node, glm::dmat4 inTransform, int recursive)->void {
-            glm::dmat4 transform = inTransform * (node.matrix.size() >= 16 ? glm::make_mat4(node.matrix.data()) : glm::dmat4(1.0));
+            glm::dmat4 ltransform = glm::dmat4(1.0);
+            ltransform *= (node.matrix.size() >= 16 ? glm::make_mat4(node.matrix.data()) : glm::dmat4(1.0));
+            
+            
+            ltransform *= (node.translation.size() >= 3 ? glm::translate(glm::dmat4(1.0), glm::make_vec3(node.translation.data())) : glm::dmat4(1.0));
+            ltransform *= (node.scale.size() >= 3 ? glm::scale(glm::dmat4(1.0), glm::make_vec3(node.scale.data())) : glm::dmat4(1.0));
+            ltransform *= (node.rotation.size() >= 4 ? glm::mat4_cast(glm::make_quat(node.rotation.data())) : glm::dmat4(1.0));
+            //ltransform *= (node.rotation.size() >= 4 ? glm::rotate(glm::dmat4(1.0), node.rotation[0], glm::make_vec3(node.rotation.data() + 1)) : glm::dmat4(1.0));
+
+            glm::dmat4 transform = inTransform * ltransform;
 
             if (node.mesh >= 0) {
                 std::vector<Paper::Mesh *>& mesh = meshVec[node.mesh]; // load mesh object (it just vector of primitives)
