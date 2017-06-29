@@ -114,6 +114,12 @@ namespace PaperExample {
     }
 
 
+    int32_t getTextureIndex(std::map<std::string, double> &mapped) {
+        return mapped.count("index") > 0 ? mapped["index"] : -1;
+        //return mapped["index"];
+    }
+
+
     PathTracerApplication::PathTracerApplication(const int32_t& argc, const char ** argv, GLFWwindow * wind) {
         window = wind;
 
@@ -193,10 +199,14 @@ namespace PaperExample {
             Paper::Material::Submat submat;
 
             // diffuse?
+            int32_t texId = getTextureIndex(material.values["baseColorTexture"].json_double_value);
+            submat.diffusePart = texId >= 0 ? rtTextures[texId] : 0;
             submat.diffuse = glm::vec4(1.0f);
+
+            // metallic roughness
+            texId = getTextureIndex(material.values["metallicRoughnessTexture"].json_double_value);
+            submat.specularPart = texId >= 0 ? rtTextures[texId] : 0;
             submat.specular = glm::vec4(0.0f);
-            submat.diffusePart = rtTextures[material.values["baseColorTexture"].json_double_value["index"]];
-            submat.specularPart = rtTextures[material.values["metallicRoughnessTexture"].json_double_value["index"]];
 
             // emission
             if (material.additionalValues["emissiveFactor"].number_array.size() >= 3) {
@@ -205,10 +215,14 @@ namespace PaperExample {
             else {
                 submat.emissive = glm::vec4(0.0f);
             }
-            submat.emissivePart = rtTextures[material.additionalValues["emissiveTexture"].json_double_value["index"]];
+            
+            // emissive texture
+            texId = getTextureIndex(material.additionalValues["emissiveTexture"].json_double_value);
+            submat.emissivePart = texId >= 0 ? rtTextures[texId] : 0;
 
             // normal map
-            submat.bumpPart = rtTextures[material.additionalValues["normalTexture"].json_double_value["index"]];
+            texId = getTextureIndex(material.additionalValues["normalTexture"].json_double_value);
+            submat.bumpPart = texId >= 0 ? rtTextures[texId] : 0;
 
             // load material
             supermat->addSubmat(submat);
@@ -268,7 +282,7 @@ namespace PaperExample {
                     if (it->first.compare("NORMAL") == 0) {
                         geom->attributeUniformData.haveNormal = true;
                         geom->attributeUniformData.normalOffset = (accessor.byteOffset + bufferView.byteOffset) / 4;
-                    } else 
+                    } else
 
                     if (it->first.compare("TEXCOORD_0") == 0) {
                         geom->attributeUniformData.haveTexcoord = true;

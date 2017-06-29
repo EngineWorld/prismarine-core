@@ -197,8 +197,11 @@ void main() {
     const float fres = computeFresnel(hit.normal.xyz, newRay.direct.xyz, inior, outior) * (inside <= 0.0f ? 1.0f : 0.0f);
     const float prom = 1.0f - tx.a;
 
+    //newRay.final.xyz = newRay.color.xyz * normalize(normal.xyz) * 0.5f + 0.5f;
+    //newRay.actived = 0;
+    
     bool additiveBlend = false;
-    {
+    if (newRay.actived > 0) {
         // init emmitents
         Ray emitentRay = newRay;
         Ray reflectionRay = newRay;

@@ -57,7 +57,7 @@ TResult loadInfo(inout TResult res) {
         vec3 nor = normalize(cross(deltaPos1, deltaPos2));
         vec3 normal = fma(trinorms[0], vec3(1.0f - uv.x - uv.y), fma(trinorms[1], vec3(uv.x), trinorms[2] * vec3(uv.y)));
         normal = lessF(length(normal), 0.f) ? nor : normalize(normal);
-        normal = faceforward(normal, nor, -normal);
+        normal = normal * sign(dot(normal, nor));
 
         bool delta = all(equal(texcoords[0].xy, texcoords[1].xy)) && all(equal(texcoords[0].xy, texcoords[2].xy));
         vec2 deltaUV1 = delta ? vec2(1.0f, 0.0f) : texcoords[1].xy - texcoords[0].xy;
@@ -71,7 +71,7 @@ TResult loadInfo(inout TResult res) {
 
         res.texcoord = fma(texcoords[0], vec4(1.0f - uv.x - uv.y), fma(texcoords[1], vec4(uv.x), texcoords[2] * vec4(uv.y)));;
         res.materialID = mats[tri];
-        res.tangent = normalize(tan - faceforward(normal, tan, -normal));
+        res.tangent = normalize(tan - normal * sign(dot(tan, nor)));
         res.color = fma(colors[0], vec4(1.0f - uv.x - uv.y), fma(colors[1], vec4(uv.x), colors[2] * vec4(uv.y)));
     }
 

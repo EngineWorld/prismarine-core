@@ -85,12 +85,11 @@ vec4 fetchTransmission(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 
 }
 
 vec4 fetchNormal(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 normal){
-    if(!validateTexture(mat.bumpPart)) {
-        return vec4(0.5f, 0.5f, 1.0f, 1.0f);
-    } else {
-        return fetchPart(mat.bumpPart, vec2(texcoord.x, texcoord.y));
+    vec4 nmap = vec4(0.5f, 0.5f, 1.0f, 1.0f);
+    if (validateTexture(mat.bumpPart)) {
+        nmap = fetchPart(mat.bumpPart, vec2(texcoord.x, texcoord.y));
     }
-    return vec4(0.0f);
+    return nmap;
 }
 
 vec4 fetchNormal(in Submat mat, in vec2 texcoord, in ivec2 offset, in vec3 direct, in vec3 normal){
