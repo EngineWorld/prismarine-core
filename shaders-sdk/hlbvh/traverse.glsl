@@ -182,6 +182,24 @@ float intersectCubeSingle(in vec3 origin, in vec3 ray, in vec3 cubeMin, in vec3 
     return isCube ? (lessF(tNear, 0.0f) ? tFar : tNear) : INFINITY;
 }
 
+
+void intersectCubeApart(in vec3 origin, in vec3 ray, in vec3 cubeMin, in vec3 cubeMax, inout float near, inout float far) {
+    const vec3 dr = 1.0f / ray;
+    const vec3 tMin = (cubeMin - origin) * dr;
+    const vec3 tMax = (cubeMax - origin) * dr;
+    const vec3 t1 = min(tMin, tMax);
+    const vec3 t2 = max(tMin, tMax);
+#ifdef ENABLE_AMD_INSTRUCTION_SET
+    near = max3(t1.x, t1.y, t1.z);
+    far  = min3(t2.x, t2.y, t2.z);
+#else
+    near = max(max(t1.x, t1.y), t1.z);
+    far  = min(min(t2.x, t2.y), t2.z);
+#endif
+}
+
+
+
 const vec3 padding = vec3(0.00001f);
 const int STACK_SIZE = 16;
 int deferredStack[STACK_SIZE];
@@ -234,15 +252,21 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
 
         bool notLeaf = node.range.x != node.range.y && validBox;
         if (anyInvocationARB(notLeaf)) {
-            vec2 nears = vec2(INFINITY);
-            vec2  fars = vec2(INFINITY);
+            const vec2 inf2 = vec2(INFINITY);
+
+            vec2 nears = inf2;
+            vec2  fars = inf2;
 
             const bbox lbox = Nodes[node.range.x].box;
             const bbox rbox = Nodes[node.range.y].box;
-            const vec2 hits = vec2(
-                intersectCubeSingle(torig, dirproj, lbox.mn.xyz, lbox.mx.xyz, nears.x, fars.x),
-                intersectCubeSingle(torig, dirproj, rbox.mn.xyz, rbox.mx.xyz, nears.y, fars.y)
-            );
+
+            intersectCubeApart(torig, dirproj, lbox.mn.xyz, lbox.mx.xyz, nears.x, fars.x);
+            intersectCubeApart(torig, dirproj, rbox.mn.xyz, rbox.mx.xyz, nears.y, fars.y);
+
+            const bvec2 isCube = greaterThanEqual(fars, nears) && greaterThan(fars, -vec2(PZERO));
+            nears = mix(inf2, nears, isCube);
+             fars = mix(inf2,  fars, isCube);
+            const vec2 hits = mix(nears, fars, lessThan(nears, vec2(0.0f)));
 
             const bvec2 overlaps = bvec2(notLeaf) && lessThanEqual(hits, vec2(INFINITY-PZERO)) && greaterThan(hits, -vec2(PZERO)) && greaterThan(vec2(lastRes.predist), nears * dirlen - PZERO);
             const bool anyOverlap = any(overlaps);
