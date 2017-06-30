@@ -285,12 +285,12 @@ void putv3(in float inp, inout vec3 mem, inout int loc){
 
 // if any valid
 bool bs(in bool valid) {
-    return ballotARB(valid && mt()) != 0;
+    return anyInvocationARB(valid && mt());
 }
 
 // if all invalid
 bool ibs(in bool valid) {
-    return ballotARB(valid && mt()) == 0;
+    return !anyInvocationARB(valid && mt());
 }
 
 

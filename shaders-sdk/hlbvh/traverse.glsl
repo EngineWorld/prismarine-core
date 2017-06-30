@@ -13,7 +13,7 @@ float intersectTriangle(in vec3 orig, in vec3 dir, in vec3 ve[3], inout vec2 UV)
     const vec3 e2 = ve[2] - ve[0];
 
     bool valid = !(length(e1) < 0.00001f && length(e2) < 0.00001f);
-    if (ballotARB(valid) == 0) return INFINITY;
+    if (allInvocationsARB(!valid)) return INFINITY;
 
     const vec3 pvec = cross(dir, e2);
     const float det = dot(e1, pvec);
@@ -23,7 +23,7 @@ float intersectTriangle(in vec3 orig, in vec3 dir, in vec3 ve[3], inout vec2 UV)
 #else
     if (det <= 0.0f) valid = false;
 #endif
-    if (ballotARB(valid) == 0) return INFINITY;
+    if (allInvocationsARB(!valid)) return INFINITY;
 
     const vec3 tvec = orig - ve[0];
     const float u = dot(tvec, pvec);
@@ -35,7 +35,7 @@ float intersectTriangle(in vec3 orig, in vec3 dir, in vec3 ve[3], inout vec2 UV)
         any(lessThan(uvt.xy, vec2(0.f))) || 
         any(greaterThan(vec2(uvt.x) + vec2(0.f, uvt.y), vec2(1.f))) 
     ) valid = false;
-    if (ballotARB(valid) == 0) return INFINITY;
+    if (allInvocationsARB(!valid)) return INFINITY;
 
     UV.xy = uvt.xy;
     return (lessF(uvt.z, 0.0f) || !valid) ? INFINITY : uvt.z;
@@ -49,7 +49,7 @@ TResult choiceFirstBaked(inout TResult res) {
         tri != LONGEST;
         
     //if (!validTriangle) return res;
-    if (ballotARB(validTriangle) == 0) return res;
+    if (allInvocationsARB(!validTriangle)) return res;
 
     const vec2 uv = bakedRangeIntersection[0].yz;
     const float _d = bakedRangeIntersection[0].x;
@@ -223,17 +223,17 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
 
     bool skip = false;
     for(int i=0;i<16384;i++) {
-        if (ballotARB(validBox) == 0) break;
+        if (allInvocationsARB(!validBox)) break;
         HlbvhNode node = Nodes[idx];
 
         // is leaf
         const bool isLeaf = node.range.x == node.range.y && validBox;
-        if (ballotARB(isLeaf) > 0) {
+        if (anyInvocationARB(isLeaf)) {
             testIntersection(lastRes, origin, direct, node.triangle, isLeaf);
         }
 
         bool notLeaf = node.range.x != node.range.y && validBox;
-        if (ballotARB(notLeaf) > 0) {
+        if (anyInvocationARB(notLeaf)) {
             vec2 nears = vec2(INFINITY);
             vec2  fars = vec2(INFINITY);
 
@@ -246,7 +246,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
 
             const bvec2 overlaps = bvec2(notLeaf) && lessThanEqual(hits, vec2(INFINITY-PZERO)) && greaterThan(hits, -vec2(PZERO)) && greaterThan(vec2(lastRes.predist), nears * dirlen - PZERO);
             const bool anyOverlap = any(overlaps);
-            if (ballotARB(anyOverlap) > 0) {
+            if (anyInvocationARB(anyOverlap)) {
                 const bool leftOrder = all(overlaps) ? lessEqualF(hits.x, hits.y) : overlaps.x;
 
                 ivec2 leftright = mix(ivec2(-1), node.range.xy, overlaps);
