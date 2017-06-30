@@ -27,7 +27,7 @@ struct Submat {
     ivec4 iModifiers0;
 };
 
-const uint MAX_TEXTURES = 64;
+const uint MAX_TEXTURES = 128;
 layout ( location = 0 ) uniform sampler2D samplers[MAX_TEXTURES];
 layout ( binding=15, std430 ) readonly buffer MaterialsSSBO {Submat submats[];};
 
@@ -67,17 +67,17 @@ vec4 fetchPart(in uint binding, in vec2 texcoord, in ivec2 offset){
 
 vec4 fetchSpecular(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 normal){
     vec4 specular = mat.specular;
-    //if (validateTexture(mat.specularPart)) {
+    if (validateTexture(mat.specularPart)) {
     //    specular = fetchPart(mat.specularPart, texcoord);
-    //}
+    }
     return specular;
 }
 
 vec4 fetchEmissive(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 normal){
     vec4 emission = vec4(0.0f);
-    //if (validateTexture(mat.emissivePart)) {
+    if (validateTexture(mat.emissivePart)) {
     //    emission = fetchPart(mat.emissivePart, texcoord);
-    //}
+    }
     return emission;
 }
 
@@ -87,17 +87,17 @@ vec4 fetchTransmission(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 
 
 vec4 fetchNormal(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 normal){
     vec4 nmap = vec4(0.5f, 0.5f, 1.0f, 1.0f);
-    //if (validateTexture(mat.bumpPart)) {
+    if (validateTexture(mat.bumpPart)) {
     //    nmap = fetchPart(mat.bumpPart, vec2(texcoord.x, texcoord.y));
-    //}
+    }
     return nmap;
 }
 
 vec4 fetchNormal(in Submat mat, in vec2 texcoord, in ivec2 offset, in vec3 direct, in vec3 normal){
     vec4 nmap = vec4(0.5f, 0.5f, 1.0f, 1.0f);
-    //if (validateTexture(mat.bumpPart)) {
+    if (validateTexture(mat.bumpPart)) {
     //    nmap = fetchPart(mat.bumpPart, vec2(texcoord.x, texcoord.y), offset);
-    //}
+    }
     return nmap;
 }
 
