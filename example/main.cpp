@@ -335,7 +335,7 @@ namespace PaperExample {
         //object->loadMesh(geom);
 #else
         object = new Intersector();
-        object->allocate(1024 * 1024);
+        object->allocate(1024 * 1024 * 2);
 #endif
 
         time = milliseconds();
