@@ -141,7 +141,6 @@ void main() {
 
     const uint l = gl_LocalInvocationID.x;
      Submat materialCache = submats[hit.materialID];
-    hit.shaded = 1;
 
     const vec3 dir = normalize(newRay.direct.xyz);
     const vec3 prenormal = normalize(hit.normal.xyz);
@@ -163,7 +162,7 @@ void main() {
         prom = 1.0f;
     }
 
-    {
+    if (newRay.actived > 0 && hit.shaded < 1) {
         // diffuse
         bool shadowed = false;
         Ray emitentRay = newRay;
@@ -202,6 +201,9 @@ void main() {
         }
     }
 
-    storeHit(t, hit);
-    storeRay(t, newRay);
+    if (hit.shaded < 1) {
+        hit.shaded = 1;
+        storeHit(t, hit);
+        storeRay(t, newRay);
+    }
 }

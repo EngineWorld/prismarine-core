@@ -27,8 +27,8 @@ struct Submat {
     ivec4 iModifiers0;
 };
 
-const uint MAX_TEXTURES = 128;
-layout ( location = 1 ) uniform sampler2D samplers[MAX_TEXTURES];
+const uint MAX_TEXTURES = 32;
+layout ( location = 1, bindless_sampler ) uniform sampler2D samplers[MAX_TEXTURES];
 layout ( binding=15, std430 ) readonly buffer MaterialsSSBO {Submat submats[];};
 
 bool haveProp(in Submat material, in int prop) {
@@ -68,7 +68,7 @@ vec4 fetchPart(in uint binding, in vec2 texcoord, in ivec2 offset){
 vec4 fetchSpecular(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 normal){
     vec4 specular = mat.specular;
     if (validateTexture(mat.specularPart)) {
-    //    specular = fetchPart(mat.specularPart, texcoord);
+        specular = fetchPart(mat.specularPart, texcoord);
     }
     return specular;
 }
@@ -76,7 +76,7 @@ vec4 fetchSpecular(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 norm
 vec4 fetchEmissive(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 normal){
     vec4 emission = vec4(0.0f);
     if (validateTexture(mat.emissivePart)) {
-    //    emission = fetchPart(mat.emissivePart, texcoord);
+        emission = fetchPart(mat.emissivePart, texcoord);
     }
     return emission;
 }
@@ -88,7 +88,7 @@ vec4 fetchTransmission(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 
 vec4 fetchNormal(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 normal){
     vec4 nmap = vec4(0.5f, 0.5f, 1.0f, 1.0f);
     if (validateTexture(mat.bumpPart)) {
-    //    nmap = fetchPart(mat.bumpPart, vec2(texcoord.x, texcoord.y));
+        nmap = fetchPart(mat.bumpPart, vec2(texcoord.x, texcoord.y));
     }
     return nmap;
 }
@@ -96,7 +96,7 @@ vec4 fetchNormal(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 normal
 vec4 fetchNormal(in Submat mat, in vec2 texcoord, in ivec2 offset, in vec3 direct, in vec3 normal){
     vec4 nmap = vec4(0.5f, 0.5f, 1.0f, 1.0f);
     if (validateTexture(mat.bumpPart)) {
-    //    nmap = fetchPart(mat.bumpPart, vec2(texcoord.x, texcoord.y), offset);
+        nmap = fetchPart(mat.bumpPart, vec2(texcoord.x, texcoord.y), offset);
     }
     return nmap;
 }
@@ -241,9 +241,7 @@ Ray emissive(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal){
 int emitRay(in Ray directRay, in Hit hit, in vec3 normal, in float coef){
     directRay.color.xyz *= coef;
     directRay.final.xyz *= coef;
-    const int ps = createRay(directRay);
-    storeHit(ps, hit);
-    return ps;
+    return createRay(directRay);
 }
 
 vec3 lightCenterSky(in int i) {

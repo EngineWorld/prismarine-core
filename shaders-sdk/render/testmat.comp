@@ -85,7 +85,7 @@ vec4 fetchDiffuse(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 norma
     vec4 result = vec4(0.0f);
     result = mat.diffuse;
     if (validateTexture(mat.diffusePart)) {
-    //    result = fetchPart(mat.diffusePart, texcoord);
+        result = fetchPart(mat.diffusePart, texcoord);
     }
     return result;
 }
@@ -127,23 +127,23 @@ void main() {
         newRay.actived = 0;
     }
 
-    if (greaterEqualF(hit.dist, INFINITY) && newRay.params.w < 1 && hit.shaded < 1) {
+    {
         const vec3 lcenter = lightCenterSky(0);
         vec3 color = //vec3(0.1f);
             js_getScatter(newRay.direct.xyz, -normalize(lcenter - newRay.origin.xyz), 800.0f) +
             js_getScatter(newRay.direct.xyz,  normalize(lcenter - newRay.origin.xyz), 4000.0f);
         color = 1.0f - exp(-1.0f * color);
 
-        newRay.final.xyz = newRay.color.xyz * color;
-        newRay.actived = 0;
+        if (greaterEqualF(hit.dist, INFINITY) && newRay.params.w < 1 && hit.shaded < 1) {
+            newRay.final.xyz = newRay.color.xyz * color;
+            newRay.actived = 0;
 
-        hit.triangle = 0;
-        hit.dist = INFINITY;
-        hit.materialID = LONGEST;
-        hit.shaded = 1;
+            hit.triangle = 0;
+            hit.dist = INFINITY;
+            hit.materialID = LONGEST;
+            hit.shaded = 1;
+        }
     }
-
-
 
     newRay.direct.xyz = normalize(newRay.direct.xyz);
     newRay.origin.xyz = fma(newRay.direct.xyz, vec3(hit.dist), newRay.origin.xyz);
@@ -154,11 +154,8 @@ void main() {
         return;
     }
 
-
-
     const uint l = gl_LocalInvocationID.x;
-     Submat materialCache = submats[hit.materialID];
-    hit.shaded = 1;
+    Submat materialCache = submats[hit.materialID];
 
     const vec3 dir = normalize(newRay.direct.xyz);
     const vec3 prenormal = normalize(hit.normal.xyz);
@@ -200,7 +197,7 @@ void main() {
     //newRay.actived = 0;
     
     bool additiveBlend = false;
-    if (newRay.actived > 0) {
+    if (newRay.actived > 0 && hit.shaded < 1) {
         // init emmitents
         Ray emitentRay = newRay;
         Ray reflectionRay = newRay;
@@ -232,6 +229,9 @@ void main() {
         newRay.color.xyz *= additiveBlend ? 1.0f : prom;
     }
 
-    storeHit(t, hit);
-    storeRay(t, newRay);
+    if (hit.shaded < 1) {
+        hit.shaded = 1;
+        storeHit(t, hit);
+        storeRay(t, newRay);
+    }
 }
