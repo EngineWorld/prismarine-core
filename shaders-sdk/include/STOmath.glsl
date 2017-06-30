@@ -161,29 +161,6 @@ uvec2 unpackUint2x16(in uint base){
     );
 }
 
-/*
-
-vec2 convertUint16x2ToUnorm(in u16vec2 v){
-    return unpackUnorm2x16(packUint2x16(v16));
-}
-
-vec2 convertInt16x2ToSnorm(in i16vec2 v){
-    return unpackSnorm2x16(uint(packInt2x16(v16)));
-}
-
-
-float convertUint16ToUnorm(in uint16_t v){
-    return convertUint16x2ToUnorm(u16vec2(v,0)).x;
-}
-
-float convertInt16ToSnorm(in int16_t v){
-    return convertUint16x2ToUnorm(i16vec2(v,0)).x;
-}
-
-*/
-
-
-
 #endif
 #endif
 
