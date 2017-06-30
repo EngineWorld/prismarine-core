@@ -28,7 +28,7 @@ struct Submat {
 };
 
 const uint MAX_TEXTURES = 32;
-layout ( location = 1, bindless_sampler ) uniform sampler2D samplers[MAX_TEXTURES];
+layout ( location = 1 ) uniform sampler2D samplers[MAX_TEXTURES];
 layout ( binding=15, std430 ) readonly buffer MaterialsSSBO {Submat submats[];};
 
 bool haveProp(in Submat material, in int prop) {
