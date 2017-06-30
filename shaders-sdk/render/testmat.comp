@@ -229,9 +229,7 @@ void main() {
         newRay.color.xyz *= additiveBlend ? 1.0f : prom;
     }
 
-    if (hit.shaded < 1) {
-        hit.shaded = 1;
-        storeHit(t, hit);
-        storeRay(t, newRay);
-    }
+    hit.shaded = 1;
+    storeHit(t, hit);
+    storeRay(t, newRay);
 }

@@ -252,20 +252,15 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
 
         bool notLeaf = node.range.x != node.range.y && validBox;
         if (anyInvocationARB(notLeaf)) {
-            float nearsF[2] = {INFINITY, INFINITY};
-            float  farsF[2] = {INFINITY, INFINITY};
-
             const bbox lbox = Nodes[node.range.x].box;
             const bbox rbox = Nodes[node.range.y].box;
+            const vec2 inf2 = vec2(INFINITY);
+            vec2 nearsLR = inf2;
+            vec2 farsLR = inf2;
+            intersectCubeApart(torig, dirproj, lbox.mn.xyz, lbox.mx.xyz, nearsLR.x, farsLR.x);
+            intersectCubeApart(torig, dirproj, rbox.mn.xyz, rbox.mx.xyz, nearsLR.y, farsLR.y);
 
-            intersectCubeApart(torig, dirproj, lbox.mn.xyz, lbox.mx.xyz, nearsF[0], farsF[0]);
-            intersectCubeApart(torig, dirproj, rbox.mn.xyz, rbox.mx.xyz, nearsF[1], farsF[1]);
-
-            const vec2 nearsLR = vec2(nearsF[0], nearsF[1]);
-            const vec2  farsLR = vec2( farsF[0],  farsF[1]);
             const bvec2 isCube = greaterThanEqual(farsLR, nearsLR) && greaterThan(farsLR, -vec2(PZERO));
-
-            const vec2  inf2 = vec2(INFINITY);
             const vec2 nears = mix(inf2, nearsLR, isCube);
             const vec2  fars = mix(inf2, farsLR, isCube);
             const vec2  hits = mix(nears, fars, lessThan(nears, vec2(-PZERO)));
