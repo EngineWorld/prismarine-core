@@ -66,17 +66,17 @@ vec4 fetchPart(in uint binding, in vec2 texcoord, in ivec2 offset){
 
 vec4 fetchSpecular(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 normal){
     vec4 specular = mat.specular;
-    if (validateTexture(mat.specularPart)) {
-        specular = fetchPart(mat.specularPart, texcoord);
-    }
+    //if (validateTexture(mat.specularPart)) {
+    //    specular = fetchPart(mat.specularPart, texcoord);
+    //}
     return specular;
 }
 
 vec4 fetchEmissive(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 normal){
     vec4 emission = vec4(0.0f);
-    if (validateTexture(mat.emissivePart)) {
-        emission = fetchPart(mat.emissivePart, texcoord);
-    }
+    //if (validateTexture(mat.emissivePart)) {
+    //    emission = fetchPart(mat.emissivePart, texcoord);
+    //}
     return emission;
 }
 
@@ -86,19 +86,18 @@ vec4 fetchTransmission(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 
 
 vec4 fetchNormal(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 normal){
     vec4 nmap = vec4(0.5f, 0.5f, 1.0f, 1.0f);
-    if (validateTexture(mat.bumpPart)) {
-        nmap = fetchPart(mat.bumpPart, vec2(texcoord.x, texcoord.y));
-    }
+    //if (validateTexture(mat.bumpPart)) {
+    //    nmap = fetchPart(mat.bumpPart, vec2(texcoord.x, texcoord.y));
+    //}
     return nmap;
 }
 
 vec4 fetchNormal(in Submat mat, in vec2 texcoord, in ivec2 offset, in vec3 direct, in vec3 normal){
-    if(!validateTexture(mat.bumpPart)) {
-        return vec4(0.5f, 0.5f, 1.0f, 1.0f);
-    } else {
-        return fetchPart(mat.bumpPart, vec2(texcoord.x, texcoord.y), offset);
-    }
-    return vec4(0.0f);
+    vec4 nmap = vec4(0.5f, 0.5f, 1.0f, 1.0f);
+    //if (validateTexture(mat.bumpPart)) {
+    //    nmap = fetchPart(mat.bumpPart, vec2(texcoord.x, texcoord.y), offset);
+    //}
+    return nmap;
 }
 
 vec3 getNormalMapping(in Submat mat, vec2 texcoordi, in vec3 direct, in vec3 normal) {

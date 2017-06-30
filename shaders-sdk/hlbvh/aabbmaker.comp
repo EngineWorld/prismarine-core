@@ -68,7 +68,7 @@ void main() {
     stack[0].mn = mn;
     stack[0].mx = mx;
 
-    const uint maxSplits = 1;
+    const uint maxSplits = 0;
     uint countBox = 1;
 
     for (uint i=0;i<countBox;i++) {
