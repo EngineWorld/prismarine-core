@@ -13,9 +13,6 @@
 #include "../include/morton.glsl"
 #include "../include/STOmath.glsl"
 
-//#undef WORK_SIZE
-//#define WORK_SIZE 64
-
 struct TResult {
     float dist;
     float predist;

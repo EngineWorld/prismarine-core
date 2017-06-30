@@ -4,8 +4,8 @@
 
 // hardware or driver options
 #define USE_INT64
-#define USE_ARB_CLOCK
-#define USE_ARB_PRECISION
+//#define USE_ARB_CLOCK
+//#define USE_ARB_PRECISION
 //#define ENABLE_NVIDIA_INSTRUCTION_SET
 //#define ENABLE_AMD_INSTRUCTION_SET
 //#define ENABLE_INT16_LOADING // such as Neverball with GLushort
@@ -50,7 +50,7 @@
 #endif
 
 // compute shaders
-#define WORK_SIZE 128
+#define WORK_SIZE 64
 #define LOCAL_SIZE_LAYOUT layout ( local_size_x = WORK_SIZE ) in
 
 // variable compute
