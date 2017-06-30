@@ -27,7 +27,8 @@ struct Submat {
     ivec4 iModifiers0;
 };
 
-layout ( location = 0 ) uniform sampler2D samplers[128];
+const uint MAX_TEXTURES = 64;
+layout ( location = 0 ) uniform sampler2D samplers[MAX_TEXTURES];
 layout ( binding=15, std430 ) readonly buffer MaterialsSSBO {Submat submats[];};
 
 bool haveProp(in Submat material, in int prop) {
@@ -41,7 +42,7 @@ bool haveProp(in int flags, in int prop) {
 bool validateTexture(in uint binding){
     //return smp != 0;//0xFFFFFFFF;
     //return textureSize(samplers[binding], 0).x > 0;
-    return binding != 0;
+    return binding != 0 && binding != LONGEST && binding >= 0 && binding < MAX_TEXTURES && textureSize(samplers[binding], 0).x > 0;
 }
 
 vec4 fetchPart(in uint binding, in vec2 texcoord){

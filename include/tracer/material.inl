@@ -16,7 +16,7 @@ namespace Paper {
     inline void Material::bindWithContext(GLuint & prog) {
         const GLuint firstBind = 0;
         const GLuint textureLocation = 0;
-        uint32_t pcount = std::min((uint32_t)samplers.size(), 128u);
+        uint32_t pcount = std::min((uint32_t)samplers.size(), 64u);
         std::vector<int32_t> vctr(pcount);
         for (int i = 0; i < pcount; i++) vctr[i] = firstBind + i;
         glBindTextures(firstBind, pcount, samplers.data());

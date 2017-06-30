@@ -83,11 +83,9 @@ float waterH(in vec3 posxz, in float frameTimeCounter) {
 vec4 fetchDiffuse(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 normal){
     vec4 result = vec4(0.0f);
     result = mat.diffuse;
-
-    //if(validateTexture(mat.diffusePart)) {
+    //if (validateTexture(mat.diffusePart)) {
     //    result = fetchPart(mat.diffusePart, texcoord);
     //}
-
     return result;
 }
 
