@@ -252,21 +252,23 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
 
         bool notLeaf = node.range.x != node.range.y && validBox;
         if (anyInvocationARB(notLeaf)) {
-            const vec2 inf2 = vec2(INFINITY);
-
-            vec2 nears = inf2;
-            vec2  fars = inf2;
+            float nearsF[2] = {INFINITY, INFINITY};
+            float  farsF[2] = {INFINITY, INFINITY};
 
             const bbox lbox = Nodes[node.range.x].box;
             const bbox rbox = Nodes[node.range.y].box;
 
-            intersectCubeApart(torig, dirproj, lbox.mn.xyz, lbox.mx.xyz, nears.x, fars.x);
-            intersectCubeApart(torig, dirproj, rbox.mn.xyz, rbox.mx.xyz, nears.y, fars.y);
+            intersectCubeApart(torig, dirproj, lbox.mn.xyz, lbox.mx.xyz, nearsF[0], farsF[0]);
+            intersectCubeApart(torig, dirproj, rbox.mn.xyz, rbox.mx.xyz, nearsF[1], farsF[1]);
 
-            const bvec2 isCube = greaterThanEqual(fars, nears) && greaterThan(fars, -vec2(PZERO));
-            nears = mix(inf2, nears, isCube);
-             fars = mix(inf2,  fars, isCube);
-            const vec2 hits = mix(nears, fars, lessThan(nears, vec2(0.0f)));
+            const vec2 nearsLR = vec2(nearsF[0], nearsF[1]);
+            const vec2  farsLR = vec2( farsF[0],  farsF[1]);
+            const bvec2 isCube = greaterThanEqual(farsLR, nearsLR) && greaterThan(farsLR, -vec2(PZERO));
+
+            const vec2  inf2 = vec2(INFINITY);
+            const vec2 nears = mix(inf2, nearsLR, isCube);
+            const vec2  fars = mix(inf2, farsLR, isCube);
+            const vec2  hits = mix(nears, fars, lessThan(nears, vec2(-PZERO)));
 
             const bvec2 overlaps = bvec2(notLeaf) && lessThanEqual(hits, vec2(INFINITY-PZERO)) && greaterThan(hits, -vec2(PZERO)) && greaterThan(vec2(lastRes.predist), nears * dirlen - PZERO);
             const bool anyOverlap = any(overlaps);

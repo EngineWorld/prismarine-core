@@ -19,12 +19,14 @@ void main() {
     if (globalID >= GEOMETRY_BLOCK geometryUniform.triangleCount) return;
 
     int idx = Leafs[globalID].parent;
+    HlbvhNode nd = Nodes[idx];
     for(int i=0;i<256;i++) {
-        idx = Nodes[idx].parent;
+        idx = nd.parent;
+        nd = Nodes[idx];
         if (atomicCompSwap(Flags[idx], 0, 1) == 1) {
-            const int lc = Nodes[idx].range.x;
-            const int rc = Nodes[idx].range.y;
-            Nodes[idx].box = bboxunion(Nodes[lc].box, Nodes[rc].box);
+            HlbvhNode lc = Nodes[nd.range.x];
+            HlbvhNode rc = Nodes[nd.range.y];
+            Nodes[idx].box = bboxunion(lc.box, rc.box);
         } else {
             break;
         }
