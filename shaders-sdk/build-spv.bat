@@ -1,6 +1,6 @@
 
 cd %~dp0
-set CFLAGS=--target-env=opengl -x glsl -Werror -Os -S -DFREEIMAGE_STYLE
+set CFLAGS=--target-env=opengl -x glsl -Werror -Os -S
 set INDIR=.\
 set OUTDIR=..\build\shaders-spv\
 set VXL2=tools\
