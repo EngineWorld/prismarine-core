@@ -42,7 +42,7 @@ namespace Paper {
         int32_t maxSamples = 4;
         int32_t maxFilters = 1;
         int32_t currentRayLimit = 0;
-        int32_t worksize = 64;
+        int32_t worksize = 128;
 
         GLuint presampled = -1;
         GLuint samples = -1;
