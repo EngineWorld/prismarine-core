@@ -24,9 +24,9 @@ void main() {
         idx = nd.parent;
         nd = Nodes[idx];
         if (atomicCompSwap(Flags[idx], 0, 1) == 1) {
-            HlbvhNode lc = Nodes[nd.range.x];
-            HlbvhNode rc = Nodes[nd.range.y];
-            nd.box = bboxunion(lc.box, rc.box);
+            HlbvhNode ln = Nodes[nd.range.x];
+            HlbvhNode rn = Nodes[nd.range.y];
+            nd.box = bboxunion(ln.box, rn.box);
             Nodes[idx] = nd;
         } else {
             break;

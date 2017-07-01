@@ -67,8 +67,7 @@ void main() {
     uint split[4];
     
     split[0] = 0;
-    stack[0].mn = mn;
-    stack[0].mx = mx;
+    stack[0] = bbox(mn, mx);
 
     const uint maxSplits = 0;
     uint countBox = 1;
@@ -88,7 +87,7 @@ void main() {
             current.mn -= 0.0001f;
             current.mx += 0.0001f;
 
-            Leaf outLeaf;
+            Leaf outLeaf = OutLeafs[to];
             outLeaf.box = current;
             outLeaf.parent = -1;
             outLeaf.triangle = t;

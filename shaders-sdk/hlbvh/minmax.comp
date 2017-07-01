@@ -49,9 +49,7 @@ void main() {
     const uint gridSize = (gl_WorkGroupSize.x*2) * gl_NumWorkGroups.x;
     uint i = gl_WorkGroupID.x * (gl_WorkGroupSize.x*2) + tid;
 
-    sdata[tid].mn = vec4( 100000.f);
-    sdata[tid].mx = vec4(-100000.f);
-
+    sdata[tid] = bbox(vec4( 100000.f), vec4(-100000.f));
     while (i < GEOMETRY_BLOCK geometryUniform.triangleCount) {
         sdata[tid] = bboxunion(sdata[tid], bboxunion(getMinMaxPrimitive(i), getMinMaxPrimitive(i + gl_WorkGroupSize.x)));
         i += gridSize;
@@ -61,7 +59,7 @@ void main() {
     for (uint i=(gl_WorkGroupSize.x>>1);i>=1;i>>=1) {
         if (tid < i) {
             sdata[tid] = bboxunion(sdata[tid], sdata[tid + i]); 
-        } 
+        }
         if (i > gl_SubGroupSizeARB) {
             barrier(); memoryBarrier();
         }

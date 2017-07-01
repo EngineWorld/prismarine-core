@@ -66,13 +66,14 @@ void main() {
         node.range = ivec2(0, Range.y-1);
         node.parent = -1;
         node.triangle = -1;
+        node.box = bbox(vec4(0.0f), vec4(0.0f));
         Nodes[threadID] = node;
         Flags[threadID] = 0;
     }
     
     barrier(); memoryBarrier();
 
-    for (int h=0;h<128;h++) {
+    for (int h=0;h<256;h++) {
         const uint workSize = ((lRange[1] - lRange[0]) - 1) / gl_WorkGroupSize.x + 1;
         for (int i=0;i<workSize;i++) {
             
@@ -88,30 +89,33 @@ void main() {
 
                     // add to list
                     const int hid = atomicAdd(lCounter, 2);
+                    const ivec2 hid2 = ivec2(hid) + ivec2(0, 1);
 
-                    HlbvhNode leftNode;
+                    HlbvhNode leftNode = Nodes[hid2.x];
                     leftNode.parent = int(prID);
                     leftNode.range = ivec2(parentNode.range.x, split+0);
                     leftNode.triangle = -1;
+                    leftNode.box = bbox(vec4(0.0f), vec4(0.0f));
 
-                    HlbvhNode rightNode;
+                    HlbvhNode rightNode = Nodes[hid2.y];
                     rightNode.parent = int(prID);
                     rightNode.range = ivec2(split+1, parentNode.range.y);
                     rightNode.triangle = -1;
+                    rightNode.box = bbox(vec4(0.0f), vec4(0.0f));
 
                     // left node
-                    Nodes[hid + 0] = leftNode;
-                    Flags[hid + 0] = 0;
+                    Nodes[hid2.x] = leftNode;
+                    Flags[hid2.x] = 0;
 
                     // right node
-                    Nodes[hid + 1] = rightNode;
-                    Flags[hid + 1] = 0;
+                    Nodes[hid2.y] = rightNode;
+                    Flags[hid2.y] = 0;
 
                     // connect with childrens
-                    parentNode.range.xy = hid + ivec2(0, 1);
+                    parentNode.range = hid2;
                     Nodes[prID] = parentNode;
                 } else {
-                    uint leafID = parentNode.range.y;
+                    uint leafID = parentNode.range.x;
 
                     // make leafs
                     Leaf ourLeaf = Leafs[leafID];
@@ -123,6 +127,7 @@ void main() {
                     parentNode.range = ourLeaf.range;
 
                     // store
+                    Flags[prID] = 0;
                     Nodes[prID] = parentNode;
                     Leafs[leafID] = ourLeaf;
                 }
@@ -139,6 +144,8 @@ void main() {
         }
         barrier(); memoryBarrier();
 
-        if (lRange[1] <= lRange[0]) break;
+        if (lRange[1] <= lRange[0]) {
+            break; barrier(); memoryBarrier();
+        }
     }
 }

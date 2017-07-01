@@ -308,9 +308,7 @@ TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
             if (!skip[L]) {
                 const int ptr = --deferredPtr[L];
                 const bool valid = ptr >= 0;
-                {
-                    idx[L] = valid ? exchange(deferredStack[L][ptr], -1) : -1;
-                }
+                idx[L] = valid ? exchange(deferredStack[L][ptr], -1) : -1;
                 validBox[L] = validBox[L] && valid && idx[L] >= 0;
             } skip[L] = false;
         }

@@ -260,18 +260,23 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
             intersectCubeApart(torig, dirproj, lbox.mn.xyz, lbox.mx.xyz, nearsLR.x, farsLR.x);
             intersectCubeApart(torig, dirproj, rbox.mn.xyz, rbox.mx.xyz, nearsLR.y, farsLR.y);
 
-            const bvec2 isCube = greaterThanEqual(farsLR, nearsLR) && greaterThan(farsLR, -vec2(PZERO));
+            const bvec2 isCube = greaterThanEqual(farsLR, nearsLR) && greaterThanEqual(farsLR, vec2(0.0f));
             const vec2 nears = mix(inf2, nearsLR, isCube);
             const vec2  fars = mix(inf2, farsLR, isCube);
-            const vec2  hits = mix(nears, fars, lessThan(nears, vec2(-PZERO)));
+            const vec2  hits = mix(nears, fars, lessThan(nears, vec2(0.0f)));
 
-            const bvec2 overlaps = bvec2(notLeaf) && lessThanEqual(hits, vec2(INFINITY-PZERO)) && greaterThan(hits, -vec2(PZERO)) && greaterThan(vec2(lastRes.predist), nears * dirlen - PZERO);
+            const bvec2 overlaps = 
+                bvec2(notLeaf) && 
+                lessThanEqual(hits, vec2(INFINITY-PZERO)) && 
+                greaterThan(hits, -vec2(PZERO)) && 
+                greaterThan(vec2(lastRes.predist), nears * dirlen - PZERO);
+            
             const bool anyOverlap = any(overlaps);
             if (anyInvocationARB(anyOverlap)) {
                 const bool leftOrder = all(overlaps) ? lessEqualF(hits.x, hits.y) : overlaps.x;
 
-                ivec2 leftright = mix(ivec2(-1), node.range.xy, overlaps);
-                leftright = leftOrder ? leftright.xy : leftright.yx;
+                ivec2 leftright = mix(ivec2(-1), node.range, overlaps);
+                leftright = leftOrder ? leftright : leftright.yx;
 
                 if (anyOverlap) {
                     if (deferredPtr < STACK_SIZE && leftright.y != -1) {
@@ -283,16 +288,12 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
             }
         }
 
-        {
-            if (!skip) {
-                const int ptr = --deferredPtr;
-                const bool valid = ptr >= 0;
-                {
-                    idx = valid ? exchange(deferredStack[ptr], -1) : -1;
-                }
-                validBox = validBox && valid && idx >= 0;
-            } skip = false;
-        }
+        if (!skip) {
+            const int ptr = --deferredPtr;
+            const bool valid = ptr >= 0;
+            idx = valid ? exchange(deferredStack[ptr], -1) : -1;
+            validBox = validBox && valid && idx >= 0;
+        } skip = false;
     }
 
     choiceBaked(lastRes, origin, direct, bakedStep);
