@@ -85,7 +85,7 @@ void main() {
 
                     // add to list
                     const int hid = atomicAdd(lCounter, 2);
-                    const ivec2 hid2 = ivec2(hid) + ivec2(0, 1);
+                    const ivec2 hid2 = ivec2(hid + 0, hid + 1);
 
                     HlbvhNode leftNode = Nodes[hid2.x];
                     leftNode.parent = int(prID);
