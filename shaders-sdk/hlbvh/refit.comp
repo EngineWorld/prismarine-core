@@ -26,7 +26,8 @@ void main() {
         if (atomicCompSwap(Flags[idx], 0, 1) == 1) {
             HlbvhNode lc = Nodes[nd.range.x];
             HlbvhNode rc = Nodes[nd.range.y];
-            Nodes[idx].box = bboxunion(lc.box, rc.box);
+            nd.box = bboxunion(lc.box, rc.box);
+            Nodes[idx] = nd;
         } else {
             break;
         }

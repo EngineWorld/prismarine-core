@@ -17,7 +17,7 @@ namespace Paper {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 15, mats);
 
         const GLuint firstBind = 0;
-        const GLuint textureLocation = 1;
+        const GLuint textureLocation = 0;
         uint32_t pcount = std::min((uint32_t)samplers.size(), 32u);
 
         /*
@@ -77,6 +77,46 @@ namespace Paper {
         return idx;
     };
 
+
+#ifdef USE_FREEIMAGE
+    inline uint32_t Material::loadTexture(std::string tex, bool force_write) {
+        if (tex == "") return 0;
+        if (!force_write && texnames.find(tex) != texnames.end()) {
+            return getTexture(texnames[tex]); // if already in dictionary
+        }
+
+        FREE_IMAGE_FORMAT formato = FreeImage_GetFileType(tex.c_str(), 0);
+        if (formato == FIF_UNKNOWN) {
+            return 0;
+        }
+        FIBITMAP* imagen = FreeImage_Load(formato, tex.c_str());
+        if (!imagen) {
+            return 0;
+        }
+        FIBITMAP* temp = FreeImage_ConvertTo32Bits(imagen);
+        FreeImage_Unload(imagen);
+        imagen = temp;
+
+        uint32_t width = FreeImage_GetWidth(imagen);
+        uint32_t height = FreeImage_GetHeight(imagen);
+        uint8_t * pixelsPtr = FreeImage_GetBits(imagen);
+
+        GLuint texture = 0;
+        glCreateTextures(GL_TEXTURE_2D, 1, &texture);
+        glTextureStorage2D(texture, 1, GL_RGBA8, width, height);
+        glTextureParameteri(texture, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTextureParameteri(texture, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTextureParameteri(texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTextureSubImage2D(texture, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, pixelsPtr);
+
+        texnames[tex] = texture;
+        return this->loadTexture(texture);
+    }
+#endif
+
+
+    /*
 #ifdef USE_FREEIMAGE
     inline uint32_t Material::loadTexture(std::string tex, bool force_write) {
         if (tex == "") return 0;
@@ -113,5 +153,6 @@ namespace Paper {
         return this->loadTexture(texture);
     }
 #endif
+    */
 
 }

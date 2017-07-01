@@ -242,7 +242,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     bool skip = false;
     for(int i=0;i<16384;i++) {
         if (allInvocationsARB(!validBox)) break;
-        HlbvhNode node = Nodes[idx];
+        const HlbvhNode node = Nodes[idx];
 
         // is leaf
         const bool isLeaf = node.range.x == node.range.y && validBox;

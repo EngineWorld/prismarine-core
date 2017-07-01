@@ -10,7 +10,7 @@
 #include "../include/vertex.glsl"
 #include "../include/STOmath.glsl"
 
-layout ( std430, binding = 5 ) buffer MinmaxOutputSSBO {vec4 minmax[];};
+layout ( std430, binding = 5 ) volatile buffer MinmaxOutputSSBO {vec4 minmax[];};
 layout ( local_size_x = 512 ) in;
 
 shared bbox sdata[ 512 ];

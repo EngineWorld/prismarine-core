@@ -25,7 +25,7 @@
 #define PICK(m, i) m[i]
 #endif
 
-layout ( std430, binding=0) buffer TCounterSSBO {int tcounter[];};
+layout ( std430, binding=0) volatile buffer TCounterSSBO {int tcounter[];};
 layout ( std430, binding=6) readonly buffer InputVertexSSBO {float iverts[];};
 layout ( std430, binding=7) readonly buffer InputVertexIndicesSSBO {INDICE_T vindics[];};
 layout ( std430, binding=8) readonly buffer InputMaterialsSSBO {int imats[];};

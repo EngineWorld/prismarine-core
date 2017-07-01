@@ -253,10 +253,14 @@ TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
 
     for(int i=0;i<16384;i++) {
         if (ibs(validBox[L])) break;
-        HlbvhNode node = Nodes[idx[L]];
-        testIntersection(lastRes, origin, direct, node.triangle, bakedStep, node.range.x == node.range.y && validBox[L]);
+        const HlbvhNode node = Nodes[idx[L]];
 
-        bool notLeaf = node.range.x != node.range.y && validBox[L];
+        const bool isLeaf = node.range.x == node.range.y && validBox[L];
+        if (bs(isLeaf)) {
+            testIntersection(lastRes, origin, direct, node.triangle, bakedStep, isLeaf);
+        }
+
+        const bool notLeaf = node.range.x != node.range.y && validBox[L];
         if (bs(notLeaf)) {
 
             // search intersection worklets (3 lanes occupy)

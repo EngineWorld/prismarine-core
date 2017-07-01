@@ -1,24 +1,24 @@
 
-layout ( std430, binding = 0 ) buffer NumBlock {
+layout ( std430, binding = 0 ) readonly buffer NumBlock {
     ivec2 Range;
 };
 
-layout ( std430, binding = 1 ) buffer MortoncodesBlock {
+layout ( std430, binding = 1 ) volatile buffer MortoncodesBlock {
     uint Mortoncodes[];
 };
 
-layout ( std430, binding = 2 ) buffer IndicesBlock {
+layout ( std430, binding = 2 ) volatile buffer IndicesBlock {
     int MortoncodesIndices[];
 };
 
-layout ( std430, binding = 3 ) buffer LeafBlock {
+layout ( std430, binding = 3 ) volatile buffer LeafBlock {
     Leaf Leafs[];
 };
 
-layout ( std430, binding = 4 ) buffer NodesBlock {
+layout ( std430, binding = 4 ) volatile buffer NodesBlock {
     HlbvhNode Nodes[];
 };
 
-layout ( std430, binding = 5 ) buffer FlagsBlock {
+layout ( std430, binding = 5 ) volatile buffer FlagsBlock {
     int Flags[];
 };

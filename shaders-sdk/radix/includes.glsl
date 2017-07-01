@@ -22,17 +22,17 @@
 //#define READ_LANE(V, I) ((I >= 0 && I < WARP_SIZE) ? readInvocationARB(V, I) : 0)
 #define READ_LANE(V, I) (uint(I >= 0 && I < WARP_SIZE) * readInvocationARB(V, I))
 
-layout (std430, binding = 0) buffer KeyInBlock {uint KeyIn[];};
-layout (std430, binding = 1) buffer ValueInBlock {uint ValueIn[];};
-layout (std430, binding = 2) buffer KeyOutBlock {uint KeyOut[];};
-layout (std430, binding = 3) buffer ValueOutBlock {uint ValueOut[];};
-layout (std430, binding = 4) buffer VarsBlock {
+layout (std430, binding = 0) volatile buffer KeyInBlock {uint KeyIn[];};
+layout (std430, binding = 1) volatile buffer ValueInBlock {uint ValueIn[];};
+layout (std430, binding = 2) volatile buffer KeyOutBlock {uint KeyOut[];};
+layout (std430, binding = 3) volatile buffer ValueOutBlock {uint ValueOut[];};
+layout (std430, binding = 4) volatile buffer VarsBlock {
     uint NumKeys;
     uint Shift;
     uint Descending;
     uint IsSigned;
 };
-layout (std430, binding = 5) buffer HistogramBlock {uint Histogram[];};
+layout (std430, binding = 5) volatile buffer HistogramBlock {uint Histogram[];};
 
 struct blocks_info { uint count; uint offset; };
 blocks_info get_blocks_info(const uint n, const uint wg_idx) {
