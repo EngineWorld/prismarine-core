@@ -105,9 +105,9 @@ void main() {
             Leaf outLeaf = OutLeafs[to];
             outLeaf.box.mn = current.mn - 0.0001f;
             outLeaf.box.mx = current.mx + 0.0001f;
+            outLeaf.range = ivec2(to);
             outLeaf.parent = -1;
             outLeaf.triangle = t;
-            outLeaf.range = ivec2(to);
             OutLeafs[to] = outLeaf;
         } else {
             const vec4 diff = current.mx - current.mn;

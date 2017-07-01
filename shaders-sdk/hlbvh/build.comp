@@ -58,11 +58,12 @@ void main() {
         lRange[1] = 1;
 
         HlbvhNode node = Nodes[threadID];
+        node.box.mn = vec4(0.0f);
+        node.box.mx = vec4(0.0f);
         node.range = ivec2(0, Range.y-1);
         node.parent = -1;
         node.triangle = -1;
-        node.box.mn = vec4(0.0f);
-        node.box.mx = vec4(0.0f);
+        
         Nodes[threadID] = node;
         Flags[threadID] = 0;
     }
@@ -88,19 +89,19 @@ void main() {
                     const ivec2 hid2 = ivec2(hid + 0, hid + 1);
 
                     HlbvhNode leftNode = Nodes[hid2.x];
-                    leftNode.parent = int(prID);
-                    leftNode.range = ivec2(parentNode.range.x, split+0);
-                    leftNode.triangle = -1;
                     leftNode.box.mn = vec4(0.0f);
                     leftNode.box.mx = vec4(0.0f);
-
+                    leftNode.range = ivec2(parentNode.range.x, split+0);
+                    leftNode.parent = int(prID);
+                    leftNode.triangle = -1;
+                    
                     HlbvhNode rightNode = Nodes[hid2.y];
-                    rightNode.parent = int(prID);
-                    rightNode.range = ivec2(split+1, parentNode.range.y);
-                    rightNode.triangle = -1;
                     rightNode.box.mn = vec4(0.0f);
                     rightNode.box.mx = vec4(0.0f);
-
+                    rightNode.range = ivec2(split+1, parentNode.range.y);
+                    rightNode.parent = int(prID);
+                    rightNode.triangle = -1;
+                    
                     // left node
                     Nodes[hid2.x] = leftNode;
                     Flags[hid2.x] = 0;
@@ -123,8 +124,9 @@ void main() {
                     // load leaf data
                     parentNode.box.mn = ourLeaf.box.mn;
                     parentNode.box.mx = ourLeaf.box.mx;
-                    parentNode.triangle = ourLeaf.triangle;
                     parentNode.range = ourLeaf.range;
+                    parentNode.parent = parentNode.parent;
+                    parentNode.triangle = ourLeaf.triangle;
                     Nodes[prID] = parentNode;
                 }
             }
