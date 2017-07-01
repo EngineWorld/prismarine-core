@@ -11,8 +11,8 @@
 
 LOCAL_SIZE_LAYOUT;
 
-layout ( std430, binding = 4 ) volatile buffer RayMortons {uint rayMorton[];};
-layout ( std430, binding = 5 ) volatile buffer BoundingBox {bbox inbound;};
+layout ( std430, binding = 4 )  buffer RayMortons {uint rayMorton[];};
+layout ( std430, binding = 5 )  buffer BoundingBox {bbox inbound;};
 
 void main()
 {

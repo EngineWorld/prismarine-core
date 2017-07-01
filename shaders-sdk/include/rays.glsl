@@ -4,14 +4,14 @@
 #include "../include/STOmath.glsl"
 #include "../include/morton.glsl"
 
-layout ( std430, binding = 0 ) volatile buffer RaysSSBO { Ray rays[]; };
-layout ( std430, binding = 1 ) volatile buffer HitsSSBO { Hit hits[]; };
-layout ( std430, binding = 2 ) volatile buffer TexelsSSBO { Texel texelInfo[]; };
+layout ( std430, binding = 0 )  buffer RaysSSBO { Ray rays[]; };
+layout ( std430, binding = 1 )  buffer HitsSSBO { Hit hits[]; };
+layout ( std430, binding = 2 )  buffer TexelsSSBO { Texel texelInfo[]; };
 layout ( std430, binding = 6 ) readonly buffer ActivedIndicesSSBO { int actived[]; };
-layout ( std430, binding = 7 ) volatile buffer CollectedActivesSSBO { int qrays[]; };
-layout ( std430, binding = 8 ) volatile buffer FreedomIndicesSSBO { int freedoms[]; };
+layout ( std430, binding = 7 )  buffer CollectedActivesSSBO { int qrays[]; };
+layout ( std430, binding = 8 )  buffer FreedomIndicesSSBO { int freedoms[]; };
 layout ( std430, binding = 14 ) readonly buffer AvailablesIndicesSSBO { int availables[]; };
-layout ( std430, binding = 20 ) volatile buffer CounterBlock { int arcounter[4]; };
+layout ( std430, binding = 20 )  buffer CounterBlock { int arcounter[4]; };
 
 const uint At = 0;
 const uint Rt = 1;

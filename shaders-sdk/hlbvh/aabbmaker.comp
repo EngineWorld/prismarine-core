@@ -10,19 +10,19 @@
 #include "../include/morton.glsl"
 #include "../include/STOmath.glsl"
 
-layout ( std430, binding = 20 ) volatile buffer CounterBlock {
+layout ( std430, binding = 20 )  buffer CounterBlock {
     int aabbCounter[1];
 };
 
-layout ( std430, binding = 0 ) volatile buffer OutLeafBlock {
+layout ( std430, binding = 0 )  buffer OutLeafBlock {
     Leaf OutLeafs[];
 };
 
-layout ( std430, binding = 1 ) volatile buffer MortoncodesBlock {
+layout ( std430, binding = 1 )  buffer MortoncodesBlock {
     uint Mortoncodes[];
 };
 
-layout ( std430, binding = 2 ) volatile buffer IndicesBlock {
+layout ( std430, binding = 2 )  buffer IndicesBlock {
     int MortoncodesIndices[];
 };
 
@@ -73,7 +73,7 @@ void main() {
     uint countBox = 1;
 
     for (uint i=0;i<countBox;i++) {
-        bbox current = stack[i];
+        const bbox current = stack[i];
         const vec3 center = (current.mn.xyz + current.mx.xyz) * 0.5f;
 
         if (split[i] >= maxSplits) {
@@ -84,11 +84,9 @@ void main() {
                 uvec3(floor(clamp(center, vec3(0.00001f), vec3(0.99999f)) * 1024.0f)), 
                 uvec3(0), uvec3(1023)));
 
-            current.mn -= 0.0001f;
-            current.mx += 0.0001f;
-
             Leaf outLeaf = OutLeafs[to];
-            outLeaf.box = current;
+            outLeaf.box.mn = current.mn - 0.0001f;
+            outLeaf.box.mx = current.mx + 0.0001f;
             outLeaf.parent = -1;
             outLeaf.triangle = t;
             outLeaf.range = ivec2(to);

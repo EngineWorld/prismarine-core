@@ -10,7 +10,7 @@
 #include "../include/vertex.glsl"
 #include "../include/STOmath.glsl"
 
-layout ( std430, binding = 5 ) volatile buffer MinmaxOutputSSBO {vec4 minmax[];};
+layout ( std430, binding = 5 )  buffer MinmaxOutputSSBO {vec4 minmax[];};
 layout ( local_size_x = 512 ) in;
 
 shared bbox sdata[ 512 ];
@@ -25,13 +25,13 @@ bbox getMinMaxPrimitive(in uint idx){
     }
 #ifdef ENABLE_AMD_INSTRUCTION_SET
     return bbox(
-        min3(triverts[0], triverts[1], triverts[2]), 
-        max3(triverts[0], triverts[1], triverts[2])
+        min3(triverts[0], triverts[1], triverts[2]) - 0.00001f, 
+        max3(triverts[0], triverts[1], triverts[2]) + 0.00001f
     );
 #else 
     return bbox(
-        min(min(triverts[0], triverts[1]), triverts[2]), 
-        max(max(triverts[0], triverts[1]), triverts[2])
+        min(min(triverts[0], triverts[1]), triverts[2]) - 0.00001f, 
+        max(max(triverts[0], triverts[1]), triverts[2]) + 0.00001f
     );
 #endif
     
@@ -66,7 +66,7 @@ void main() {
     }
 
     if (tid == 0) {
-        minmax[gl_WorkGroupID.x*2 + 0] = sdata[0].mn - 0.00001f; 
-        minmax[gl_WorkGroupID.x*2 + 1] = sdata[0].mx + 0.00001f; 
+        minmax[gl_WorkGroupID.x*2 + 0] = sdata[0].mn; 
+        minmax[gl_WorkGroupID.x*2 + 1] = sdata[0].mx; 
     }
 }

@@ -74,7 +74,7 @@ void main() {
     barrier(); memoryBarrier();
 
     for (int h=0;h<256;h++) {
-        const uint workSize = ((lRange[1] - lRange[0]) - 1) / gl_WorkGroupSize.x + 1;
+        const uint workSize = (lRange[1] <= lRange[0]) ? 0 : (((lRange[1] - lRange[0]) - 1) / gl_WorkGroupSize.x + 1);
         for (int i=0;i<workSize;i++) {
             
             const uint sWorkID = gl_WorkGroupSize.x * i;
