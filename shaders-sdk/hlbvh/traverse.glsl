@@ -20,81 +20,80 @@ bool isOptimizable(in bool valid){
 float intersectTriangle(in vec3 orig, in vec3 dir, in vec3 ve[3], inout vec2 UV, in bool valid) {
     if (allInvocationsARB(!valid)) return INFINITY;
 
-    if (allInvocationsARB(isOptimizable(valid))) { // determine SIMD coveraging
-        const vec3 e1 = ve[1] - ve[0];
-        const vec3 e2 = ve[2] - ve[0];
+/*
+    const vec3 e1 = ve[1] - ve[0];
+    const vec3 e2 = ve[2] - ve[0];
 
-        bool valid = !(length(e1) < 0.00001f && length(e2) < 0.00001f);
-        if (allInvocationsARB(!valid)) return INFINITY;
+    valid = valid && !(length(e1) < 0.00001f && length(e2) < 0.00001f);
+    if (allInvocationsARB(!valid)) return INFINITY;
 
-        const vec3 pvec = cross(dir, e2);
-        const float det = dot(e1, pvec);
+    const vec3 pvec = cross(dir, e2);
+    const float det = dot(e1, pvec);
 
-    #ifndef CULLING
-        if (abs(det) <= 0.0f) valid = false;
-    #else
-        if (det <= 0.0f) valid = false;
-    #endif
-        if (allInvocationsARB(!valid)) return INFINITY;
+#ifndef CULLING
+    if (abs(det) <= 0.0f) valid = false;
+#else
+    if (det <= 0.0f) valid = false;
+#endif
+    if (allInvocationsARB(!valid)) return INFINITY;
 
-        const vec3 tvec = orig - ve[0];
-        const float u = dot(tvec, pvec);
-        const vec3 qvec = cross(tvec, e1);
-        const float v = dot(dir, qvec);
-        const vec3 uvt = vec3(u, v, dot(e2, qvec)) / det;
+    const vec3 tvec = orig - ve[0];
+    const float u = dot(tvec, pvec);
+    const vec3 qvec = cross(tvec, e1);
+    const float v = dot(dir, qvec);
+    const vec3 uvt = vec3(u, v, dot(e2, qvec)) / det;
 
-        if (
-            any(lessThan(uvt.xy, vec2(0.f))) || 
-            any(greaterThan(vec2(uvt.x) + vec2(0.f, uvt.y), vec2(1.f))) 
-        ) valid = false;
-        if (allInvocationsARB(!valid)) return INFINITY;
+    if (
+        any(lessThan(uvt.xy, vec2(0.f))) || 
+        any(greaterThan(vec2(uvt.x) + vec2(0.f, uvt.y), vec2(1.f))) 
+    ) valid = false;
+    if (allInvocationsARB(!valid)) return INFINITY;
 
-        UV.xy = uvt.xy;
-        return (lessF(uvt.z, 0.0f) || !valid) ? INFINITY : uvt.z;
+    UV.xy = uvt.xy;
+    return (lessF(uvt.z, 0.0f) || !valid) ? INFINITY : uvt.z;
 
-    } else {
+*/
 
-        ovec3 ves[3];
-        for (int i=0;i<3;i++) ves[i] = fromVec3(ve[i]);
-        ovec3 dirs = fromVec3(dir);
-        ovec3 origs = fromVec3(orig);
-        ovec3 e1 = sub(ves[1], ves[0]);
-        ovec3 e2 = sub(ves[2], ves[0]);
+    ovec3 ves[3];
+    for (int i=0;i<3;i++) ves[i] = fromVec3(ve[i]);
+    ovec3 dirs = fromVec3(dir);
+    ovec3 origs = fromVec3(orig);
+    ovec3 e1 = sub(ves[1], ves[0]);
+    ovec3 e2 = sub(ves[2], ves[0]);
 
-        bool valid = !(length3v(e1) < 0.00001f && length3v(e2) < 0.00001f);
-        if (allInvocationsARB(!valid)) return INFINITY;
+    valid = valid && !(length3v(e1) < 0.00001f && length3v(e2) < 0.00001f);
+    if (allInvocationsARB(!valid)) return INFINITY;
 
-        ovec3 pvec = cross3v(dirs, e2);
-        const float det = dot3v(e1, pvec);
+    ovec3 pvec = cross3v(dirs, e2);
+    const float det = dot3v(e1, pvec);
 
-    #ifndef CULLING
-        if (abs(det) <= 0.0f) valid = false;
-    #else
-        if (det <= 0.0f) valid = false;
-    #endif
-        if (allInvocationsARB(!valid)) return INFINITY;
+#ifndef CULLING
+    if (abs(det) <= 0.0f) valid = false;
+#else
+    if (det <= 0.0f) valid = false;
+#endif
+    if (allInvocationsARB(!valid)) return INFINITY;
 
-        ovec3 tvec = sub(origs, ves[0]);
-        const float u = dot3v(tvec, pvec);
-        ovec3 qvec = cross3v(tvec, e1);
-        const float v = dot3v(dirs, qvec);
-        ovec3 uvt = divs(ovec3(u, v, dot3v(e2, qvec)), det);
+    ovec3 tvec = sub(origs, ves[0]);
+    const float u = dot3v(tvec, pvec);
+    ovec3 qvec = cross3v(tvec, e1);
+    const float v = dot3v(dirs, qvec);
+    ovec3 uvt = divs(ovec3(u, v, dot3v(e2, qvec)), det);
 
-        if (
-            uvt.x < 0.0f || 
-            uvt.y < 0.0f || 
-            uvt.x > 1.0f || 
-            (uvt.x + uvt.y) > 1.0f) 
-        {
-            valid = false;
-        }
-        
-        if (allInvocationsARB(!valid)) return INFINITY;
-
-        UV.x = uvt.x;
-        UV.y = uvt.y;
-        return (lessF(uvt.z, 0.0f) || !valid) ? INFINITY : uvt.z;
+    if (
+        uvt.x < 0.0f || 
+        uvt.y < 0.0f || 
+        uvt.x > 1.0f || 
+        (uvt.x + uvt.y) > 1.0f) 
+    {
+        valid = false;
     }
+    
+    if (allInvocationsARB(!valid)) return INFINITY;
+
+    UV.x = uvt.x;
+    UV.y = uvt.y;
+    return (lessF(uvt.z, 0.0f) || !valid) ? INFINITY : uvt.z;
 }
 
 TResult choiceFirstBaked(inout TResult res) {
