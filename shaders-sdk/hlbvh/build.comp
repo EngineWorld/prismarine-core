@@ -129,7 +129,7 @@ void main() {
             }
 
             // barrier for every loop?
-            barrier(); memoryBarrier();
+            //barrier(); memoryBarrier();
         }
 
         barrier(); memoryBarrier();
