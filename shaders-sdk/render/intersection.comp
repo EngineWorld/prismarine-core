@@ -2,7 +2,6 @@
 
 #extension GL_ARB_separate_shader_objects : require
 #extension GL_ARB_shading_language_420pack : require
-//#extension GL_ARB_shader_ballot : require
 #extension GL_ARB_shader_group_vote : require
 
 #include "../include/constants.glsl"
@@ -14,18 +13,17 @@
 #include "../include/STOmath.glsl"
 
 struct TResult {
-    float dist;
-    float predist;
-    int triangle;
-    int materialID;
-
-    vec3 normal;
-    vec3 tangent;
-    vec2 uv;
-
-    vec4 mods;
+    vec4 normal;
+    vec4 tangent;
     vec4 texcoord;
     vec4 color;
+    vec4 mods;
+    float dist;
+    int triangle;
+    int materialID;
+    float predist;
+
+    vec4 uv;
 };
 
 TResult loadInfo(inout TResult res) {
@@ -63,13 +61,13 @@ TResult loadInfo(inout TResult res) {
         float f = 1.0f / fma(deltaUV1.x, deltaUV2.y, -deltaUV1.y * deltaUV2.x);
         vec3 tan = fma(deltaPos1, vec3(deltaUV2.y), -deltaPos2 * deltaUV1.y) * f;
 
-        res.mods = fma(mods[0], vec4(1.0f - uv.x - uv.y), fma(mods[1], vec4(uv.x), mods[2] * vec4(uv.y)));;
-        res.normal = normal;
-
-        res.texcoord = fma(texcoords[0], vec4(1.0f - uv.x - uv.y), fma(texcoords[1], vec4(uv.x), texcoords[2] * vec4(uv.y)));;
-        res.materialID = mats[tri];
-        res.tangent = normalize(tan - normal * sign(dot(tan, nor)));
+        res.normal = vec4(normal, 0.0f);
+        res.tangent = vec4(normalize(tan - normal * sign(dot(tan, nor))), 0.0f);
+        res.texcoord = fma(texcoords[0], vec4(1.0f - uv.x - uv.y), fma(texcoords[1], vec4(uv.x), texcoords[2] * vec4(uv.y)));
         res.color = fma(colors[0], vec4(1.0f - uv.x - uv.y), fma(colors[1], vec4(uv.x), colors[2] * vec4(uv.y)));
+        res.mods = fma(mods[0], vec4(1.0f - uv.x - uv.y), fma(mods[1], vec4(uv.x), mods[2] * vec4(uv.y)));
+        
+        res.materialID = mats[tri];
     }
 
     return res;
@@ -100,8 +98,8 @@ void main() {
         Hit newHit = hit;
         vec4 sysmod = newHit.vmods;
 
-        newHit.normal.xyz = res.normal.xyz;
-        newHit.tangent.xyz = res.tangent.xyz;
+        newHit.normal = res.normal;
+        newHit.tangent = res.tangent;
         newHit.texcoord = res.texcoord;
         newHit.vcolor = res.color;
         newHit.vmods = res.mods;

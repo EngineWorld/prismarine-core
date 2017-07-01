@@ -84,15 +84,15 @@ namespace Paper {
 
 
     struct Ray {
-        iVc1 idx;
-        iVc1 prev;
-        iVc1 bounce;
-        iVc1 actived;
         Vc4 origin;
         Vc4 direct;
         Vc4 color;
         Vc4 final;
         iVc4 params;
+        iVc1 idx;
+        iVc1 prev;
+        iVc1 bounce;
+        iVc1 actived;
     };
 
     struct Hit {

@@ -15,18 +15,17 @@
 #include "../experimental/ultraMath.glsl"
 
 struct TResult {
-    float dist;
-    float predist;
-    int triangle;
-    int materialID;
-
-    vec3 normal;
-    vec3 tangent;
-    vec2 uv;
-
-    vec4 mods;
+    vec4 normal;
+    vec4 tangent;
     vec4 texcoord;
     vec4 color;
+    vec4 mods;
+    float dist;
+    int triangle;
+    int materialID;
+    float predist;
+
+    vec4 uv;
 };
 
 // unoptimized at now, and can do dublicate operations
@@ -74,10 +73,10 @@ TResult loadInfo(inout TResult res) {
         VEC3 tang = dot(vec2(deltaPos1, -deltaPos2), vec2(y(deltaUV2), y(deltaUV1))) * f;
 
         res.mods = compvec4(dot(mods, interpol)); //fma(mods[0], vec4(1.0f - uv.x - uv.y), fma(mods[1], vec4(uv.x), mods[2] * vec4(uv.y)));;
-        res.normal = compvec3(normal);
+        res.normal.xyz = compvec3(normal);
         res.texcoord = compvec4(dot(texcoords, interpol));
         res.materialID = mats[tri];
-        res.tangent = compvec3(normalize3(tang - normal * sign(dot3(tang, normal))));
+        res.tangent.xyz = compvec3(normalize3(tang - normal * sign(dot3(tang, normal))));
         res.color = compvec4(dot(colors, interpol));
     }
 
