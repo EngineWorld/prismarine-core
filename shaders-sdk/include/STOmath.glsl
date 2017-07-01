@@ -85,6 +85,116 @@ int exchange(inout int mem, in int v){
 
 
 
+
+
+#define ovec3 vec3 // use same register space
+
+/*
+struct ovec3 {
+    float x;
+    float y;
+    float z;
+};
+*/
+
+float length3v(in ovec3 a){
+    return sqrt(fma(a.x, a.x, fma(a.y, a.y, a.z * a.z)));
+}
+
+float dot3v(in ovec3 a, in ovec3 b){
+    return fma(a.x, b.x, fma(a.y, b.y, a.z * b.z));
+}
+
+
+ovec3 max3v(in ovec3 a, in ovec3 b){
+    return ovec3(
+        max(a.x, b.x),
+        max(a.y, b.y),
+        max(a.z, b.z)
+    );
+}
+
+ovec3 min3v(in ovec3 a, in ovec3 b){
+    return ovec3(
+        min(a.x, b.x),
+        min(a.y, b.y),
+        min(a.z, b.z)
+    );
+}
+
+ovec3 mul(in ovec3 a, in ovec3 b){
+    return ovec3(
+        a.x * b.x,
+        a.y * b.y,
+        a.z * b.z
+    );
+}
+
+ovec3 add(in ovec3 a, in ovec3 b){
+    return ovec3(
+        a.x + b.x,
+        a.y + b.y,
+        a.z + b.z
+    );
+}
+
+ovec3 neg(in ovec3 a){
+    return ovec3(-a.x, -a.y, -a.z);
+}
+
+ovec3 div(in ovec3 a, in ovec3 b){
+    return ovec3(
+        a.x / b.x,
+        a.y / b.y,
+        a.z / b.z
+    );
+}
+
+ovec3 divs(in ovec3 a, in float b){
+    return ovec3(
+        a.x / b,
+        a.y / b,
+        a.z / b
+    );
+}
+
+ovec3 sdiv(in float a, in ovec3 b){
+    return ovec3(
+        a / b.x,
+        a / b.y,
+        a / b.z
+    );
+}
+
+ovec3 sub(in ovec3 a, in ovec3 b){
+    return ovec3(
+        a.x - b.x,
+        a.y - b.y,
+        a.z - b.z
+    );
+}
+
+ovec3 cross3v(in ovec3 a, in ovec3 b){
+    return ovec3(
+        fma(a.y, b.z, -(a.z * b.y)),
+        fma(a.z, b.x, -(a.x * b.z)),
+        fma(a.x, b.y, -(a.y * b.x))
+    );
+}
+
+ovec3 fromVec3(in vec3 a){
+    return a;
+    //return ovec3(a.x, a.y, a.z);
+}
+
+
+
+
+
+
+
+
+
 // for unsupported systems
 
 

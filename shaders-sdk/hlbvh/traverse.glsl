@@ -9,6 +9,48 @@ int bakedStackCount = 0;
 
 // WARP optimized triangle intersection
 float intersectTriangle(in vec3 orig, in vec3 dir, in vec3 ve[3], inout vec2 UV) {
+    ovec3 ves[3];
+    for (int i=0;i<3;i++) ves[i] = fromVec3(ve[i]);
+    ovec3 dirs = fromVec3(dir);
+    ovec3 origs = fromVec3(orig);
+    ovec3 e1 = sub(ves[1], ves[0]);
+    ovec3 e2 = sub(ves[2], ves[0]);
+
+    bool valid = !(length3v(e1) < 0.00001f && length3v(e2) < 0.00001f);
+    if (allInvocationsARB(!valid)) return INFINITY;
+
+    ovec3 pvec = cross3v(dirs, e2);
+    const float det = dot3v(e1, pvec);
+
+#ifndef CULLING
+    if (abs(det) <= 0.0f) valid = false;
+#else
+    if (det <= 0.0f) valid = false;
+#endif
+    if (allInvocationsARB(!valid)) return INFINITY;
+
+    ovec3 tvec = sub(origs, ves[0]);
+    const float u = dot3v(tvec, pvec);
+    ovec3 qvec = cross3v(tvec, e1);
+    const float v = dot3v(dirs, qvec);
+    ovec3 uvt = divs(ovec3(u, v, dot3v(e2, qvec)), det);
+
+    if (
+        uvt.x < 0.0f || 
+        uvt.y < 0.0f || 
+        uvt.x > 1.0f || 
+        (uvt.x + uvt.y) > 1.0f) 
+    {
+        valid = false;
+    }
+    
+    if (allInvocationsARB(!valid)) return INFINITY;
+
+    UV.x = uvt.x;
+    UV.y = uvt.y;
+    return (lessF(uvt.z, 0.0f) || !valid) ? INFINITY : uvt.z;
+
+    /*
     const vec3 e1 = ve[1] - ve[0];
     const vec3 e2 = ve[2] - ve[0];
 
@@ -39,6 +81,7 @@ float intersectTriangle(in vec3 orig, in vec3 dir, in vec3 ve[3], inout vec2 UV)
 
     UV.xy = uvt.xy;
     return (lessF(uvt.z, 0.0f) || !valid) ? INFINITY : uvt.z;
+    */
 }
 
 TResult choiceFirstBaked(inout TResult res) {
@@ -164,6 +207,7 @@ vec3 unprojectVoxels(in vec3 orig) {
 }
 
 float intersectCubeSingle(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 cubeMax, inout float near, inout float far) {
+    /*
     const vec3 dr = 1.0f / ray;
     const vec3 tMin = (cubeMin.xyz - origin) * dr;
     const vec3 tMax = (cubeMax.xyz - origin) * dr;
@@ -180,15 +224,43 @@ float intersectCubeSingle(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 
     near = isCube ? tNear : INFINITY;
     far  = isCube ? tFar  : INFINITY;
     return isCube ? (lessF(tNear, 0.0f) ? tFar : tNear) : INFINITY;
+    */
+
+    ovec3 og = fromVec3(origin);
+    ovec3 dr = sdiv(1.0f, fromVec3(ray));
+    ovec3 tMin = mul(sub(fromVec3(cubeMin.xyz), og), dr);
+    ovec3 tMax = mul(sub(fromVec3(cubeMax.xyz), og), dr);
+    ovec3 t1 = min3v(tMin, tMax);
+    ovec3 t2 = max3v(tMin, tMax);
+#ifdef ENABLE_AMD_INSTRUCTION_SET
+    const float tNear = max3(t1.x, t1.y, t1.z);
+    const float tFar  = min3(t2.x, t2.y, t2.z);
+#else
+    const float tNear = max(max(t1.x, t1.y), t1.z);
+    const float tFar  = min(min(t2.x, t2.y), t2.z);
+#endif
+    const bool isCube = tFar >= tNear && greaterEqualF(tFar, 0.0f);
+    near = isCube ? tNear : INFINITY;
+    far  = isCube ? tFar  : INFINITY;
+    return isCube ? (lessF(tNear, 0.0f) ? tFar : tNear) : INFINITY;
 }
 
 
 void intersectCubeApart(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 cubeMax, inout float near, inout float far) {
+    /*
     const vec3 dr = 1.0f / ray;
     const vec3 tMin = (cubeMin.xyz - origin) * dr;
     const vec3 tMax = (cubeMax.xyz - origin) * dr;
     const vec3 t1 = min(tMin, tMax);
     const vec3 t2 = max(tMin, tMax);
+    */
+
+    ovec3 og = fromVec3(origin);
+    ovec3 dr = sdiv(1.0f, fromVec3(ray));
+    ovec3 tMin = mul(sub(fromVec3(cubeMin.xyz), og), dr);
+    ovec3 tMax = mul(sub(fromVec3(cubeMax.xyz), og), dr);
+    ovec3 t1 = min3v(tMin, tMax);
+    ovec3 t2 = max3v(tMin, tMax);
 #ifdef ENABLE_AMD_INSTRUCTION_SET
     near = max3(t1.x, t1.y, t1.z);
     far  = min3(t2.x, t2.y, t2.z);
