@@ -201,7 +201,9 @@ void main() {
         }
     }
 
-    hit.shaded = 1;
-    storeHit(t, hit);
-    storeRay(t, newRay);
+    if (hit.shaded < 1) {
+        hit.shaded = 1;
+        storeHit(t, hit);
+        storeRay(t, newRay);
+    }
 }
