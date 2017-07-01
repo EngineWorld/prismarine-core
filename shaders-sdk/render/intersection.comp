@@ -98,17 +98,18 @@ void main() {
         res.materialID != LONGEST
     ) {
         Hit newHit = hit;
-        newHit.shaded = 0;
-        newHit.dist = res.dist;
+        vec4 sysmod = newHit.vmods;
+
         newHit.normal.xyz = res.normal.xyz;
+        newHit.tangent.xyz = res.tangent.xyz;
+        newHit.texcoord = res.texcoord;
+        newHit.vcolor = res.color;
+        newHit.vmods = res.mods;
+        newHit.dist = res.dist;
         newHit.triangle = res.triangle;
         newHit.materialID = res.materialID;
-        newHit.texcoord = res.texcoord;
-        newHit.tangent.xyz = res.tangent.xyz;
-        newHit.vcolor.xyzw = res.color.xyzw;
+        newHit.shaded = 0;
 
-        vec4 sysmod = newHit.vmods;
-        newHit.vmods.xyzw = res.mods.xyzw;
         newHit.vmods.w = sysmod.w;
 
         storeHit(t, newHit);

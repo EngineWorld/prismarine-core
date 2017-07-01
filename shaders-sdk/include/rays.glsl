@@ -78,17 +78,19 @@ int createRayStrict(inout Ray original, in int idx, in int rayIndex) {
 
     Ray ray = original;
     ray.idx = rayIndex;
+    ray.bounce = ray.bounce;
     ray.texel = idx;
+    ray.actived = ray.actived;
 
     Hit hit;
     if (original.idx != LONGEST) {
         hit = hits[original.idx];
     } else {
-        hit.triangle = LONGEST;
         hit.normal = vec4(0.0f);
         hit.tangent = vec4(0.0f);
-        hit.materialID = LONGEST;
         hit.vmods = vec4(0.0f);
+        hit.triangle = LONGEST;
+        hit.materialID = LONGEST;
     }
     hit.shaded = 1;
 
