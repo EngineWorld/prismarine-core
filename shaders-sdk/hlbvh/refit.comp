@@ -7,13 +7,6 @@
 
 LOCAL_SIZE_LAYOUT;
 
-bbox bboxunion(in bbox b1, in bbox b2) {
-    return bbox(
-        min(b1.mn, b2.mn) - 0.00001f,
-        max(b1.mx, b2.mx) + 0.00001f
-    );
-}
-
 void main() {
     const int globalID = int(gl_GlobalInvocationID.x);
     if (globalID >= GEOMETRY_BLOCK geometryUniform.triangleCount) return;
@@ -22,16 +15,17 @@ void main() {
     HlbvhNode nd = Nodes[idx];
     for(int i=0;i<256;i++) {
         idx = nd.parent;
+        if (idx <= 0) break; 
+
         nd = Nodes[idx];
-        const bool initiative = atomicCompSwap(Flags[idx], 0, 1) == 1;
-        if (initiative) {
+        if (atomicCompSwap(Flags[idx], 0, 1) == 1) {
             HlbvhNode ln = Nodes[nd.range.x];
             HlbvhNode rn = Nodes[nd.range.y];
-            nd.box = bboxunion(ln.box, rn.box);
-            Nodes[idx] = nd;
-        }
-        if (idx <= 0 || !initiative) {
+            Nodes[idx].box.mn = min(ln.box.mn, rn.box.mn) - 0.00001f;
+            Nodes[idx].box.mx = max(ln.box.mx, rn.box.mx) + 0.00001f;
+        } else {
             break;
         }
+        
     }
 }

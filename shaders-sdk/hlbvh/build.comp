@@ -61,7 +61,8 @@ void main() {
         node.range = ivec2(0, Range.y-1);
         node.parent = -1;
         node.triangle = -1;
-        node.box = bbox(vec4(0.0f), vec4(0.0f));
+        node.box.mn = vec4(0.0f);
+        node.box.mx = vec4(0.0f);
         Nodes[threadID] = node;
         Flags[threadID] = 0;
     }
@@ -90,13 +91,15 @@ void main() {
                     leftNode.parent = int(prID);
                     leftNode.range = ivec2(parentNode.range.x, split+0);
                     leftNode.triangle = -1;
-                    leftNode.box = bbox(vec4(0.0f), vec4(0.0f));
+                    leftNode.box.mn = vec4(0.0f);
+                    leftNode.box.mx = vec4(0.0f);
 
                     HlbvhNode rightNode = Nodes[hid2.y];
                     rightNode.parent = int(prID);
                     rightNode.range = ivec2(split+1, parentNode.range.y);
                     rightNode.triangle = -1;
-                    rightNode.box = bbox(vec4(0.0f), vec4(0.0f));
+                    rightNode.box.mn = vec4(0.0f);
+                    rightNode.box.mx = vec4(0.0f);
 
                     // left node
                     Nodes[hid2.x] = leftNode;
@@ -115,16 +118,14 @@ void main() {
                     // make leafs
                     Leaf ourLeaf = Leafs[leafID];
                     ourLeaf.parent = int(prID);
+                    Leafs[leafID] = ourLeaf;
 
                     // load leaf data
-                    parentNode.box = ourLeaf.box;
+                    parentNode.box.mn = ourLeaf.box.mn;
+                    parentNode.box.mx = ourLeaf.box.mx;
                     parentNode.triangle = ourLeaf.triangle;
                     parentNode.range = ourLeaf.range;
-
-                    // store
-                    Flags[prID] = 0;
                     Nodes[prID] = parentNode;
-                    Leafs[leafID] = ourLeaf;
                 }
             }
 

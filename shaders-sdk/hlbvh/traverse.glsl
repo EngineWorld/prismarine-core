@@ -163,10 +163,10 @@ vec3 unprojectVoxels(in vec3 orig) {
     return nps.xyz / nps.w;
 }
 
-float intersectCubeSingle(in vec3 origin, in vec3 ray, in vec3 cubeMin, in vec3 cubeMax, inout float near, inout float far) {
+float intersectCubeSingle(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 cubeMax, inout float near, inout float far) {
     const vec3 dr = 1.0f / ray;
-    const vec3 tMin = (cubeMin - origin) * dr;
-    const vec3 tMax = (cubeMax - origin) * dr;
+    const vec3 tMin = (cubeMin.xyz - origin) * dr;
+    const vec3 tMax = (cubeMax.xyz - origin) * dr;
     const vec3 t1 = min(tMin, tMax);
     const vec3 t2 = max(tMin, tMax);
 #ifdef ENABLE_AMD_INSTRUCTION_SET
@@ -183,10 +183,10 @@ float intersectCubeSingle(in vec3 origin, in vec3 ray, in vec3 cubeMin, in vec3 
 }
 
 
-void intersectCubeApart(in vec3 origin, in vec3 ray, in vec3 cubeMin, in vec3 cubeMax, inout float near, inout float far) {
+void intersectCubeApart(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 cubeMax, inout float near, inout float far) {
     const vec3 dr = 1.0f / ray;
-    const vec3 tMin = (cubeMin - origin) * dr;
-    const vec3 tMax = (cubeMax - origin) * dr;
+    const vec3 tMin = (cubeMin.xyz - origin) * dr;
+    const vec3 tMax = (cubeMax.xyz - origin) * dr;
     const vec3 t1 = min(tMin, tMax);
     const vec3 t2 = max(tMin, tMax);
 #ifdef ENABLE_AMD_INSTRUCTION_SET
@@ -227,7 +227,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     //const bbox lbox = node.box;
     float near = INFINITY, far = INFINITY;
     //const float d = intersectCubeSingle(torig, dirproj, lbox.mn.xyz, lbox.mx.xyz, near, far);
-    const float d = intersectCubeSingle(torig, dirproj, vec3(0.0f), vec3(1.0f), near, far);
+    const float d = intersectCubeSingle(torig, dirproj, vec4(vec3(0.0f), 1.0f), vec4(1.0f), near, far);
     lastRes.predist = far * dirlen;
 
     // init state
@@ -253,8 +253,8 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
             const vec2 inf2 = vec2(INFINITY);
             vec2 nearsLR = inf2;
             vec2 farsLR = inf2;
-            intersectCubeApart(torig, dirproj, lbox.mn.xyz, lbox.mx.xyz, nearsLR.x, farsLR.x);
-            intersectCubeApart(torig, dirproj, rbox.mn.xyz, rbox.mx.xyz, nearsLR.y, farsLR.y);
+            intersectCubeApart(torig, dirproj, lbox.mn, lbox.mx, nearsLR.x, farsLR.x);
+            intersectCubeApart(torig, dirproj, rbox.mn, rbox.mx, nearsLR.y, farsLR.y);
 
             const bvec2 isCube = greaterThanEqual(farsLR, nearsLR) && greaterThanEqual(farsLR, vec2(0.0f));
             const vec2 nears = mix(inf2, nearsLR, isCube);
