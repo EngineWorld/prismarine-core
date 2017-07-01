@@ -125,6 +125,7 @@ namespace Paper {
         iVc2 range;
         iVc1 parent;
         iVc1 triangle;
+        iVc4 _fix; // fucking drivers!
     };
 
     struct VboDataStride {

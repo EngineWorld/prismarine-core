@@ -20,33 +20,26 @@ int nlz (in int x) {
 
 int findSplit( int first, int last)
 {
-    // Identical Morton codes => split the range in the middle.
-    uint firstCode = Mortoncodes[first];
-    uint lastCode = Mortoncodes[last];
+    const uint firstCode = Mortoncodes[first];
+    const uint lastCode = Mortoncodes[last];
     if (firstCode == lastCode) {
         return (first + last) >> 1;
     }
 
-    // Calculate the number of highest bits that are the same
-    // for all objects, using the count-leading-zeros intrinsic.
-    int commonPrefix = nlz(firstCode ^ lastCode);
-
-    // Use binary search to find where the next bit differs.
-    // Specifically, we are looking for the highest object that
-    // shares more than commonPrefix bits with the first one.
-    int split = first; // initial guess
+    const int commonPrefix = nlz(firstCode ^ lastCode);
+    int split = first;
     int step = last - first;
     do {
-        step = (step + 1) >> 1; // exponential decrease
-        int newSplit = split + step; // proposed new position
+        step = (step + 1) >> 1;
+        const int newSplit = split + step;
         if (newSplit < last) {
-            uint splitCode = Mortoncodes[newSplit];
-            int splitPrefix = nlz(firstCode ^ splitCode);
-            if (splitPrefix > commonPrefix)
-                split = newSplit; // accept proposal
+            const uint splitCode = Mortoncodes[newSplit];
+            const int splitPrefix = nlz(firstCode ^ splitCode);
+            if (splitPrefix > commonPrefix) {
+                split = newSplit;
+            }
         }
-    }
-    while (step > 1);
+    } while (step > 1);
 
     return clamp(split, 0, Range.y-2);
 }
@@ -55,6 +48,8 @@ shared int lRange[2];
 shared int lCounter;
 
 void main() {
+    if (gl_WorkGroupID.x > 0) return; // not supported
+
     const uint threadID = uint(gl_LocalInvocationID.x);
 
     if (threadID == 0) {
@@ -134,7 +129,7 @@ void main() {
             }
 
             // barrier for every loop?
-            //barrier(); memoryBarrier();
+            barrier(); memoryBarrier();
         }
 
         barrier(); memoryBarrier();
@@ -145,7 +140,7 @@ void main() {
         barrier(); memoryBarrier();
 
         if (lRange[1] <= lRange[0]) {
-            break; barrier(); memoryBarrier();
+            break;
         }
     }
 }

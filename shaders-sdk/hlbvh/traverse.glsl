@@ -205,6 +205,7 @@ const int STACK_SIZE = 16;
 int deferredStack[STACK_SIZE];
 int idx = 0, deferredPtr = 0;
 bool validBox = false;
+bool skip = false;
 
 TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     TResult lastRes;
@@ -231,15 +232,10 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
 
     // init state
     {
-        idx = 0, deferredPtr = 0;
-        validBox = 
-            lessF(d, INFINITY) 
-            && greaterEqualF(d, 0.0f) 
-            && greaterEqualF(lastRes.predist, near * dirlen)
-            ;
+        idx = 0, deferredPtr = 0, skip = false;
+        validBox = lessF(d, INFINITY) && greaterEqualF(d, 0.0f);
     }
 
-    bool skip = false;
     for(int i=0;i<16384;i++) {
         if (allInvocationsARB(!validBox)) break;
         const HlbvhNode node = Nodes[idx];

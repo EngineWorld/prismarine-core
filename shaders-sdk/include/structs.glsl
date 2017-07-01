@@ -142,6 +142,7 @@ struct HlbvhNode {
     iVc2 range;
     iVc1 parent;
     iVc1 triangle;
+    iVc4 _fix; // fuck you, drivers!
 };
 
 struct VboDataStride {
