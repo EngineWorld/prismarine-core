@@ -210,18 +210,13 @@ void main() {
         mixed(emitentRay.color.xyz, reflectionRay.color.xyz, spic);
         emitRay(reflectionRay, hit, normal, 1.0f);
 
-        // diffuse and light emission
-        bool shadowed = false;
-        if (random() < emis) {
-            emitentRay = emissive(emitentRay, hit, emi.xyz / min(emis, 1.0f), normal);
-        } else {
-            emitentRay = diffuse(emitentRay, hit, tx.xyz, normal); shadowed = true;
-        }
-        
+        // emit light
+        emitRay(emissive(emitentRay, hit, emi.xyz / min(emis, 1.0f), normal), hit, normal, clamp(emis, 0.0f, 1.0f));
+        emitentRay.color.xyz *= clamp(1.0f - emis, 0.0f, 1.0f);
+
         // emit ray
-        if (shadowed) {
-            applyLight(directLight(0, emitentRay, hit, vec3(1.0f), normal), emitentRay, surfacenormal); // push shadow
-        }
+        emitentRay = diffuse(emitentRay, hit, tx.xyz, normal);
+        applyLight(directLight(0, emitentRay, hit, vec3(1.0f), normal), emitentRay, surfacenormal); // push shadow
         emitRay(emitentRay, hit, normal, 1.0f);
 
         // transparency ray 
