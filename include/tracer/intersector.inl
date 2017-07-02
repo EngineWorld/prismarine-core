@@ -41,7 +41,7 @@ namespace Paper {
     }
 
     inline void Intersector::initShaders() {
-        initShaderCompute("./shaders/hlbvh/resort.comp", resortProgramH);
+        //initShaderCompute("./shaders/hlbvh/resort.comp", resortProgramH);
         initShaderCompute("./shaders/hlbvh/refit.comp", refitProgramH);
         initShaderCompute("./shaders/hlbvh/build.comp", buildProgramH);
         initShaderCompute("./shaders/hlbvh/aabbmaker.comp", aabbMakerProgramH);
@@ -118,8 +118,8 @@ namespace Paper {
         glCreateBuffers(1, &mortonBufferIndex);
         glNamedBufferStorage(mortonBufferIndex, strided<int32_t>(maxt * 2), nullptr, GL_DYNAMIC_STORAGE_BIT);
 
-        glCreateBuffers(1, &leafBufferSorted);
-        glNamedBufferStorage(leafBufferSorted, strided<Leaf>(maxt * 2), nullptr, GL_DYNAMIC_STORAGE_BIT);
+        //glCreateBuffers(1, &leafBufferSorted);
+        //glNamedBufferStorage(leafBufferSorted, strided<Leaf>(maxt * 2), nullptr, GL_DYNAMIC_STORAGE_BIT);
 
         glCreateBuffers(1, &leafBuffer);
         glNamedBufferStorage(leafBuffer, strided<Leaf>(maxt * 2), nullptr, GL_DYNAMIC_STORAGE_BIT);
@@ -280,23 +280,14 @@ namespace Paper {
         sorter->sort(mortonBuffer, mortonBufferIndex, triangleCount); // early serial tests
         geometryUniformData.triangleCount = triangleCount;
 
-
         //std::vector<GLuint> radixTest = std::vector<GLuint>(triangleCount);
         //glGetNamedBufferSubData(mortonBuffer, 0, strided<GLuint>(triangleCount), radixTest.data());
 
-
         this->syncUniforms();
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, leafBuffer);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mortonBufferIndex);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, leafBufferSorted);
-        glUseProgram(resortProgramH);
-        glDispatchCompute(tiled(triangleCount, worksize), 1, 1);
-        glMemoryBarrier(GL_ALL_BARRIER_BITS);
-
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, numBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mortonBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, mortonBufferIndex);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, leafBufferSorted);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, leafBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, bvhnodesBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, bvhflagsBuffer);
         glCopyNamedBufferSubData(lscounterTemp, nodeCounter, 0, 0, strided<uint32_t>(1));

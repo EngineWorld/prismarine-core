@@ -115,8 +115,8 @@ void main() {
                     parentNode.range = ivec2(lid, rid);
                     Nodes[prID] = parentNode;
                 } else {
-                    uint leafID = parentNode.range.x;
-
+                    uint leafID = MortoncodesIndices[parentNode.range.x];
+                    
                     // make leafs
                     Leaf ourLeaf = Leafs[leafID];
                     ourLeaf.parent = int(prID);
