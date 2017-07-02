@@ -7,6 +7,7 @@ const int bakedFragments = 8;
 int bakedStack[bakedFragments];
 int bakedStackCount = 0;
 
+/*
 // check for range of optimizable
 bool isOptimizable(in bool valid){
     uint64_t ballout = ballotARB(valid);
@@ -15,6 +16,7 @@ bool isOptimizable(in bool valid){
     //return (gl_SubGroupInvocationARB % 4 == 0) && (ranged > 0xF);
     return (ranged > 0xF);
 }
+*/
 
 // WARP optimized triangle intersection
 float intersectTriangle(in vec3 orig, in vec3 dir, in vec3 ve[3], inout vec2 UV, in bool valid) {
