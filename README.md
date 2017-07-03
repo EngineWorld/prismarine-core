@@ -37,10 +37,9 @@ ${ApplicationName}.exe -m sponza.obj -s 1.0
 
 ## Screenshots
 
-### glTF PBR (04-07-2017)
+### glTF PBR (??-07-2017)
 
-<img src="./screenshots/gltf-pbr0-g1.jpg" alt="Sponza" width="640"/>
-<img src="./screenshots/gltf-pbr1-g1.jpg" alt="Sponza" width="640"/>
+Coming soon updates
 
 ## Contributors
 
