@@ -11,14 +11,6 @@ shared uint totals[WORK_SIZE];
 
 layout (local_size_x = WARP_SIZE, local_size_y = WORK_SIZE) in;
 
-uint bitCount64(in uint64_t a64) {
-    //const uvec2 lh = unpackUint2x32(a64);
-    //return bitCount(lh.x) + bitCount(lh.y);
-    const uint lo = uint((a64 >> 0ul ) & 0xFFFFFFFFul);
-    const uint hi = uint((a64 >> 32ul) & 0xFFFFFFFFul);
-    return bitCount(lo) + bitCount(hi);
-}
-
 // prefix scan for WARP vector
 uint prefix_scan(inout UVEC_WARP v){
     /*
@@ -36,9 +28,9 @@ uint prefix_scan(inout UVEC_WARP v){
     */
 
     const BVEC_WARP btf = (v == 1);
-    const UVEC64_WARP bits = ballotARB(btf);
+    const UVEC_BALLOT_WARP bits = ballot(btf);
     const UVEC_WARP sum = bitCount64(bits);
-    v = bitCount64(bits & gl_SubGroupLtMaskARB);
+    v = bitCount64(bits & genLtMask());
     return sum;
 }
 

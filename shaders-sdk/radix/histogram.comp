@@ -22,7 +22,7 @@ void main(){
         UVEC_WARP inWarpHist = 0;
         for (int ri=0;ri<RADICES;ri++) {  // limited RADICES by WARP_SIZE
             const BVEC_WARP cmp = key == ri && validAddress;
-            const UVEC_WARP blt = uint(ballotARB( cmp ));
+            const UVEC_WARP blt = uint(ballot( cmp ));
             if (ri == LANE_IDX) inWarpHist = bitCount(blt);
         }
         atomicAdd(localHistogram[LANE_IDX], inWarpHist); // much synchronized atomicAdd
