@@ -379,7 +379,11 @@ vec3 LTC_Evaluate(
 
 
 
-
+vec3 triangleRandomPoint(in vec3 tri[3]){
+    const float r1 = random();
+    const float r2 = random();
+    return (1.0f - sqrt(r1)) * tri[0] + sqrt(r1) * (1.0f - r2) * tri[1] + r2 * sqrt(r1) * tri[2];
+}
 
 
 
@@ -470,7 +474,7 @@ Ray directLight(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 n
     const vec3 lcenter = sLight(i);
     const vec3 ldirect = normalize(lcenter - directRay.origin.xyz);
     const float diffuseWeight = clamp(dot(ldirect, normal), 0.0f, 1.0f);
-    
+
     directRay.direct.xyz = ldirect;
     directRay.color.xyz *= color * diffuseWeight * ((1.0f - cos_a_max) * 2.0f);
     return directRay;
