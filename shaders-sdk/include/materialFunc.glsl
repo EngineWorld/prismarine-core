@@ -139,6 +139,253 @@ void mixed(inout vec3 src, inout vec3 dst, in vec3 coef){
     src *= 1.0f - coef;
 }
 
+
+void generateLightPolygon(in vec3 center, in float radius, inout vec3 polygon[4]){
+    polygon[0] = center + vec3( 1.0f, 0.0f,  1.0f) * radius;
+    polygon[1] = center + vec3(-1.0f, 0.0f,  1.0f) * radius;
+    polygon[2] = center + vec3( 1.0f, 0.0f, -1.0f) * radius;
+    polygon[3] = center + vec3(-1.0f, 0.0f, -1.0f) * radius;
+}
+
+// for polygonal light intersection
+float intersectTriangle(in vec3 orig, in vec3 dir, in vec3 ve[3], inout vec2 UV, in bool valid) {
+    if (!valid) return INFINITY;
+
+    const vec3 e1 = ve[1] - ve[0];
+    const vec3 e2 = ve[2] - ve[0];
+
+    valid = valid && !(length(e1) < 0.00001f && length(e2) < 0.00001f);
+    if (!valid) return INFINITY;
+
+    const vec3 pvec = cross(dir, e2);
+    const float det = dot(e1, pvec);
+
+#ifndef CULLING
+    if (abs(det) <= 0.0f) valid = false;
+#else
+    if (det <= 0.0f) valid = false;
+#endif
+    if (!valid) return INFINITY;
+
+    const vec3 tvec = orig - ve[0];
+    const float u = dot(tvec, pvec);
+    const vec3 qvec = cross(tvec, e1);
+    const float v = dot(dir, qvec);
+    const vec3 uvt = vec3(u, v, dot(e2, qvec)) / det;
+
+    if (
+        any(lessThan(uvt.xy, vec2(0.f))) || 
+        any(greaterThan(vec2(uvt.x) + vec2(0.f, uvt.y), vec2(1.f))) 
+    ) valid = false;
+    if (!valid) return INFINITY;
+
+    UV.xy = uvt.xy;
+    return (lessF(uvt.z, 0.0f) || !valid) ? INFINITY : uvt.z;
+}
+
+
+
+float intersectQuad(in vec3 orig, in vec3 dir, in vec3 ve[4], inout vec2 UV, inout int halfp){
+    // test first half
+    halfp = 0;
+    vec3 vcs[3] = {ve[0], ve[1], ve[2]};
+    float first = intersectTriangle(orig, dir, vcs, UV, true);
+    if (first < INFINITY) return first;
+
+    // if half of quad failure, intersect with another
+    halfp = 1;
+    vcs[0] = ve[3], vcs[1] = ve[0];
+    float second = intersectTriangle(orig, dir, vcs, UV, true);
+    return second;
+}
+
+
+
+
+
+// Linearly Transformed Cosines
+///////////////////////////////
+
+float IntegrateEdge(vec3 v1, vec3 v2)
+{
+    float cosTheta = dot(v1, v2);
+    float theta = acos(cosTheta);    
+    float res = cross(v1, v2).z * ((theta > 0.001) ? theta/sin(theta) : 1.0);
+
+    return res;
+}
+
+void ClipQuadToHorizon(inout vec3 L[5], out int n)
+{
+    // detect clipping config
+    int config = 0;
+    if (L[0].z > 0.0) config += 1;
+    if (L[1].z > 0.0) config += 2;
+    if (L[2].z > 0.0) config += 4;
+    if (L[3].z > 0.0) config += 8;
+
+    // clip
+    n = 0;
+
+    if (config == 0)
+    {
+        // clip all
+    }
+    else if (config == 1) // V1 clip V2 V3 V4
+    {
+        n = 3;
+        L[1] = -L[1].z * L[0] + L[0].z * L[1];
+        L[2] = -L[3].z * L[0] + L[0].z * L[3];
+    }
+    else if (config == 2) // V2 clip V1 V3 V4
+    {
+        n = 3;
+        L[0] = -L[0].z * L[1] + L[1].z * L[0];
+        L[2] = -L[2].z * L[1] + L[1].z * L[2];
+    }
+    else if (config == 3) // V1 V2 clip V3 V4
+    {
+        n = 4;
+        L[2] = -L[2].z * L[1] + L[1].z * L[2];
+        L[3] = -L[3].z * L[0] + L[0].z * L[3];
+    }
+    else if (config == 4) // V3 clip V1 V2 V4
+    {
+        n = 3;
+        L[0] = -L[3].z * L[2] + L[2].z * L[3];
+        L[1] = -L[1].z * L[2] + L[2].z * L[1];
+    }
+    else if (config == 5) // V1 V3 clip V2 V4) impossible
+    {
+        n = 0;
+    }
+    else if (config == 6) // V2 V3 clip V1 V4
+    {
+        n = 4;
+        L[0] = -L[0].z * L[1] + L[1].z * L[0];
+        L[3] = -L[3].z * L[2] + L[2].z * L[3];
+    }
+    else if (config == 7) // V1 V2 V3 clip V4
+    {
+        n = 5;
+        L[4] = -L[3].z * L[0] + L[0].z * L[3];
+        L[3] = -L[3].z * L[2] + L[2].z * L[3];
+    }
+    else if (config == 8) // V4 clip V1 V2 V3
+    {
+        n = 3;
+        L[0] = -L[0].z * L[3] + L[3].z * L[0];
+        L[1] = -L[2].z * L[3] + L[3].z * L[2];
+        L[2] =  L[3];
+    }
+    else if (config == 9) // V1 V4 clip V2 V3
+    {
+        n = 4;
+        L[1] = -L[1].z * L[0] + L[0].z * L[1];
+        L[2] = -L[2].z * L[3] + L[3].z * L[2];
+    }
+    else if (config == 10) // V2 V4 clip V1 V3) impossible
+    {
+        n = 0;
+    }
+    else if (config == 11) // V1 V2 V4 clip V3
+    {
+        n = 5;
+        L[4] = L[3];
+        L[3] = -L[2].z * L[3] + L[3].z * L[2];
+        L[2] = -L[2].z * L[1] + L[1].z * L[2];
+    }
+    else if (config == 12) // V3 V4 clip V1 V2
+    {
+        n = 4;
+        L[1] = -L[1].z * L[2] + L[2].z * L[1];
+        L[0] = -L[0].z * L[3] + L[3].z * L[0];
+    }
+    else if (config == 13) // V1 V3 V4 clip V2
+    {
+        n = 5;
+        L[4] = L[3];
+        L[3] = L[2];
+        L[2] = -L[1].z * L[2] + L[2].z * L[1];
+        L[1] = -L[1].z * L[0] + L[0].z * L[1];
+    }
+    else if (config == 14) // V2 V3 V4 clip V1
+    {
+        n = 5;
+        L[4] = -L[0].z * L[3] + L[3].z * L[0];
+        L[0] = -L[0].z * L[1] + L[1].z * L[0];
+    }
+    else if (config == 15) // V1 V2 V3 V4
+    {
+        n = 4;
+    }
+    
+    if (n == 3)
+        L[3] = L[0];
+    if (n == 4)
+        L[4] = L[0];
+}
+
+vec3 LTC_Evaluate(
+    vec3 N, vec3 V, vec3 P, mat3 Minv, vec3 points[4], bool twoSided)
+{
+    // construct orthonormal basis around N
+    vec3 T1, T2;
+    T1 = normalize(V - N*dot(V, N));
+    T2 = cross(N, T1);
+
+    // rotate area light in (T1, T2, N) basis
+    Minv = Minv * transpose(mat3(T1, T2, N));
+
+    // polygon (allocate 5 vertices for clipping)
+    vec3 L[5];
+    L[0] = Minv * (points[0] - P);
+    L[1] = Minv * (points[1] - P);
+    L[2] = Minv * (points[2] - P);
+    L[3] = Minv * (points[3] - P);
+
+    int n;
+    ClipQuadToHorizon(L, n);
+    
+    if (n == 0)
+        return vec3(0, 0, 0);
+
+    // project onto sphere
+    L[0] = normalize(L[0]);
+    L[1] = normalize(L[1]);
+    L[2] = normalize(L[2]);
+    L[3] = normalize(L[3]);
+    L[4] = normalize(L[4]);
+
+    // integrate
+    float sum = 0.0;
+
+    sum += IntegrateEdge(L[0], L[1]);
+    sum += IntegrateEdge(L[1], L[2]);
+    sum += IntegrateEdge(L[2], L[3]);
+    if (n >= 4)
+        sum += IntegrateEdge(L[3], L[4]);
+    if (n == 5)
+        sum += IntegrateEdge(L[4], L[0]);
+
+    sum = twoSided ? abs(sum) : max(0.0, sum);
+
+    vec3 Lo_i = vec3(sum, sum, sum);
+
+    return Lo_i;
+}
+
+
+
+
+
+
+
+
+
+
+
+
 Ray reflection(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal, in float refly){
     if (newRay.params.w == 1) return newRay;
     newRay.direct.xyz = normalize(mix(randomCosine(normal), reflect(newRay.direct.xyz, normal), refly));
