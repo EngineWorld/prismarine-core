@@ -93,7 +93,9 @@ namespace Paper {
         if (!imagen) {
             return 0;
         }
+
         FIBITMAP* temp = FreeImage_ConvertTo32Bits(imagen);
+        //FIBITMAP* temp = FreeImage_ConvertToRGBA16(imagen);
         FreeImage_Unload(imagen);
         imagen = temp;
 
@@ -103,11 +105,13 @@ namespace Paper {
 
         GLuint texture = 0;
         glCreateTextures(GL_TEXTURE_2D, 1, &texture);
+        //glTextureStorage2D(texture, 1, GL_RGBA16, width, height);
         glTextureStorage2D(texture, 1, GL_RGBA8, width, height);
         glTextureParameteri(texture, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTextureParameteri(texture, GL_TEXTURE_WRAP_T, GL_REPEAT);
         glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTextureParameteri(texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        //glTextureSubImage2D(texture, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_SHORT, pixelsPtr);
         glTextureSubImage2D(texture, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, pixelsPtr);
 
         texnames[tex] = texture;
