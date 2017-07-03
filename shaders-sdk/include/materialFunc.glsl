@@ -445,6 +445,18 @@ int applyLight(in Ray directRay, inout Ray newRay, in vec3 normal){
 #endif
 }
 
+
+float DRo = 1.f;
+
+float beckmannDistribution(in float x, in float roughness) {
+    float NdotH = abs(x);
+    float cos2Alpha = NdotH * NdotH;
+    float tan2Alpha = (cos2Alpha - 1.0) / cos2Alpha;
+    float roughness2 = roughness * roughness;
+    float denom = 3.141592653589793 * roughness2 * cos2Alpha * cos2Alpha;
+    return exp(tan2Alpha / roughness2) / denom;
+}
+
 Ray directLight(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 normal){
     if (directRay.params.w == 1) return directRay;
     directRay.bounce = min(1, directRay.bounce);
@@ -453,10 +465,22 @@ Ray directLight(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 n
     directRay.params.x = 0;
     directRay.params.y = i;
 
-    const float cos_a_max = sqrt(1.f - clamp(lightUniform[i].lightColor.w * lightUniform[i].lightColor.w / sqlen(lightCenter(i).xyz-directRay.origin.xyz), 0.f, 1.f));
-    directRay.direct.xyz = normalize(sLight(i) - directRay.origin.xyz);
-    directRay.color.xyz *= color * clamp(dot(directRay.direct.xyz, normal), 0.0f, 1.0f) * ((1.0f - cos_a_max) * 2.0f);
+    const vec3 ltr = lightCenter(i).xyz-directRay.origin.xyz;
+    const float cos_a_max = sqrt(1.f - clamp(lightUniform[i].lightColor.w * lightUniform[i].lightColor.w / sqlen(ltr), 0.f, 1.f));
+    const vec3 lcenter = sLight(i);
+    const vec3 ldirect = normalize(lcenter - directRay.origin.xyz);
+    const float diffuseWeight = clamp(dot(ldirect, normal), 0.0f, 1.0f);
+    
+    directRay.direct.xyz = ldirect;
+    directRay.color.xyz *= color * diffuseWeight * ((1.0f - cos_a_max) * 2.0f);
     return directRay;
+}
+
+Ray directLight(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 normal, in float roughness){
+    DRo = clamp(roughness, 0.001f, 1.0f);
+    Ray drtRay = directLight(i, directRay, hit, color, normal);
+    DRo = 1.0f;
+    return drtRay;
 }
 
 Ray diffuse(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal){

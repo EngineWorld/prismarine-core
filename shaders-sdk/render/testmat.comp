@@ -216,7 +216,7 @@ void main() {
 
         // emit ray
         emitentRay = diffuse(emitentRay, hit, tx.xyz, normal);
-        applyLight(directLight(0, emitentRay, hit, vec3(1.0f), normal), emitentRay, surfacenormal); // push shadow
+        applyLight(directLight(0, emitentRay, hit, vec3(1.0f), normal, 0.0f), emitentRay, surfacenormal); // push shadow
         emitRay(emitentRay, hit, normal, 1.0f);
 
         // transparency ray 
