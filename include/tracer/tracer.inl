@@ -434,17 +434,19 @@ namespace Paper {
 
         this->bind();
 
+        /*
         GLuint boundBuf;
         glCreateBuffers(1, &boundBuf);
         glNamedBufferData(boundBuf, strided<bbox>(1), &bound, GL_STATIC_DRAW);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, quantized);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, boundBuf);
+        */
 
         glUseProgram(reclaimProgram);
         glDispatchCompute(tiled(rsize, worksize), 1, 1);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
-        glDeleteBuffers(1, &boundBuf);
+        //glDeleteBuffers(1, &boundBuf);
         reloadQueuedRays(true, true);
     }
 

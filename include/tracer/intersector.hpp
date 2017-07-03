@@ -9,7 +9,7 @@ namespace Paper {
 
     class Intersector : public PTObject {
     private:
-        RadixSort * sorter;
+        RadixSort * sorter = nullptr;
 
         const int32_t zero[1] = { 0 };
         bool dirty = false;

@@ -11,7 +11,7 @@ namespace Paper {
 
     class Tracer : public PTObject {
     private:
-        RadixSort * sorter;
+        RadixSort * sorter = nullptr;
 
         GLuint renderProgram = -1;
         GLuint matProgram = -1;
