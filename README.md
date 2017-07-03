@@ -1,32 +1,31 @@
-# 📝 OpenGL Ray Tracer (aka. "Paper") 📝
+# OpenGL Ray Tracer (aka. "Paper")
 
-## 🔤 Details
+## Details
 
 - Here is headers-only (at this moment) ray tracer. May used for other projects. Main framework in shaders.
 
-## ➕ Features: 
+## Features: 
 
 - CMake support (Windows)
 - Fixed most bugs
 - GPU optimized BVH (HLBVH)
-- Direct lighting for sun
+- Direct light for sun
 - OpenGL 4.5 based
-- Support NVidia GTX (tested with Pascal), planned AMD
-- Real-time and interactive
-- Optimized rays usage
+- Support NVidia GTX 1070 and newer
+- Optimized for performance
+- Open source (at now)
 
-## 🔂 Requirement
+## Requirement
 
 - OpenGL 4.5 with extensions :)
 - Latest CMake
 
-## ⏪ Building 
+## Building 
 
-- First, need clone PhantomGL headers and copy "phantom" to include dir. 
 - Run CMAKE and configure project (probably, available only for Windows)
 - Also, you need [shaderc](https://github.com/google/shaderc) for preprocess shaders (also can be found with Vulkan SDK)
 
-## 💫 Running and testing
+## Running and testing
 
 Basic render application: 
 
@@ -36,23 +35,22 @@ ${ApplicationName}.exe -m sponza.obj -s 1.0
 -s 1.0              - scaling of 3D model
 ```
 
-## 🌐 Screenshots
+## Screenshots
 
-### glTF PBR (24-06-2017)
+### glTF PBR (04-07-2017)
 
-<img src="./screenshots/gltf-pbr0.jpg" alt="Sponza" width="640"/>
-<img src="./screenshots/gltf-pbr1.jpg" alt="Sponza" width="640"/>
-<img src="./screenshots/gltf-pbr2.jpg" alt="Sponza" width="640"/>
+<img src="./screenshots/gltf-pbr0-g1.jpg" alt="Sponza" width="640"/>
+<img src="./screenshots/gltf-pbr1-g1.jpg" alt="Sponza" width="640"/>
 
-## 🆙 Contributors
+## Contributors
 
 - ???
 
-## 🔟 Leaders
+## Leaders
 
 - Alexey S (capitalknew@gmail.com)
 
-## 🆗 Inspired by
+## Inspired by
 
 - [RadeonRays SDK](https://github.com/GPUOpen-LibrariesAndSDKs/RadeonRays_SDK)
 - [WebGL Path Tracing by evanw (and forks)](https://github.com/evanw/webgl-path-tracing)

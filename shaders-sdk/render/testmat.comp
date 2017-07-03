@@ -182,7 +182,7 @@ void main() {
     vec4 tts = 1.0f - clamp(fetchTransmission(materialCache, hit.texcoord.xy, newRay.direct.xyz, normal), vec4(0.0f), vec4(1.0f));
     vec4 sp = clamp(fetchSpecular(materialCache, hit.texcoord.xy, newRay.direct.xyz, normal), vec4(0.0f), vec4(1.0f));
     vec4 emi = materialCache.emissive * fetchEmissive(materialCache, hit.texcoord.xy, newRay.direct.xyz, normal) * 3.0f;
-    vec3 dielectric = vec3(clamp(0.04f + pow(1.0f - abs(dot(dir, normal)), 5.0f), 0.0f, 1.0f));
+    vec3 dielectric = vec3(clamp(0.04f + pow(1.0f - abs(dot(dir, normal)), 4.0f), 0.0f, 1.0f));
     vec3 sc = mix(dielectric, tx.xyz, sp.z);
 
     // we coming to PBR model
