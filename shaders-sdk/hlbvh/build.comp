@@ -60,9 +60,8 @@ void main() {
         HlbvhNode node = Nodes[threadID];
         node.box.mn = vec4(0.0f);
         node.box.mx = vec4(0.0f);
-        node.range = ivec2(0, Range.y-1);
-        node.parent = -1;
-        node.triangle = -1;
+        node.pdata.xy = ivec2(0, Range.y-1);
+        node.pdata.zw = ivec2(-1);
         
         Nodes[threadID] = node;
         Flags[threadID] = 0;
@@ -80,9 +79,9 @@ void main() {
             if (prID < lRange[1]) {
                 HlbvhNode parentNode = Nodes[prID];
 
-                if (parentNode.range.x != parentNode.range.y) {
+                if (parentNode.pdata.x != parentNode.pdata.y) {
                     // find split
-                    const int split = findSplit(parentNode.range.x, parentNode.range.y);
+                    const int split = findSplit(parentNode.pdata.x, parentNode.pdata.y);
 
                     // add to list
                     const int hid = atomicAdd(lCounter, 2);
@@ -92,16 +91,14 @@ void main() {
                     HlbvhNode leftNode = Nodes[lid];
                     leftNode.box.mn = vec4(0.0f);
                     leftNode.box.mx = vec4(0.0f);
-                    leftNode.range = ivec2(parentNode.range.x, split+0);
-                    leftNode.parent = int(prID);
-                    leftNode.triangle = -1;
+                    leftNode.pdata.xy = ivec2(parentNode.pdata.x, split+0);
+                    leftNode.pdata.zw = ivec2(prID, -1);
                     
                     HlbvhNode rightNode = Nodes[rid];
                     rightNode.box.mn = vec4(0.0f);
                     rightNode.box.mx = vec4(0.0f);
-                    rightNode.range = ivec2(split+1, parentNode.range.y);
-                    rightNode.parent = int(prID);
-                    rightNode.triangle = -1;
+                    rightNode.pdata.xy = ivec2(split+1, parentNode.pdata.y);
+                    rightNode.pdata.zw = ivec2(prID, -1);
                     
                     // left node
                     Nodes[lid] = leftNode;
@@ -112,22 +109,22 @@ void main() {
                     Flags[rid] = 0;
 
                     // connect with childrens
-                    parentNode.range = ivec2(lid, rid);
+                    parentNode.pdata.xy = ivec2(lid, rid);
                     Nodes[prID] = parentNode;
                 } else {
-                    uint leafID = MortoncodesIndices[parentNode.range.x];
+                    uint leafID = MortoncodesIndices[parentNode.pdata.x];
                     
                     // make leafs
                     Leaf ourLeaf = Leafs[leafID];
-                    ourLeaf.parent = int(prID);
+                    ourLeaf.pdata.z = int(prID);
                     Leafs[leafID] = ourLeaf;
 
                     // load leaf data
+                    int parentTmp = parentNode.pdata.z;
                     parentNode.box.mn = ourLeaf.box.mn;
                     parentNode.box.mx = ourLeaf.box.mx;
-                    parentNode.range = ourLeaf.range;
-                    parentNode.parent = parentNode.parent;
-                    parentNode.triangle = ourLeaf.triangle;
+                    parentNode.pdata = ourLeaf.pdata;
+                    parentNode.pdata.z = parentTmp;
                     Nodes[prID] = parentNode;
                 }
             }

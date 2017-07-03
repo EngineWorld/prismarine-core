@@ -259,17 +259,17 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
         const HlbvhNode node = Nodes[idx];
 
         // is leaf
-        const bool isLeaf = node.range.x == node.range.y && validBox;
+        const bool isLeaf = node.pdata.x == node.pdata.y && validBox;
         if (anyInvocationARB(isLeaf)) {
         //if (isLeaf) {
-            testIntersection(lastRes, origin, direct, node.triangle, isLeaf);
+            testIntersection(lastRes, origin, direct, node.pdata.w, isLeaf);
         }
 
-        bool notLeaf = node.range.x != node.range.y && validBox;
+        bool notLeaf = node.pdata.x != node.pdata.y && validBox;
         if (anyInvocationARB(notLeaf)) {
         //if (notLeaf) {
-            const bbox lbox = Nodes[node.range.x].box;
-            const bbox rbox = Nodes[node.range.y].box;
+            const bbox lbox = Nodes[node.pdata.x].box;
+            const bbox rbox = Nodes[node.pdata.y].box;
             const vec2 inf2 = vec2(INFINITY);
             vec2 nearsLR = inf2;
             vec2 farsLR = inf2;
@@ -292,7 +292,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
             //if (anyOverlap) {
                 const bool leftOrder = all(overlaps) ? lessEqualF(hits.x, hits.y) : overlaps.x;
 
-                ivec2 leftright = mix(ivec2(-1), node.range, overlaps);
+                ivec2 leftright = mix(ivec2(-1), node.pdata.xy, overlaps);
                 leftright = leftOrder ? leftright : leftright.yx;
 
                 if (anyOverlap) {

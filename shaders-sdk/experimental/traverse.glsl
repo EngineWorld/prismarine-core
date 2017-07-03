@@ -255,18 +255,18 @@ TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
         if (ibs(validBox[L])) break;
         const HlbvhNode node = Nodes[idx[L]];
 
-        const bool isLeaf = node.range.x == node.range.y && validBox[L];
+        const bool isLeaf = node.pdata.x == node.pdata.y && validBox[L];
         if (bs(isLeaf)) {
-            testIntersection(lastRes, origin, direct, node.triangle, bakedStep, isLeaf);
+            testIntersection(lastRes, origin, direct, node.pdata.w, bakedStep, isLeaf);
         }
 
-        const bool notLeaf = node.range.x != node.range.y && validBox[L];
+        const bool notLeaf = node.pdata.x != node.pdata.y && validBox[L];
         if (bs(notLeaf)) {
 
             // search intersection worklets (3 lanes occupy)
             const vec2 t12_leftright[2] = {
-                intersectCubeSingleApart(torig, dirproj, swiz(Nodes[node.range.x].box.mn), swiz(Nodes[node.range.x].box.mx)),
-                intersectCubeSingleApart(torig, dirproj, swiz(Nodes[node.range.y].box.mn), swiz(Nodes[node.range.y].box.mx))
+                intersectCubeSingleApart(torig, dirproj, swiz(Nodes[node.pdata.x].box.mn), swiz(Nodes[node.pdata.x].box.mx)),
+                intersectCubeSingleApart(torig, dirproj, swiz(Nodes[node.pdata.y].box.mn), swiz(Nodes[node.pdata.y].box.mx))
             };
             
             // transpose from both nodes
@@ -293,7 +293,7 @@ TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
                 const bool leftNearb = lessEqualF(x(leftrighthit), y(leftrighthit));
                 if (overlapAny && mt()) {
                     const bool leftOrder = all(overlaps) ? leftNearb : overlaps.x;
-                    ivec2 leftright = mix(ivec2(-1), node.range.xy, overlaps);
+                    ivec2 leftright = mix(ivec2(-1), node.pdata.xy, overlaps);
                     leftright = leftOrder ? leftright : leftright.yx;
                     if (deferredPtr[L] < STACK_SIZE && leftright.y != -1) {
                         deferredStack[L][deferredPtr[L]++] = leftright.y;

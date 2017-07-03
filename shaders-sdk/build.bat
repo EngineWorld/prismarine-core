@@ -40,7 +40,6 @@ call glslc %INDIR%%HLBV%aabbmaker.comp     %CMPPROF% %CFLAGS% -o %OUTDIR%%HLBV%a
 call glslc %INDIR%%HLBV%build.comp         %CMPPROF% %CFLAGS% -o %OUTDIR%%HLBV%build.comp
 call glslc %INDIR%%HLBV%minmax.comp        %CMPPROF% %CFLAGS% -o %OUTDIR%%HLBV%minmax.comp
 call glslc %INDIR%%HLBV%refit.comp         %CMPPROF% %CFLAGS% -o %OUTDIR%%HLBV%refit.comp
-call glslc %INDIR%%HLBV%resort.comp        %CMPPROF% %CFLAGS% -o %OUTDIR%%HLBV%resort.comp
 
 call glslc %INDIR%%RDXI%histogram.comp     %CMPPROF% %CFLAGS% -o %OUTDIR%%RDXI%histogram.comp
 call glslc %INDIR%%RDXI%permute.comp       %CMPPROF% %CFLAGS% -o %OUTDIR%%RDXI%permute.comp

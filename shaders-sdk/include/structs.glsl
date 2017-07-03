@@ -132,17 +132,13 @@ struct Hit {
 
 struct Leaf {
     bbox box;
-    iVc2 range;
-    iVc1 parent;
-    iVc1 triangle;
+    iVc4 pdata;
 };
 
 struct HlbvhNode {
     bbox box;
-    iVc2 range;
-    iVc1 parent;
-    iVc1 triangle;
-    iVc4 _fix; // fuck you, drivers!
+    iVc4 pdata;
+    iVc4 leading;
 };
 
 struct VboDataStride {
