@@ -57,6 +57,7 @@ namespace Paper {
 
         const int32_t zero[1] = { 0 };
         void initShaderCompute(std::string str, GLuint& prog);
+        void initShaderComputeSPIRV(std::string str, GLuint& prog);
         void initShaders();
         void init();
 

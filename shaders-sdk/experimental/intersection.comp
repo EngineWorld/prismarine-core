@@ -91,7 +91,7 @@ void main() {
     const int it = invoc(int(gl_GlobalInvocationID.x));
     //if (it >= RAY_BLOCK samplerUniform.rayCount) return;
  
-    const int t = actived[it];
+    const int t = activedBuf.indc[it];
     Ray ray = fetchRayDirect(t);
     Hit hit = fetchHitDirect(t);
     TResult res = traverse(hit.dist, ray.origin.xyz, ray.direct.xyz, hit);

@@ -4,32 +4,40 @@
 #include "../include/STOmath.glsl"
 #include "../include/morton.glsl"
 
-layout ( std430, binding = 0 )  buffer RaysSSBO { Ray rays[]; };
-layout ( std430, binding = 1 )  buffer HitsSSBO { Hit hits[]; };
-layout ( std430, binding = 2 )  buffer TexelsSSBO { Texel texelInfo[]; };
-layout ( std430, binding = 6 ) readonly buffer ActivedIndicesSSBO { int actived[]; };
-layout ( std430, binding = 7 )  buffer CollectedActivesSSBO { int qrays[]; };
-layout ( std430, binding = 8 )  buffer FreedomIndicesSSBO { int freedoms[]; };
-layout ( std430, binding = 14 ) readonly buffer AvailablesIndicesSSBO { int availables[]; };
-layout ( std430, binding = 20 )  buffer CounterBlock { int arcounter[5]; };
-layout ( std430, binding = 21 )  buffer ColorChainBlock { ColorChain colorchains[]; };
+layout ( std430, binding = 0 )  buffer RaysSSBO { Ray nodes[]; } rayBuf;
+layout ( std430, binding = 1 )  buffer HitsSSBO { Hit nodes[]; } hitBuf;
+layout ( std430, binding = 2 )  buffer TexelsSSBO { Texel nodes[]; } texelBuf;
+layout ( std430, binding = 6 ) readonly buffer ActivedIndicesSSBO { int indc[]; } activedBuf;
+layout ( std430, binding = 7 )  buffer CollectedActivesSSBO { int indc[]; } collBuf;
+layout ( std430, binding = 8 )  buffer FreedomIndicesSSBO { int indc[]; } freedBuf;
+layout ( std430, binding = 14 ) readonly buffer AvailablesIndicesSSBO { int indc[]; } availBuf;
+layout ( std430, binding = 20 )  buffer CounterBlock { 
+    int At;
+    int Rt;
+    int Qt;
+    int Ut;
+    int Ct;
+} arcounter;
+layout ( std430, binding = 21 )  buffer ColorChainBlock { ColorChain chains[]; } chBuf;
 
+/*
 const uint At = 0;
 const uint Rt = 1;
 const uint Qt = 2;
 const uint Ut = 3;
 const uint Ct = 4;
+*/
 
 void _collect(inout Ray ray) {
     const vec4 color = max(ray.final, vec4(0.f));
     const float amplitude = mlength(color.xyz);
     if (amplitude >= 0.00001f) {
-        int idx = atomicAdd(arcounter[Ct], 1);
-        int prev = atomicExchange(texelInfo[ray.texel].EXT.y, idx);
-        ColorChain ch = colorchains[idx];
+        int idx = atomicAdd(arcounter.Ct, 1);
+        int prev = atomicExchange(texelBuf.nodes[ray.texel].EXT.y, idx);
+        ColorChain ch = chBuf.chains[idx];
         ch.color = ray.final;
         ch.cdata.x = prev;
-        colorchains[idx] = ch;
+        chBuf.chains[idx] = ch;
     }
     ray.final.xyzw = vec4(0.0f);
 
@@ -38,14 +46,14 @@ void _collect(inout Ray ray) {
     const float amplitude = mlength(color.xyz);
     if (amplitude >= 0.00001f) {
 #ifdef ENABLE_NVIDIA_INSTRUCTION_SET
-        atomicAdd(texelInfo[ray.texel].samplecolor.x, color.x);
-        atomicAdd(texelInfo[ray.texel].samplecolor.y, color.y);
-        atomicAdd(texelInfo[ray.texel].samplecolor.z, color.z);
+        atomicAdd(texelBuf.nodes[ray.texel].samplecolor.x, color.x);
+        atomicAdd(texelBuf.nodes[ray.texel].samplecolor.y, color.y);
+        atomicAdd(texelBuf.nodes[ray.texel].samplecolor.z, color.z);
 #else
         const ivec3 gcol = ivec3(dvec3(color.xyz) * COMPATIBLE_PRECISION);
-        atomicAdd(texelInfo[ray.texel].samplecolor.x, gcol.x);
-        atomicAdd(texelInfo[ray.texel].samplecolor.y, gcol.y);
-        atomicAdd(texelInfo[ray.texel].samplecolor.z, gcol.z);
+        atomicAdd(texelBuf.nodes[ray.texel].samplecolor.x, gcol.x);
+        atomicAdd(texelBuf.nodes[ray.texel].samplecolor.y, gcol.y);
+        atomicAdd(texelBuf.nodes[ray.texel].samplecolor.z, gcol.z);
 #endif
     }
     ray.final.xyzw = vec4(0.0f);
@@ -56,7 +64,7 @@ void storeHit(in int hitIndex, inout Hit hit) {
     if (hitIndex == -1 || hitIndex == LONGEST || hitIndex >= RAY_BLOCK samplerUniform.currentRayLimit) {
         return;
     }
-    hits[hitIndex] = hit;
+    hitBuf.nodes[hitIndex] = hit;
 }
 
 void storeHit(inout Ray ray, inout Hit hit) {
@@ -71,15 +79,15 @@ int storeRay(in int rayIndex, inout Ray ray) {
 
     int actived = -1;
     if (ray.actived == 1) {
-        const int act = atomicAdd(arcounter[At], 1);
-        qrays[act] = rayIndex; actived = act;
+        const int act = atomicAdd(arcounter.At, 1);
+        collBuf.indc[act] = rayIndex; actived = act;
     } else { // if not actived, why need?
-        const int freed = atomicAdd(arcounter[Qt], 1);
-        freedoms[freed] = rayIndex;
+        const int freed = atomicAdd(arcounter.Qt, 1);
+        freedBuf.indc[freed] = rayIndex;
     }
 
     ray.idx = rayIndex;
-    rays[rayIndex] = ray;
+    rayBuf.nodes[rayIndex] = ray;
     return actived;
 }
 
@@ -100,7 +108,7 @@ int createRayStrict(inout Ray original, in int idx, in int rayIndex) {
 
     Hit hit;
     if (original.idx != LONGEST) {
-        hit = hits[original.idx];
+        hit = hitBuf.nodes[original.idx];
     } else {
         hit.normal = vec4(0.0f);
         hit.tangent = vec4(0.0f);
@@ -110,16 +118,16 @@ int createRayStrict(inout Ray original, in int idx, in int rayIndex) {
     }
     hit.shaded = 1;
 
-    hits[rayIndex] = hit;
-    rays[rayIndex] = ray;
+    hitBuf.nodes[rayIndex] = hit;
+    rayBuf.nodes[rayIndex] = ray;
 
     // if not active, does not use and free for nexts
     if(ray.actived == 1) {
-        const int act = atomicAdd(arcounter[At], 1);
-        qrays[act] = rayIndex;
+        const int act = atomicAdd(arcounter.At, 1);
+        collBuf.indc[act] = rayIndex;
     } else {
-        const int freed = atomicAdd(arcounter[Qt], 1);
-        freedoms[freed] = rayIndex;
+        const int freed = atomicAdd(arcounter.Qt, 1);
+        freedBuf.indc[freed] = rayIndex;
     }
     return rayIndex;
 }
@@ -138,15 +146,15 @@ int createRay(inout Ray original, in int idx) {
         mlength(original.color.xyz) < 0.00001f
     ) return -1; 
     
-    atomicMax(arcounter[Ut], 0); // prevent most decreasing
-    const int freed = atomicAdd(arcounter[Ut], -1)-1;
-    atomicMax(arcounter[Ut], 0); // prevent most decreasing
+    atomicMax(arcounter.Ut, 0); // prevent most decreasing
+    const int freed = atomicAdd(arcounter.Ut, -1)-1;
+    atomicMax(arcounter.Ut, 0); // prevent most decreasing
     int rayIndex = 0;
-    if (freed >= 0 && availables[freed] != 0xFFFFFFFF) {
-        rayIndex = availables[freed];
-        //availables[freed] = 0xFFFFFFFF;
+    if (freed >= 0 && availBuf.indc[freed] != 0xFFFFFFFF) {
+        rayIndex = availBuf.indc[freed];
+        //availBuf.indc[freed] = 0xFFFFFFFF;
     } else {
-        rayIndex = atomicAdd(arcounter[Rt], 1);
+        rayIndex = atomicAdd(arcounter.Rt, 1);
     }
     return createRayStrict(original, idx, rayIndex);
 }
@@ -159,7 +167,7 @@ int createRayIdx(inout Ray original, in int idx, in int rayIndex) {
         mlength(original.color.xyz) < 0.00001f
     ) return -1; 
     
-    atomicMax(arcounter[Rt], rayIndex+1);
+    atomicMax(arcounter.Rt, rayIndex+1);
     return createRayStrict(original, idx, rayIndex);
 }
 
@@ -176,15 +184,15 @@ int createRay(in int idx) {
 }
 
 Ray fetchRayDirect(in int texel) {
-    return rays[texel];
+    return rayBuf.nodes[texel];
 }
 
 Hit fetchHitDirect(in int texel) {
-    return hits[texel];
+    return hitBuf.nodes[texel];
 }
 
 Hit fetchHit(in Ray ray){
-    return hits[ray.idx];
+    return hitBuf.nodes[ray.idx];
 }
 
 

@@ -26,12 +26,14 @@ void main()
         vec2 coord = (vec2(xy) + clamp(vec2(random(), random()), vec2(0.00001f), vec2(0.99999f))) * sceneResInv;
 
         const int idx = int(it);
-        texelInfo[idx].coord.x = coord.x;
-        texelInfo[idx].coord.y = coord.y;
-        texelInfo[idx].EXT = ivec4(0);
-        texelInfo[idx].EXT.x = -1; //Object-Selection
-        //texelInfo[idx].samplecolor.x = texelInfo[idx].samplecolor.y = texelInfo[idx].samplecolor.z = 0;
-        texelInfo[idx].EXT.y = -1; // no chains
+
+        Texel txfi = texelBuf.nodes[idx];
+        txfi.coord.x = coord.x;
+        txfi.coord.y = coord.y;
+        txfi.EXT = ivec4(0);
+        txfi.EXT.x = -1; //Object-Selection
+        txfi.EXT.y = -1; // no chains
+        texelBuf.nodes[idx] = txfi;
 
         if (RAY_BLOCK cameraUniform.interlace == 1){
             if ((abs(xy.x + xy.y) % 2) == RAY_BLOCK cameraUniform.interlaceStage) return;

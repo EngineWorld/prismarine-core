@@ -19,7 +19,7 @@ vec4 collectSamples(in Texel txiho){
     int sid = txiho.EXT.y;
     for (int i=0;i<32;i++) {
         if (sid < 0 || sid == LONGEST) break; 
-        ColorChain ch = colorchains[sid];
+        ColorChain ch = chBuf.chains[sid];
         sampled += ch.color;
         sid = ch.cdata.x;
     }
@@ -48,7 +48,7 @@ void main(){
                     if ((abs(cmp.x + cmp.y) % 2) == RAY_BLOCK cameraUniform.interlaceStage) continue;
                 }
 
-                const vec2 surround = vec2(texelInfo[ts].coord.x, texelInfo[ts].coord.y) * vec2(whs);
+                const vec2 surround = vec2(texelBuf.nodes[ts].coord.x, texelBuf.nodes[ts].coord.y) * vec2(whs);
                 const vec2 diff = surround - screen;
                 if (
                     diff.x >= -0.0f &&
@@ -57,23 +57,7 @@ void main(){
                     diff.y < 1.0f
                 ) {
                     samplecount++;
-                    newc.xyz += collectSamples(texelInfo[ts]).xyz;
-
-                    /*
-#ifdef ENABLE_NVIDIA_INSTRUCTION_SET
-                    newc.xyz += vec3(
-                        texelInfo[ts].samplecolor.x,
-                        texelInfo[ts].samplecolor.y,
-                        texelInfo[ts].samplecolor.z
-                    );
-#else
-                    newc.xyz += vec3(dvec3(
-                        texelInfo[ts].samplecolor.x,
-                        texelInfo[ts].samplecolor.y,
-                        texelInfo[ts].samplecolor.z
-                    ) / COMPATIBLE_PRECISION);
-#endif
-                    */
+                    newc.xyz += collectSamples(texelBuf.nodes[ts]).xyz;
                 }
             }
             

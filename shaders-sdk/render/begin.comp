@@ -14,7 +14,7 @@ void main()
 {
     const int it = int(gl_GlobalInvocationID.x);
     if (it >= RAY_BLOCK samplerUniform.rayCount) return;
-    const int t = actived[it];
+    const int t = activedBuf.indc[it];
     Hit hit = fetchHitDirect(t);
     Ray ray = fetchRayDirect(t);
     hit.dist = INFINITY + PZERO;

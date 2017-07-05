@@ -3,11 +3,11 @@
 
 #include "../include/structs.glsl"
 
-//#define RAY_BLOCK rayBlock. 
-//#define GEOMETRY_BLOCK geometryBlock.  
+#define RAY_BLOCK rayBlock. 
+#define GEOMETRY_BLOCK geometryBlock.  
 
-#define RAY_BLOCK 
-#define GEOMETRY_BLOCK 
+//#define RAY_BLOCK 
+//#define GEOMETRY_BLOCK 
 
 struct RandomUniformStruct {
     Vc1 time;
@@ -113,21 +113,21 @@ struct AttributeUniformStruct {
 };
 
 layout ( std430, binding = 10 ) readonly buffer LightUniform {
-    LightUniformStruct lightUniform[];
-};
+    LightUniformStruct lightNode[];
+} lightUniform;
 
 layout ( std430, binding = 11 ) readonly buffer RayBlockUniform {
     SamplerUniformStruct samplerUniform;
     CameraUniformStruct cameraUniform;
     MaterialUniformStruct materialUniform;
     RandomUniformStruct randomUniform;
-}; 
+} rayBlock; 
 
 layout ( std430, binding = 12 ) readonly buffer GeometryBlockUniform {
     AttributeUniformStruct attributeUniform;
     GeometryUniformStruct geometryUniform;
     OctreeUniformStruct octreeUniform;
     MinmaxUniformStruct minmaxUniform;
-};
+} geometryBlock;
 
 #endif

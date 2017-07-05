@@ -18,7 +18,7 @@ void main(){
     const int it = int(gl_GlobalInvocationID.x);
     if (it >= RAY_BLOCK samplerUniform.rayCount) return;
 
-    const int t = actived[it];
+    const int t = activedBuf.indc[it];
     Ray ray = fetchRayDirect(t);
     rayMorton[it] = quantizeRay(ray, inbound.mn.xyz, inbound.mx.xyz);
 }

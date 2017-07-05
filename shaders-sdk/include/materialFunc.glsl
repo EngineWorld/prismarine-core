@@ -430,12 +430,12 @@ Ray refraction(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal, in floa
 
 vec3 lightCenter(in int i){
     const vec3 playerCenter = vec3(0.0f);
-    const vec3 lvec = normalize(lightUniform[i].lightVector.xyz) * (lightUniform[i].lightVector.y < 0.0f ? -1.0f : 1.0f);
-    return fma(lvec, vec3(lightUniform[i].lightVector.w), (lightUniform[i].lightOffset.xyz + playerCenter.xyz));
+    const vec3 lvec = normalize(lightUniform.lightNode[i].lightVector.xyz) * (lightUniform.lightNode[i].lightVector.y < 0.0f ? -1.0f : 1.0f);
+    return fma(lvec, vec3(lightUniform.lightNode[i].lightVector.w), (lightUniform.lightNode[i].lightOffset.xyz + playerCenter.xyz));
 }
 
 vec3 sLight(in int i){
-    return fma(randomDirectionInSphere(), vec3(lightUniform[i].lightColor.w), lightCenter(i));
+    return fma(randomDirectionInSphere(), vec3(lightUniform.lightNode[i].lightColor.w), lightCenter(i));
 }
 
 int applyLight(in Ray directRay, inout Ray newRay, in vec3 normal){
@@ -470,7 +470,7 @@ Ray directLight(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 n
     directRay.params.y = i;
 
     const vec3 ltr = lightCenter(i).xyz-directRay.origin.xyz;
-    const float cos_a_max = sqrt(1.f - clamp(lightUniform[i].lightColor.w * lightUniform[i].lightColor.w / sqlen(ltr), 0.f, 1.f));
+    const float cos_a_max = sqrt(1.f - clamp(lightUniform.lightNode[i].lightColor.w * lightUniform.lightNode[i].lightColor.w / sqlen(ltr), 0.f, 1.f));
     const vec3 lcenter = sLight(i);
     const vec3 ldirect = normalize(lcenter - directRay.origin.xyz);
     const float diffuseWeight = clamp(dot(ldirect, normal), 0.0f, 1.0f);
@@ -521,8 +521,8 @@ int emitRay(in Ray directRay, in Hit hit, in vec3 normal, in float coef){
 
 vec3 lightCenterSky(in int i) {
     const vec3 playerCenter = vec3(0.0f);
-    const vec3 lvec = normalize(lightUniform[i].lightVector.xyz) * 1000.0f;
-    return lightUniform[i].lightOffset.xyz + lvec + playerCenter.xyz;
+    const vec3 lvec = normalize(lightUniform.lightNode[i].lightVector.xyz) * 1000.0f;
+    return lightUniform.lightNode[i].lightOffset.xyz + lvec + playerCenter.xyz;
 }
 
 float intersectSphere(in vec3 origin, in vec3 ray, in vec3 sphereCenter, in float sphereRadius) {
@@ -556,7 +556,7 @@ bool doesCubeIntersectSphere(in vec3 C1, in vec3 C2, in vec3 S, in float R)
 }
 
 vec3 getLightColor(in int lc){
-    return lightUniform[lc].lightColor.xyz;
+    return lightUniform.lightNode[lc].lightColor.xyz;
 }
 
 #endif
