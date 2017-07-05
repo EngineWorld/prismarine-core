@@ -14,6 +14,18 @@ layout ( binding = 0, r32ui ) uniform uimage2D sampleflags;
 layout ( binding = 2, rgba32f ) uniform image2D presampled;
 LOCAL_SIZE_LAYOUT;
 
+vec4 collectSamples(in Texel txiho){
+    vec4 sampled = vec4(0.0f);
+    int sid = txiho.EXT.y;
+    for (int i=0;i<32;i++) {
+        if (sid < 0 || sid == LONGEST) break; 
+        ColorChain ch = colorchains[sid];
+        sampled += ch.color;
+        sid = ch.cdata.x;
+    }
+    return sampled;
+}
+
 void main(){
     const int it = int(gl_GlobalInvocationID.x);
     const ivec2 wh = ivec2(RAY_BLOCK samplerUniform.sceneRes.xy);
@@ -45,6 +57,9 @@ void main(){
                     diff.y < 1.0f
                 ) {
                     samplecount++;
+                    newc.xyz += collectSamples(texelInfo[ts]).xyz;
+
+                    /*
 #ifdef ENABLE_NVIDIA_INSTRUCTION_SET
                     newc.xyz += vec3(
                         texelInfo[ts].samplecolor.x,
@@ -58,6 +73,7 @@ void main(){
                         texelInfo[ts].samplecolor.z
                     ) / COMPATIBLE_PRECISION);
 #endif
+                    */
                 }
             }
             

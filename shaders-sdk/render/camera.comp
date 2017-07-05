@@ -23,10 +23,6 @@ void main()
     const vec2 sceneResInv = 1.0f / vec2(RAY_BLOCK samplerUniform.sceneRes.xy);
     if (xy.x < wh.x && xy.y < wh.y) {
         
-        if (RAY_BLOCK cameraUniform.interlace == 1){
-            if ((abs(xy.x + xy.y) % 2) == RAY_BLOCK cameraUniform.interlaceStage) return;
-        }
-
         vec2 coord = (vec2(xy) + clamp(vec2(random(), random()), vec2(0.00001f), vec2(0.99999f))) * sceneResInv;
 
         const int idx = int(it);
@@ -34,7 +30,12 @@ void main()
         texelInfo[idx].coord.y = coord.y;
         texelInfo[idx].EXT = ivec4(0);
         texelInfo[idx].EXT.x = -1; //Object-Selection
-        texelInfo[idx].samplecolor.x = texelInfo[idx].samplecolor.y = texelInfo[idx].samplecolor.z = 0;
+        //texelInfo[idx].samplecolor.x = texelInfo[idx].samplecolor.y = texelInfo[idx].samplecolor.z = 0;
+        texelInfo[idx].EXT.y = -1; // no chains
+
+        if (RAY_BLOCK cameraUniform.interlace == 1){
+            if ((abs(xy.x + xy.y) % 2) == RAY_BLOCK cameraUniform.interlaceStage) return;
+        }
 
         if (enable360 == 1) {
             coord.x = 1.f - coord.x;

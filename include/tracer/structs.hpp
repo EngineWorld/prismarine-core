@@ -109,7 +109,7 @@ namespace Paper {
 
     struct Texel {
         Vc4 coord;
-        Vc4 samplecolor;
+        //Vc4 samplecolor;
         iVc4 EXT;
     };
 
@@ -132,6 +132,10 @@ namespace Paper {
         Vc4 modifiers;
     };
 
+    struct ColorChain {
+        Vc4 color = {0.0f, 0.0f, 0.0f, 0.0f};
+        iVc4 cdata = {0, 0, 0, 0};
+    };
 
 
 

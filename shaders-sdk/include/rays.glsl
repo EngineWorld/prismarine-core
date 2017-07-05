@@ -11,14 +11,29 @@ layout ( std430, binding = 6 ) readonly buffer ActivedIndicesSSBO { int actived[
 layout ( std430, binding = 7 )  buffer CollectedActivesSSBO { int qrays[]; };
 layout ( std430, binding = 8 )  buffer FreedomIndicesSSBO { int freedoms[]; };
 layout ( std430, binding = 14 ) readonly buffer AvailablesIndicesSSBO { int availables[]; };
-layout ( std430, binding = 20 )  buffer CounterBlock { int arcounter[4]; };
+layout ( std430, binding = 20 )  buffer CounterBlock { int arcounter[5]; };
+layout ( std430, binding = 21 )  buffer ColorChainBlock { ColorChain colorchains[]; };
 
 const uint At = 0;
 const uint Rt = 1;
 const uint Qt = 2;
 const uint Ut = 3;
+const uint Ct = 4;
 
 void _collect(inout Ray ray) {
+    const vec4 color = max(ray.final, vec4(0.f));
+    const float amplitude = mlength(color.xyz);
+    if (amplitude >= 0.00001f) {
+        int idx = atomicAdd(arcounter[Ct], 1);
+        int prev = atomicExchange(texelInfo[ray.texel].EXT.y, idx);
+        ColorChain ch = colorchains[idx];
+        ch.color = ray.final;
+        ch.cdata.x = prev;
+        colorchains[idx] = ch;
+    }
+    ray.final.xyzw = vec4(0.0f);
+
+    /*
     const vec4 color = max(ray.final, vec4(0.f));
     const float amplitude = mlength(color.xyz);
     if (amplitude >= 0.00001f) {
@@ -34,6 +49,7 @@ void _collect(inout Ray ray) {
 #endif
     }
     ray.final.xyzw = vec4(0.0f);
+    */
 }
 
 void storeHit(in int hitIndex, inout Hit hit) {

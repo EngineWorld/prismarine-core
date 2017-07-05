@@ -134,7 +134,7 @@ namespace Paper {
 
 
         glCreateBuffers(1, &arcounter);
-        glNamedBufferStorage(arcounter, strided<int32_t>(4), nullptr, GL_DYNAMIC_STORAGE_BIT);
+        glNamedBufferStorage(arcounter, strided<int32_t>(5), nullptr, GL_DYNAMIC_STORAGE_BIT);
 
         glCreateBuffers(1, &arcounterTemp);
         glNamedBufferStorage(arcounterTemp, strided<int32_t>(1), nullptr, GL_DYNAMIC_STORAGE_BIT);
@@ -219,14 +219,15 @@ namespace Paper {
         width = w;
         height = h;
 
-        if (rays       != -1) glDeleteBuffers(1, &rays);
-        if (hits       != -1) glDeleteBuffers(1, &hits);
-        if (activel    != -1) glDeleteBuffers(1, &activel);
-        if (activenl   != -1) glDeleteBuffers(1, &activenl);
-        if (texels     != -1) glDeleteBuffers(1, &texels);
-        if (freedoms   != -1) glDeleteBuffers(1, &freedoms);
-        if (availables != -1) glDeleteBuffers(1, &availables);
-        if (quantized  != -1) glDeleteBuffers(1, &quantized);
+        if (colorchains != -1) glDeleteBuffers(1, &colorchains);
+        if (rays        != -1) glDeleteBuffers(1, &rays);
+        if (hits        != -1) glDeleteBuffers(1, &hits);
+        if (activel     != -1) glDeleteBuffers(1, &activel);
+        if (activenl    != -1) glDeleteBuffers(1, &activenl);
+        if (texels      != -1) glDeleteBuffers(1, &texels);
+        if (freedoms    != -1) glDeleteBuffers(1, &freedoms);
+        if (availables  != -1) glDeleteBuffers(1, &availables);
+        if (quantized   != -1) glDeleteBuffers(1, &quantized);
 
         const int32_t wrsize = width * height;
         currentRayLimit = std::min(wrsize * 8, 4096 * 4096);
@@ -239,7 +240,9 @@ namespace Paper {
         glCreateBuffers(1, &texels);
         glCreateBuffers(1, &freedoms);
         glCreateBuffers(1, &availables);
+        glCreateBuffers(1, &colorchains);
 
+        glNamedBufferStorage(colorchains, strided<ColorChain>(currentRayLimit*2), nullptr, GL_DYNAMIC_STORAGE_BIT);
         glNamedBufferStorage(rays, strided<Ray>(currentRayLimit), nullptr, GL_DYNAMIC_STORAGE_BIT);
         glNamedBufferStorage(hits, strided<Hit>(currentRayLimit), nullptr, GL_DYNAMIC_STORAGE_BIT);
         glNamedBufferStorage(activel, strided<int32_t>(currentRayLimit), nullptr, GL_DYNAMIC_STORAGE_BIT);
@@ -291,6 +294,7 @@ namespace Paper {
     }
 
     inline void Tracer::bind() {
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 21, colorchains);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 20, arcounter);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, rays);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, hits);
@@ -313,7 +317,7 @@ namespace Paper {
         bound.mx.y = -100000.f;
         bound.mx.z = -100000.f;
         bound.mx.w = -100000.f;
-        for (int i = 0; i < 4;i++) {
+        for (int i = 0; i < 5;i++) {
             glCopyNamedBufferSubData(arcounterTemp, arcounter, 0, sizeof(uint32_t) * i, sizeof(uint32_t));
         }
     }

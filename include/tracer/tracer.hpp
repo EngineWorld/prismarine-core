@@ -22,6 +22,7 @@ namespace Paper {
         GLuint samplerProgram = -1;
         GLuint intersectionProgram = -1;
 
+        GLuint colorchains = -1;
         GLuint quantized = -1;
         GLuint rays = -1;
         GLuint hits = -1;
