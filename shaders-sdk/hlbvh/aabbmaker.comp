@@ -86,7 +86,7 @@ void main() {
     split[0] = 0;
     stack[0] = bbox(mn, mx);
 
-    const uint maxSplits = 1;
+    const uint maxSplits = 0;
     uint countBox = 1;
 
     for (uint i=0;i<countBox;i++) {
