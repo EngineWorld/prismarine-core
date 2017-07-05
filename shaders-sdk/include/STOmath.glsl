@@ -70,17 +70,17 @@ vec4 mult4(in mat4 tmat, in vec4 vec){
 
 
 void swap(inout int a, inout int b){
-    const int t = a;
+     int t = a;
     a = b;
     b = t;
 }
 
 uint exchange(inout uint mem, in uint v){
-    const uint tmp = mem; mem = v; return tmp;
+     uint tmp = mem; mem = v; return tmp;
 }
 
 int exchange(inout int mem, in int v){
-    const int tmp = mem; mem = v; return tmp;
+     int tmp = mem; mem = v; return tmp;
 }
 
 

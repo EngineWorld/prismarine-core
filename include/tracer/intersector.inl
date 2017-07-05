@@ -2,6 +2,50 @@
 
 namespace Paper {
 
+
+    inline void Intersector::initShaderComputeSPIRV(std::string path, GLuint & prog) {
+        //std::string str = readSource(path);
+        std::vector<GLchar> str = readBinary(path);
+
+        GLuint comp = glCreateShader(GL_COMPUTE_SHADER);
+        {
+            const GLchar * strc = str.data();//str.c_str();
+            int32_t size = str.size();
+            //glShaderSource(comp, 1, &strc, &size);
+            glShaderBinary(1, &comp, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, strc, size);
+            glSpecializeShaderARB(comp, "main", 0, nullptr, nullptr);
+            //glCompileShader(comp);
+
+            GLint status = false;
+            glGetShaderiv(comp, GL_COMPILE_STATUS, &status);
+            if (!status) {
+                char * log = new char[32768];
+                GLsizei len = 0;
+
+                //std::cout << str << std::endl;
+
+                glGetShaderInfoLog(comp, 32768, &len, log);
+                std::string logStr = std::string(log, len);
+                std::cerr << logStr << std::endl;
+            }
+        }
+
+        prog = glCreateProgram();
+        glAttachShader(prog, comp);
+        glLinkProgram(prog);
+
+        GLint status = false;
+        glGetProgramiv(prog, GL_LINK_STATUS, &status);
+        if (!status) {
+            char * log = new char[32768];
+            GLsizei len = 0;
+
+            glGetProgramInfoLog(prog, 32768, &len, log);
+            std::string logStr = std::string(log, len);
+            std::cerr << logStr << std::endl;
+        }
+    }
+
     inline void Intersector::initShaderCompute(std::string path, GLuint & prog) {
         std::string str = readSource(path);
 
@@ -41,13 +85,22 @@ namespace Paper {
     }
 
     inline void Intersector::initShaders() {
-        //initShaderCompute("./shaders/hlbvh/resort.comp", resortProgramH);
+        
         initShaderCompute("./shaders/hlbvh/refit.comp", refitProgramH);
         initShaderCompute("./shaders/hlbvh/build.comp", buildProgramH);
         initShaderCompute("./shaders/hlbvh/aabbmaker.comp", aabbMakerProgramH);
         initShaderCompute("./shaders/hlbvh/minmax.comp", minmaxProgram2);
         initShaderCompute("./shaders/tools/loader.comp", geometryLoaderProgram2);
         initShaderCompute("./shaders/tools/loader-int16.comp", geometryLoaderProgramI16);
+        
+        /*
+        initShaderComputeSPIRV("./shaders-spv/hlbvh/refit.comp.spv", refitProgramH);
+        initShaderComputeSPIRV("./shaders-spv/hlbvh/build.comp.spv", buildProgramH);
+        initShaderComputeSPIRV("./shaders-spv/hlbvh/aabbmaker.comp.spv", aabbMakerProgramH);
+        initShaderComputeSPIRV("./shaders-spv/hlbvh/minmax.comp.spv", minmaxProgram2);
+        initShaderComputeSPIRV("./shaders-spv/tools/loader.comp.spv", geometryLoaderProgram2);
+        initShaderComputeSPIRV("./shaders-spv/tools/loader-int16.comp.spv", geometryLoaderProgramI16);
+        */
     }
 
     inline void Intersector::init() {

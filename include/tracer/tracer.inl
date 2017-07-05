@@ -104,7 +104,6 @@ namespace Paper {
         initShaderCompute("./shaders/render/clear.comp", clearProgram);
         initShaderCompute("./shaders/render/sampler.comp", samplerProgram);
         initShaderCompute("./shaders/render/intersection.comp", intersectionProgram);
-        
 
         /*
 #ifdef USE_OPTIMIZED_RT

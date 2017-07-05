@@ -1,7 +1,7 @@
 // get relative invocation ID (active)
 uint activeInvocation() {
-    //const uint64_t activeBits = ballotARB(true) & gl_SubGroupLtMaskARB;
-    //const uvec2 unpacked = unpackUint2x32(activeBits);
+    // uint64_t activeBits = ballotARB(true) & gl_SubGroupLtMaskARB;
+    // uvec2 unpacked = unpackUint2x32(activeBits);
     //return (bitCount(unpacked.x) + bitCount(unpacked.y));
     return gl_SubGroupInvocationARB;
 }
@@ -17,40 +17,40 @@ uint offt4 = (gl_SubGroupInvocationARB>>2)<<2;
 
 // get grouped swizzle
 vec4 swiz4(in vec4 _vc) {
-    const vec4 vc = readInvocationARB(_vc, offt4);
-    //const uint sz = lane4;
+     vec4 vc = readInvocationARB(_vc, offt4);
+    // uint sz = lane4;
     return ((sz == 1) ? vc.yyyy : ((sz == 2) ? vc.zzzz : ((sz == 3) ? vc.wwww : vc.xxxx)));
 }
 
 
 // get swizzle component from packed vectors
 float swiz(in vec4 _vc) {
-    const vec4 vc = readInvocationARB(_vc, offt4);
-    //const uint sz = lane4;
+     vec4 vc = readInvocationARB(_vc, offt4);
+    // uint sz = lane4;
     return ((sz == 1) ? vc.y : ((sz == 2) ? vc.z : ((sz == 3) ? vc.w : vc.x)));
 }
 
 float swiz(in vec3 _vc) {
-    const vec3 vc = readInvocationARB(_vc, offt4);
-    //const uint sz = lane4;
+     vec3 vc = readInvocationARB(_vc, offt4);
+    // uint sz = lane4;
     return ((sz == 1) ? vc.y : ((sz == 2) ? vc.z : vc.x));
 }
 
 float swiz(in vec2 _vc) {
-    const vec2 vc = readInvocationARB(_vc, offt4);
-    //const uint sz = lane4;
+     vec2 vc = readInvocationARB(_vc, offt4);
+    // uint sz = lane4;
     return ((sz == 1) ? vc.y : vc.x);
 }
 
 int swiz(in ivec2 _vc) {
-    const ivec2 vc = readInvocationARB(_vc, offt4);
-    //const uint sz = lane4;
+     ivec2 vc = readInvocationARB(_vc, offt4);
+    // uint sz = lane4;
     return ((sz == 1) ? vc.y : vc.x);
 }
 
 bool swiz(in bvec2 _vc) {
-    const bvec2 vc = bvec2(readInvocationARB(uvec2(_vc), offt4));
-    //const uint sz = lane4;
+     bvec2 vc = bvec2(readInvocationARB(uvec2(_vc), offt4));
+    // uint sz = lane4;
     return ((sz == 1) ? vc.y : vc.x);
 }
 
@@ -110,20 +110,20 @@ bool w(in bool mem) { return lane(mem, 3); }
 
 // swap lanes
 float swapXY(in float mem){
-    const float _x = x(mem);
-    const float _y = y(mem);
+     float _x = x(mem);
+     float _y = y(mem);
     return laneP == 1 ? _x : _y;
 }
 
 int swapXY(in int mem){
-    const int _x = x(mem);
-    const int _y = y(mem);
+     int _x = x(mem);
+     int _y = y(mem);
     return laneP == 1 ? _x : _y;
 }
 
 uint swapXY(in uint mem){
-    const uint _x = x(mem);
-    const uint _y = y(mem);
+     uint _x = x(mem);
+     uint _y = y(mem);
     return laneP == 1 ? _x : _y;
 }
 
@@ -191,21 +191,21 @@ bool lessql(in int lane){
 // dot product between lanes, uses basic reduction
 float dot2(in float a, in float b) { // generally, only 2 ops only
     //return dot(compvec2(a), compvec2(b));
-    const float c = a * b;
+     float c = a * b;
     return x(c) + y(c);
 }
 
 float dot3(in float a, in float b) { // generally, only 3 ops only
     //return dot(compvec3(a), compvec3(b));
-    const float c = a * b;
-    const float pl = lessl(2) ? (x(c) + y(c)) : (z(c) + 0.0f);
+     float c = a * b;
+     float pl = lessl(2) ? (x(c) + y(c)) : (z(c) + 0.0f);
     return x(pl) + z(pl);
 }
 
 float dot4(in float a, in float b) { // generally, only 3 ops only
     //return dot(compvec4(a), compvec4(b));
-    const float c = a * b;
-    const float pl = lessl(2) ? (x(c) + y(c)) : (z(c) + w(c));
+     float c = a * b;
+     float pl = lessl(2) ? (x(c) + y(c)) : (z(c) + w(c));
     return x(pl) + z(pl);
 }
 
@@ -255,12 +255,12 @@ int invoc(in int inv){
 }
 
 // constants bank of cross lanes
-const uint cslnsX[4] = {1, 2, 0, 3};
-const uint cslnsY[4] = {2, 0, 1, 3};
+ uint cslnsX[4] = {1, 2, 0, 3};
+ uint cslnsY[4] = {2, 0, 1, 3};
 
 // cross lane "cross product"
 float cross3(in float a, in float b){
-    const uint ln = laneP&3;
+     uint ln = laneP&3;
     return dot(vec2(
          lane(a, cslnsX[ln]), 
          lane(b, cslnsX[ln])

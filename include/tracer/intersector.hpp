@@ -51,6 +51,7 @@ namespace Paper {
         GLuint minmaxBufRef = -1;
 
         void initShaderCompute(std::string str, GLuint& prog);
+        void initShaderComputeSPIRV(std::string str, GLuint& prog);
         void initShaders();
         void init();
 

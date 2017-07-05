@@ -7,31 +7,20 @@ const int bakedFragments = 8;
 int bakedStack[bakedFragments];
 int bakedStackCount = 0;
 
-/*
-// check for range of optimizable
-bool isOptimizable(in bool valid){
-    uint64_t ballout = ballotARB(valid);
-    uint64_t masked = ballout & gl_SubGroupGeMaskARB;
-    uint64_t ranged = masked >> uint64_t(gl_SubGroupInvocationARB);
-    //return (gl_SubGroupInvocationARB % 4 == 0) && (ranged > 0xF);
-    return (ranged > 0xF);
-}
-*/
-
 // WARP optimized triangle intersection
 float intersectTriangle(in vec3 orig, in vec3 dir, in vec3 ve[3], inout vec2 UV, in bool valid) {
     //if (allInvocationsARB(!valid)) return INFINITY;
     if (!valid) return INFINITY;
 
-    const vec3 e1 = ve[1] - ve[0];
-    const vec3 e2 = ve[2] - ve[0];
+     vec3 e1 = ve[1] - ve[0];
+     vec3 e2 = ve[2] - ve[0];
 
     valid = valid && !(length(e1) < 0.00001f && length(e2) < 0.00001f);
     //if (allInvocationsARB(!valid)) return INFINITY;
     if (!valid) return INFINITY;
 
-    const vec3 pvec = cross(dir, e2);
-    const float det = dot(e1, pvec);
+     vec3 pvec = cross(dir, e2);
+     float det = dot(e1, pvec);
 
 #ifndef CULLING
     if (abs(det) <= 0.0f) valid = false;
@@ -41,11 +30,11 @@ float intersectTriangle(in vec3 orig, in vec3 dir, in vec3 ve[3], inout vec2 UV,
     //if (allInvocationsARB(!valid)) return INFINITY;
     if (!valid) return INFINITY;
 
-    const vec3 tvec = orig - ve[0];
-    const float u = dot(tvec, pvec);
-    const vec3 qvec = cross(tvec, e1);
-    const float v = dot(dir, qvec);
-    const vec3 uvt = vec3(u, v, dot(e2, qvec)) / det;
+     vec3 tvec = orig - ve[0];
+     float u = dot(tvec, pvec);
+     vec3 qvec = cross(tvec, e1);
+     float v = dot(dir, qvec);
+     vec3 uvt = vec3(u, v, dot(e2, qvec)) / det;
 
     if (
         any(lessThan(uvt.xy, vec2(0.f))) || 
@@ -59,18 +48,18 @@ float intersectTriangle(in vec3 orig, in vec3 dir, in vec3 ve[3], inout vec2 UV,
 }
 
 TResult choiceFirstBaked(inout TResult res) {
-    const int tri = exchange(bakedRange[0], LONGEST);
+     int tri = exchange(bakedRange[0], LONGEST);
 
-    const bool validTriangle = 
+     bool validTriangle = 
         tri >= 0 && 
         tri != LONGEST;
         
     //if (allInvocationsARB(!validTriangle)) return res;
     if (!validTriangle) return res;
 
-    const vec2 uv = bakedRangeIntersection[0].yz;
-    const float _d = bakedRangeIntersection[0].x;
-    const bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.dist);
+     vec2 uv = bakedRangeIntersection[0].yz;
+     float _d = bakedRangeIntersection[0].x;
+     bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.dist);
 
     if (near) {
         res.dist = _d;
@@ -110,9 +99,9 @@ TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
     choiceFirstBaked(res);
     reorderTriangles();
 
-    const int tri = tpi < exchange(bakedStackCount, 0) ? bakedStack[tpi] : LONGEST;
+     int tri = tpi < exchange(bakedStackCount, 0) ? bakedStack[tpi] : LONGEST;
 
-    const bool validTriangle = 
+     bool validTriangle = 
         tri >= 0 && 
         tri != LONGEST;
 
@@ -122,8 +111,8 @@ TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
     }
 
     vec2 uv = vec2(0.0f);
-    const float _d = intersectTriangle(orig, dir, triverts, uv, validTriangle);
-    const bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.dist);
+     float _d = intersectTriangle(orig, dir, triverts, uv, validTriangle);
+     bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.dist);
 
     if (near) {
         res.dist = _d;
@@ -135,7 +124,7 @@ TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
 }
 
 TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tri, in bool isValid) {
-    const bool validTriangle = 
+     bool validTriangle = 
         isValid && 
         tri >= 0 && 
         tri != res.triangle &&
@@ -147,11 +136,11 @@ TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tr
     }
 
     vec2 uv = vec2(0.0f);
-    const float _d = intersectTriangle(orig, dir, triverts, uv, validTriangle);
-    const bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.predist) && greaterEqualF(_d, 0.0f);
-    const bool inbaked = equalF(_d, 0.0f);
-    const bool isbaked = equalF(_d, res.predist);
-    const bool changed = !isbaked && !inbaked;
+     float _d = intersectTriangle(orig, dir, triverts, uv, validTriangle);
+     bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.predist) && greaterEqualF(_d, 0.0f);
+     bool inbaked = equalF(_d, 0.0f);
+     bool isbaked = equalF(_d, res.predist);
+     bool changed = !isbaked && !inbaked;
 
     if (near) {
         if ( changed ) {
@@ -171,29 +160,29 @@ TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tr
 }
 
 vec3 projectVoxels(in vec3 orig) {
-    const vec4 nps = mult4(vec4(orig, 1.0f), GEOMETRY_BLOCK octreeUniform.project);
+     vec4 nps = mult4(vec4(orig, 1.0f), GEOMETRY_BLOCK octreeUniform.project);
     return nps.xyz / nps.w;
 }
 
 vec3 unprojectVoxels(in vec3 orig) {
-    const vec4 nps = mult4(vec4(orig, 1.0f), GEOMETRY_BLOCK octreeUniform.unproject);
+     vec4 nps = mult4(vec4(orig, 1.0f), GEOMETRY_BLOCK octreeUniform.unproject);
     return nps.xyz / nps.w;
 }
 
 float intersectCubeSingle(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 cubeMax, inout float near, inout float far) {
-    const vec3 dr = 1.0f / ray;
-    const vec3 tMin = (cubeMin.xyz - origin) * dr;
-    const vec3 tMax = (cubeMax.xyz - origin) * dr;
-    const vec3 t1 = min(tMin, tMax);
-    const vec3 t2 = max(tMin, tMax);
+     vec3 dr = 1.0f / ray;
+     vec3 tMin = (cubeMin.xyz - origin) * dr;
+     vec3 tMax = (cubeMax.xyz - origin) * dr;
+     vec3 t1 = min(tMin, tMax);
+     vec3 t2 = max(tMin, tMax);
 #ifdef ENABLE_AMD_INSTRUCTION_SET
-    const float tNear = max3(t1.x, t1.y, t1.z);
-    const float tFar  = min3(t2.x, t2.y, t2.z);
+     float tNear = max3(t1.x, t1.y, t1.z);
+     float tFar  = min3(t2.x, t2.y, t2.z);
 #else
-    const float tNear = max(max(t1.x, t1.y), t1.z);
-    const float tFar  = min(min(t2.x, t2.y), t2.z);
+     float tNear = max(max(t1.x, t1.y), t1.z);
+     float tFar  = min(min(t2.x, t2.y), t2.z);
 #endif
-    const bool isCube = tFar >= tNear && greaterEqualF(tFar, 0.0f);
+     bool isCube = tFar >= tNear && greaterEqualF(tFar, 0.0f);
     near = isCube ? tNear : INFINITY;
     far  = isCube ? tFar  : INFINITY;
     return isCube ? (lessF(tNear, 0.0f) ? tFar : tNear) : INFINITY;
@@ -201,11 +190,11 @@ float intersectCubeSingle(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 
 
 
 void intersectCubeApart(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 cubeMax, inout float near, inout float far) {
-    const vec3 dr = 1.0f / ray;
-    const vec3 tMin = (cubeMin.xyz - origin) * dr;
-    const vec3 tMax = (cubeMax.xyz - origin) * dr;
-    const vec3 t1 = min(tMin, tMax);
-    const vec3 t2 = max(tMin, tMax);
+     vec3 dr = 1.0f / ray;
+     vec3 tMin = (cubeMin.xyz - origin) * dr;
+     vec3 tMax = (cubeMax.xyz - origin) * dr;
+     vec3 t1 = min(tMin, tMax);
+     vec3 t2 = max(tMin, tMax);
 #ifdef ENABLE_AMD_INSTRUCTION_SET
     near = max3(t1.x, t1.y, t1.z);
     far  = min3(t2.x, t2.y, t2.z);
@@ -219,7 +208,7 @@ void intersectCubeApart(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 cu
 
 const vec3 padding = vec3(0.00001f);
 const int STACK_SIZE = 16;
-int deferredStack[STACK_SIZE];
+shared int deferredStack[WORK_SIZE][STACK_SIZE];
 int idx = 0, deferredPtr = 0;
 bool validBox = false;
 bool skip = false;
@@ -241,26 +230,29 @@ bvec2 not2(in bvec2 a){
 }
 
 TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
+    const uint L = gl_LocalInvocationID.x;
+
     TResult lastRes;
     lastRes.dist = INFINITY;
     lastRes.predist = INFINITY;
     lastRes.triangle = LONGEST;
     lastRes.materialID = LONGEST;
     bakedRange[0] = LONGEST;
+    deferredStack[L][0] = -1;
 
     // test constants
-    const int bakedStep = int(floor(1.f + hit.vmods.w));
-    const vec3 torig = projectVoxels(origin);
-    const vec3 tdirproj = mult4(vec4(direct, 0.0), GEOMETRY_BLOCK octreeUniform.project).xyz;
-    const float dirlen = 1.0f / length(tdirproj);
-    const vec3 dirproj = normalize(tdirproj);
+     int bakedStep = int(floor(1.f + hit.vmods.w));
+     vec3 torig = projectVoxels(origin);
+     vec3 tdirproj = mult4(vec4(direct, 0.0), GEOMETRY_BLOCK octreeUniform.project).xyz;
+     float dirlen = 1.0f / length(tdirproj);
+     vec3 dirproj = normalize(tdirproj);
 
     // test with root node
     //HlbvhNode node = Nodes[idx];
-    //const bbox lbox = node.box;
+    // bbox lbox = node.box;
     float near = INFINITY, far = INFINITY;
-    //const float d = intersectCubeSingle(torig, dirproj, lbox.mn.xyz, lbox.mx.xyz, near, far);
-    const float d = intersectCubeSingle(torig, dirproj, vec4(vec3(0.0f), 1.0f), vec4(1.0f), near, far);
+    // float d = intersectCubeSingle(torig, dirproj, lbox.mn.xyz, lbox.mx.xyz, near, far);
+     float d = intersectCubeSingle(torig, dirproj, vec4(vec3(0.0f), 1.0f), vec4(1.0f), near, far);
     lastRes.predist = far * dirlen;
 
     // init state
@@ -269,13 +261,13 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
         validBox = lessF(d, INFINITY) && greaterEqualF(d, 0.0f);
     }
 
-    for(int i=0;i<16384;i++) {
+    for(int i=0;i<8192;i++) {
         //if (allInvocationsARB(!validBox)) break;
         if (!validBox) break;
-        const HlbvhNode node = Nodes[idx];
+        HlbvhNode node = Nodes[idx];
 
         // is leaf
-        const bool isLeaf = node.pdata.x == node.pdata.y && validBox;
+         bool isLeaf = node.pdata.x == node.pdata.y && validBox;
         //if (anyInvocationARB(isLeaf)) {
         if (isLeaf) {
             testIntersection(lastRes, origin, direct, node.pdata.w, isLeaf);
@@ -284,36 +276,36 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
         bool notLeaf = node.pdata.x != node.pdata.y && validBox;
         //if (anyInvocationARB(notLeaf)) {
         if (notLeaf) {
-            const bbox lbox = Nodes[node.pdata.x].box;
-            const bbox rbox = Nodes[node.pdata.y].box;
-            const vec2 inf2 = vec2(INFINITY);
+             bbox lbox = Nodes[node.pdata.x].box;
+             bbox rbox = Nodes[node.pdata.y].box;
+             vec2 inf2 = vec2(INFINITY);
             vec2 nearsLR = inf2;
             vec2 farsLR = inf2;
             intersectCubeApart(torig, dirproj, lbox.mn, lbox.mx, nearsLR.x, farsLR.x);
             intersectCubeApart(torig, dirproj, rbox.mn, rbox.mx, nearsLR.y, farsLR.y);
 
-            const bvec2 isCube = and2(greaterThanEqual(farsLR, nearsLR), greaterThanEqual(farsLR, vec2(0.0f)));
-            const vec2 nears = mix(inf2, nearsLR, isCube);
-            const vec2  fars = mix(inf2, farsLR, isCube);
-            const vec2  hits = mix(nears, fars, lessThan(nears, vec2(0.0f)));
+             bvec2 isCube = and2(greaterThanEqual(farsLR, nearsLR), greaterThanEqual(farsLR, vec2(0.0f)));
+             vec2 nears = mix(inf2, nearsLR, isCube);
+             vec2  fars = mix(inf2, farsLR, isCube);
+             vec2  hits = mix(nears, fars, lessThan(nears, vec2(0.0f)));
 
-            const bvec2 overlaps = 
+             bvec2 overlaps = 
                 and2(bvec2(notLeaf), 
                 and2(lessThanEqual(hits, vec2(INFINITY-PZERO)),
                 and2(greaterThan(hits, -vec2(PZERO)),
                 greaterThan(vec2(lastRes.predist), nears * dirlen - PZERO))));
             
-            const bool anyOverlap = any(overlaps);
+             bool anyOverlap = any(overlaps);
             //if (anyInvocationARB(anyOverlap)) {
             if (anyOverlap) {
-                const bool leftOrder = all(overlaps) ? lessEqualF(hits.x, hits.y) : overlaps.x;
+                 bool leftOrder = all(overlaps) ? lessEqualF(hits.x, hits.y) : overlaps.x;
 
                 ivec2 leftright = mix(ivec2(-1), node.pdata.xy, overlaps);
                 leftright = leftOrder ? leftright : leftright.yx;
 
                 if (anyOverlap) {
                     if (deferredPtr < STACK_SIZE && leftright.y != -1) {
-                        deferredStack[deferredPtr++] = leftright.y;
+                        deferredStack[L][deferredPtr++] = leftright.y;
                     }
                     idx = leftright.x;
                     skip = true;
@@ -322,9 +314,9 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
         }
 
         if (!skip) {
-            const int ptr = --deferredPtr;
-            const bool valid = ptr >= 0;
-            idx = valid ? exchange(deferredStack[ptr], -1) : -1;
+             int ptr = --deferredPtr;
+             bool valid = ptr >= 0;
+            idx = valid ? exchange(deferredStack[L][ptr], -1) : -1;
             validBox = validBox && valid && idx >= 0;
         } skip = false;
     }

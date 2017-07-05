@@ -10,6 +10,49 @@ namespace Paper {
 
         struct Consts { GLuint NumKeys, Shift, Descending, IsSigned; };
 
+        void initShaderComputeSPIRV(std::string path, GLuint & prog) {
+            //std::string str = readSource(path);
+            std::vector<GLchar> str = readBinary(path);
+
+            GLuint comp = glCreateShader(GL_COMPUTE_SHADER);
+            {
+                const GLchar * strc = str.data();//str.c_str();
+                int32_t size = str.size();
+                //glShaderSource(comp, 1, &strc, &size);
+                glShaderBinary(1, &comp, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, strc, size);
+                glSpecializeShaderARB(comp, "main", 0, nullptr, nullptr);
+                //glCompileShader(comp);
+
+                GLint status = false;
+                glGetShaderiv(comp, GL_COMPILE_STATUS, &status);
+                if (!status) {
+                    char * log = new char[32768];
+                    GLsizei len = 0;
+
+                    //std::cout << str << std::endl;
+
+                    glGetShaderInfoLog(comp, 32768, &len, log);
+                    std::string logStr = std::string(log, len);
+                    std::cerr << logStr << std::endl;
+                }
+            }
+
+            prog = glCreateProgram();
+            glAttachShader(prog, comp);
+            glLinkProgram(prog);
+
+            GLint status = false;
+            glGetProgramiv(prog, GL_LINK_STATUS, &status);
+            if (!status) {
+                char * log = new char[32768];
+                GLsizei len = 0;
+
+                glGetProgramInfoLog(prog, 32768, &len, log);
+                std::string logStr = std::string(log, len);
+                std::cerr << logStr << std::endl;
+            }
+        }
+
         void initShaderCompute(std::string path, GLuint& prog) {
             std::string str = readSource(path);
 
@@ -71,6 +114,13 @@ namespace Paper {
             initShaderCompute("./shaders/radix/permute.comp", permuteProgram);
             initShaderCompute("./shaders/radix/prefix-scan.comp", prefixScanProgram);
             initShaderCompute("./shaders/radix/histogram.comp", histogramProgram);
+            
+
+            /*
+            initShaderComputeSPIRV("./shaders-spv/radix/permute.comp.spv", permuteProgram);
+            initShaderComputeSPIRV("./shaders-spv/radix/prefix-scan.comp.spv", prefixScanProgram);
+            initShaderComputeSPIRV("./shaders-spv/radix/histogram.comp.spv", histogramProgram);
+            */
         }
 
         void sort(GLuint &InKeys, GLuint &InVals, uint32_t size = 1, uint32_t descending = 0) {

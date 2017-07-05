@@ -38,7 +38,7 @@ TResult loadInfo(inout TResult res) {
     vec3 colors;
     vec3 mods;
 
-    const bool valid = greaterEqualF(res.dist, 0.0f) && lessF(res.dist, INFINITY) && tri != LONGEST;
+     bool valid = greaterEqualF(res.dist, 0.0f) && lessF(res.dist, INFINITY) && tri != LONGEST;
     if (bs(valid)) {
 
         for (int x=0;x<3;x++) {
