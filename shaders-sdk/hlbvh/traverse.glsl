@@ -224,6 +224,22 @@ int idx = 0, deferredPtr = 0;
 bool validBox = false;
 bool skip = false;
 
+
+bvec2 and2(in bvec2 a, in bvec2 b){
+    //return a && b;
+    return bvec2(a.x && b.x, a.y && b.y);
+}
+
+bvec2 or2(in bvec2 a, in bvec2 b){
+    //return a || b;
+    return bvec2(a.x || b.x, a.y || b.y);
+}
+
+bvec2 not2(in bvec2 a){
+    //return !a;
+    return bvec2(!a.x, !a.y);
+}
+
 TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     TResult lastRes;
     lastRes.dist = INFINITY;
@@ -276,16 +292,16 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
             intersectCubeApart(torig, dirproj, lbox.mn, lbox.mx, nearsLR.x, farsLR.x);
             intersectCubeApart(torig, dirproj, rbox.mn, rbox.mx, nearsLR.y, farsLR.y);
 
-            const bvec2 isCube = greaterThanEqual(farsLR, nearsLR) && greaterThanEqual(farsLR, vec2(0.0f));
+            const bvec2 isCube = and2(greaterThanEqual(farsLR, nearsLR), greaterThanEqual(farsLR, vec2(0.0f)));
             const vec2 nears = mix(inf2, nearsLR, isCube);
             const vec2  fars = mix(inf2, farsLR, isCube);
             const vec2  hits = mix(nears, fars, lessThan(nears, vec2(0.0f)));
 
             const bvec2 overlaps = 
-                bvec2(notLeaf) && 
-                lessThanEqual(hits, vec2(INFINITY-PZERO)) && 
-                greaterThan(hits, -vec2(PZERO)) && 
-                greaterThan(vec2(lastRes.predist), nears * dirlen - PZERO);
+                and2(bvec2(notLeaf), 
+                and2(lessThanEqual(hits, vec2(INFINITY-PZERO)),
+                and2(greaterThan(hits, -vec2(PZERO)),
+                greaterThan(vec2(lastRes.predist), nears * dirlen - PZERO))));
             
             const bool anyOverlap = any(overlaps);
             if (anyInvocationARB(anyOverlap)) {
