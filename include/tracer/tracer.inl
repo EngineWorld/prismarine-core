@@ -20,12 +20,12 @@ namespace Paper {
             GLint status = false;
             glGetShaderiv(comp, GL_COMPILE_STATUS, &status);
             if (!status) {
-                char * log = new char[1024];
+                char * log = new char[32768];
                 GLsizei len = 0;
 
                 //std::cout << str << std::endl;
 
-                glGetShaderInfoLog(comp, 1024, &len, log);
+                glGetShaderInfoLog(comp, 32768, &len, log);
                 std::string logStr = std::string(log, len);
                 std::cerr << logStr << std::endl;
             }
@@ -38,10 +38,10 @@ namespace Paper {
         GLint status = false;
         glGetProgramiv(prog, GL_LINK_STATUS, &status);
         if (!status) {
-            char * log = new char[1024];
+            char * log = new char[32768];
             GLsizei len = 0;
 
-            glGetProgramInfoLog(prog, 1024, &len, log);
+            glGetProgramInfoLog(prog, 32768, &len, log);
             std::string logStr = std::string(log, len);
             std::cerr << logStr << std::endl;
         }
@@ -92,19 +92,31 @@ namespace Paper {
 
     inline void Tracer::initShaders() {
 #ifdef USE_OPTIMIZED_RT
-        initShaderCompute("./shaders/render/testmat-rt.comp", matProgram);
+        //initShaderCompute("./shaders/render/testmat-rt.comp", matProgram);
 #else
-        initShaderCompute("./shaders/render/testmat.comp", matProgram);
+        //initShaderCompute("./shaders/render/testmat.comp", matProgram);
 #endif
 
-        //initShaderComputeSPIRV("./shaders-spv/render/camera.comp.spv", cameraProgram);
-        initShaderCompute("./shaders/render/begin.comp", beginProgram);
-        initShaderCompute("./shaders/render/reclaim.comp", reclaimProgram);
-        initShaderCompute("./shaders/render/camera.comp", cameraProgram);
-        initShaderCompute("./shaders/render/clear.comp", clearProgram);
-        initShaderCompute("./shaders/render/sampler.comp", samplerProgram);
-        initShaderCompute("./shaders/render/intersection.comp", intersectionProgram);
-        
+        //initShaderCompute("./shaders/render/begin.comp", beginProgram);
+        //initShaderCompute("./shaders/render/reclaim.comp", reclaimProgram);
+        //initShaderCompute("./shaders/render/camera.comp", cameraProgram);
+        //initShaderCompute("./shaders/render/clear.comp", clearProgram);
+        //initShaderCompute("./shaders/render/sampler.comp", samplerProgram);
+        //initShaderCompute("./shaders/render/intersection.comp", intersectionProgram);
+
+#ifdef USE_OPTIMIZED_RT
+        initShaderComputeSPIRV("./shaders-spv/render/testmat-rt.comp.spv", matProgram);
+#else
+        initShaderComputeSPIRV("./shaders-spv/render/testmat.comp.spv", matProgram);
+#endif
+
+        initShaderComputeSPIRV("./shaders-spv/render/begin.comp.spv", beginProgram);
+        initShaderComputeSPIRV("./shaders-spv/render/reclaim.comp.spv", reclaimProgram);
+        initShaderComputeSPIRV("./shaders-spv/render/camera.comp.spv", cameraProgram);
+        initShaderComputeSPIRV("./shaders-spv/render/clear.comp.spv", clearProgram);
+        initShaderComputeSPIRV("./shaders-spv/render/sampler.comp.spv", samplerProgram);
+        initShaderComputeSPIRV("./shaders-spv/render/intersection.comp.spv", intersectionProgram);
+
 
         {
             GLuint vert = glCreateShader(GL_VERTEX_SHADER);
