@@ -1,6 +1,9 @@
 #ifndef _MATERIALFUNC_H
 #define _MATERIALFUNC_H
 
+#include "./pivot.glsl"
+#include "./ggx.glsl"
+
 #define GAP PZERO*1.0f
 
 struct Submat {
@@ -27,8 +30,10 @@ struct Submat {
     ivec4 iModifiers0;
 };
 
-const uint MAX_TEXTURES = 32;
+const uint MAX_TEXTURES = 31;
 layout ( location = 0 ) uniform sampler2D samplers[MAX_TEXTURES];
+layout ( binding = 31 ) uniform sampler2D u_PivotSampler;
+
 layout ( binding=15, std430 ) readonly buffer MaterialsSSBO {Submat submats[];};
 
 bool haveProp(in Submat material, in int prop) {
@@ -452,14 +457,32 @@ int applyLight(in Ray directRay, inout Ray newRay, in vec3 normal){
 
 float DRo = 1.f;
 
-float beckmannDistribution(in float x, in float roughness) {
-    float NdotH = abs(x);
-    float cos2Alpha = NdotH * NdotH;
-    float tan2Alpha = (cos2Alpha - 1.0) / cos2Alpha;
-    float roughness2 = roughness * roughness;
-    float denom = 3.141592653589793 * roughness2 * cos2Alpha * cos2Alpha;
-    return exp(tan2Alpha / roughness2) / denom;
+vec3 extractPivot(vec3 wo, float alpha, out float brdfScale)
+{
+	// fetch pivot fit params
+	float theta = acos(wo.z);
+	vec2 fitLookup = vec2(sqrt(alpha), 2.0 * theta / 3.14159);
+	fitLookup = fma(fitLookup, vec2(63.0 / 64.0), vec2(0.5 / 64.0));
+	vec4 pivotParams = texture(u_PivotSampler, fitLookup);
+	float pivotNorm = pivotParams.r;
+	float pivotElev = pivotParams.g;
+	vec3 pivot = pivotNorm * vec3(sin(pivotElev), 0, cos(pivotElev));
+
+	// express the pivot in tangent space
+	mat3 basis;
+	basis[0] = wo.z < 0.999 ? normalize(wo - vec3(0, 0, wo.z)) : vec3(1, 0, 0);
+	basis[1] = cross(vec3(0, 0, 1), basis[0]);
+	basis[2] = vec3(0, 0, 1);
+	pivot = basis * pivot;
+
+	// return
+	brdfScale = pivotParams.a;
+	return pivot;
 }
+
+const uint u_SamplesPerPass = 1;
+mat3 tbn_light = mat3(1.0f);
+vec3 dirl = vec3(0.0f);
 
 Ray directLight(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 normal){
     if (directRay.params.w == 1) return directRay;
@@ -469,21 +492,125 @@ Ray directLight(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 n
     directRay.params.x = 0;
     directRay.params.y = i;
 
-     vec3 ltr = lightCenter(i).xyz-directRay.origin.xyz;
-     float cos_a_max = sqrt(1.f - clamp(lightUniform.lightNode[i].lightColor.w * lightUniform.lightNode[i].lightColor.w / sqlen(ltr), 0.f, 1.f));
+     //vec3 ltr = lightCenter(i).xyz-directRay.origin.xyz;
+     //float cos_a_max = sqrt(1.f - clamp(lightUniform.lightNode[i].lightColor.w * lightUniform.lightNode[i].lightColor.w / sqlen(ltr), 0.f, 1.f));
      vec3 lcenter = sLight(i);
      vec3 ldirect = normalize(lcenter - directRay.origin.xyz);
-     float diffuseWeight = clamp(dot(ldirect, normal), 0.0f, 1.0f);
+     float diffuseWeight = mix(1.0f, clamp(dot(ldirect, normal), 0.0f, 1.0f), 0.0f);
+
+    // extract attributes
+	vec3 wo = normalize(-dirl);//reflect(directRay.direct.xyz, normal);//-normalize(directRay.direct.xyz);
+	mat3 tg = tbn_light;
+    wo = normalize(wo * tg);
+
+    // fetch pivot fit params
+	float brdfScale; // this won't be used here
+    float alpha = DRo;
+	vec3 pivot = extractPivot(wo, alpha, brdfScale);
+    vec3 Li = color;
+    vec3 Lo = vec3(0);
+
+	// iterate over all spheres
+    {
+		vec3 spherePos = (lightCenter(i).xyz - directRay.origin.xyz) * tg;
+		float sphereRadius = lightUniform.lightNode[i].lightColor.w;
+		sphere s = sphere(spherePos, sphereRadius);
+		float invSphereMagSqr = 1.0 / dot(s.pos, s.pos);
+		vec3 capDir = s.pos * sqrt(invSphereMagSqr);
+		float capCos = sqrt(1.0 - s.r * s.r * invSphereMagSqr);
+		cap c = cap(capDir, capCos);
+		cap c_std = cap_to_pcap(c, pivot);
+
+		if (c.z < 0.99) {
+			// Joint MIS: loop over all samples
+			for (int j = 0; j < u_SamplesPerPass; ++j) {
+				// compute a uniform sample
+                vec2 u2 = vec2(random(), random());
+
+				// importance sample the BRDF
+				if (true) {
+					vec3 wm = ggx_sample(u2, wo, alpha);
+					vec3 wi = 2.0 * wm * dot(wo, wm) - wo;
+					float pdf1;
+					float frp = ggx_evalp(wi, wo, alpha, pdf1);
+					float raySphereIntersection = pdf_cap(wi, c);
+
+					// raytrace the sphere light
+					if (pdf1 > 0.0 && raySphereIntersection > 0.0) {
+						float pdf2 = pdf_pcap_fast(wi, c_std, pivot);
+						float misWeight = pdf1 * pdf1;
+						float misNrm = pdf1 * pdf1 + pdf2 * pdf2;
+
+						Lo+= Li * frp / pdf1 * misWeight / misNrm;
+					}
+				}
+
+				// importance sample the pivot transformed spherical cap
+				if (true) {
+					vec3 wi = u2_to_pcap(u2, c_std, pivot);
+					float pdf1;
+					float frp = ggx_evalp(wi, wo, alpha, pdf1);
+					float pdf2 = pdf_pcap_fast(wi, c_std, pivot);
+
+					if (pdf2 > 0.0) {
+						float misWeight = pdf2 * pdf2;
+						float misNrm = pdf1 * pdf1 + pdf2 * pdf2;
+
+						Lo+= Li * frp / pdf2 * misWeight / misNrm;
+					}
+				}
+			}
+		} else {
+			// classic MIS: loop over all samples
+			for (int j = 0; j < u_SamplesPerPass; ++j) {
+				// compute a uniform sample
+				vec2 u2 = vec2(random(), random());
+
+				// importance sample the BRDF
+				if (true) {
+					vec3 wm = ggx_sample(u2, wo, alpha);
+					vec3 wi = 2.0 * wm * dot(wo, wm) - wo;
+					float pdf1;
+					float frp = ggx_evalp(wi, wo, alpha, pdf1);
+					float raySphereIntersection = pdf_cap(wi, c);
+
+					// raytrace the sphere light
+					if (pdf1 > 0.0 && raySphereIntersection > 0.0) {
+						float pdf2 = pdf_cap(wi, c);
+						float misWeight = pdf1 * pdf1;
+						float misNrm = pdf1 * pdf1 + pdf2 * pdf2;
+
+						Lo+= Li * frp / pdf1 * misWeight / misNrm;
+					}
+				}
+
+				// importance sample the spherical cap
+				if (true) {
+					vec3 wi = u2_to_cap(u2, c);
+					float pdf1;
+					float frp = ggx_evalp(wi, wo, alpha, pdf1);
+					float pdf2 = pdf_cap(wi, c);
+
+					if (pdf2 > 0.0) {
+						float misWeight = pdf2 * pdf2;
+						float misNrm = pdf1 * pdf1 + pdf2 * pdf2;
+
+						Lo+= Li * frp / pdf2 * misWeight / misNrm;
+					}
+				}
+			}
+		}
+    }
 
     directRay.direct.xyz = ldirect;
-    directRay.color.xyz *= color * diffuseWeight * ((1.0f - cos_a_max) * 2.0f);
+    directRay.color.xyz *= Lo.xyz / u_SamplesPerPass * 3.14159;//color * diffuseWeight * ((1.0f - cos_a_max) * 2.0f);
     return directRay;
 }
 
 Ray directLight(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 normal, in float roughness){
     DRo = clamp(roughness, 0.001f, 1.0f);
     Ray drtRay = directLight(i, directRay, hit, color, normal);
-    DRo = 1.0f;
+    DRo = 1.f;
     return drtRay;
 }
 

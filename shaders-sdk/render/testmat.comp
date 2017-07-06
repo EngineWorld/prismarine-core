@@ -175,6 +175,12 @@ void main() {
     normal = normalize(tbn * getNormalMapping(materialCache, hit.texcoord.xy, newRay.direct.xyz, normal));
     normal = faceforward(normal, dir, normal);
 
+    // construct orthonormal basis around N
+    vec3 T1, T2;
+    T1 = normalize(dir - normal*dot(dir, normal));
+    T2 = cross(normal, T1);
+    tbn_light = mat3(T1, T2, normal), dirl = dir;
+
     vec4 tx = fetchDiffuse(materialCache, hit.texcoord.xy, newRay.direct.xyz, normal);
     tx *= vec4(hit.vcolor.xyz, hit.vcolor.a);
 
@@ -205,17 +211,18 @@ void main() {
         reflectionRay.color.xyz *= (1.0f - prom);
 
         // emit reflection ray
-        reflectionRay = reflection(reflectionRay, hit, sc.xyz / spca, normal, refly);
+        reflectionRay = reflection(reflectionRay, hit, clamp(sc.xyz / spca, 0.0f, 1.0f), normal, refly);
         mixed(emitentRay.color.xyz, reflectionRay.color.xyz, spic);
+        applyLight(directLight(0, reflectionRay, hit, vec3(1.0f), normal, 1.0f - refly), reflectionRay, surfacenormal); // push shadow for PBR reflection
         emitRay(reflectionRay, hit, normal, 1.0f);
 
         // emit light
         emitRay(emissive(emitentRay, hit, emi.xyz / min(emis, 1.0f), normal), hit, normal, clamp(emis, 0.0f, 1.0f));
         emitentRay.color.xyz *= clamp(1.0f - emis, 0.0f, 1.0f);
 
-        // emit ray
+        // emit diffuse ray
         emitentRay = diffuse(emitentRay, hit, tx.xyz, normal);
-        applyLight(directLight(0, emitentRay, hit, vec3(1.0f), normal, 0.0f), emitentRay, surfacenormal); // push shadow
+        applyLight(directLight(0, emitentRay, hit, vec3(1.0f), normal, 1.0f), emitentRay, surfacenormal); // push shadow
         emitRay(emitentRay, hit, normal, 1.0f);
 
         // transparency ray 

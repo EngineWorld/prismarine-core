@@ -18,7 +18,7 @@ namespace Paper {
 
         const GLuint firstBind = 0;
         const GLuint textureLocation = 0;
-        uint32_t pcount = std::min((uint32_t)samplers.size(), 32u);
+        uint32_t pcount = std::min((uint32_t)samplers.size(), 31u);
 
         /*
         std::vector<uint64_t> vctr(pcount);

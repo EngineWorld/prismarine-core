@@ -276,6 +276,22 @@ namespace Paper {
         glTextureParameteri(presampled, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTextureParameteri(presampled, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
+
+
+        const float data[] = {
+#include "fit.inl"
+        };
+
+
+        glCreateTextures(GL_TEXTURE_2D, 1, &pivotTexture);
+        glTextureStorage2D(pivotTexture, 1, GL_RGBA32F, 64, 64);
+        glTextureSubImage2D(pivotTexture, 0, 0, 0, 64, 64, GL_RGBA, GL_FLOAT, data);
+
+        glTextureParameteri(pivotTexture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(pivotTexture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(pivotTexture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTextureParameteri(pivotTexture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
         clearSampler();
     }
 
@@ -565,6 +581,9 @@ namespace Paper {
 
         glUseProgram(matProgram);
         mat->bindWithContext(matProgram);
+
+        glBindTextureUnit(31, pivotTexture);
+
         glDispatchCompute(tiled(rsize, worksize), 1, 1);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
         reloadQueuedRays();

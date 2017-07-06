@@ -51,6 +51,8 @@ namespace Paper {
         GLuint cubeTex = -1;
         GLuint vao = -1;
 
+        GLuint pivotTexture = -1;
+
         GLuint posBuf = -1;
         GLuint idcBuf = -1;
         GLuint posattr = -1;
