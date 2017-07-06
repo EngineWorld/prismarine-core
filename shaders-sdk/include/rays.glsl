@@ -20,17 +20,9 @@ layout ( std430, binding = 20 )  buffer CounterBlock {
 } arcounter;
 layout ( std430, binding = 21 )  buffer ColorChainBlock { ColorChain chains[]; } chBuf;
 
-/*
-const uint At = 0;
-const uint Rt = 1;
-const uint Qt = 2;
-const uint Ut = 3;
-const uint Ct = 4;
-*/
-
 void _collect(inout Ray ray) {
-    const vec4 color = max(ray.final, vec4(0.f));
-    const float amplitude = mlength(color.xyz);
+     vec4 color = max(ray.final, vec4(0.f));
+     float amplitude = mlength(color.xyz);
     if (amplitude >= 0.00001f) {
         int idx = atomicAdd(arcounter.Ct, 1);
         int prev = atomicExchange(texelBuf.nodes[ray.texel].EXT.y, idx);
@@ -40,24 +32,6 @@ void _collect(inout Ray ray) {
         chBuf.chains[idx] = ch;
     }
     ray.final.xyzw = vec4(0.0f);
-
-    /*
-    const vec4 color = max(ray.final, vec4(0.f));
-    const float amplitude = mlength(color.xyz);
-    if (amplitude >= 0.00001f) {
-#ifdef ENABLE_NVIDIA_INSTRUCTION_SET
-        atomicAdd(texelBuf.nodes[ray.texel].samplecolor.x, color.x);
-        atomicAdd(texelBuf.nodes[ray.texel].samplecolor.y, color.y);
-        atomicAdd(texelBuf.nodes[ray.texel].samplecolor.z, color.z);
-#else
-        const ivec3 gcol = ivec3(dvec3(color.xyz) * COMPATIBLE_PRECISION);
-        atomicAdd(texelBuf.nodes[ray.texel].samplecolor.x, gcol.x);
-        atomicAdd(texelBuf.nodes[ray.texel].samplecolor.y, gcol.y);
-        atomicAdd(texelBuf.nodes[ray.texel].samplecolor.z, gcol.z);
-#endif
-    }
-    ray.final.xyzw = vec4(0.0f);
-    */
 }
 
 void storeHit(in int hitIndex, inout Hit hit) {
@@ -79,10 +53,10 @@ int storeRay(in int rayIndex, inout Ray ray) {
 
     int actived = -1;
     if (ray.actived == 1) {
-        const int act = atomicAdd(arcounter.At, 1);
+         int act = atomicAdd(arcounter.At, 1);
         collBuf.indc[act] = rayIndex; actived = act;
     } else { // if not actived, why need?
-        const int freed = atomicAdd(arcounter.Qt, 1);
+         int freed = atomicAdd(arcounter.Qt, 1);
         freedBuf.indc[freed] = rayIndex;
     }
 
@@ -123,10 +97,10 @@ int createRayStrict(inout Ray original, in int idx, in int rayIndex) {
 
     // if not active, does not use and free for nexts
     if(ray.actived == 1) {
-        const int act = atomicAdd(arcounter.At, 1);
+         int act = atomicAdd(arcounter.At, 1);
         collBuf.indc[act] = rayIndex;
     } else {
-        const int freed = atomicAdd(arcounter.Qt, 1);
+         int freed = atomicAdd(arcounter.Qt, 1);
         freedBuf.indc[freed] = rayIndex;
     }
     return rayIndex;
@@ -147,7 +121,7 @@ int createRay(inout Ray original, in int idx) {
     ) return -1; 
     
     atomicMax(arcounter.Ut, 0); // prevent most decreasing
-    const int freed = atomicAdd(arcounter.Ut, -1)-1;
+     int freed = atomicAdd(arcounter.Ut, -1)-1;
     atomicMax(arcounter.Ut, 0); // prevent most decreasing
     int rayIndex = 0;
     if (freed >= 0 && availBuf.indc[freed] != 0xFFFFFFFF) {

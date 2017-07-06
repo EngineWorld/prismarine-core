@@ -151,14 +151,14 @@ void generateLightPolygon(in vec3 center, in float radius, inout vec3 polygon[4]
 float intersectTriangle(in vec3 orig, in vec3 dir, in vec3 ve[3], inout vec2 UV, in bool valid) {
     if (!valid) return INFINITY;
 
-    const vec3 e1 = ve[1] - ve[0];
-    const vec3 e2 = ve[2] - ve[0];
+     vec3 e1 = ve[1] - ve[0];
+     vec3 e2 = ve[2] - ve[0];
 
     valid = valid && !(length(e1) < 0.00001f && length(e2) < 0.00001f);
     if (!valid) return INFINITY;
 
-    const vec3 pvec = cross(dir, e2);
-    const float det = dot(e1, pvec);
+     vec3 pvec = cross(dir, e2);
+     float det = dot(e1, pvec);
 
 #ifndef CULLING
     if (abs(det) <= 0.0f) valid = false;
@@ -167,11 +167,11 @@ float intersectTriangle(in vec3 orig, in vec3 dir, in vec3 ve[3], inout vec2 UV,
 #endif
     if (!valid) return INFINITY;
 
-    const vec3 tvec = orig - ve[0];
-    const float u = dot(tvec, pvec);
-    const vec3 qvec = cross(tvec, e1);
-    const float v = dot(dir, qvec);
-    const vec3 uvt = vec3(u, v, dot(e2, qvec)) / det;
+     vec3 tvec = orig - ve[0];
+     float u = dot(tvec, pvec);
+     vec3 qvec = cross(tvec, e1);
+     float v = dot(dir, qvec);
+     vec3 uvt = vec3(u, v, dot(e2, qvec)) / det;
 
     if (
         any(lessThan(uvt.xy, vec2(0.f))) || 
@@ -380,8 +380,8 @@ vec3 LTC_Evaluate(
 
 
 vec3 triangleRandomPoint(in vec3 tri[3]){
-    const float r1 = random();
-    const float r2 = random();
+     float r1 = random();
+     float r2 = random();
     return (1.0f - sqrt(r1)) * tri[0] + sqrt(r1) * (1.0f - r2) * tri[1] + r2 * sqrt(r1) * tri[2];
 }
 
@@ -402,8 +402,8 @@ Ray reflection(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal, in floa
 }
 
 Ray refraction(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal, in float inior, in float outior, in float glossiness){
-    const vec3 refrDir = normalize(  refract(newRay.direct.xyz, normal, inior / outior)  );
-    const bool refrc = equalF(inior, outior);
+     vec3 refrDir = normalize(  refract(newRay.direct.xyz, normal, inior / outior)  );
+     bool refrc = equalF(inior, outior);
 
 #ifdef REFRACTION_SKIP_SUN
 
@@ -429,8 +429,8 @@ Ray refraction(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal, in floa
 
 
 vec3 lightCenter(in int i){
-    const vec3 playerCenter = vec3(0.0f);
-    const vec3 lvec = normalize(lightUniform.lightNode[i].lightVector.xyz) * (lightUniform.lightNode[i].lightVector.y < 0.0f ? -1.0f : 1.0f);
+     vec3 playerCenter = vec3(0.0f);
+     vec3 lvec = normalize(lightUniform.lightNode[i].lightVector.xyz) * (lightUniform.lightNode[i].lightVector.y < 0.0f ? -1.0f : 1.0f);
     return fma(lvec, vec3(lightUniform.lightNode[i].lightVector.w), (lightUniform.lightNode[i].lightOffset.xyz + playerCenter.xyz));
 }
 
@@ -469,11 +469,11 @@ Ray directLight(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 n
     directRay.params.x = 0;
     directRay.params.y = i;
 
-    const vec3 ltr = lightCenter(i).xyz-directRay.origin.xyz;
-    const float cos_a_max = sqrt(1.f - clamp(lightUniform.lightNode[i].lightColor.w * lightUniform.lightNode[i].lightColor.w / sqlen(ltr), 0.f, 1.f));
-    const vec3 lcenter = sLight(i);
-    const vec3 ldirect = normalize(lcenter - directRay.origin.xyz);
-    const float diffuseWeight = clamp(dot(ldirect, normal), 0.0f, 1.0f);
+     vec3 ltr = lightCenter(i).xyz-directRay.origin.xyz;
+     float cos_a_max = sqrt(1.f - clamp(lightUniform.lightNode[i].lightColor.w * lightUniform.lightNode[i].lightColor.w / sqlen(ltr), 0.f, 1.f));
+     vec3 lcenter = sLight(i);
+     vec3 ldirect = normalize(lcenter - directRay.origin.xyz);
+     float diffuseWeight = clamp(dot(ldirect, normal), 0.0f, 1.0f);
 
     directRay.direct.xyz = ldirect;
     directRay.color.xyz *= color * diffuseWeight * ((1.0f - cos_a_max) * 2.0f);
@@ -520,23 +520,23 @@ int emitRay(in Ray directRay, in Hit hit, in vec3 normal, in float coef){
 }
 
 vec3 lightCenterSky(in int i) {
-    const vec3 playerCenter = vec3(0.0f);
-    const vec3 lvec = normalize(lightUniform.lightNode[i].lightVector.xyz) * 1000.0f;
+     vec3 playerCenter = vec3(0.0f);
+     vec3 lvec = normalize(lightUniform.lightNode[i].lightVector.xyz) * 1000.0f;
     return lightUniform.lightNode[i].lightOffset.xyz + lvec + playerCenter.xyz;
 }
 
 float intersectSphere(in vec3 origin, in vec3 ray, in vec3 sphereCenter, in float sphereRadius) {
-    const vec3 toSphere = origin - sphereCenter;
-    const float a = dot(ray, ray);
-    const float b = 2.0f * dot(toSphere, ray);
-    const float c = dot(toSphere, toSphere) - sphereRadius*sphereRadius;
-    const float discriminant = fma(b,b,-4.0f*a*c);
+     vec3 toSphere = origin - sphereCenter;
+     float a = dot(ray, ray);
+     float b = 2.0f * dot(toSphere, ray);
+     float c = dot(toSphere, toSphere) - sphereRadius*sphereRadius;
+     float discriminant = fma(b,b,-4.0f*a*c);
     if(discriminant > 0.0f) {
-        const float da = 0.5f / a;
-        const float t1 = (-b - sqrt(discriminant)) * da;
-        const float t2 = (-b + sqrt(discriminant)) * da;
-        const float mn = min(t1, t2);
-        const float mx = max(t1, t2);
+         float da = 0.5f / a;
+         float t1 = (-b - sqrt(discriminant)) * da;
+         float t2 = (-b + sqrt(discriminant)) * da;
+         float mn = min(t1, t2);
+         float mx = max(t1, t2);
         if (mn >= 0.0f) return mn; else
         if (mx >= 0.0f) return mx;
     }

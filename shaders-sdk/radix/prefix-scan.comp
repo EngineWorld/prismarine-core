@@ -6,12 +6,12 @@
 uint prefix_sum(in uint data, inout uint total_sum) {
     uint rsort = data;
     for (uint i = 1; i < WG_COUNT; i <<= 1) {
-        const uint tmp = READ_LANE(rsort, LANE_IDX - i) * uint(LANE_IDX >= i && LANE_IDX < WG_COUNT);
+         uint tmp = READ_LANE(rsort, LANE_IDX - i) * uint(LANE_IDX >= i && LANE_IDX < WG_COUNT);
         rsort += tmp;
     }
 
     total_sum = READ_LANE(rsort, WG_COUNT-1);
-    const uint result = READ_LANE(rsort, LANE_IDX - 1) * uint(LANE_IDX > 0);
+     uint result = READ_LANE(rsort, LANE_IDX - 1) * uint(LANE_IDX > 0);
     return result;
 }
 

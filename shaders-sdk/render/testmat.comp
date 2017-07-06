@@ -34,11 +34,11 @@
 LOCAL_SIZE_LAYOUT;
 
 float js_getThickness(in vec3 rd){
-    const float sr = earthRadius+atmosphereHeight;
-    const vec3 ro = -up*earthRadius;
-    const float b = dot(rd, ro);
-    const float c = dot(ro, ro) - sr*sr;
-    const float t = b*b - c;
+     float sr = earthRadius+atmosphereHeight;
+     vec3 ro = -up*earthRadius;
+     float b = dot(rd, ro);
+     float c = dot(ro, ro) - sr*sr;
+     float t = b*b - c;
     return b + sqrt(t);
 }
 
@@ -47,10 +47,10 @@ vec3 saturate(in vec3 c, in float s) {
 }
 
 vec3 js_getScatter(in vec3 V, in vec3 L, in float lightStrength) {
-    const float thicknessV = getThickness(V), dotVL = dot(V, L);
-    const vec3 sunColor = lightStrength * absorb(getThickness(L)) * getEarth(L);
-    const vec3 rayleighGradient = atmosphereColor * rayleighAmmount * phaseRayleigh(dotVL);
-    const float mieGradient = mieAmmount * phaseMie(dotVL);
+     float thicknessV = getThickness(V), dotVL = dot(V, L);
+     vec3 sunColor = lightStrength * absorb(getThickness(L)) * getEarth(L);
+     vec3 rayleighGradient = atmosphereColor * rayleighAmmount * phaseRayleigh(dotVL);
+     float mieGradient = mieAmmount * phaseMie(dotVL);
     vec3 skyColor = (mieGradient + rayleighGradient) * absorb(thicknessV) * sunColor * thicknessV;
     skyColor += pow(max(dotVL,0.), 7000.) * sunColor; //sun
     return saturate(skyColor,1.3)*vec3(1,1,1.35);
@@ -66,14 +66,14 @@ float mat(in float pos) {
 }
 
 float Wnoise2D(in vec2 x, in float n){
-    const vec2 p = floor(x), f = fract(x);
-    const float m = p.x + p.y*n;
+     vec2 p = floor(x), f = fract(x);
+     float m = p.x + p.y*n;
     return mix(mix(mat(m-1), mat(m),f.x), mix(mat(m+(n-1)), mat(m+n),f.x),f.y);
 }
 
 float waterH(in vec3 posxz, in float frameTimeCounter) {
     float noise = 0.0, freq = 1.0, amp = 1.0, n = 32.0;
-    const vec2 coord = -n+n*fract(posxz.xz / 1000.0), tock = vec2(frameTimeCounter / 100.0);
+     vec2 coord = -n+n*fract(posxz.xz / 1000.0), tock = vec2(frameTimeCounter / 100.0);
     for( int i = 0; i < 2; i++) {
         noise += Wnoise2D(-n+n*(coord + tock)*freq, n)*amp; freq *= 2.1; amp *= 0.5;
         noise += Wnoise2D(-n+n*(coord - tock)*freq, n)*amp; freq *= 2.1; amp *= 0.5;
@@ -109,8 +109,8 @@ void main() {
     for (int i=0;i<RAY_BLOCK materialUniform.lightcount;i++) {
         if ( newRay.params.x < 1 && (newRay.params.z > 0 || newRay.params.w > 0 )) {
             float md = 1.0f;
-            const float dt = intersectSphere(newRay.origin.xyz, newRay.direct.xyz, lightCenter(i).xyz, lightUniform.lightNode[i].lightColor.w + GAP);
-            const float t = md * dt;
+             float dt = intersectSphere(newRay.origin.xyz, newRay.direct.xyz, lightCenter(i).xyz, lightUniform.lightNode[i].lightColor.w + GAP);
+             float t = md * dt;
             if (lessF(dt, INFINITY) && lessEqualF(t, hit.dist)) {
                 lc = i;
                 hit.triangle = 0;
@@ -128,7 +128,7 @@ void main() {
     }
 
     {
-        const vec3 lcenter = lightCenterSky(0);
+         vec3 lcenter = lightCenterSky(0);
         vec3 color = //vec3(0.1f);
             js_getScatter(newRay.direct.xyz, -normalize(lcenter - newRay.origin.xyz), 800.0f) +
             js_getScatter(newRay.direct.xyz,  normalize(lcenter - newRay.origin.xyz), 4000.0f);
@@ -154,25 +154,24 @@ void main() {
         return;
     }
 
-    const uint l = gl_LocalInvocationID.x;
     Submat materialCache = submats[hit.materialID];
 
-    const vec3 dir = normalize(newRay.direct.xyz);
-    const vec3 prenormal = normalize(hit.normal.xyz);
+     vec3 dir = normalize(newRay.direct.xyz);
+     vec3 prenormal = normalize(hit.normal.xyz);
 
     float inior = 1.0f;
     float outior = materialCache.ior;
-    const float inside = dot(prenormal, dir);
+     float inside = dot(prenormal, dir);
     if (inside >= 0.0f) {
-        const float tmp = inior;
+         float tmp = inior;
         inior = outior;
         outior = tmp;
     }
 
     vec3 normal = normalize(faceforward(prenormal, dir, prenormal));
-    const vec3 surfacenormal = normal;
-    const vec3 tan = normalize(hit.tangent.xyz);
-    const mat3 tbn = mat3(tan, cross(normal, tan), normal);
+     vec3 surfacenormal = normal;
+     vec3 tan = normalize(hit.tangent.xyz);
+     mat3 tbn = mat3(tan, cross(normal, tan), normal);
     normal = normalize(tbn * getNormalMapping(materialCache, hit.texcoord.xy, newRay.direct.xyz, normal));
     normal = faceforward(normal, dir, normal);
 
@@ -186,12 +185,12 @@ void main() {
     vec3 sc = mix(dielectric, tx.xyz, sp.z);
 
     // we coming to PBR model
-    const float refly = clamp(sqrt(1.0f - sp.y), 0.0f, 1.0f); // roughness
-    const float emis = mlength(emi.xyz);
-    const float spca = mlength(sc.xyz);
-    const float spic = clamp(spca, 0.0f, 1.0f); // diffuse or specular (except AO?)
-    const float fres = computeFresnel(hit.normal.xyz, newRay.direct.xyz, inior, outior) * (inside <= 0.0f ? 1.0f : 0.0f);
-    const float prom = 1.0f - tx.a;
+     float refly = clamp(sqrt(1.0f - sp.y), 0.0f, 1.0f); // roughness
+     float emis = mlength(emi.xyz);
+     float spca = mlength(sc.xyz);
+     float spic = clamp(spca, 0.0f, 1.0f); // diffuse or specular (except AO?)
+     float fres = computeFresnel(hit.normal.xyz, newRay.direct.xyz, inior, outior) * (inside <= 0.0f ? 1.0f : 0.0f);
+     float prom = 1.0f - tx.a;
 
     //newRay.final.xyz = newRay.color.xyz * normalize(normal.xyz) * 0.5f + 0.5f;
     //newRay.actived = 0;

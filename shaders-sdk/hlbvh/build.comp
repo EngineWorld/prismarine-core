@@ -20,21 +20,21 @@ int nlz (in int x) {
 
 int findSplit( int first, int last)
 {
-    const uint firstCode = Mortoncodes[first];
-    const uint lastCode = Mortoncodes[last];
+     uint firstCode = Mortoncodes[first];
+     uint lastCode = Mortoncodes[last];
     if (firstCode == lastCode) {
         return (first + last) >> 1;
     }
 
-    const int commonPrefix = nlz(firstCode ^ lastCode);
+     int commonPrefix = nlz(firstCode ^ lastCode);
     int split = first;
     int step = last - first;
     do {
         step = (step + 1) >> 1;
-        const int newSplit = split + step;
+         int newSplit = split + step;
         if (newSplit < last) {
-            const uint splitCode = Mortoncodes[newSplit];
-            const int splitPrefix = nlz(firstCode ^ splitCode);
+             uint splitCode = Mortoncodes[newSplit];
+             int splitPrefix = nlz(firstCode ^ splitCode);
             if (splitPrefix > commonPrefix) {
                 split = newSplit;
             }

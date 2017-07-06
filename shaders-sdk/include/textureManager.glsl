@@ -149,12 +149,12 @@ vec4 texelFetchLinear(in TextureDescription desc, in vec2 norm, in ivec2 toff) {
 #else
     norm -= 0.49999f / vec2(desc.size.xy);
 
-    const vec2 tp = norm.xy;
-    const vec4 a00 = texelFetchWrap(desc, tp, toff + ivec2(0, 0));
-    const vec4 a10 = texelFetchWrap(desc, tp, toff + ivec2(1, 0));
-    const vec4 a01 = texelFetchWrap(desc, tp, toff + ivec2(0, 1));
-    const vec4 a11 = texelFetchWrap(desc, tp, toff + ivec2(1, 1));
-    const vec2 coef = fract(norm * vec2(desc.size.xy));
+     vec2 tp = norm.xy;
+     vec4 a00 = texelFetchWrap(desc, tp, toff + ivec2(0, 0));
+     vec4 a10 = texelFetchWrap(desc, tp, toff + ivec2(1, 0));
+     vec4 a01 = texelFetchWrap(desc, tp, toff + ivec2(0, 1));
+     vec4 a11 = texelFetchWrap(desc, tp, toff + ivec2(1, 1));
+     vec2 coef = fract(norm * vec2(desc.size.xy));
 
     return mix(
         mix(a00, a10, coef.x),

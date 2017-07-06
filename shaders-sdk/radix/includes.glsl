@@ -45,10 +45,10 @@ layout (std430, binding = 4)  buffer VarsBlock {
 layout (std430, binding = 5)  buffer HistogramBlock {uint Histogram[];};
 
 struct blocks_info { uint count; uint offset; };
-blocks_info get_blocks_info(const uint n, const uint wg_idx) {
-    const uint block_stride = WG_COUNT * BLOCK_SIZE;
-    const uint block_count = n > 0 ? (n - 1) / block_stride + 1 : 0;
-    const uint block_off = wg_idx * BLOCK_SIZE * block_count;
+blocks_info get_blocks_info(in uint n, in uint wg_idx) {
+     uint block_stride = WG_COUNT * BLOCK_SIZE;
+     uint block_count = n > 0 ? (n - 1) / block_stride + 1 : 0;
+     uint block_off = wg_idx * BLOCK_SIZE * block_count;
     return blocks_info(block_count, block_off);
 }
 
@@ -91,10 +91,10 @@ uint64_t genLtMask(){
 }
 
 uint bitCount64(in uint64_t a64) {
-    //const uvec2 lh = unpackUint2x32(a64);
+    // uvec2 lh = unpackUint2x32(a64);
     //return bitCount(lh.x) + bitCount(lh.y);
-    const uint lo = uint((a64 >> 0ul ) & 0xFFFFFFFFul);
-    const uint hi = uint((a64 >> 32ul) & 0xFFFFFFFFul);
+     uint lo = uint((a64 >> 0ul ) & 0xFFFFFFFFul);
+     uint hi = uint((a64 >> 32ul) & 0xFFFFFFFFul);
     return bitCount(lo) + bitCount(hi);
 }
 

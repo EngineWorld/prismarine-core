@@ -60,7 +60,7 @@ vec4 fetchDiffuse(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 norma
         reflected = inverse(RAY_BLOCK cameraUniform.camInv) * reflected;
         reflected.z += 1.0f;
 
-        const float m = 1.0f / (2.0f * length(reflected.xyz));
+         float m = 1.0f / (2.0f * length(reflected.xyz));
         texcoord.xy = fma(reflected.xy, vec2(m), vec2(0.5f));
     }
 
@@ -103,8 +103,8 @@ void main() {
     for (int i=0;i<RAY_BLOCK materialUniform.lightcount;i++) {
         if ( newRay.params.x < 1 && (newRay.params.z > 0 || newRay.params.w > 0 )) {
             float md = 1.0f;
-            const float dt = intersectSphere(newRay.origin.xyz, newRay.direct.xyz, lightCenter(i).xyz, lightUniform.lightNode[i].lightColor.w + GAP);
-            const float t = md * dt;
+             float dt = intersectSphere(newRay.origin.xyz, newRay.direct.xyz, lightCenter(i).xyz, lightUniform.lightNode[i].lightColor.w + GAP);
+             float t = md * dt;
             if (lessF(dt, INFINITY) && lessEqualF(t, hit.dist)) {
                 lc = i;
                 hit.triangle = 0;
@@ -139,15 +139,14 @@ void main() {
         return;
     }
 
-    const uint l = gl_LocalInvocationID.x;
      Submat materialCache = submats[hit.materialID];
 
-    const vec3 dir = normalize(newRay.direct.xyz);
-    const vec3 prenormal = normalize(hit.normal.xyz);
+     vec3 dir = normalize(newRay.direct.xyz);
+     vec3 prenormal = normalize(hit.normal.xyz);
     vec3 normal = normalize(faceforward(prenormal, dir, prenormal));
-    const vec3 surfacenormal = normal;
-    const vec3 tan = normalize(hit.tangent.xyz);
-    const mat3 tbn = mat3(tan, cross(normal, tan), normal);
+     vec3 surfacenormal = normal;
+     vec3 tan = normalize(hit.tangent.xyz);
+     mat3 tbn = mat3(tan, cross(normal, tan), normal);
     //normal = normalize(tbn * getNormalMapping(materialCache, hit.texcoord.xy, newRay.direct.xyz, normal));
     normal = faceforward(normal, dir, normal);
 

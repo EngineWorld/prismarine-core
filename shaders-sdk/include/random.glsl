@@ -18,8 +18,8 @@ uint hash( in uvec3 v ) { return hash( v.x ^ hash(v.y) ^ hash(v.z)             )
 uint hash( in uvec4 v ) { return hash( v.x ^ hash(v.y) ^ hash(v.z) ^ hash(v.w) ); }
 
 float floatConstruct( in uint m ) {
-    const uint ieeeMantissa = 0x007FFFFFu; // binary32 mantissa bitmask
-    const uint ieeeOne      = 0x3F800000u; // 1.0 in IEEE binary32
+     uint ieeeMantissa = 0x007FFFFFu; // binary32 mantissa bitmask
+     uint ieeeOne      = 0x3F800000u; // 1.0 in IEEE binary32
     m &= ieeeMantissa;                   // Keep only mantissa bits (fractional part)
     m |= ieeeOne;                        // Add fractional part to 1.0
     return fract(uintBitsToFloat( m ));  // Range [0:1]
@@ -39,9 +39,9 @@ float random() {
 }
 
 vec3 randomCosine(in vec3 normal) {
-    const float up = sqrt(random());
-    const float over = sqrt(-fma(up, up, -1.0f));
-    const float around = random() * TWO_PI;
+     float up = sqrt(random());
+     float over = sqrt(-fma(up, up, -1.0f));
+     float around = random() * TWO_PI;
 
     vec3 perpendicular0 = vec3(0, 0, 1);
     if (abs(normal.x) < SQRT_OF_ONE_THIRD) {
@@ -50,8 +50,8 @@ vec3 randomCosine(in vec3 normal) {
         perpendicular0 = vec3(0, 1, 0);
     }
 
-    const vec3 perpendicular1 = normalize( cross(normal, perpendicular0) );
-    const vec3 perpendicular2 =            cross(normal, perpendicular1);
+     vec3 perpendicular1 = normalize( cross(normal, perpendicular0) );
+     vec3 perpendicular2 =            cross(normal, perpendicular1);
     return normalize(
         fma(normal, vec3(up),
             fma( perpendicular1 , vec3(cos(around)) * over,
@@ -62,9 +62,9 @@ vec3 randomCosine(in vec3 normal) {
 }
 
 vec3 randomDirectionInSphere() {
-    const float up = fma(random(), 2.0f, -1.0f);
-    const float over = sqrt(fma(up, -up, 1.0f));
-    const float around = random() * TWO_PI;
+     float up = fma(random(), 2.0f, -1.0f);
+     float over = sqrt(fma(up, -up, 1.0f));
+     float around = random() * TWO_PI;
     return normalize(vec3( up, cos(around) * over, sin(around) * over ));
 }
 

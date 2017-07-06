@@ -27,9 +27,9 @@ uint prefix_scan(inout UVEC_WARP v){
     return sum;
     */
 
-    const BVEC_WARP btf = (v == 1);
-    const UVEC_BALLOT_WARP bits = ballot(btf);
-    const UVEC_WARP sum = bitCount64(bits);
+     BVEC_WARP btf = (v == 1);
+     UVEC_BALLOT_WARP bits = ballot(btf);
+     UVEC_WARP sum = bitCount64(bits);
     v = bitCount64(bits & genLtMask());
     return sum;
 }
@@ -39,24 +39,24 @@ uint prefix_scan(inout UVEC_WARP v){
 uint prefix_sum(in uint data, inout uint total_sum) {
     UVEC_WARP rsort = data;
     for (uint i = 1; i < WORK_SIZE; i <<= 1) {
-        const UVEC_WARP tmp = READ_LANE(rsort, LANE_IDX - i) * uint(LANE_IDX < WORK_SIZE);
+         UVEC_WARP tmp = READ_LANE(rsort, LANE_IDX - i) * uint(LANE_IDX < WORK_SIZE);
         rsort += tmp;
     }
     total_sum = READ_LANE(rsort, WORK_SIZE-1);
-    const UVEC_WARP result = READ_LANE(rsort, LANE_IDX - 1) * uint(LANE_IDX < WORK_SIZE);
+     UVEC_WARP result = READ_LANE(rsort, LANE_IDX - 1) * uint(LANE_IDX < WORK_SIZE);
     return result;
 }
 
 
 
 void sortBits(inout uint sort, inout uint sortVal){
-    const UVEC_WARP addr = WARP_SIZE * LC_IDX + LANE_IDX;
+     UVEC_WARP addr = WARP_SIZE * LC_IDX + LANE_IDX;
     for (int i=0;i<BITS_PER_PASS;i++) {
-        const BVEC_WARP cmp = bitfieldExtract(sort, int(Shift) + i, 1) == 0;
+         BVEC_WARP cmp = bitfieldExtract(sort, int(Shift) + i, 1) == 0;
         UVEC_WARP warpKey = UVEC_WARP(cmp);
 
         // prefix scan for WARP vector
-        const uint pscan = prefix_scan(warpKey);
+         uint pscan = prefix_scan(warpKey);
         if (LANE_IDX == 0) warpPScan[LC_IDX] = pscan; // cache by WARP ID
         barrier(); memoryBarrier();
 
@@ -74,7 +74,7 @@ void sortBits(inout uint sort, inout uint sortVal){
         // use generalized local indexing (incl. warps)
         warpKey += psums[LC_IDX];
 
-        const UVEC_WARP destAddr = cmp ? warpKey : (addr - warpKey + totals[LC_IDX]);
+         UVEC_WARP destAddr = cmp ? warpKey : (addr - warpKey + totals[LC_IDX]);
         localSort   [destAddr] = sort;
         localSortVal[destAddr] = sortVal;
         barrier(); memoryBarrier();
@@ -86,8 +86,8 @@ void sortBits(inout uint sort, inout uint sortVal){
 }
 
 void main(){
-    const UVEC_WARP localIdx = WARP_SIZE * LC_IDX + LANE_IDX;
-    const UVEC_WARP def = 0xFFFFFFFFu;
+     UVEC_WARP localIdx = WARP_SIZE * LC_IDX + LANE_IDX;
+     UVEC_WARP def = 0xFFFFFFFFu;
 
     if (localIdx < RADICES) localHistogramToCarry[localIdx] = Histogram[localIdx * WG_COUNT + WG_IDX];
     barrier(); memoryBarrier();
@@ -96,20 +96,20 @@ void main(){
     UVEC_WARP addr = blocks.offset + localIdx;
 
     for ( int i_block=0; i_block < blocks.count ; i_block++ ) {
-        const BVEC_WARP validAddress = addr < NumKeys;
+         BVEC_WARP validAddress = addr < NumKeys;
         UVEC_WARP data      = validAddress ?   KeyIn[addr] : def;
         UVEC_WARP dataValue = validAddress ? ValueIn[addr] : 0u;
         sortBits(data, dataValue);
 
-        const UVEC_WARP k = bitfieldExtract(data, int(Shift), BITS_PER_PASS);
-        const UVEC_WARP      key = k;
-        const UVEC_WARP  histKey = key;
-        const UVEC_WARP localKey = key + (LC_IDX / RADICES) * RADICES;
+         UVEC_WARP k = bitfieldExtract(data, int(Shift), BITS_PER_PASS);
+         UVEC_WARP      key = k;
+         UVEC_WARP  histKey = key;
+         UVEC_WARP localKey = key + (LC_IDX / RADICES) * RADICES;
         if (localIdx < WORK_SIZE) localSort[LANE_IDX] = 0;
         barrier(); memoryBarrier();
 
         atomicAdd(localSort[localKey], uint(validAddress));
-        const UVEC_WARP offset = localHistogramToCarry[k] + localIdx;
+         UVEC_WARP offset = localHistogramToCarry[k] + localIdx;
         barrier(); memoryBarrier();
 
         // Use LANE_IDX as LC_IDX (non-vector mode)
@@ -134,7 +134,7 @@ void main(){
         }
         barrier(); memoryBarrier();
 
-        const UVEC_WARP outKey = offset - localHistogram[histKey];
+         UVEC_WARP outKey = offset - localHistogram[histKey];
         if (validAddress)   KeyOut[outKey] = data;
         if (validAddress) ValueOut[outKey] = dataValue;
         barrier(); memoryBarrier();
