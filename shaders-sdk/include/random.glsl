@@ -40,7 +40,7 @@ float random() {
 
 vec3 randomCosine(in vec3 normal) {
      float up = sqrt(random());
-     float over = sqrt(-fma(up, up, -1.0f));
+     float over = sqrt(1.f - up * up);
      float around = random() * TWO_PI;
 
     vec3 perpendicular0 = vec3(0, 0, 1);
@@ -63,7 +63,7 @@ vec3 randomCosine(in vec3 normal) {
 
 vec3 randomDirectionInSphere() {
      float up = fma(random(), 2.0f, -1.0f);
-     float over = sqrt(fma(up, -up, 1.0f));
+     float over = sqrt(1.f - up * up);
      float around = random() * TWO_PI;
     return normalize(vec3( up, cos(around) * over, sin(around) * over ));
 }
