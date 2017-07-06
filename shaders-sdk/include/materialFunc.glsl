@@ -480,7 +480,7 @@ vec3 extractPivot(vec3 wo, float alpha, out float brdfScale)
 	return pivot;
 }
 
-const uint u_SamplesPerPass = 1;
+const uint u_SamplesPerPass = 4;
 mat3 tbn_light = mat3(1.0f);
 vec3 dirl = vec3(0.0f);
 
@@ -492,22 +492,16 @@ Ray directLight(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 n
     directRay.params.x = 0;
     directRay.params.y = i;
 
-     //vec3 ltr = lightCenter(i).xyz-directRay.origin.xyz;
-     //float cos_a_max = sqrt(1.f - clamp(lightUniform.lightNode[i].lightColor.w * lightUniform.lightNode[i].lightColor.w / sqlen(ltr), 0.f, 1.f));
-     vec3 lcenter = sLight(i);
-     vec3 ldirect = normalize(lcenter - directRay.origin.xyz);
-     float diffuseWeight = mix(1.0f, clamp(dot(ldirect, normal), 0.0f, 1.0f), 0.0f);
-
     // extract attributes
 	vec3 wo = normalize(-dirl);//reflect(directRay.direct.xyz, normal);//-normalize(directRay.direct.xyz);
 	mat3 tg = tbn_light;
     wo = normalize(wo * tg);
 
     // fetch pivot fit params
-	float brdfScale; // this won't be used here
+	float brdfScale = 0.0f; // this won't be used here
     float alpha = DRo;
 	vec3 pivot = extractPivot(wo, alpha, brdfScale);
-    vec3 Li = color;
+    vec3 Li = color * 3.14159;
     vec3 Lo = vec3(0);
 
 	// iterate over all spheres
@@ -515,13 +509,13 @@ Ray directLight(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 n
 		vec3 spherePos = (lightCenter(i).xyz - directRay.origin.xyz) * tg;
 		float sphereRadius = lightUniform.lightNode[i].lightColor.w;
 		sphere s = sphere(spherePos, sphereRadius);
-		float invSphereMagSqr = 1.0 / dot(s.pos, s.pos);
+		float invSphereMagSqr = 1.0f / dot(s.pos, s.pos);
 		vec3 capDir = s.pos * sqrt(invSphereMagSqr);
 		float capCos = sqrt(1.0 - s.r * s.r * invSphereMagSqr);
 		cap c = cap(capDir, capCos);
 		cap c_std = cap_to_pcap(c, pivot);
 
-		if (c.z < 0.99) {
+		if (c.z < 0.9999f) {
 			// Joint MIS: loop over all samples
 			for (int j = 0; j < u_SamplesPerPass; ++j) {
 				// compute a uniform sample
@@ -602,8 +596,8 @@ Ray directLight(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 n
 		}
     }
 
-    directRay.direct.xyz = ldirect;
-    directRay.color.xyz *= Lo.xyz / u_SamplesPerPass * 3.14159;//color * diffuseWeight * ((1.0f - cos_a_max) * 2.0f);
+    directRay.direct.xyz = normalize(sLight(i) - directRay.origin.xyz);
+    directRay.color.xyz *= Lo.xyz / float(u_SamplesPerPass);
     return directRay;
 }
 
