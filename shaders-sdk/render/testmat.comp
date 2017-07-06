@@ -179,7 +179,7 @@ void main() {
     vec3 T1, T2;
     T1 = normalize(dir - normal*dot(dir, normal));
     T2 = normalize(cross(normal, T1));
-    tbn_light = mat3(T1, T2, normal), dirl = dir;
+    tbn_light = inverse(mat3(T1, T2, normal)), dirl = dir;
 
     vec4 tx = fetchDiffuse(materialCache, hit.texcoord.xy, newRay.direct.xyz, normal);
     tx *= vec4(hit.vcolor.xyz, hit.vcolor.a);

@@ -493,11 +493,10 @@ Ray directLight(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 n
     directRay.params.y = i;
 
     // extract attributes
-	vec3 wo = normalize(-dirl);//reflect(directRay.direct.xyz, normal);//-normalize(directRay.direct.xyz);
+	vec3 wo = normalize(dirl);//reflect(directRay.direct.xyz, normal);//-normalize(directRay.direct.xyz);
 	mat3 tg = tbn_light;
-    wo = (wo * tg);
-    vec3 wn = vec3(0.0f, 0.0f, 1.0f);
-
+    wo = tg * -wo;
+    
     // fetch pivot fit params
 	float brdfScale = 0.0f; // this won't be used here
     float alpha = DRo * DRo;
@@ -506,7 +505,7 @@ Ray directLight(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 n
     vec3 Lo = vec3(0);
 
 	// iterate over all spheres
-    vec3 spherePos = (lightCenter(i).xyz - directRay.origin.xyz) * tg;
+    vec3 spherePos = tg * (lightCenter(i).xyz - directRay.origin.xyz);
     float sphereRadius = lightUniform.lightNode[i].lightColor.w;
     sphere s = sphere(spherePos, sphereRadius);
     float invSphereMagSqr = 1.0f / dot(s.pos, s.pos);
