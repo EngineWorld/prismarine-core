@@ -171,14 +171,14 @@ void main() {
     vec3 normal = normalize(faceforward(prenormal, dir, prenormal));
      vec3 surfacenormal = normal;
      vec3 tan = normalize(hit.tangent.xyz);
-     mat3 tbn = mat3(tan, cross(normal, tan), normal);
+     mat3 tbn = mat3(tan, normalize(cross(normal, tan)), normal);
     normal = normalize(tbn * getNormalMapping(materialCache, hit.texcoord.xy, newRay.direct.xyz, normal));
     normal = faceforward(normal, dir, normal);
 
     // construct orthonormal basis around N
     vec3 T1, T2;
     T1 = normalize(dir - normal*dot(dir, normal));
-    T2 = cross(normal, T1);
+    T2 = normalize(cross(normal, T1));
     tbn_light = mat3(T1, T2, normal), dirl = dir;
 
     vec4 tx = fetchDiffuse(materialCache, hit.texcoord.xy, newRay.direct.xyz, normal);

@@ -146,7 +146,7 @@ void main() {
     vec3 normal = normalize(faceforward(prenormal, dir, prenormal));
      vec3 surfacenormal = normal;
      vec3 tan = normalize(hit.tangent.xyz);
-     mat3 tbn = mat3(tan, cross(normal, tan), normal);
+     mat3 tbn = mat3(tan, normalize(cross(normal, tan)), normal);
     //normal = normalize(tbn * getNormalMapping(materialCache, hit.texcoord.xy, newRay.direct.xyz, normal));
     normal = faceforward(normal, dir, normal);
 

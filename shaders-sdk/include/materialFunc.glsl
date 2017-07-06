@@ -461,8 +461,8 @@ vec3 extractPivot(vec3 wo, float alpha, out float brdfScale)
 {
 	// fetch pivot fit params
 	float theta = acos(wo.z);
-	vec2 fitLookup = vec2(sqrt(alpha), 2.0 * theta / 3.14159);
-	fitLookup = fma(fitLookup, vec2(63.0 / 64.0), vec2(0.5 / 64.0));
+	vec2 fitLookup = vec2(sqrt(alpha), 2.0f * theta / 3.14159f);
+	fitLookup = fma(fitLookup, vec2(63.0f / 64.0f), vec2(0.5f / 64.0f));
 	vec4 pivotParams = texture(u_PivotSampler, fitLookup);
 	float pivotNorm = pivotParams.r;
 	float pivotElev = pivotParams.g;
@@ -480,7 +480,7 @@ vec3 extractPivot(vec3 wo, float alpha, out float brdfScale)
 	return pivot;
 }
 
-const uint u_SamplesPerPass = 4;
+const uint u_SamplesPerPass = 1;
 mat3 tbn_light = mat3(1.0f);
 vec3 dirl = vec3(0.0f);
 
@@ -496,16 +496,17 @@ Ray directLight(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 n
 	vec3 wo = normalize(-dirl);//reflect(directRay.direct.xyz, normal);//-normalize(directRay.direct.xyz);
 	mat3 tg = tbn_light;
     wo = normalize(wo * tg);
+    vec3 wn = vec3(0.0f, 0.0f, 1.0f);
 
     // fetch pivot fit params
 	float brdfScale = 0.0f; // this won't be used here
     float alpha = DRo;
 	vec3 pivot = extractPivot(wo, alpha, brdfScale);
-    vec3 Li = color * 3.14159;
+    vec3 Li = color * E;
     vec3 Lo = vec3(0);
 
 	// iterate over all spheres
-    {
+    if (dot(wn, wo) >= 0.f) {
 		vec3 spherePos = (lightCenter(i).xyz - directRay.origin.xyz) * tg;
 		float sphereRadius = lightUniform.lightNode[i].lightColor.w;
 		sphere s = sphere(spherePos, sphereRadius);
@@ -602,7 +603,7 @@ Ray directLight(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 n
 }
 
 Ray directLight(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 normal, in float roughness){
-    DRo = clamp(roughness, 0.001f, 1.0f);
+    DRo = clamp(roughness, 0.0001f, 1.0f);
     Ray drtRay = directLight(i, directRay, hit, color, normal);
     DRo = 1.f;
     return drtRay;
