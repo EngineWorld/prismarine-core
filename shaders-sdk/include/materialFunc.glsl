@@ -599,8 +599,9 @@ Ray directLight(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 n
     float diffuseWeight = clamp(dot(ldirect, normal), 0.0f, 1.0f);
 
     directRay.direct.xyz = ldirect;
-    directRay.color.xyz *= color * Lo.xyz / float(u_SamplesPerPass) * diffuseWeight;
+    directRay.color.xyz *= color * diffuseWeight * Lo.xyz / float(u_SamplesPerPass);
     return directRay;
+
 
 /*
     vec3 ltr = lightCenter(i).xyz-directRay.origin.xyz;
@@ -610,6 +611,7 @@ Ray directLight(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 n
 
     directRay.direct.xyz = ldirect;
     directRay.color.xyz *= color * diffuseWeight * ((1.0f - cos_a_max) * 2.0f);
+    if (DRo < 0.9999f) directRay.color.xyz *= vec3(0.0f);
     return directRay;
 */
 }
