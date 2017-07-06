@@ -480,7 +480,7 @@ vec3 extractPivot(vec3 wo, float alpha, out float brdfScale)
 	return pivot;
 }
 
-const uint u_SamplesPerPass = 1;
+const uint u_SamplesPerPass = 4;
 mat3 tbn_light = mat3(1.0f);
 vec3 dirl = vec3(0.0f);
 
@@ -495,111 +495,123 @@ Ray directLight(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 n
     // extract attributes
 	vec3 wo = normalize(-dirl);//reflect(directRay.direct.xyz, normal);//-normalize(directRay.direct.xyz);
 	mat3 tg = tbn_light;
-    wo = normalize(wo * tg);
+    wo = (wo * tg);
     vec3 wn = vec3(0.0f, 0.0f, 1.0f);
 
     // fetch pivot fit params
 	float brdfScale = 0.0f; // this won't be used here
-    float alpha = DRo;
+    float alpha = DRo * DRo;
 	vec3 pivot = extractPivot(wo, alpha, brdfScale);
-    vec3 Li = color * E;
+    vec3 Li = vec3(PI);
     vec3 Lo = vec3(0);
 
 	// iterate over all spheres
-    if (dot(wn, wo) >= 0.f) {
-		vec3 spherePos = (lightCenter(i).xyz - directRay.origin.xyz) * tg;
-		float sphereRadius = lightUniform.lightNode[i].lightColor.w;
-		sphere s = sphere(spherePos, sphereRadius);
-		float invSphereMagSqr = 1.0f / dot(s.pos, s.pos);
-		vec3 capDir = s.pos * sqrt(invSphereMagSqr);
-		float capCos = sqrt(1.0 - s.r * s.r * invSphereMagSqr);
-		cap c = cap(capDir, capCos);
-		cap c_std = cap_to_pcap(c, pivot);
+    vec3 spherePos = (lightCenter(i).xyz - directRay.origin.xyz) * tg;
+    float sphereRadius = lightUniform.lightNode[i].lightColor.w;
+    sphere s = sphere(spherePos, sphereRadius);
+    float invSphereMagSqr = 1.0f / dot(s.pos, s.pos);
+    vec3 capDir = s.pos * sqrt(invSphereMagSqr);
+    float capCos = sqrt(1.0 - s.r * s.r * invSphereMagSqr);
 
-		if (c.z < 0.9999f) {
-			// Joint MIS: loop over all samples
-			for (int j = 0; j < u_SamplesPerPass; ++j) {
-				// compute a uniform sample
-                vec2 u2 = vec2(random(), random());
+    cap c = cap(capDir, capCos);
+    cap c_std = cap_to_pcap(c, pivot);
 
-				// importance sample the BRDF
-				if (true) {
-					vec3 wm = ggx_sample(u2, wo, alpha);
-					vec3 wi = 2.0 * wm * dot(wo, wm) - wo;
-					float pdf1;
-					float frp = ggx_evalp(wi, wo, alpha, pdf1);
-					float raySphereIntersection = pdf_cap(wi, c);
+    if (c.z < 0.99) {
+        // Joint MIS: loop over all samples
+        for (int j = 0; j < u_SamplesPerPass; ++j) {
+            vec2 u2 = vec2(random(), random());
 
-					// raytrace the sphere light
-					if (pdf1 > 0.0 && raySphereIntersection > 0.0) {
-						float pdf2 = pdf_pcap_fast(wi, c_std, pivot);
-						float misWeight = pdf1 * pdf1;
-						float misNrm = pdf1 * pdf1 + pdf2 * pdf2;
+            // importance sample the BRDF
+            if (true) {
+                vec3 wm = ggx_sample(u2, wo, alpha);
+                vec3 wi = 2.0 * wm * dot(wo, wm) - wo;
+                float pdf1;
+                float frp = ggx_evalp(wi, wo, alpha, pdf1);
+                float raySphereIntersection = pdf_cap(wi, c);
 
-						Lo+= Li * frp / pdf1 * misWeight / misNrm;
-					}
-				}
+                // raytrace the sphere light
+                if (pdf1 > 0.0 && raySphereIntersection > 0.0) {
+                    float pdf2 = pdf_pcap_fast(wi, c_std, pivot);
+                    float misWeight = pdf1 * pdf1;
+                    float misNrm = pdf1 * pdf1 + pdf2 * pdf2;
 
-				// importance sample the pivot transformed spherical cap
-				if (true) {
-					vec3 wi = u2_to_pcap(u2, c_std, pivot);
-					float pdf1;
-					float frp = ggx_evalp(wi, wo, alpha, pdf1);
-					float pdf2 = pdf_pcap_fast(wi, c_std, pivot);
+                    Lo+= Li * frp / pdf1 * misWeight / misNrm;
+                }
+            }
 
-					if (pdf2 > 0.0) {
-						float misWeight = pdf2 * pdf2;
-						float misNrm = pdf1 * pdf1 + pdf2 * pdf2;
+            // importance sample the pivot transformed spherical cap
+            if (true) {
+                vec3 wi = u2_to_pcap(u2, c_std, pivot);
+                float pdf1;
+                float frp = ggx_evalp(wi, wo, alpha, pdf1);
+                float pdf2 = pdf_pcap_fast(wi, c_std, pivot);
 
-						Lo+= Li * frp / pdf2 * misWeight / misNrm;
-					}
-				}
-			}
-		} else {
-			// classic MIS: loop over all samples
-			for (int j = 0; j < u_SamplesPerPass; ++j) {
-				// compute a uniform sample
-				vec2 u2 = vec2(random(), random());
+                if (pdf2 > 0.0) {
+                    float misWeight = pdf2 * pdf2;
+                    float misNrm = pdf1 * pdf1 + pdf2 * pdf2;
 
-				// importance sample the BRDF
-				if (true) {
-					vec3 wm = ggx_sample(u2, wo, alpha);
-					vec3 wi = 2.0 * wm * dot(wo, wm) - wo;
-					float pdf1;
-					float frp = ggx_evalp(wi, wo, alpha, pdf1);
-					float raySphereIntersection = pdf_cap(wi, c);
+                    Lo+= Li * frp / pdf2 * misWeight / misNrm;
+                }
+            }
+        }
+    } else {
+        // classic MIS: loop over all samples
+        for (int j = 0; j < u_SamplesPerPass; ++j) {
+            vec2 u2 = vec2(random(), random());
 
-					// raytrace the sphere light
-					if (pdf1 > 0.0 && raySphereIntersection > 0.0) {
-						float pdf2 = pdf_cap(wi, c);
-						float misWeight = pdf1 * pdf1;
-						float misNrm = pdf1 * pdf1 + pdf2 * pdf2;
+            // importance sample the BRDF
+            if (true) {
+                vec3 wm = ggx_sample(u2, wo, alpha);
+                vec3 wi = 2.0 * wm * dot(wo, wm) - wo;
+                float pdf1;
+                float frp = ggx_evalp(wi, wo, alpha, pdf1);
+                float raySphereIntersection = pdf_cap(wi, c);
 
-						Lo+= Li * frp / pdf1 * misWeight / misNrm;
-					}
-				}
+                // raytrace the sphere light
+                if (pdf1 > 0.0 && raySphereIntersection > 0.0) {
+                    float pdf2 = pdf_cap(wi, c);
+                    float misWeight = pdf1 * pdf1;
+                    float misNrm = pdf1 * pdf1 + pdf2 * pdf2;
 
-				// importance sample the spherical cap
-				if (true) {
-					vec3 wi = u2_to_cap(u2, c);
-					float pdf1;
-					float frp = ggx_evalp(wi, wo, alpha, pdf1);
-					float pdf2 = pdf_cap(wi, c);
+                    Lo+= Li * frp / pdf1 * misWeight / misNrm;
+                }
+            }
 
-					if (pdf2 > 0.0) {
-						float misWeight = pdf2 * pdf2;
-						float misNrm = pdf1 * pdf1 + pdf2 * pdf2;
+            // importance sample the spherical cap
+            if (true) {
+                vec3 wi = u2_to_cap(u2, c);
+                float pdf1;
+                float frp = ggx_evalp(wi, wo, alpha, pdf1);
+                float pdf2 = pdf_cap(wi, c);
 
-						Lo+= Li * frp / pdf2 * misWeight / misNrm;
-					}
-				}
-			}
-		}
+                if (pdf2 > 0.0) {
+                    float misWeight = pdf2 * pdf2;
+                    float misNrm = pdf1 * pdf1 + pdf2 * pdf2;
+
+                    Lo+= Li * frp / pdf2 * misWeight / misNrm;
+                }
+            }
+        }
     }
 
-    directRay.direct.xyz = normalize(sLight(i) - directRay.origin.xyz);
-    directRay.color.xyz *= Lo.xyz / float(u_SamplesPerPass);
+    vec3 ltr = lightCenter(i).xyz-directRay.origin.xyz;
+    vec3 ldirect = normalize(sLight(i) - directRay.origin.xyz);
+    float diffuseWeight = clamp(dot(ldirect, normal), 0.0f, 1.0f);
+
+    directRay.direct.xyz = ldirect;
+    directRay.color.xyz *= color * Lo.xyz / float(u_SamplesPerPass) * diffuseWeight;
     return directRay;
+
+/*
+    vec3 ltr = lightCenter(i).xyz-directRay.origin.xyz;
+    vec3 ldirect = normalize(sLight(i) - directRay.origin.xyz);
+    float cos_a_max = sqrt(1.f - clamp(lightUniform.lightNode[i].lightColor.w * lightUniform.lightNode[i].lightColor.w / sqlen(ltr), 0.0f, 1.0f));
+    float diffuseWeight = clamp(dot(ldirect, normal), 0.0f, 1.0f);
+
+    directRay.direct.xyz = ldirect;
+    directRay.color.xyz *= color * diffuseWeight * ((1.0f - cos_a_max) * 2.0f);
+    return directRay;
+*/
 }
 
 Ray directLight(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 normal, in float roughness){
