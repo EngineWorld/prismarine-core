@@ -107,8 +107,8 @@ void main() {
 
     int lc = -1;
     bool lightedRay = newRay.params.x < 1 && (newRay.params.z > 0 || newRay.params.w > 0 );
-    //if (lightedRay) {
-    if (newRay.params.z > 0) {
+    if (lightedRay) {
+    //if (newRay.params.z > 0) {
         for (int i=0;i<RAY_BLOCK materialUniform.lightcount;i++) {
             float md = 1.0f;
             float dt = intersectSphere(newRay.origin.xyz, newRay.direct.xyz, lightCenter(i).xyz, lightUniform.lightNode[i].lightColor.w + GAP);
@@ -121,8 +121,8 @@ void main() {
                 hit.shaded = 1;
             }
         }
-    }
     //}
+    }
 
     if (lc >= 0 && (newRay.params.y == lc || newRay.params.w < 1)){
         newRay.final.xyz = newRay.color.xyz * getLightColor(lc) * float(lightedRay);
@@ -215,7 +215,7 @@ void main() {
         // emit reflection ray
         reflectionRay = reflection(reflectionRay, hit, clamp(sc.xyz / spca, 0.0f, 1.0f), normal, refly);
         mixed(emitentRay.color.xyz, reflectionRay.color.xyz, clamp(spic, 0.0f, 1.0f));
-        applyLight(directLight(0, reflectionRay, hit, vec3(1.0f), normal, refly), reflectionRay, surfacenormal); // push shadow for PBR reflection
+        //applyLight(directLight(0, reflectionRay, hit, vec3(1.0f), normal, refly), reflectionRay, surfacenormal); // push shadow for PBR reflection
         emitRay(reflectionRay, hit, normal, 1.0f);
 
         // emit light
@@ -223,8 +223,8 @@ void main() {
         emitentRay.color.xyz *= clamp(1.0f - emis, 0.0f, 1.0f);
 
         // emit diffuse ray
-        emitentRay = reflection(emitentRay, hit, tx.xyz, normal, 1.0f);//diffuse(emitentRay, hit, tx.xyz, normal);
-        applyLight(directLight(0, emitentRay, hit, vec3(1.0f), normal, 1.0f), emitentRay, surfacenormal); // push shadow
+        emitentRay = diffuse(emitentRay, hit, tx.xyz, normal);
+        applyLight(directLight(0, emitentRay, hit, vec3(1.0f), normal), emitentRay, surfacenormal); // push shadow
         emitRay(emitentRay, hit, normal, 1.0f);
 
         // transparency ray 

@@ -486,6 +486,7 @@ const uint u_SamplesPerPass = 4;
 mat3 tbn_light = mat3(1.0f);
 vec3 dirl = vec3(0.0f);
 
+/*
 Ray directLightRoughness(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 normal){
     if (directRay.params.w == 1) return directRay;
     directRay.bounce = min(1, directRay.bounce);
@@ -611,6 +612,7 @@ Ray directLight(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 n
     DRo = 1.f;
     return drtRay;
 }
+*/
 
 Ray directLight(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 normal){
     if (directRay.params.w == 1) return directRay;
