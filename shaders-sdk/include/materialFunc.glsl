@@ -499,7 +499,7 @@ Ray directLightRoughness(in int i, in Ray directRay, in Hit hit, in vec3 color, 
     
     // fetch pivot fit params
 	float brdfScale = 0.0f; // this won't be used here
-    float alpha = clamp(DRo * DRo * 0.5f, 0.0f, 1.0f);
+    float alpha = clamp(pow(DRo * sqrt(0.5f), 2.0f), 0.0f, 1.0f);
 	vec3 pivot = extractPivot(wo, alpha, brdfScale);
     vec3 Li = vec3(sqrt(2));
     vec3 Lo = vec3(0);
