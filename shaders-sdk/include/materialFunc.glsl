@@ -501,7 +501,7 @@ Ray directLightRoughness(in int i, in Ray directRay, in Hit hit, in vec3 color, 
     
     // fetch pivot fit params
 	float brdfScale = 0.0f; // this won't be used here
-    float alpha = clamp(DRo * 0.5f, 0.0f, 1.0f);//clamp(pow(DRo * 0.5f, 2.0f), 0.0f, 1.0f);
+    float alpha = clamp(DRo * DRo * 0.5f, 0.0f, 1.0f);//clamp(pow(DRo * 0.5f, 2.0f), 0.0f, 1.0f);
 
 	vec3 pivot = extractPivot(wo, alpha, brdfScale);
     vec3 Li = vec3(1);
@@ -601,7 +601,7 @@ Ray directLightRoughness(in int i, in Ray directRay, in Hit hit, in vec3 color, 
     float diffuseWeight = clamp(dot(ldirect, normal), 0.0f, 1.0f);
 
     directRay.direct.xyz = ldirect;
-    directRay.color.xyz *= color * clamp(diffuseWeight * Lo.xyz / float(u_SamplesPerPass), 0.0f, 1.0f);
+    directRay.color.xyz *= color * clamp(Lo.xyz / float(u_SamplesPerPass), 0.0f, 1.0f);
     return directRay;
 }
 
