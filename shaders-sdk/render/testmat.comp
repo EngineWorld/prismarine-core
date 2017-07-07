@@ -223,8 +223,8 @@ void main() {
         emitentRay.color.xyz *= clamp(1.0f - emis, 0.0f, 1.0f);
 
         // emit diffuse ray
-        emitentRay = reflection(emitentRay, hit, tx.xyz, normal, 1.0f);//diffuse(emitentRay, hit, tx.xyz, normal);
-        applyLight(directLight(0, emitentRay, hit, vec3(1.0f), normal, 1.0f), emitentRay, surfacenormal); // push shadow
+        emitentRay = diffuse(emitentRay, hit, tx.xyz, normal);
+        applyLight(directLight(0, emitentRay, hit, vec3(1.0f), normal), emitentRay, surfacenormal); // push shadow
         emitRay(emitentRay, hit, normal, 1.0f);
 
         // transparency ray 
