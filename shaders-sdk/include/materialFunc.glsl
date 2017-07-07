@@ -397,10 +397,11 @@ vec3 triangleRandomPoint(in vec3 tri[3]){
 
 Ray reflection(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal, in float refly){
     if (newRay.params.w == 1) return newRay;
-    //newRay.direct.xyz = normalize(mix(reflect(newRay.direct.xyz, normal), randomCosine(normal), clamp(refly * random(), 0.0f, 1.0f)));
-    newRay.direct.xyz = normalize(mix(reflect(newRay.direct.xyz, normal), randomCosine(normal), clamp(refly * (random()), 0.0f, 1.0f)));
+    newRay.direct.xyz = normalize(mix(reflect(newRay.direct.xyz, normal), randomCosine(normal), clamp(refly * random(), 0.0f, 1.0f)));
+    //newRay.direct.xyz = normalize(mix(reflect(newRay.direct.xyz, normal), randomCosine(normal), clamp(refly, 0.0f, 1.0f)));
     newRay.color.xyz *= color;
     newRay.params.x = SUNLIGHT_CAUSTICS ? 0 : 1;
+    newRay.params.z = 1;
     newRay.bounce = min(3, newRay.bounce); // normal mode
     //newRay.bounce = min(2, newRay.bounce); // easier mode
     newRay.origin.xyz = fma(faceforward(hit.normal.xyz, newRay.direct.xyz, -hit.normal.xyz), vec3(GAP), newRay.origin.xyz); // padding
@@ -500,10 +501,10 @@ Ray directLightRoughness(in int i, in Ray directRay, in Hit hit, in vec3 color, 
     
     // fetch pivot fit params
 	float brdfScale = 0.0f; // this won't be used here
-    float alpha = clamp(pow(DRo * 0.5f, 2.0f), 0.0f, 1.0f);
+    float alpha = clamp(DRo * 0.5f, 0.0f, 1.0f);//clamp(pow(DRo * 0.5f, 2.0f), 0.0f, 1.0f);
 
 	vec3 pivot = extractPivot(wo, alpha, brdfScale);
-    vec3 Li = vec3(PHI);
+    vec3 Li = vec3(1);
     vec3 Lo = vec3(0);
 
 	// iterate over all spheres
@@ -600,7 +601,7 @@ Ray directLightRoughness(in int i, in Ray directRay, in Hit hit, in vec3 color, 
     float diffuseWeight = clamp(dot(ldirect, normal), 0.0f, 1.0f);
 
     directRay.direct.xyz = ldirect;
-    directRay.color.xyz *= clamp(Lo.xyz / float(u_SamplesPerPass), 0.0f, 1.0f);
+    directRay.color.xyz *= color * clamp(diffuseWeight * Lo.xyz / float(u_SamplesPerPass), 0.0f, 1.0f);
     return directRay;
 }
 
@@ -625,9 +626,12 @@ Ray directLight(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 n
     float diffuseWeight = clamp(dot(ldirect, normal), 0.0f, 1.0f);
 
     directRay.direct.xyz = ldirect;
-    directRay.color.xyz *= color * diffuseWeight * ((1.0f - cos_a_max) * 2.0f);
+    directRay.color.xyz *= color * clamp(diffuseWeight * ((1.0f - cos_a_max) * 2.0f), 0.0f, 1.0f);
     if (DRo < 0.9999f) directRay.color.xyz *= vec3(0.0f);
     return directRay;
+    
+    //DRo = 1.f;
+    //return directLightRoughness(i, directRay, hit, color, normal);
 }
 
 
@@ -641,6 +645,7 @@ Ray diffuse(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal){
     if (newRay.params.w == 1) return newRay;
     newRay.color.xyz *= color;
     newRay.direct.xyz = normalize(randomCosine(normal));
+    //newRay.direct.xyz = normalize(mix(reflect(newRay.direct.xyz, normal), randomCosine(normal), clamp(random(), 0.0f, 1.0f)));
     newRay.bounce = min(2, newRay.bounce);
     newRay.params.z = 1;
     newRay.params.x = 0;

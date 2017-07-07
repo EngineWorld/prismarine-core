@@ -100,11 +100,12 @@ void main() {
     }
 
     int lc = -1;
-    for (int i=0;i<RAY_BLOCK materialUniform.lightcount;i++) {
-        if ( newRay.params.x < 1 && (newRay.params.z > 0 || newRay.params.w > 0 )) {
+    bool lightedRay = newRay.params.x < 1 && (newRay.params.z > 0 || newRay.params.w > 0 );
+    //if (lightedRay) {
+        for (int i=0;i<RAY_BLOCK materialUniform.lightcount;i++) {
             float md = 1.0f;
-             float dt = intersectSphere(newRay.origin.xyz, newRay.direct.xyz, lightCenter(i).xyz, lightUniform.lightNode[i].lightColor.w + GAP);
-             float t = md * dt;
+            float dt = intersectSphere(newRay.origin.xyz, newRay.direct.xyz, lightCenter(i).xyz, lightUniform.lightNode[i].lightColor.w + GAP);
+            float t = md * dt;
             if (lessF(dt, INFINITY) && lessEqualF(t, hit.dist)) {
                 lc = i;
                 hit.triangle = 0;
@@ -113,10 +114,10 @@ void main() {
                 hit.shaded = 1;
             }
         }
-    }
+    //}
 
     if (lc >= 0 && (newRay.params.y == lc || newRay.params.w < 1)){
-        newRay.final.xyz = newRay.color.xyz * getLightColor(lc);
+        newRay.final.xyz = newRay.color.xyz * getLightColor(lc) * float(lightedRay);
         newRay.actived = 0;
     }
 
