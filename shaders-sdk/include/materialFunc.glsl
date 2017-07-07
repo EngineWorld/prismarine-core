@@ -496,13 +496,14 @@ Ray directLightRoughness(in int i, in Ray directRay, in Hit hit, in vec3 color, 
     // extract attributes
 	vec3 wo = normalize(dirl);//reflect(directRay.direct.xyz, normal);//-normalize(directRay.direct.xyz);
 	mat3 tg = tbn_light;
-    wo = tg * -wo;
+    wo = normalize(tg * -wo);
     
     // fetch pivot fit params
 	float brdfScale = 0.0f; // this won't be used here
-    float alpha = clamp(pow(DRo * 0.5f, 1.4426950408889634f), 0.0f, 1.0f);
+    float alpha = clamp(pow(DRo * 0.5f, 2.0f), 0.0f, 1.0f);
+
 	vec3 pivot = extractPivot(wo, alpha, brdfScale);
-    vec3 Li = vec3(1);
+    vec3 Li = vec3(PHI);
     vec3 Lo = vec3(0);
 
 	// iterate over all spheres
@@ -599,7 +600,7 @@ Ray directLightRoughness(in int i, in Ray directRay, in Hit hit, in vec3 color, 
     float diffuseWeight = clamp(dot(ldirect, normal), 0.0f, 1.0f);
 
     directRay.direct.xyz = ldirect;
-    directRay.color.xyz *= color * Lo.xyz / float(u_SamplesPerPass);
+    directRay.color.xyz *= clamp(Lo.xyz / float(u_SamplesPerPass), 0.0f, 1.0f);
     return directRay;
 }
 
