@@ -167,6 +167,10 @@ void main() {
         prom = 1.0f;
     }
 
+    if ( haveProp(materialCache, M_REFLECTIVE)) {
+        prom = mix(clamp(pow(1.0f - abs(dot(dir, normal)), 5.0f), 0.0f, 1.0f), 1.0f, prom);
+    }
+
     if (newRay.actived > 0 && hit.shaded < 1) {
         // diffuse
         bool shadowed = false;
@@ -176,7 +180,7 @@ void main() {
         emitentRay.color.xyz *= (1.0f - prom);
 
         if (haveProp(materialCache, M_ENVIRONMENT) && dot(hit.normal.xyz, emitentRay.direct.xyz) < 0.0f) {
-            mixed(emitentRay.color.xyz, reflectionRay.color.xyz, 0.2f);
+            mixed(emitentRay.color.xyz, reflectionRay.color.xyz, mix(clamp(pow(1.0f - abs(dot(dir, normal)), 5.0f), 0.0f, 1.0f), 1.0f, 0.05f));
         } else {
             mixed(emitentRay.color.xyz, reflectionRay.color.xyz, 0.0f);
         }
@@ -192,15 +196,15 @@ void main() {
 
         // reflective effects in coins and metals
         if (haveProp(materialCache, M_ENVIRONMENT) && dot(hit.normal.xyz, reflectionRay.direct.xyz) < 0.0f) {
-            emitRay(reflection(reflectionRay, hit, vec3(1.0f), normal, 0.99f), hit, normal, 1.0f);
+            emitRay(reflection(reflectionRay, hit, vec3(1.0f), normal, 0.05f), hit, normal, 1.0f);
         }
 
         // transparency or reflection ray
         if (!haveProp(materialCache, M_ADDITIVE)) { 
-            newRay.color.xyz *= prom; 
+            newRay.color.xyz *= prom;
         }
         if ( haveProp(materialCache, M_REFLECTIVE)) { // mirrors
-            newRay = reflection(newRay, hit, vec3(1.0f), normal, 1.0f);
+            newRay = reflection(newRay, hit, vec3(1.0f), normal, 0.05f);
         } else { // transparency
             newRay = promised(newRay, hit, normal);
         }
