@@ -191,7 +191,7 @@ void main() {
     vec3 sc = mix(dielectric, tx.xyz, sp.z);
 
     // we coming to PBR model
-     float refly = clamp(sqrt(1.0f - sp.y), 0.0f, 1.0f); // roughness
+     float refly = clamp(sp.y, 0.0f, 1.0f); // roughness
      float emis = mlength(emi.xyz);
      float spca = mlength(sc.xyz);
      float spic = clamp(spca, 0.0f, 1.0f); // diffuse or specular (except AO?)
@@ -213,7 +213,7 @@ void main() {
         // emit reflection ray
         reflectionRay = reflection(reflectionRay, hit, clamp(sc.xyz / spca, 0.0f, 1.0f), normal, refly);
         mixed(emitentRay.color.xyz, reflectionRay.color.xyz, spic);
-        applyLight(directLight(0, reflectionRay, hit, vec3(1.0f), normal, 1.0f - refly), reflectionRay, surfacenormal); // push shadow for PBR reflection
+        applyLight(directLight(0, reflectionRay, hit, vec3(1.0f), normal, refly), reflectionRay, surfacenormal); // push shadow for PBR reflection
         emitRay(reflectionRay, hit, normal, 1.0f);
 
         // emit light
@@ -222,7 +222,7 @@ void main() {
 
         // emit diffuse ray
         emitentRay = diffuse(emitentRay, hit, tx.xyz, normal);
-        applyLight(directLight(0, emitentRay, hit, vec3(1.0f), normal, 1.0f), emitentRay, surfacenormal); // push shadow
+        applyLight(directLight(0, emitentRay, hit, vec3(1.0f), normal), emitentRay, surfacenormal); // push shadow
         emitRay(emitentRay, hit, normal, 1.0f);
 
         // transparency ray 
