@@ -397,7 +397,7 @@ vec3 triangleRandomPoint(in vec3 tri[3]){
 
 Ray reflection(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal, in float refly){
     if (newRay.params.w == 1) return newRay;
-    newRay.direct.xyz = normalize(mix(reflect(newRay.direct.xyz, normal), randomCosine(normal), refly * random()));
+    newRay.direct.xyz = normalize(mix(reflect(newRay.direct.xyz, normal), randomCosine(normal), clamp(refly * random(), 0.0f, 1.0f)));
     newRay.color.xyz *= color;
     newRay.params.x = SUNLIGHT_CAUSTICS ? 0 : 1;
     newRay.bounce = min(3, newRay.bounce); // normal mode
@@ -499,7 +499,7 @@ Ray directLightRoughness(in int i, in Ray directRay, in Hit hit, in vec3 color, 
     
     // fetch pivot fit params
 	float brdfScale = 0.0f; // this won't be used here
-    float alpha = DRo * DRo * 0.5f;
+    float alpha = clamp(DRo * DRo * 0.5f, 0.0f, 1.0f);
 	vec3 pivot = extractPivot(wo, alpha, brdfScale);
     vec3 Li = vec3(sqrt(2));
     vec3 Lo = vec3(0);

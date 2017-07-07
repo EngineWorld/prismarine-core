@@ -191,7 +191,7 @@ void main() {
     vec3 sc = mix(dielectric, tx.xyz, sp.z);
 
     // we coming to PBR model
-     float refly = clamp(sp.y, 0.0f, 1.0f); // roughness
+     float refly = sp.y; // roughness
      float emis = mlength(emi.xyz);
      float spca = mlength(sc.xyz);
      float spic = clamp(spca, 0.0f, 1.0f); // diffuse or specular (except AO?)
