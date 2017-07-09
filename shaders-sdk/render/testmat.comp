@@ -215,7 +215,7 @@ void main() {
         // emit reflection ray
         reflectionRay = reflection(reflectionRay, hit, clamp(sc.xyz / spca, 0.0f, 1.0f), normal, refly);
         mixed(emitentRay.color.xyz, reflectionRay.color.xyz, clamp(spic, 0.0f, 1.0f));
-        //applyLight(directLight(0, reflectionRay, hit, vec3(1.0f), normal, refly), reflectionRay, surfacenormal); // push shadow for PBR reflection
+        applyLight(directLight(0, reflectionRay, hit, vec3(1.0f), normal, refly), reflectionRay, surfacenormal); // push shadow for PBR reflection
         emitRay(reflectionRay, hit, normal, 1.0f);
 
         // emit light

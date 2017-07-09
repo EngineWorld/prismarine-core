@@ -482,11 +482,45 @@ vec3 extractPivot(vec3 wo, float alpha, out float brdfScale)
 	return pivot;
 }
 
-const uint u_SamplesPerPass = 4;
+const uint u_SamplesPerPass = 64;
 mat3 tbn_light = mat3(1.0f);
 vec3 dirl = vec3(0.0f);
 
-/*
+float intersectSphere(in vec3 origin, in vec3 ray, in vec3 sphereCenter, in float sphereRadius) {
+     vec3 toSphere = origin - sphereCenter;
+     float a = dot(ray, ray);
+     float b = 2.0f * dot(toSphere, ray);
+     float c = dot(toSphere, toSphere) - sphereRadius*sphereRadius;
+     float discriminant = fma(b,b,-4.0f*a*c);
+    if(discriminant > 0.0f) {
+         float da = 0.5f / a;
+         float t1 = (-b - sqrt(discriminant)) * da;
+         float t2 = (-b + sqrt(discriminant)) * da;
+         float mn = min(t1, t2);
+         float mx = max(t1, t2);
+        if (mn >= 0.0f) return mn; else
+        if (mx >= 0.0f) return mx;
+    }
+    return INFINITY;
+}
+
+bool intersectSphereFast(in vec3 origin, in vec3 ray, in vec3 sphereCenter, in float sphereRadius) {
+    vec3 toSphere = origin - sphereCenter;
+    float a = dot(ray, ray);
+    float b = 2.f * dot(toSphere, ray);
+    float c = dot(toSphere, toSphere) - sphereRadius*sphereRadius;
+    float discriminant = fma(b,b,(-4.f)*a*c);
+    if(discriminant > 0.f) {
+        float da = .5f / a;
+        float t1 = (-b - sqrt(discriminant)) * da;
+        float t2 = (-b + sqrt(discriminant)) * da;
+        return (max(t1, t2) >= 0.f);
+    }
+    return false;
+}
+
+
+
 Ray directLightRoughness(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 normal){
     if (directRay.params.w == 1) return directRay;
     directRay.bounce = min(1, directRay.bounce);
@@ -495,114 +529,20 @@ Ray directLightRoughness(in int i, in Ray directRay, in Hit hit, in vec3 color, 
     directRay.params.x = 0;
     directRay.params.y = i;
 
-    // extract attributes
-	vec3 wo = normalize(dirl);//reflect(directRay.direct.xyz, normal);//-normalize(directRay.direct.xyz);
-	mat3 tg = tbn_light;
-    wo = normalize(tg * -wo);
-    
-    // fetch pivot fit params
-	float brdfScale = 0.0f; // this won't be used here
-    float alpha = clamp(DRo * 0.5f, 0.0f, 1.0f);//clamp(pow(DRo * 0.5f, 2.0f), 0.0f, 1.0f);
-
-	vec3 pivot = extractPivot(wo, alpha, brdfScale);
-    vec3 Li = vec3(1);
-    vec3 Lo = vec3(0);
-
-	// iterate over all spheres
-    vec3 spherePos = tg * (lightCenter(i).xyz - directRay.origin.xyz);
-    float sphereRadius = lightUniform.lightNode[i].lightColor.w;
-    sphere s = sphere(spherePos, sphereRadius);
-    float invSphereMagSqr = 1.0f / dot(s.pos, s.pos);
-    vec3 capDir = s.pos * sqrt(invSphereMagSqr);
-    float capCos = sqrt(1.0 - s.r * s.r * invSphereMagSqr);
-
-    cap c = cap(capDir, capCos);
-    cap c_std = cap_to_pcap(c, pivot);
-
-    if (c.z < 0.99) {
-        // Joint MIS: loop over all samples
-        for (int j = 0; j < u_SamplesPerPass; ++j) {
-            vec2 u2 = vec2(random(), random());
-
-            // importance sample the BRDF
-            if (true) {
-                vec3 wm = ggx_sample(u2, wo, alpha);
-                vec3 wi = 2.0 * wm * dot(wo, wm) - wo;
-                float pdf1;
-                float frp = ggx_evalp(wi, wo, alpha, pdf1);
-                float raySphereIntersection = pdf_cap(wi, c);
-
-                // raytrace the sphere light
-                if (pdf1 > 0.0 && raySphereIntersection > 0.0) {
-                    float pdf2 = pdf_pcap_fast(wi, c_std, pivot);
-                    float misWeight = pdf1 * pdf1;
-                    float misNrm = pdf1 * pdf1 + pdf2 * pdf2;
-
-                    Lo+= Li * frp / pdf1 * misWeight / misNrm;
-                }
-            }
-
-            // importance sample the pivot transformed spherical cap
-            if (true) {
-                vec3 wi = u2_to_pcap(u2, c_std, pivot);
-                float pdf1;
-                float frp = ggx_evalp(wi, wo, alpha, pdf1);
-                float pdf2 = pdf_pcap_fast(wi, c_std, pivot);
-
-                if (pdf2 > 0.0) {
-                    float misWeight = pdf2 * pdf2;
-                    float misNrm = pdf1 * pdf1 + pdf2 * pdf2;
-
-                    Lo+= Li * frp / pdf2 * misWeight / misNrm;
-                }
-            }
-        }
-    } else {
-        // classic MIS: loop over all samples
-        for (int j = 0; j < u_SamplesPerPass; ++j) {
-            vec2 u2 = vec2(random(), random());
-
-            // importance sample the BRDF
-            if (true) {
-                vec3 wm = ggx_sample(u2, wo, alpha);
-                vec3 wi = 2.0 * wm * dot(wo, wm) - wo;
-                float pdf1;
-                float frp = ggx_evalp(wi, wo, alpha, pdf1);
-                float raySphereIntersection = pdf_cap(wi, c);
-
-                // raytrace the sphere light
-                if (pdf1 > 0.0 && raySphereIntersection > 0.0) {
-                    float pdf2 = pdf_cap(wi, c);
-                    float misWeight = pdf1 * pdf1;
-                    float misNrm = pdf1 * pdf1 + pdf2 * pdf2;
-
-                    Lo+= Li * frp / pdf1 * misWeight / misNrm;
-                }
-            }
-
-            // importance sample the spherical cap
-            if (true) {
-                vec3 wi = u2_to_cap(u2, c);
-                float pdf1;
-                float frp = ggx_evalp(wi, wo, alpha, pdf1);
-                float pdf2 = pdf_cap(wi, c);
-
-                if (pdf2 > 0.0) {
-                    float misWeight = pdf2 * pdf2;
-                    float misNrm = pdf1 * pdf1 + pdf2 * pdf2;
-
-                    Lo+= Li * frp / pdf2 * misWeight / misNrm;
-                }
-            }
-        }
+    float AO = 0.f;
+    for (uint k=0;k<u_SamplesPerPass;k++) {
+        vec3 direct = normalize(mix(reflect(dirl, normal), randomCosine(normal), clamp(DRo * random(), 0.0f, 1.0f)));
+        bool vsampl = intersectSphereFast(directRay.origin.xyz, direct, lightCenter(i).xyz, lightUniform.lightNode[i].lightColor.w + GAP);
+        AO += float(vsampl ? 1.f : 0.f);
     }
+    AO /= float(u_SamplesPerPass);
 
     vec3 ltr = lightCenter(i).xyz-directRay.origin.xyz;
     vec3 ldirect = normalize(sLight(i) - directRay.origin.xyz);
     float diffuseWeight = clamp(dot(ldirect, normal), 0.0f, 1.0f);
 
     directRay.direct.xyz = ldirect;
-    directRay.color.xyz *= color * clamp(Lo.xyz / float(u_SamplesPerPass), 0.0f, 1.0f);
+    directRay.color.xyz *= color * AO;
     return directRay;
 }
 
@@ -612,7 +552,6 @@ Ray directLight(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 n
     DRo = 1.f;
     return drtRay;
 }
-*/
 
 Ray directLight(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 normal){
     if (directRay.params.w == 1) return directRay;
@@ -628,12 +567,9 @@ Ray directLight(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 n
     float diffuseWeight = clamp(dot(ldirect, normal), 0.0f, 1.0f);
 
     directRay.direct.xyz = ldirect;
-    directRay.color.xyz *= color * clamp(diffuseWeight * ((1.0f - cos_a_max) * 2.0f), 0.0f, 1.0f);
+    directRay.color.xyz *= color * diffuseWeight * ((1.0f - cos_a_max) * 2.0f);
     if (DRo < 0.9999f) directRay.color.xyz *= vec3(0.0f);
     return directRay;
-    
-    //DRo = 1.f;
-    //return directLightRoughness(i, directRay, hit, color, normal);
 }
 
 
@@ -647,7 +583,6 @@ Ray diffuse(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal){
     if (newRay.params.w == 1) return newRay;
     newRay.color.xyz *= color;
     newRay.direct.xyz = normalize(randomCosine(normal));
-    //newRay.direct.xyz = normalize(mix(reflect(newRay.direct.xyz, normal), randomCosine(normal), clamp(random(), 0.0f, 1.0f)));
     newRay.bounce = min(2, newRay.bounce);
     newRay.params.z = 1;
     newRay.params.x = 0;
@@ -680,24 +615,6 @@ vec3 lightCenterSky(in int i) {
      vec3 playerCenter = vec3(0.0f);
      vec3 lvec = normalize(lightUniform.lightNode[i].lightVector.xyz) * 1000.0f;
     return lightUniform.lightNode[i].lightOffset.xyz + lvec + playerCenter.xyz;
-}
-
-float intersectSphere(in vec3 origin, in vec3 ray, in vec3 sphereCenter, in float sphereRadius) {
-     vec3 toSphere = origin - sphereCenter;
-     float a = dot(ray, ray);
-     float b = 2.0f * dot(toSphere, ray);
-     float c = dot(toSphere, toSphere) - sphereRadius*sphereRadius;
-     float discriminant = fma(b,b,-4.0f*a*c);
-    if(discriminant > 0.0f) {
-         float da = 0.5f / a;
-         float t1 = (-b - sqrt(discriminant)) * da;
-         float t2 = (-b + sqrt(discriminant)) * da;
-         float mn = min(t1, t2);
-         float mx = max(t1, t2);
-        if (mn >= 0.0f) return mn; else
-        if (mx >= 0.0f) return mx;
-    }
-    return INFINITY;
 }
 
 bool doesCubeIntersectSphere(in vec3 C1, in vec3 C2, in vec3 S, in float R)
