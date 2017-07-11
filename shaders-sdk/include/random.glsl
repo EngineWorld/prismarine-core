@@ -4,25 +4,25 @@
 uint randomClocks = 0u;
 uint globalInvocationSMP = 0;
 
-uint hash( in uint x ) {
-    x += ( x << 10 );
-    x ^= ( x >>  6 );
-    x += ( x <<  3 );
-    x ^= ( x >> 11 );
-    x += ( x << 15 );
+uint hash( uint x ) {
+    x += ( x << 10u );
+    x ^= ( x >>  6u );
+    x += ( x <<  3u );
+    x ^= ( x >> 11u );
+    x += ( x << 15u );
     return x;
 }
 
-uint hash( in uvec2 v ) { return hash( v.x ^ hash(v.y)                         ); }
-uint hash( in uvec3 v ) { return hash( v.x ^ hash(v.y) ^ hash(v.z)             ); }
-uint hash( in uvec4 v ) { return hash( v.x ^ hash(v.y) ^ hash(v.z) ^ hash(v.w) ); }
+uint hash( uvec2 v ) { return hash( v.x ^ hash(v.y)                         ); }
+uint hash( uvec3 v ) { return hash( v.x ^ hash(v.y) ^ hash(v.z)             ); }
+uint hash( uvec4 v ) { return hash( v.x ^ hash(v.y) ^ hash(v.z) ^ hash(v.w) ); }
 
 float floatConstruct( in uint m ) {
-     uint ieeeMantissa = 0x007FFFFFu; // binary32 mantissa bitmask
-     uint ieeeOne      = 0x3F800000u; // 1.0 in IEEE binary32
-    m &= ieeeMantissa;                   // Keep only mantissa bits (fractional part)
-    m |= ieeeOne;                        // Add fractional part to 1.0
-    return fract(uintBitsToFloat( m ));  // Range [0:1]
+     uint ieeeMantissa = 0x007FFFFFu;          // binary32 mantissa bitmask
+     uint ieeeOne      = 0x3F800000u;          // 1.0 in IEEE binary32
+    m &= ieeeMantissa;                         // Keep only mantissa bits (fractional part)
+    m |= ieeeOne;                              // Add fractional part to 1.0
+    return fract(uintBitsToFloat( m ) - 1.0f); // Range [0:1]
 }
 
 float random( in uint   x ) { return floatConstruct(hash(x)); }
@@ -32,10 +32,11 @@ float random( in uvec4  v ) { return floatConstruct(hash(v)); }
 
 float random() {
 #ifdef USE_ARB_CLOCK
-    return random(uvec4( globalInvocationSMP, RAY_BLOCK randomUniform.time, clock2x32ARB()));
+    return random(uvec3( globalInvocationSMP, clock2x32ARB()));
 #else
     uint hs = randomClocks; randomClocks = hash(randomClocks);
-    return random(uvec3( globalInvocationSMP, RAY_BLOCK randomUniform.time, hs));
+    //uint hs = hash(randomClocks); randomClocks = hs;
+    return random(uvec3( globalInvocationSMP, RAY_BLOCK randomUniform.time, hs ));
 #endif
 }
 

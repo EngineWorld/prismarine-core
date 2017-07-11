@@ -4,7 +4,7 @@
 
 // hardware or driver options
 #define USE_INT64
-//#define USE_ARB_CLOCK
+#define USE_ARB_CLOCK
 //#define USE_ARB_PRECISION
 //#define ENABLE_NVIDIA_INSTRUCTION_SET
 //#define ENABLE_AMD_INSTRUCTION_SET

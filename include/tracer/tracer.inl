@@ -429,7 +429,7 @@ namespace Paper {
 
         clearRays();
 
-        randomUniformData.time = frandom();
+        randomUniformData.time = rand();
         cameraUniformData.camInv = *(Vc4x4 *)glm::value_ptr(glm::inverse(frontSide));
         cameraUniformData.projInv = *(Vc4x4 *)glm::value_ptr(glm::inverse(persp));
         cameraUniformData.interlace = 0;
@@ -570,7 +570,7 @@ namespace Paper {
         if (rsize <= 0) return;
 
         samplerUniformData.rayCount = rsize;
-        randomUniformData.time = frandom();
+        randomUniformData.time = rand();
 
         this->bind();
         if (cubeTex) glBindTextureUnit(0, cubeTex);
