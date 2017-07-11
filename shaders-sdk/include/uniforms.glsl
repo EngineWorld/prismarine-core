@@ -10,12 +10,17 @@
 //#define GEOMETRY_BLOCK 
 
 struct RandomUniformStruct {
-    Vc1 time;
+    iVc1 time;
+    Vc1 _reserved0;
+    Vc1 _reserved1;
+    Vc1 _reserved2;
 };
 
 struct MinmaxUniformStruct {
     iVc1 heap;
     Vc1 prec;
+    Vc1 _reserved0;
+    Vc1 _reserved1;
 };
 
 struct MaterialUniformStruct {
