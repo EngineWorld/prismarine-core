@@ -34,7 +34,8 @@ float random() {
 #ifdef USE_ARB_CLOCK
     return random(uvec4( globalInvocationSMP, RAY_BLOCK randomUniform.time, clock2x32ARB()));
 #else
-    return random(uvec3( globalInvocationSMP, RAY_BLOCK randomUniform.time, randomClocks++));
+    uint hs = randomClocks; randomClocks = hash(randomClocks);
+    return random(uvec3( globalInvocationSMP, RAY_BLOCK randomUniform.time, hs));
 #endif
 }
 

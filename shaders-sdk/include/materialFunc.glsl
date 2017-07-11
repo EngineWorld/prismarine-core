@@ -482,7 +482,7 @@ vec3 extractPivot(vec3 wo, float alpha, out float brdfScale)
 	return pivot;
 }
 
-const uint u_SamplesPerPass = 64;
+const uint u_SamplesPerPass = 16;
 mat3 tbn_light = mat3(1.0f);
 vec3 dirl = vec3(0.0f);
 
