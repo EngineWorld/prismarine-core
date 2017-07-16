@@ -5,6 +5,8 @@
 #extension GL_ARB_shader_ballot : require
 #extension GL_ARB_shader_group_vote : require
 
+#define USE_WARP_OPTIMIZED
+
 #include "../include/constants.glsl"
 #include "../include/structs.glsl"
 #include "../include/uniforms.glsl"
@@ -85,12 +87,13 @@ layout ( local_size_x = WORK_SIZE * SCALARS ) in;
 
 void main() {
     const int it = invoc(int(gl_GlobalInvocationID.x));
+    if (ibs(it < RAY_BLOCK samplerUniform.rayCount)) return;
     //if (it >= RAY_BLOCK samplerUniform.rayCount) return;
  
     const int t = activedBuf.indc[it];
     Ray ray = fetchRayDirect(t);
     Hit hit = fetchHitDirect(t);
-    TResult res = traverse(hit.dist, ray.origin.xyz, ray.direct.xyz, hit);
+    TResult res = traverse(hit.dist, ray.origin[lane4], ray.direct[lane4], hit);
 
     if (
         greaterEqualF(res.dist, 0.0f) &&
@@ -113,7 +116,7 @@ void main() {
         newHit.triangle = res.triangle;
         newHit.materialID = res.materialID;
         newHit.shaded = 0;
-
+        
         newHit.vmods.w = sysmod.w;
 
         if (mt()) storeHit(t, newHit);

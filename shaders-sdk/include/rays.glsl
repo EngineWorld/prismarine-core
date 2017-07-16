@@ -177,13 +177,14 @@ uvec3 _roundly(in vec3 o){
         uvec3(0), uvec3(1023));
 }
 
+/*
 uint quantizeRay(in Ray ray, in vec3 mn, in vec3 mx){
     vec3 origin = (ray.origin.xyz - mn) / (mx - mn);
     vec3 direct = fma(normalize(ray.direct.xyz),vec3(0.5f),vec3(0.5f));
     return encodeMorton3_64(_roundly(origin), _roundly(direct));
     //return encodeMorton3_64(_roundly(direct), _roundly(origin));
 }
-
+*/
 
 
 #endif

@@ -104,13 +104,23 @@ struct Texel {
 };
 
 struct bbox {
+#ifdef USE_WARP_OPTIMIZED
+    Vc1 mn[4];
+    Vc1 mx[4];
+#else
     Vc4 mn;
     Vc4 mx;
+#endif
 };
 
 struct Ray {
+#ifdef USE_WARP_OPTIMIZED
+    Vc1 origin[4];
+    Vc1 direct[4];
+#else
     Vc4 origin;
     Vc4 direct;
+#endif
     Vc4 color;
     Vc4 final;
     iVc4 params;

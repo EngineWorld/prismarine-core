@@ -203,10 +203,10 @@ shared bool skip[WORK_SIZE];
 shared bool validBox[WORK_SIZE];
 
 //TResult traverse(in float distn, in VEC3 origin, in VEC3 direct, in Hit hit) {
-TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
+TResult traverse(in float distn, in VEC3 origin, in VEC3 direct, in Hit hit) {
     const uint L = invoc(gl_LocalInvocationID.x);
-     VEC4 origin = eql(3) ? 1.0f : swiz(_origin); 
-     VEC4 direct = eql(3) ? 0.0f : swiz(_direct);
+     //VEC4 origin = eql(3) ? 1.0f : swiz(_origin); 
+     //VEC4 direct = eql(3) ? 0.0f : swiz(_direct);
 
     TResult lastRes;
     lastRes.dist = INFINITY;
@@ -256,23 +256,10 @@ TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
         if (bs(notLeaf)) {
 
             // search intersection worklets (3 lanes occupy)
-             vec2 hfn_leftright[2] = {
-                intersectCubeSingleApart(torig, dirproj, swiz(Nodes[node.pdata.x].box.mn), swiz(Nodes[node.pdata.x].box.mx)),
-                intersectCubeSingleApart(torig, dirproj, swiz(Nodes[node.pdata.y].box.mn), swiz(Nodes[node.pdata.y].box.mx))
+            vec2 hfn_leftright[2] = {
+                 intersectCubeSingleApart(torig, dirproj, Nodes[node.pdata.x].box.mn[lane4], Nodes[node.pdata.x].box.mx[lane4]),
+                 intersectCubeSingleApart(torig, dirproj, Nodes[node.pdata.y].box.mn[lane4], Nodes[node.pdata.y].box.mx[lane4])
             };
-            
-            /*
-            // transpose from both nodes
-             float hnears[2] = {
-                compmax3(t12_leftright[0].x),
-                compmax3(t12_leftright[1].x)
-            };
-
-             float hfars[2] = {
-                compmin3(t12_leftright[0].y),
-                compmin3(t12_leftright[1].y)
-            };
-            */
 
             // determine parallel (2 lanes occupy)
             float nearLR = INFINITY, farLR = INFINITY;

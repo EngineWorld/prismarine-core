@@ -20,5 +20,5 @@ void main(){
 
     const int t = activedBuf.indc[it];
     Ray ray = fetchRayDirect(t);
-    rayMorton[it] = quantizeRay(ray, inbound.mn.xyz, inbound.mx.xyz);
+    //rayMorton[it] = quantizeRay(ray, inbound.mn.xyz, inbound.mx.xyz);
 }
