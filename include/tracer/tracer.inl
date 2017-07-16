@@ -562,6 +562,12 @@ namespace Paper {
         glUseProgram(intersectionProgram);
         glDispatchCompute(tiled(rsize, worksize), 1, 1);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
+        glBindSampler(0, NULL);
+        glBindSampler(1, NULL);
+        glBindSampler(2, NULL);
+        glBindSampler(3, NULL);
+
         return 1;
     }
 

@@ -38,12 +38,13 @@ TResult loadInfo(inout TResult res) {
         vec4 mods[3];
 
         for (int x=0;x<3;x++) {
-            int j = tri * 3 + x;
-            triverts[x] = vec3(verts[j].vertex);
-            trinorms[x] = vec3(verts[j].normal);
-            texcoords[x] = vec4(verts[j].texcoord);
-            colors[x] = vec4(verts[j].color);
-            mods[x] = vec4(verts[j].modifiers);
+            //int j = tri * 3 + x;
+            ivec2 mos = gatherMosaic(getUniformCoord(tri));
+            triverts[x] = fetchMosaic(vertex_texture, mos, x).xyz; //vec3(verts[j].vertex);
+            trinorms[x] = fetchMosaic(normal_texture, mos, x).xyz;//vec3(verts[j].normal);
+            texcoords[x] = fetchMosaic(texcoords_texture, mos, x);//vec4(verts[j].texcoord);
+            colors[x] = vec4(1.0f);//vec4(verts[j].color);
+            mods[x] = fetchMosaic(modifiers_texture, mos, x);//vec4(verts[j].modifiers);
         }
 
         vec3 deltaPos1 = triverts[1] - triverts[0];

@@ -17,10 +17,12 @@ shared bbox sdata[ 512 ];
 
 bbox getMinMaxPrimitive(in uint idx){
     vec4 triverts[3];
-    const uint i3 = clamp(idx, 0u, uint(GEOMETRY_BLOCK geometryUniform.triangleCount-1)) * 3;
+    //const uint i3 = clamp(idx, 0u, uint(GEOMETRY_BLOCK geometryUniform.triangleCount-1)) * 3;
+    const uint tri = clamp(idx, 0u, uint(GEOMETRY_BLOCK geometryUniform.triangleCount-1));
     for (int x=0;x<3;x++) {
-        const uint j = i3 + x;
-         vec4 nps = mult4(vec4(verts[j].vertex.xyz, 1.0f), GEOMETRY_BLOCK octreeUniform.project);
+        //const uint j = i3 + x;
+        //vec4 nps = mult4(vec4(verts[j].vertex.xyz, 1.0f), GEOMETRY_BLOCK octreeUniform.project);
+        vec4 nps = mult4(fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri)), x), GEOMETRY_BLOCK octreeUniform.project);
         triverts[x] = nps / nps.w;
     }
 #ifdef ENABLE_AMD_INSTRUCTION_SET

@@ -100,11 +100,7 @@ TResult choiceBaked(inout TResult res, in VEC3 orig, in VEC3 dir, in int tpi) {
         tri >= 0 && 
         tri != LONGEST;
 
-    vec3 triverts;
-    for (int x=0;x<3;x++) {
-         VEC3 swizVertex = swiz(verts[tri * 3 + x].vertex);
-        putv3(validTriangle ? swizVertex : VEC3(0.0f), triverts, x);
-    }
+    vec3 triverts = gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri)), lane4).wzx;
 
     vec2 uv = vec2(0.0f);
      float _d = intersectTriangle(orig, dir, triverts, uv);
@@ -125,11 +121,7 @@ TResult testIntersection(inout TResult res, in VEC3 orig, in VEC3 dir, in int tr
         tri >= 0 && 
         tri != LONGEST;
 
-    vec3 triverts;
-    for (int x=0;x<3;x++) {
-         VEC3 swizVertex = swiz(verts[tri * 3 + x].vertex);
-        putv3(validTriangle ? swizVertex : VEC3(0.0f), triverts, x);
-    }
+    vec3 triverts = gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri)), lane4).wzx;
 
     vec2 uv = vec2(0.0f);
      float _d = intersectTriangle(orig, dir, triverts, uv);
@@ -190,7 +182,7 @@ vec2 intersectCubeSingleApart(in VEC3 origin, in VEC3 ray, in VEC3 cubeMin, in V
      VEC3 tMax = (cubeMax - origin) * dr;
      VEC3 t1 = min(tMin, tMax);
      VEC3 t2 = max(tMin, tMax);
-    return vec2(t1, t2);
+    return vec2(compmax3(t1), compmin3(t2));
 }
 
 float calculateRealDistance(in float tNear, in float tFar, inout float near, inout float far) {
@@ -264,11 +256,12 @@ TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
         if (bs(notLeaf)) {
 
             // search intersection worklets (3 lanes occupy)
-             vec2 t12_leftright[2] = {
+             vec2 hfn_leftright[2] = {
                 intersectCubeSingleApart(torig, dirproj, swiz(Nodes[node.pdata.x].box.mn), swiz(Nodes[node.pdata.x].box.mx)),
                 intersectCubeSingleApart(torig, dirproj, swiz(Nodes[node.pdata.y].box.mn), swiz(Nodes[node.pdata.y].box.mx))
             };
             
+            /*
             // transpose from both nodes
              float hnears[2] = {
                 compmax3(t12_leftright[0].x),
@@ -279,11 +272,12 @@ TResult traverse(in float distn, in vec3 _origin, in vec3 _direct, in Hit hit) {
                 compmin3(t12_leftright[0].y),
                 compmin3(t12_leftright[1].y)
             };
+            */
 
             // determine parallel (2 lanes occupy)
             float nearLR = INFINITY, farLR = INFINITY;
              int distrb = eql(0) ? 0 : 1;
-             float leftrighthit = calculateRealDistance(hnears[distrb], hfars[distrb], nearLR, farLR);
+             float leftrighthit = calculateRealDistance(hfn_leftright[distrb].x, hfn_leftright[distrb].y, nearLR, farLR);
              bool overlapsVc = notLeaf && lessF(leftrighthit, INFINITY) && greaterEqualF(leftrighthit, 0.0f) && greaterEqualF(lastRes.predist, near * dirlen);
             
             // compose results

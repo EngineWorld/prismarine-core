@@ -107,7 +107,7 @@ TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
 
     vec3 triverts[3];
     for (int x=0;x<3;x++) {
-        triverts[x] = validTriangle ? vec3(verts[tri * 3 + x].vertex) : vec3(0.0f);
+        triverts[x] = validTriangle ? fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri)), x).xyz : vec3(0.0f);
     }
 
     vec2 uv = vec2(0.0f);
@@ -132,7 +132,7 @@ TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tr
 
     vec3 triverts[3];
     for (int x=0;x<3;x++) {
-        triverts[x] = validTriangle ? vec3(verts[tri * 3 + x].vertex) : vec3(0.0f);
+        triverts[x] = validTriangle ? fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri)), x).xyz : vec3(0.0f);
     }
 
     vec2 uv = vec2(0.0f);

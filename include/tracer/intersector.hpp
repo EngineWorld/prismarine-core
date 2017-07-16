@@ -29,6 +29,12 @@ namespace Paper {
         GLuint vbo_triangle_ssbo = -1;
         GLuint geometryBlockUniform = -1;
 
+        GLuint vbo_vertex_textrue = -1;
+        GLuint vbo_normal_textrue = -1;
+        GLuint vbo_texcoords_textrue = -1;
+        GLuint vbo_modifiers_textrue = -1;
+        GLuint vbo_sampler = -1;
+
         GeometryBlockUniform geometryBlockData;
         MinmaxUniformStruct minmaxUniformData;
         OctreeUniformStruct octreeUniformData;

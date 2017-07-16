@@ -42,8 +42,9 @@ void main() {
     
     const int tri3 = t * 3;
     for (int x=0;x<3;x++) {
-        const int j = tri3 + x;
-        vec4 nps = mult4(vec4(verts[j].vertex.xyz, 1.0f), GEOMETRY_BLOCK octreeUniform.project);
+        //const int j = tri3 + x;
+        //vec4 nps = mult4(vec4(verts[j].vertex.xyz, 1.0f), GEOMETRY_BLOCK octreeUniform.project);
+        vec4 nps = mult4(fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(t)), x), GEOMETRY_BLOCK octreeUniform.project);
         triverts[x] = nps.xyz / nps.w;
     }
 

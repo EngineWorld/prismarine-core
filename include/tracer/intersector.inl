@@ -139,11 +139,33 @@ namespace Paper {
         maxt = count;
 
 
+
+
+        glCreateTextures(GL_TEXTURE_2D, 1, &vbo_vertex_textrue);
+        glTextureStorage2D(vbo_vertex_textrue, 1, GL_RGBA32F, 3072, 1024);
+
+        glCreateTextures(GL_TEXTURE_2D, 1, &vbo_normal_textrue);
+        glTextureStorage2D(vbo_normal_textrue, 1, GL_RGBA32F, 3072, 1024);
+
+        glCreateTextures(GL_TEXTURE_2D, 1, &vbo_texcoords_textrue);
+        glTextureStorage2D(vbo_texcoords_textrue, 1, GL_RGBA32F, 3072, 1024);
+
+        glCreateTextures(GL_TEXTURE_2D, 1, &vbo_modifiers_textrue);
+        glTextureStorage2D(vbo_modifiers_textrue, 1, GL_RGBA32F, 3072, 1024);
+
+        glCreateSamplers(1, &vbo_sampler);
+        glSamplerParameteri(vbo_sampler, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glSamplerParameteri(vbo_sampler, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glSamplerParameteri(vbo_sampler, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glSamplerParameteri(vbo_sampler, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        /*
         glCreateBuffers(1, &ebo_triangle_ssbo);
         glNamedBufferStorage(ebo_triangle_ssbo, strided<int32_t>(maxt * 3), nullptr, GL_DYNAMIC_STORAGE_BIT);
 
         glCreateBuffers(1, &vbo_triangle_ssbo);
         glNamedBufferStorage(vbo_triangle_ssbo, strided<VboDataStride>(maxt * 3), nullptr, GL_DYNAMIC_STORAGE_BIT);
+        */
 
         glCreateBuffers(1, &mat_triangle_ssbo);
         glNamedBufferStorage(mat_triangle_ssbo, strided<int32_t>(maxt), nullptr, GL_DYNAMIC_STORAGE_BIT);
@@ -199,8 +221,27 @@ namespace Paper {
     }
 
     inline void Intersector::bind() {
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, vbo_triangle_ssbo);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, ebo_triangle_ssbo);
+        // mosaic buffers for write
+        glBindImageTexture(0, vbo_vertex_textrue, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+        glBindImageTexture(1, vbo_normal_textrue, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+        glBindImageTexture(2, vbo_texcoords_textrue, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+        glBindImageTexture(3, vbo_modifiers_textrue, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+
+        // use mosaic sampler
+        glBindSampler(0, vbo_sampler);
+        glBindSampler(1, vbo_sampler);
+        glBindSampler(2, vbo_sampler);
+        glBindSampler(3, vbo_sampler);
+
+        // mosaic buffer
+        glBindTextureUnit(0, vbo_vertex_textrue);
+        glBindTextureUnit(1, vbo_normal_textrue);
+        glBindTextureUnit(2, vbo_texcoords_textrue);
+        glBindTextureUnit(3, vbo_modifiers_textrue);
+
+        // legacy SSBO
+        //glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, vbo_triangle_ssbo);
+        //glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, ebo_triangle_ssbo);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, mat_triangle_ssbo);
     }
 
