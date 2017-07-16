@@ -10,7 +10,7 @@
 //#define GEOMETRY_BLOCK 
 
 struct RandomUniformStruct {
-    iVc1 time;
+    uint time;
     Vc1 _reserved0;
     Vc1 _reserved1;
     Vc1 _reserved2;

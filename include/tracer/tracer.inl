@@ -92,6 +92,7 @@ namespace Paper {
 
     inline void Tracer::initShaders() {
         
+        /*
 #ifdef USE_OPTIMIZED_RT
         initShaderCompute("./shaders/render/testmat-rt.comp", matProgram);
 #else
@@ -103,9 +104,8 @@ namespace Paper {
         initShaderCompute("./shaders/render/camera.comp", cameraProgram);
         initShaderCompute("./shaders/render/clear.comp", clearProgram);
         initShaderCompute("./shaders/render/sampler.comp", samplerProgram);
-        initShaderCompute("./shaders/render/intersection.comp", intersectionProgram);
+        */
 
-        /*
 #ifdef USE_OPTIMIZED_RT
         initShaderComputeSPIRV("./shaders-spv/render/testmat-rt.comp.spv", matProgram);
 #else
@@ -117,8 +117,9 @@ namespace Paper {
         initShaderComputeSPIRV("./shaders-spv/render/camera.comp.spv", cameraProgram);
         initShaderComputeSPIRV("./shaders-spv/render/clear.comp.spv", clearProgram);
         initShaderComputeSPIRV("./shaders-spv/render/sampler.comp.spv", samplerProgram);
+
+        //initShaderCompute("./shaders/render/intersection.comp", intersectionProgram);
         initShaderComputeSPIRV("./shaders-spv/render/intersection.comp.spv", intersectionProgram);
-        */
 
         {
             GLuint vert = glCreateShader(GL_VERTEX_SHADER);
@@ -429,7 +430,11 @@ namespace Paper {
 
         clearRays();
 
-        randomUniformData.time = rand();
+        std::uniform_int_distribution<> d(1, 2147483647);
+        std::mt19937 gen;
+        unsigned x = d(gen);
+
+        randomUniformData.time = x;
         cameraUniformData.camInv = *(Vc4x4 *)glm::value_ptr(glm::inverse(frontSide));
         cameraUniformData.projInv = *(Vc4x4 *)glm::value_ptr(glm::inverse(persp));
         cameraUniformData.interlace = 0;
@@ -575,8 +580,12 @@ namespace Paper {
         int32_t rsize = getRayCount();
         if (rsize <= 0) return;
 
+        std::uniform_int_distribution<> d(1, 2147483647);
+        std::mt19937 gen;
+        unsigned x = d(gen);
+
         samplerUniformData.rayCount = rsize;
-        randomUniformData.time = rand();
+        randomUniformData.time = x;
 
         this->bind();
         if (cubeTex) glBindTextureUnit(0, cubeTex);
