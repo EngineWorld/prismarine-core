@@ -274,11 +274,12 @@ TResult traverse(in float distn, in VEC3 origin, in VEC3 direct, in Hit hit) {
 
                 bvec2 overlaps = compbvec2(overlapsVc);
                 bool leftNearb = lessEqualF(x(leftrighthit), y(leftrighthit));
-                bool leftOrder = all(overlaps) ? leftNearb : overlaps.x;
-
                 ivec2 nf = compivec2(leftright);
-                nf = leftOrder ? nf : nf.yx;
+                
                 if (any(overlaps) && mt()) {
+                    bool leftOrder = all(overlaps) ? leftNearb : overlaps.x;
+                    nf = leftOrder ? nf : nf.yx;
+
                     if (deferredPtr[L] < STACK_SIZE && nf.y != -1) {
                         deferredStack[L][deferredPtr[L]++] = nf.y;
                     }
