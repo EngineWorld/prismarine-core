@@ -31,31 +31,26 @@ struct TResult {
 // unoptimized at now, and can do dublicate operations
 TResult loadInfo(inout TResult res) {
     int tri = res.triangle;
-
-    VEC3 triverts[3];
-    vec3 trinorms;
-    vec3 texcoords;
-    vec3 colors;
-    vec3 mods;
+    vec3 triverts = vec3(0.f);
+    vec3 trinorms = vec3(0.f);
+    vec3 texcoords = vec3(0.f);
+    vec3 colors = vec3(0.f);
+    vec3 mods = vec3(0.f);
 
      bool valid = greaterEqualF(res.dist, 0.0f) && lessF(res.dist, INFINITY) && tri != LONGEST;
     if (bs(valid)) {
 
+        triverts = gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri)), lane4).wzx;
         trinorms = gatherMosaicCompDyn(normal_texture, gatherMosaic(getUniformCoord(tri)), lane4).wzx;
         texcoords = gatherMosaicCompDyn(texcoords_texture, gatherMosaic(getUniformCoord(tri)), lane4).wzx;
         mods = gatherMosaicCompDyn(modifiers_texture, gatherMosaic(getUniformCoord(tri)), lane4).wzx;
         colors = vec3(1.f);
 
-        for (int x=0;x<3;x++) {
-            int j = tri * 3 + x;
-            triverts[x] = swiz(fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri)), x));
-        }
-
         vec2 uv = x(res.uv.xy);
         vec3 interpol = vec3(1.0f - uv.x - uv.y, uv.x, uv.y);
 
-        VEC3 deltaPos1 = triverts[1] - triverts[0];
-        VEC3 deltaPos2 = triverts[2] - triverts[0];
+        VEC3 deltaPos1 = triverts.y - triverts.x;
+        VEC3 deltaPos2 = triverts.z - triverts.x;
         VEC3 nor = normalize3(cross3(deltaPos1, deltaPos2));
         
         VEC3 normal = dot(trinorms, interpol); //fma(trinorms[0], vec3(1.0f - uv.x - uv.y), fma(trinorms[1], vec3(uv.x), trinorms[2] * vec3(uv.y)));
