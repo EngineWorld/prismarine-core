@@ -247,39 +247,42 @@ TResult traverse(in float distn, in VEC3 origin, in VEC3 direct, in Hit hit) {
         if (ibs(validBox[L])) break;
          HlbvhNode node = Nodes[idx[L]];
 
-         bool isLeaf = node.pdata.x == node.pdata.y && validBox[L];
+         bool isLeaf = node.pdata[0] == node.pdata[1] && validBox[L];
         if (bs(isLeaf)) {
-            testIntersection(lastRes, origin, direct, node.pdata.w, bakedStep, isLeaf);
+            testIntersection(lastRes, origin, direct, node.pdata[3], bakedStep, isLeaf);
         }
 
-         bool notLeaf = node.pdata.x != node.pdata.y && validBox[L];
+         bool notLeaf = node.pdata[0] != node.pdata[1] && validBox[L];
         if (bs(notLeaf)) {
 
             // search intersection worklets (3 lanes occupy)
-            vec2 hfn_leftright[2] = {
-                 intersectCubeSingleApart(torig, dirproj, Nodes[node.pdata.x].box.mn[lane4], Nodes[node.pdata.x].box.mx[lane4]),
-                 intersectCubeSingleApart(torig, dirproj, Nodes[node.pdata.y].box.mn[lane4], Nodes[node.pdata.y].box.mx[lane4])
-            };
+            vec2 hfn_leftright[2];
+            for (int x=0;x<2;x++) {
+                hfn_leftright[x] = intersectCubeSingleApart(torig, dirproj, Nodes[node.pdata[x]].box.mn[lane4], Nodes[node.pdata[x]].box.mx[lane4]);
+            }
 
             // determine parallel (2 lanes occupy)
             float nearLR = INFINITY, farLR = INFINITY;
-             int distrb = eql(0) ? 0 : 1;
-             float leftrighthit = calculateRealDistance(hfn_leftright[distrb].x, hfn_leftright[distrb].y, nearLR, farLR);
-             bool overlapsVc = notLeaf && lessF(leftrighthit, INFINITY) && greaterEqualF(leftrighthit, 0.0f) && greaterEqualF(lastRes.predist, near * dirlen);
-            
+            int distrb = eql(0) ? 0 : 1;
+            float leftrighthit = calculateRealDistance(hfn_leftright[distrb].x, hfn_leftright[distrb].y, nearLR, farLR);
+            bool overlapsVc = notLeaf && lessF(leftrighthit, INFINITY) && greaterEqualF(leftrighthit, 0.0f) && greaterEqualF(lastRes.predist, near * dirlen);
+
             // compose results
-             bvec2 overlaps = compbvec2(overlapsVc);
-             bool overlapAny = any(overlaps);
-            if (bs(overlapAny)) {
-                 bool leftNearb = lessEqualF(x(leftrighthit), y(leftrighthit));
-                if (overlapAny && mt()) {
-                     bool leftOrder = all(overlaps) ? leftNearb : overlaps.x;
-                    ivec2 leftright = mix(ivec2(-1), node.pdata.xy, overlaps);
-                    leftright = leftOrder ? leftright : leftright.yx;
-                    if (deferredPtr[L] < STACK_SIZE && leftright.y != -1) {
-                        deferredStack[L][deferredPtr[L]++] = leftright.y;
+            if (anyInvocationARB(overlapsVc && lane4 < 2)) {
+                int leftright = node.pdata[lane4];
+                leftright = overlapsVc ? leftright : -1;
+
+                bvec2 overlaps = compbvec2(overlapsVc);
+                bool leftNearb = lessEqualF(x(leftrighthit), y(leftrighthit));
+                bool leftOrder = all(overlaps) ? leftNearb : overlaps.x;
+
+                ivec2 nf = compivec2(leftright);
+                nf = leftOrder ? nf : nf.yx;
+                if (any(overlaps) && mt()) {
+                    if (deferredPtr[L] < STACK_SIZE && nf.y != -1) {
+                        deferredStack[L][deferredPtr[L]++] = nf.y;
                     }
-                    idx[L] = leftright.x;
+                    idx[L] = nf.x;
                     skip[L] = true;
                 }
             }

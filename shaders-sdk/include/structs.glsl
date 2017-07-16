@@ -149,7 +149,11 @@ struct Leaf {
 
 struct HlbvhNode {
     bbox box;
+#ifdef USE_WARP_OPTIMIZED
+    iVc1 pdata[4];
+#else
     iVc4 pdata;
+#endif
     iVc4 leading;
 };
 
