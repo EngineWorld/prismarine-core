@@ -9,13 +9,14 @@ int bakedStackCount = 0;
 
 // WARP optimized triangle intersection
 float intersectTriangle(in VEC3 orig, in VEC3 dir, in vec3 ve, inout vec2 UV) {
-     vec2 e12 = ve.yz - ve.x;
+     float e1 = ve.y - ve.x;
+     float e2 = ve.z - ve.x;
 
-    bool valid = !(length3(e12.x) < 0.00001f && length3(e12.y) < 0.00001f);
+    bool valid = !(length3(e1) < 0.00001f && length3(e2) < 0.00001f);
     if (ibs(valid)) return INFINITY;
 
-     VEC3 pvec = cross3(dir, e12.y);
-     float det = dot3(e12.x, pvec);
+     VEC3 pvec = cross3(dir, e2);
+     float det = dot3(e1, pvec);
 
 #ifndef CULLING
     if (abs(det) <= 0.0f) valid = false;
@@ -26,9 +27,9 @@ float intersectTriangle(in VEC3 orig, in VEC3 dir, in vec3 ve, inout vec2 UV) {
 
      VEC3 tvec = orig - ve.x;
      float u = dot3(tvec, pvec);
-     VEC3 qvec = cross3(tvec, e12.x);
+     VEC3 qvec = cross3(tvec, e1);
      float v = dot3(dir, qvec);
-     float ts = dot3(e12.y, qvec);
+     float ts = dot3(e2, qvec);
      VEC3 uvt = (eql(0) ? u : (eql(1) ? v : ts)) / det;
 
      float vd = x(uvt);
