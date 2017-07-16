@@ -87,8 +87,7 @@ layout ( local_size_x = WORK_SIZE * SCALARS ) in;
 
 void main() {
     const int it = invoc(int(gl_GlobalInvocationID.x));
-    if (ibs(it < RAY_BLOCK samplerUniform.rayCount)) return;
-    //if (it >= RAY_BLOCK samplerUniform.rayCount) return;
+    if (allInvocationsARB(it >= RAY_BLOCK samplerUniform.rayCount)) return;
  
     const int t = activedBuf.indc[it];
     Ray ray = fetchRayDirect(t);

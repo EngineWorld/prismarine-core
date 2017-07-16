@@ -266,14 +266,16 @@ TResult traverse(in float distn, in VEC3 origin, in VEC3 direct, in Hit hit) {
 
             // compose results
             if (anyInvocationARB(overlapsVc)) {
-                int leftright = node.pdata[lane4];
+                int leftright = node.pdata[lane4]; 
                 leftright = overlapsVc ? leftright : -1;
 
                 bvec2 overlaps = compbvec2(overlapsVc);
                 bool leftNearb = lessEqualF(x(leftrighthit), y(leftrighthit));
                 bool leftOrder = all(overlaps) ? leftNearb : overlaps.x;
-                ivec2 nf = leftOrder ? ivec2(x(leftright), y(leftright)) : ivec2(y(leftright), x(leftright));
-                
+
+                int leftrightSwap = swapX(leftright);
+                ivec2 nf = compivec2(leftOrder ? leftright : leftrightSwap);
+
                 if (any(overlaps) && mt()) {
                     if (deferredPtr[L] < STACK_SIZE && nf.y != -1) {
                         deferredStack[L][deferredPtr[L]++] = nf.y;

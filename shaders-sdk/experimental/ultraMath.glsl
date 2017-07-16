@@ -11,7 +11,7 @@ uint laneP = (gl_SubGroupInvocationARB%SCALARS);
 uint offtP = (gl_SubGroupInvocationARB/SCALARS)*SCALARS;
 
 uint lane4 = (gl_SubGroupInvocationARB&3);
-uint offt4 = (gl_SubGroupInvocationARB>>2)<<2;
+uint offt4 = (gl_SubGroupInvocationARB&(~3));
 
 #define sz lane4 // redirect
 
@@ -109,22 +109,16 @@ bool w(in bool mem) { return lane(mem, 3); }
 
 
 // swap lanes
-float swapXY(in float mem){
-     float _x = x(mem);
-     float _y = y(mem);
-    return laneP == 1 ? _x : _y;
+float swapX(in float mem){
+    return readInvocationARB(mem, (gl_SubGroupInvocationARB&(~1)) | ((gl_SubGroupInvocationARB&1)^1));
 }
 
-int swapXY(in int mem){
-     int _x = x(mem);
-     int _y = y(mem);
-    return laneP == 1 ? _x : _y;
+int swapX(in int mem){
+    return readInvocationARB(mem, (gl_SubGroupInvocationARB&(~1)) | ((gl_SubGroupInvocationARB&1)^1));
 }
 
-uint swapXY(in uint mem){
-     uint _x = x(mem);
-     uint _y = y(mem);
-    return laneP == 1 ? _x : _y;
+uint swapX(in uint mem){
+    return readInvocationARB(mem, (gl_SubGroupInvocationARB&(~1)) | ((gl_SubGroupInvocationARB&1)^1));
 }
 
 
