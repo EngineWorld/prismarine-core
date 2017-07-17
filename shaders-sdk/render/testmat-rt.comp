@@ -98,7 +98,6 @@ void main() {
         hit.shaded = 1;
         storeHit(t, hit);
         storeRay(t, newRay);
-        addRayToList(newRay);
         return;
     }
 
@@ -141,7 +140,6 @@ void main() {
         hit.shaded = 1;
         storeHit(t, hit);
         storeRay(t, newRay);
-        addRayToList(newRay);
         return;
     }
 
@@ -202,7 +200,7 @@ void main() {
 
         // reflective effects in coins and metals
         if (haveProp(materialCache, M_ENVIRONMENT) && dot(hit.normal.xyz, reflectionRay.direct.xyz) < 0.0f) {
-            emitRay(reflection(reflectionRay, hit, vec3(1.0f), normal, 0.05f), hit, normal, 1.0f);
+            emitRay(reflection(reflectionRay, hit, vec3(1.0f), normal, 0.02f), hit, normal, 1.0f);
         }
 
         // transparency or reflection ray
@@ -210,7 +208,7 @@ void main() {
             newRay.color.xyz *= prom;
         }
         if ( haveProp(materialCache, M_REFLECTIVE)) { // mirrors
-            newRay = reflection(newRay, hit, vec3(1.0f), normal, 0.05f);
+            newRay = reflection(newRay, hit, vec3(1.0f), normal, 0.02f);
         } else { // transparency
             newRay = promised(newRay, hit, normal);
         }
@@ -220,7 +218,6 @@ void main() {
         hit.shaded = 1;
         storeHit(t, hit);
         storeRay(t, newRay);
-        addRayToList(newRay);
         return;
     }
 }

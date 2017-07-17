@@ -495,7 +495,7 @@ namespace Paper {
 
         // sort actives by index
         if (raycountCache > 0 && doSort) {
-            sorter->sort(activel, activel, raycountCache);
+            //sorter->sort(activel, activel, raycountCache);
         }
     }
 
@@ -570,7 +570,7 @@ namespace Paper {
         glDispatchCompute(tiled(rsize, worksize), 1, 1);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
-        reloadQueuedRays();
+        //reloadQueuedRays();
     }
 
     inline int32_t Tracer::getRayCount() {

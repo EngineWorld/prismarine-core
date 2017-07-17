@@ -32,7 +32,7 @@ struct Submat {
 
 const uint MAX_TEXTURES = 31;
 layout ( location = 0 ) uniform sampler2D samplers[MAX_TEXTURES];
-layout ( binding = 31 ) uniform sampler2D u_PivotSampler;
+//layout ( binding = 31 ) uniform sampler2D u_PivotSampler;
 
 layout ( binding=15, std430 ) readonly buffer MaterialsSSBO {Submat submats[];};
 
@@ -459,6 +459,7 @@ int applyLight(in Ray directRay, inout Ray newRay, in vec3 normal){
 
 float DRo = 1.f;
 
+/*
 vec3 extractPivot(vec3 wo, float alpha, out float brdfScale)
 {
 	// fetch pivot fit params
@@ -481,6 +482,7 @@ vec3 extractPivot(vec3 wo, float alpha, out float brdfScale)
 	brdfScale = pivotParams.a;
 	return pivot;
 }
+*/
 
 const uint u_SamplesPerPass = 16;
 mat3 tbn_light = mat3(1.0f);

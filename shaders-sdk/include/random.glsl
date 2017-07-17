@@ -22,7 +22,7 @@ float floatConstruct( in uint m ) {
      uint ieeeOne      = 0x3F800000u;          // 1.0 in IEEE binary32
     m &= ieeeMantissa;                         // Keep only mantissa bits (fractional part)
     m |= ieeeOne;                              // Add fractional part to 1.0
-    return fract(uintBitsToFloat( m ) - 1.0f); // Range [0:1]
+    return fract(uintBitsToFloat(m)); // Range [0:1]
 }
 
 float random( in uint   x ) { return floatConstruct(hash(x)); }
