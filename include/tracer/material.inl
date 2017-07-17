@@ -18,9 +18,8 @@ namespace Paper {
 
         const GLuint firstBind = 0;
         const GLuint textureLocation = 0;
-        uint32_t pcount = std::min((uint32_t)samplers.size(), 31u);
+        uint32_t pcount = std::min((uint32_t)samplers.size(), 32u);
 
-        /*
         std::vector<uint64_t> vctr(pcount);
         for (int i = 0; i < pcount; i++) {
             uint64_t texHandle = glGetTextureHandleARB(samplers[i]);
@@ -28,13 +27,19 @@ namespace Paper {
             vctr[i] = texHandle;
         }
         glProgramUniformHandleui64vARB(prog, textureLocation, pcount, vctr.data());
-        */
         
+        /*
         std::vector<uint32_t> vctr(pcount);
         for (int i = 0; i < pcount; i++) vctr[i] = firstBind + i;
         glBindTextures(firstBind, pcount, samplers.data());
         glProgramUniform1iv(prog, textureLocation, pcount, (int32_t *)vctr.data());
-        
+        */
+    }
+    
+    inline void Material::clearGlTextures() {
+        for (int i = 1; i < samplers.size(); i++) {
+            this->freeTexture(i);
+        }
     }
 
     inline void Material::freeTexture(const uint32_t& idx) {
@@ -53,7 +58,7 @@ namespace Paper {
     // get texture by GL
     inline uint32_t Material::getTexture(const GLuint & gltexture) {
         for (int i = 1; i < samplers.size(); i++) {
-            if (samplers[i] == gltexture) return i;
+            if (samplers[i] == gltexture && samplers[i] != -1) return i;
         }
         return 0;
     }
@@ -64,7 +69,7 @@ namespace Paper {
 
     inline uint32_t Material::loadTexture(const GLuint & gltexture) {
         int32_t idx = getTexture(gltexture);
-        if (idx) return idx;
+        if (idx && idx >= 0 && idx != -1) return idx;
         if (freedomSamplers.size() > 0) {
             idx = freedomSamplers[freedomSamplers.size() - 1];
             freedomSamplers.pop_back();

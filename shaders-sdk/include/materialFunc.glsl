@@ -30,7 +30,7 @@ struct Submat {
     ivec4 iModifiers0;
 };
 
-const uint MAX_TEXTURES = 31;
+const uint MAX_TEXTURES = 32;
 layout ( location = 0 ) uniform sampler2D samplers[MAX_TEXTURES];
 //layout ( binding = 31 ) uniform sampler2D u_PivotSampler;
 

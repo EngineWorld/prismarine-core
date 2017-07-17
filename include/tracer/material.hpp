@@ -83,6 +83,8 @@ namespace Paper {
 		void freeTextureByGL(const GLuint& idx);
         void freeTexture(const uint32_t& idx);
 
+        void clearGlTextures();
+
         uint32_t loadTexture(std::string tex, bool force_write = false);
         uint32_t loadTexture(const GLuint & gltexture);
 
