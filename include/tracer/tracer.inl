@@ -430,11 +430,11 @@ namespace Paper {
 
         clearRays();
 
-        std::uniform_int_distribution<> d(1, 2147483647);
-        std::mt19937 gen;
-        unsigned x = d(gen);
+        //std::uniform_int_distribution<> d(1, 2147483647);
+        //std::mt19937 gen;
+        //unsigned x = d(gen);
 
-        randomUniformData.time = x;
+        randomUniformData.time = rand();
         cameraUniformData.camInv = *(Vc4x4 *)glm::value_ptr(glm::inverse(frontSide));
         cameraUniformData.projInv = *(Vc4x4 *)glm::value_ptr(glm::inverse(persp));
         cameraUniformData.interlace = 0;
@@ -580,12 +580,12 @@ namespace Paper {
         int32_t rsize = getRayCount();
         if (rsize <= 0) return;
 
-        std::uniform_int_distribution<> d(1, 2147483647);
-        std::mt19937 gen;
-        unsigned x = d(gen);
+        //std::uniform_int_distribution<> d(1, 2147483647);
+        //std::mt19937 gen;
+        //unsigned x = d(gen);
 
         samplerUniformData.rayCount = rsize;
-        randomUniformData.time = x;
+        randomUniformData.time = rand();
 
         this->bind();
         if (cubeTex) glBindTextureUnit(0, cubeTex);

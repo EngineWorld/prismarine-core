@@ -1,7 +1,7 @@
 #ifndef _RANDOM_H
 #define _RANDOM_H
 
-uint randomClocks = 1u;
+uint randomClocks = 0;
 uint globalInvocationSMP = 0;
 
 uint hash( uint x ) {
@@ -34,10 +34,10 @@ float random() {
 #ifdef USE_ARB_CLOCK
     return random(uvec3( globalInvocationSMP, clock2x32ARB()));
 #else
-    //uint hs = randomClocks++;
-    uint hs = randomClocks; randomClocks = hash(randomClocks);
-    //uint hs = hash(randomClocks); randomClocks = hs;
-    return random(uvec3( globalInvocationSMP, RAY_BLOCK randomUniform.time, hs ));
+    //uint hs = ++randomClocks;
+    uint hs = randomClocks; randomClocks = hash(++randomClocks);
+    //uint hs = hash(++randomClocks); randomClocks = hs;
+    return random(uvec3( globalInvocationSMP, hs, RAY_BLOCK randomUniform.time << 5 ));
 #endif
 }
 
