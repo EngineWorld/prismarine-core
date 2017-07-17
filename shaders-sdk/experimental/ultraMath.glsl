@@ -284,7 +284,7 @@ bool bs(in bool valid) {
 
 // if all invalid
 bool ibs(in bool valid) {
-    return !anyInvocationARB(valid && mt());
+    return allInvocationsARB(!valid || !mt());
 }
 
 

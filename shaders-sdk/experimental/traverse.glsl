@@ -41,7 +41,7 @@ float intersectTriangle(in VEC3 orig, in VEC3 dir, in vec3 ve, inout vec2 UV) {
 
     UV.xy = compvec2(uvt);
      float dst = z(uvt);
-    return (lessF(dst, 0.0f) || !valid) ? INFINITY : dst;
+    return (!x(valid) || lessF(dst, 0.0f)) ? INFINITY : dst;
 }
 
 TResult choiceFirstBaked(inout TResult res) {
@@ -245,25 +245,23 @@ TResult traverse(in float distn, in VEC3 origin, in VEC3 direct, in Hit hit) {
         if (ibs(validBox[L])) break;
          HlbvhNode node = Nodes[idx[L]];
 
-         bool isLeaf = node.pdata[0] == node.pdata[1] && validBox[L];
+         bool isLeaf = x(node.pdata[0] == node.pdata[1] && validBox[L]);
         if (bs(isLeaf)) {
             testIntersection(lastRes, origin, direct, node.pdata[3], bakedStep, isLeaf);
         }
 
-         bool notLeaf = node.pdata[0] != node.pdata[1] && validBox[L];
+         bool notLeaf = x(node.pdata[0] != node.pdata[1] && validBox[L]);
         if (bs(notLeaf)) {
 
             // search intersection worklets (3 lanes occupy)
-            vec2 hfn_leftright[4] = {vec2(INFINITY), vec2(INFINITY), vec2(INFINITY), vec2(INFINITY)};
-            for (int x=0;x<2;x++) {
-                hfn_leftright[x] = intersectCubeSingleApart(torig, dirproj, Nodes[node.pdata[x]].box.mn[lane4], Nodes[node.pdata[x]].box.mx[lane4]);
-            }
+            vec2 lhit = x(intersectCubeSingleApart(torig, dirproj, Nodes[node.pdata[0]].box.mn[lane4], Nodes[node.pdata[0]].box.mx[lane4]));
+            vec2 rhit = x(intersectCubeSingleApart(torig, dirproj, Nodes[node.pdata[1]].box.mn[lane4], Nodes[node.pdata[1]].box.mx[lane4]));
+            vec2 chit = (eql(0) ? lhit : (eql(1) ? rhit : vec2(INFINITY)));
 
             // determine parallel (2 lanes occupy)
             float nearLR = INFINITY, farLR = INFINITY;
-            float leftrighthit = calculateRealDistance(hfn_leftright[lane4].x, hfn_leftright[lane4].y, nearLR, farLR);
-            bool overlapsVc = notLeaf && lessF(leftrighthit, INFINITY) && greaterEqualF(leftrighthit, 0.0f) && greaterEqualF(lastRes.predist, near * dirlen);
-            overlapsVc = overlapsVc && lane4 < 2;
+            float leftrighthit = calculateRealDistance(chit.x, chit.y, nearLR, farLR);
+            bool overlapsVc = notLeaf && lessF(leftrighthit, INFINITY) && greaterEqualF(leftrighthit, 0.0f) && greaterEqualF(lastRes.predist, near * dirlen) && lessl(2);
 
             // compose results
             if (anyInvocationARB(overlapsVc)) {
@@ -279,7 +277,7 @@ TResult traverse(in float distn, in VEC3 origin, in VEC3 direct, in Hit hit) {
 
                 if (any(overlaps) && mt()) {
                     if (deferredPtr[L] < STACK_SIZE && nf.y != -1) {
-                        deferredStack[L][deferredPtr[L]++] = nf.y;
+                        atomicExchange(deferredStack[L][atomicAdd(deferredPtr[L], 1)], nf.y);
                     }
                     idx[L] = nf.x;
                     skip[L] = true;
@@ -289,9 +287,9 @@ TResult traverse(in float distn, in VEC3 origin, in VEC3 direct, in Hit hit) {
 
         if (mt()) {
             if (!skip[L]) {
-                 int ptr = --deferredPtr[L];
+                 int ptr = atomicAdd(deferredPtr[L], -1)-1;
                  bool valid = ptr >= 0;
-                idx[L] = valid ? exchange(deferredStack[L][ptr], -1) : -1;
+                idx[L] = valid ? atomicExchange(deferredStack[L][ptr], -1) : -1;
                 validBox[L] = validBox[L] && valid && idx[L] >= 0;
             } skip[L] = false;
         }
