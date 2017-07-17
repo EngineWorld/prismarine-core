@@ -95,7 +95,10 @@ void main() {
     Ray newRay = fetchRayDirect(t);
     Hit hit = fetchHitDirect(t);
     if (hit.shaded > 0 || newRay.actived < 1) { // already shaded, waiting
+        hit.shaded = 1;
+        storeHit(t, hit);
         storeRay(t, newRay);
+        addRayToList(newRay);
         return;
     }
 
@@ -135,8 +138,10 @@ void main() {
     newRay.origin.xyz = fma(newRay.direct.xyz, vec3(hit.dist), newRay.origin.xyz);
 
     if (hit.materialID < 0 || hit.materialID == LONGEST || hit.shaded > 0 || newRay.actived < 1) {
+        hit.shaded = 1;
         storeHit(t, hit);
         storeRay(t, newRay);
+        addRayToList(newRay);
         return;
     }
 
@@ -215,5 +220,7 @@ void main() {
         hit.shaded = 1;
         storeHit(t, hit);
         storeRay(t, newRay);
+        addRayToList(newRay);
+        return;
     }
 }

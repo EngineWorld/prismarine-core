@@ -31,7 +31,10 @@ void main()
         ray.actived = 0;
     }
 
-    storeHit(t, hit);
-    storeRay(t, ray);
-    addRayToList(ray); // add current rays to additions with newer
+    {
+        hit.shaded = 1;
+        storeHit(t, hit);
+        storeRay(t, ray);
+        addRayToList(ray); // add current rays to additions with newer
+    }
 }

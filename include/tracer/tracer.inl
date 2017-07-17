@@ -441,7 +441,7 @@ namespace Paper {
         glDispatchCompute(tiled(width * height, worksize), 1, 1);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
-        reloadQueuedRays();
+        reloadQueuedRays(true);
     }
 
     inline void Tracer::camera(const glm::vec3 &eye, const glm::vec3 &view, const glm::mat4 &persp) {
@@ -494,8 +494,8 @@ namespace Paper {
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
         // sort actives by index
-        if (raycountCache > 0) {
-            //sorter->sort(activel, activel, raycountCache);
+        if (raycountCache > 0 && doSort) {
+            sorter->sort(activel, activel, raycountCache);
         }
     }
 
@@ -508,7 +508,7 @@ namespace Paper {
         glUseProgram(reclaimProgram);
         glDispatchCompute(tiled(rsize, worksize), 1, 1);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
-        reloadQueuedRays();
+        reloadQueuedRays(true);
     }
 
     inline void Tracer::render() {
