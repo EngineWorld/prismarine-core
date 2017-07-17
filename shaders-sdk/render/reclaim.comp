@@ -33,7 +33,5 @@ void main()
 
     storeHit(t, hit);
     storeRay(t, ray);
-    //if (ait >= 0) {
-    //    rayMorton[ait] = quantizeRay(ray, inbound.mn.xyz, inbound.mx.xyz);
-    //}
+    addRayToList(ray); // add current rays to additions with newer
 }

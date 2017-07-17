@@ -45,24 +45,39 @@ void storeHit(inout Ray ray, inout Hit hit) {
     storeHit(ray.idx, hit);
 }
 
-int storeRay(in int rayIndex, inout Ray ray) {
+
+int addRayToList(in Ray ray){
+    int rayIndex = ray.idx;
+    int actived = -1;
+    if (ray.actived == 1) {
+        int act = atomicAdd(arcounter.At, 1);
+        collBuf.indc[act] = rayIndex; actived = act;
+    } else { // if not actived, why need?
+        int freed = atomicAdd(arcounter.Qt, 1);
+        freedBuf.indc[freed] = rayIndex;
+    }
+    return actived;
+}
+
+int addRayToList(in Ray ray, in int act){
+    int rayIndex = ray.idx;
+    int actived = -1;
+    if (ray.actived == 1) {
+        collBuf.indc[act] = rayIndex; actived = act;
+    }
+    return actived;
+}
+
+
+void storeRay(in int rayIndex, inout Ray ray) {
     if (rayIndex == -1 || rayIndex == LONGEST || rayIndex >= RAY_BLOCK samplerUniform.currentRayLimit) {
-        return -1;
+        ray.actived = 0;
+        return;
     }
     _collect(ray);
 
-    int actived = -1;
-    if (ray.actived == 1) {
-         int act = atomicAdd(arcounter.At, 1);
-        collBuf.indc[act] = rayIndex; actived = act;
-    } else { // if not actived, why need?
-         int freed = atomicAdd(arcounter.Qt, 1);
-        freedBuf.indc[freed] = rayIndex;
-    }
-
     ray.idx = rayIndex;
     rayBuf.nodes[rayIndex] = ray;
-    return actived;
 }
 
 void storeRay(inout Ray ray) {
@@ -95,14 +110,7 @@ int createRayStrict(inout Ray original, in int idx, in int rayIndex) {
     hitBuf.nodes[rayIndex] = hit;
     rayBuf.nodes[rayIndex] = ray;
 
-    // if not active, does not use and free for nexts
-    if(ray.actived == 1) {
-         int act = atomicAdd(arcounter.At, 1);
-        collBuf.indc[act] = rayIndex;
-    } else {
-         int freed = atomicAdd(arcounter.Qt, 1);
-        freedBuf.indc[freed] = rayIndex;
-    }
+    addRayToList(ray);
     return rayIndex;
 }
 
@@ -116,7 +124,6 @@ int createRay(inout Ray original, in int idx) {
     _collect(original);
     if (
         original.actived < 1 || 
-        original.bounce < 0 || 
         mlength(original.color.xyz) < 0.00001f
     ) return -1; 
     
@@ -137,7 +144,6 @@ int createRayIdx(inout Ray original, in int idx, in int rayIndex) {
     _collect(original);
     if (
         original.actived < 1 || 
-        original.bounce < 0 || 
         mlength(original.color.xyz) < 0.00001f
     ) return -1; 
     

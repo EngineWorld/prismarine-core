@@ -430,10 +430,6 @@ namespace Paper {
 
         clearRays();
 
-        //std::uniform_int_distribution<> d(1, 2147483647);
-        //std::mt19937 gen;
-        //unsigned x = d(gen);
-
         randomUniformData.time = rand();
         cameraUniformData.camInv = *(Vc4x4 *)glm::value_ptr(glm::inverse(frontSide));
         cameraUniformData.projInv = *(Vc4x4 *)glm::value_ptr(glm::inverse(persp));
@@ -445,7 +441,7 @@ namespace Paper {
         glDispatchCompute(tiled(width * height, worksize), 1, 1);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
-        reloadQueuedRays(true);
+        reloadQueuedRays();
     }
 
     inline void Tracer::camera(const glm::vec3 &eye, const glm::vec3 &view, const glm::mat4 &persp) {
@@ -485,7 +481,7 @@ namespace Paper {
         glGetNamedBufferSubData(arcounter, 2 * sizeof(int32_t), 1 * sizeof(int32_t), &availableCount);
         glNamedBufferSubData(arcounter, 3 * sizeof(int32_t), 1 * sizeof(int32_t), &availableCount);
         glNamedBufferSubData(arcounter, 2 * sizeof(int32_t), 1 * sizeof(int32_t), zero);
-        glNamedBufferSubData(arcounter, 0 * sizeof(int32_t), 1 * sizeof(int32_t), zero);
+        glNamedBufferSubData(arcounter, 0 * sizeof(int32_t), 1 * sizeof(int32_t), zero); // clear newlist counter
 
         if (raycountCache > 0) {
             glCopyNamedBufferSubData(activenl, activel, 0, 0, strided<uint32_t>(raycountCache));
@@ -494,23 +490,13 @@ namespace Paper {
         if (availableCount > 0) {
             glCopyNamedBufferSubData(freedoms, availables, 0, 0, strided<uint32_t>(availableCount));
         }
+
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
         // sort actives by index
-        if (raycountCache > 0 && doSort) {
-        //    sorter->sort(activel, quantized, raycountCache);
+        if (raycountCache > 0) {
+            //sorter->sort(activel, activel, raycountCache);
         }
-
-        // sort quantized
-        if (raycountCache > 0 && sortMortons) {
-        //    sorter->sort(quantized, activel, raycountCache);
-        }
-
-        //std::vector<int32_t> quants(raycountCache);
-        //glGetNamedBufferSubData(activel, 0, sizeof(uint32_t)*raycountCache, quants.data());
-        //GLuint block = 0;
-
-        // TODO sort by quantization
     }
 
     inline void Tracer::reclaim() {
@@ -519,20 +505,10 @@ namespace Paper {
 
         this->bind();
 
-        /*
-        GLuint boundBuf;
-        glCreateBuffers(1, &boundBuf);
-        glNamedBufferData(boundBuf, strided<bbox>(1), &bound, GL_STATIC_DRAW);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, quantized);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, boundBuf);
-        */
-
         glUseProgram(reclaimProgram);
         glDispatchCompute(tiled(rsize, worksize), 1, 1);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
-
-        //glDeleteBuffers(1, &boundBuf);
-        reloadQueuedRays(true, true);
+        reloadQueuedRays();
     }
 
     inline void Tracer::render() {
@@ -580,10 +556,6 @@ namespace Paper {
         int32_t rsize = getRayCount();
         if (rsize <= 0) return;
 
-        //std::uniform_int_distribution<> d(1, 2147483647);
-        //std::mt19937 gen;
-        //unsigned x = d(gen);
-
         samplerUniformData.rayCount = rsize;
         randomUniformData.time = rand();
 
@@ -597,6 +569,7 @@ namespace Paper {
 
         glDispatchCompute(tiled(rsize, worksize), 1, 1);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
         reloadQueuedRays();
     }
 
