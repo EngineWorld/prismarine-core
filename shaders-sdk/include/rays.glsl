@@ -133,16 +133,32 @@ int createRay(inout Ray original, in int idx) {
         mlength(original.color.xyz) < 0.00001f
     ) return -1; 
     
-    atomicMax(arcounter.Ut, 0); // prevent most decreasing
-     int freed = atomicAdd(arcounter.Ut, -1)-1;
-    atomicMax(arcounter.Ut, 0); // prevent most decreasing
-    int rayIndex = 0;
-    if (freed >= 0 && availBuf.indc[freed] != 0xFFFFFFFF) {
-        rayIndex = availBuf.indc[freed];
-        //availBuf.indc[freed] = 0xFFFFFFFF;
-    } else {
+    int rayIndex = -1;
+
+    int iterations = 2;
+    int freed = 0;
+    while (freed >= 0 && iterations >= 0) {
+        iterations--;
+
+        atomicMax(arcounter.Ut, 0); // prevent most decreasing
+        int freed = atomicAdd(arcounter.Ut, -1)-1;
+        atomicMax(arcounter.Ut, 0); // prevent most decreasing
+
+        if (
+            freed >= 0 && 
+            availBuf.indc[freed] != 0xFFFFFFFF && 
+            availBuf.indc[freed] != 0 && 
+            availBuf.indc[freed] != -1
+        ) {
+            rayIndex = availBuf.indc[freed];
+            break;
+        }
+    }
+
+    if (rayIndex == -1) {
         rayIndex = atomicAdd(arcounter.Rt, 1);
     }
+
     return createRayStrict(original, idx, rayIndex);
 }
 
