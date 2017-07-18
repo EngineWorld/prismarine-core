@@ -105,27 +105,12 @@ TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
         tri >= 0 && 
         tri != LONGEST;
 
-    //mat3x4 triverts = transpose(mat4x3(
-    //    gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri)), 0).wzx, // x component
-    //    gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri)), 1).wzx, // y component
-    //    gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri)), 2).wzx, // z component
-    //    gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri)), 3).wzx  // w component
-    //));
-
-    // gather by components
-    //mat3 triverts = transpose(mat3(
-    //    gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri)), 0).wzx, // x component
-    //    gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri)), 1).wzx, // y component
-    //    gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri)), 2).wzx  // z component
-    //));
-
     // fetch directly
     mat3 triverts = mat3(
         fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri)), 0).xyz, 
         fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri)), 1).xyz, 
         fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri)), 2).xyz
     );
-
 
     vec2 uv = vec2(0.0f);
      float _d = intersectTriangle(orig, dir, triverts, uv, validTriangle);
@@ -147,11 +132,11 @@ TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tr
         tri != res.triangle &&
         tri != LONGEST;
 
-    mat3 triverts = transpose(mat3(
-        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri)), 0).wzx, // x component
-        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri)), 1).wzx, // y component
-        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri)), 2).wzx  // z component
-    ));
+    mat3 triverts = mat3(
+        fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri)), 0).xyz, 
+        fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri)), 1).xyz, 
+        fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri)), 2).xyz
+    );
 
     vec2 uv = vec2(0.0f);
      float _d = intersectTriangle(orig, dir, triverts, uv, validTriangle);
