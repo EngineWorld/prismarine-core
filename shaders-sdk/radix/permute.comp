@@ -95,7 +95,9 @@ void main(){
     blocks_info blocks = get_blocks_info(NumKeys, WG_IDX);
     UVEC_WARP addr = blocks.offset + localIdx;
 
-    for ( int i_block=0; i_block < blocks.count ; i_block++ ) {
+    for ( int i_block=0; i_block < 4096 ; i_block++ ) {
+        if (i_block >= blocks.count) break;
+
          BVEC_WARP validAddress = addr < NumKeys;
         UVEC_WARP data      = validAddress ?   KeyIn[addr] : def;
         UVEC_WARP dataValue = validAddress ? ValueIn[addr] : 0u;

@@ -20,18 +20,18 @@ int nlz (in int x) {
 
 int findSplit( int first, int last)
 {
-     uint firstCode = Mortoncodes[first];
-     uint lastCode = Mortoncodes[last];
+    uint firstCode = Mortoncodes[first];
+    uint lastCode = Mortoncodes[last];
     if (firstCode == lastCode) {
         return (first + last) >> 1;
     }
 
-     int commonPrefix = nlz(firstCode ^ lastCode);
+    int commonPrefix = nlz(firstCode ^ lastCode);
     int split = first;
     int step = last - first;
-    do {
+    for (int i=0;i<8192;i++) {
         step = (step + 1) >> 1;
-         int newSplit = split + step;
+        int newSplit = split + step;
         if (newSplit < last) {
              uint splitCode = Mortoncodes[newSplit];
              int splitPrefix = nlz(firstCode ^ splitCode);
@@ -39,7 +39,8 @@ int findSplit( int first, int last)
                 split = newSplit;
             }
         }
-    } while (step > 1);
+        if (step <= 1) break; 
+    }
 
     return clamp(split, 0, Range.y-2);
 }
@@ -70,7 +71,7 @@ void main() {
     barrier(); memoryBarrier();
 
     for (int h=0;h<256;h++) {
-        const uint workSize = (lRange[1] <= lRange[0]) ? 0 : (((lRange[1] - lRange[0]) - 1) / gl_WorkGroupSize.x + 1);
+        const uint workSize = min((lRange[1] <= lRange[0]) ? 0 : (((lRange[1] - lRange[0]) - 1) / gl_WorkGroupSize.x + 1), 8192);
         for (int i=0;i<workSize;i++) {
             
             const uint sWorkID = gl_WorkGroupSize.x * i;

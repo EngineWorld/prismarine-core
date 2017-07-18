@@ -60,10 +60,11 @@ bbox bboxunion(in bbox b1, in bbox b2) {
 void main() {
     const uint tid = gl_LocalInvocationID.x;
     const uint gridSize = (gl_WorkGroupSize.x*2) * gl_NumWorkGroups.x;
+    const uint tcount = min(GEOMETRY_BLOCK geometryUniform.triangleCount, 16777216);
     uint i = gl_WorkGroupID.x * (gl_WorkGroupSize.x*2) + tid;
 
     sdata[tid] = bbox(vec4( 100000.f), vec4(-100000.f));
-    while (i < GEOMETRY_BLOCK geometryUniform.triangleCount) {
+    while (i < tcount) {
         sdata[tid] = bboxunion(sdata[tid], bboxunion(getMinMaxPrimitive(i), getMinMaxPrimitive(i + gl_WorkGroupSize.x)));
         i += gridSize;
     };
