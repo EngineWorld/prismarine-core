@@ -545,10 +545,10 @@ namespace Paper {
         glDispatchCompute(tiled(rsize, worksize), 1, 1);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
-        glBindSampler(0, NULL);
-        glBindSampler(1, NULL);
-        glBindSampler(2, NULL);
-        glBindSampler(3, NULL);
+        glBindSampler(0, 0);
+        glBindSampler(1, 0);
+        glBindSampler(2, 0);
+        glBindSampler(3, 0);
 
         return 1;
     }

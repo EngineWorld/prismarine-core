@@ -48,8 +48,8 @@ bool haveProp(in int flags, in int prop) {
 bool validateTexture(in uint binding){
     //return smp != 0;//0xFFFFFFFF;
     //return textureSize(samplers[binding], 0).x > 0;
-    //return binding != 0 && binding != LONGEST && binding >= 0 && binding < MAX_TEXTURES && textureSize(samplers[binding], 0).x > 0;
-    return binding != 0 && binding != LONGEST && binding >= 0 && binding < MAX_TEXTURES && textureSize(sampler2D(samplers[binding]), 0).x > 0;
+    //return binding != -1 && binding != 0 && binding != LONGEST && binding >= 0 && binding < MAX_TEXTURES && textureSize(samplers[binding], 0).x > 0;
+      return binding != -1 && binding != 0 && binding != LONGEST && binding >= 0 && binding < MAX_TEXTURES && textureSize(sampler2D(samplers[binding]), 0).x > 0;
 }
 
 vec4 fetchPart(in uint binding, in vec2 texcoord){
