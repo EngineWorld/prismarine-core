@@ -18,7 +18,7 @@ namespace Paper {
 
         const GLuint firstBind = 0;
         const GLuint textureLocation = 0;
-        uint32_t pcount = std::min((uint32_t)samplers.size(), 32u);
+        uint32_t pcount = std::min((uint32_t)samplers.size(), 64u);
 
         std::vector<uint64_t> vctr(pcount);
         for (int i = 0; i < pcount; i++) {
@@ -26,6 +26,8 @@ namespace Paper {
             glMakeTextureHandleResidentARB(texHandle);
             vctr[i] = texHandle;
         }
+        //glProgramUniform1i64vARB(prog, textureLocation, pcount, (GLint64 *)vctr.data());
+        //glProgramUniform1ui64vARB(prog, textureLocation, pcount, vctr.data());
         glProgramUniformHandleui64vARB(prog, textureLocation, pcount, vctr.data());
         
         /*
