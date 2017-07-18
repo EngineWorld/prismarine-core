@@ -18,12 +18,19 @@ shared bbox sdata[ 512 ];
 bbox getMinMaxPrimitive(in uint idx){
     const uint tri = clamp(idx, 0u, uint(GEOMETRY_BLOCK geometryUniform.triangleCount-1));
 
-    mat3x4 triverts = transpose(mat4x3(
-        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri)), 0).wzx, // x component
-        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri)), 1).wzx, // y component
-        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri)), 2).wzx, // z component
-        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri)), 3).wzx  // w component
-    ));
+    //mat3x4 triverts = transpose(mat4x3(
+    //    gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri)), 0).wzx, // x component
+    //    gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri)), 1).wzx, // y component
+    //    gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri)), 2).wzx, // z component
+    //    gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri)), 3).wzx  // w component
+    //));
+
+    mat3x4 triverts = mat3x4(
+        fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri)), 0), 
+        fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri)), 1), 
+        fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri)), 2)
+    );
+
 
     triverts[0] = mult4(triverts[0], GEOMETRY_BLOCK octreeUniform.project);
     triverts[1] = mult4(triverts[1], GEOMETRY_BLOCK octreeUniform.project);
