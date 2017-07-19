@@ -85,6 +85,10 @@ vec4 fetchDiffuse(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 norma
     return result;
 }
 
+
+
+// TODO update shader for Neverball with WARP optimization
+
 void main() {
     const int it = int(gl_GlobalInvocationID.x);
 
