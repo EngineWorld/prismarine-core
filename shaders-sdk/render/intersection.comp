@@ -86,6 +86,8 @@ void main() {
 
     const int t = activedBuf.indc[it];
     Ray ray = fetchRayDirect(t);
+    if (allInvocationsARB(ray.actived < 1)) return;
+
     Hit hit = fetchHitDirect(t);
     TResult res = traverse(hit.dist, ray.origin.xyz, ray.direct.xyz, hit);
 
