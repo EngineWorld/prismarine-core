@@ -21,8 +21,8 @@ layout ( std430, binding = 20 )  buffer CounterBlock {
 layout ( std430, binding = 21 )  buffer ColorChainBlock { ColorChain chains[]; } chBuf;
 
 void _collect(inout Ray ray) {
-     vec4 color = max(ray.final, vec4(0.f));
-     float amplitude = mlength(color.xyz);
+    vec4 color = max(ray.final, vec4(0.f));
+    float amplitude = mlength(color.xyz);
     if (amplitude >= 0.00001f) {
         int idx = atomicAdd(arcounter.Ct, 1);
         int prev = atomicExchange(texelBuf.nodes[ray.texel].EXT.y, idx);
@@ -49,7 +49,7 @@ void storeHit(inout Ray ray, inout Hit hit) {
 int addRayToList(in Ray ray){
     int rayIndex = ray.idx;
     int actived = -1;
-    if (ray.actived == 1) {
+    if (anyInvocationARB(ray.actived == 1)) { // use batches
         int act = atomicAdd(arcounter.At, 1);
         collBuf.indc[act] = rayIndex; actived = act;
     } else { // if not actived, why need?
@@ -89,16 +89,24 @@ int createRayStrict(inout Ray original, in int idx, in int rayIndex) {
         return rayIndex;
     }
 
-    if (
+    bool invalidRay = 
         original.actived < 1 || 
         original.bounce <= 0 || 
-        mlength(original.color.xyz) < 0.00001f
-    ) return rayIndex; 
+        mlength(original.color.xyz) < 0.00001f;
+
+    if (allInvocationsARB(invalidRay)) {
+        return rayIndex; 
+    }
 
     Ray ray = original;
     ray.bounce -= 1;
     ray.idx = rayIndex;
     ray.texel = idx;
+
+    // mark as unusual
+    if (invalidRay) {
+        ray.actived = 0;
+    }
 
     Hit hit;
     if (original.idx != LONGEST) {
@@ -127,16 +135,17 @@ int createRayStrict(inout Ray original, in int rayIndex) {
 
 int createRay(inout Ray original, in int idx) {
     _collect(original);
-    if (
+
+    if (allInvocationsARB(
         original.actived < 1 || 
         original.bounce < 0 ||
         mlength(original.color.xyz) < 0.00001f
-    ) return -1; 
-    
-    int rayIndex = -1;
+    )) return -1;
 
-    int iterations = 2;
+    int rayIndex = -1;
+    int iterations = 1;
     int freed = 0;
+    
     while (freed >= 0 && iterations >= 0) {
         iterations--;
 
@@ -155,7 +164,7 @@ int createRay(inout Ray original, in int idx) {
         }
     }
 
-    if (rayIndex == -1) {
+    if (anyInvocationARB(rayIndex == -1)) {
         rayIndex = atomicAdd(arcounter.Rt, 1);
     }
 
@@ -164,11 +173,12 @@ int createRay(inout Ray original, in int idx) {
 
 int createRayIdx(inout Ray original, in int idx, in int rayIndex) {
     _collect(original);
-    if (
+
+    if (allInvocationsARB(
         original.actived < 1 || 
         original.bounce < 0 || 
         mlength(original.color.xyz) < 0.00001f
-    ) return -1; 
+    )) return -1; 
     
     atomicMax(arcounter.Rt, rayIndex+1);
     return createRayStrict(original, idx, rayIndex);
@@ -205,15 +215,6 @@ uvec3 _roundly(in vec3 o){
         uvec3(floor(clamp(o, vec3(0.00001f), vec3(0.99999f)) * 1024.0f)), 
         uvec3(0), uvec3(1023));
 }
-
-/*
-uint quantizeRay(in Ray ray, in vec3 mn, in vec3 mx){
-    vec3 origin = (ray.origin.xyz - mn) / (mx - mn);
-    vec3 direct = fma(normalize(ray.direct.xyz),vec3(0.5f),vec3(0.5f));
-    return encodeMorton3_64(_roundly(origin), _roundly(direct));
-    //return encodeMorton3_64(_roundly(direct), _roundly(origin));
-}
-*/
 
 
 #endif

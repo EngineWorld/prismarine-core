@@ -9,15 +9,15 @@ int bakedStackCount = 0;
 
 // WARP optimized triangle intersection
 float intersectTriangle(in vec3 orig, in vec3 dir, in mat3 ve, inout vec2 UV, in bool valid) {
-    //if (allInvocationsARB(!valid)) return INFINITY;
-    if (!valid) return INFINITY;
+    if (allInvocationsARB(!valid)) return INFINITY;
+    //if (!valid) return INFINITY;
 
      vec3 e1 = ve[1] - ve[0];
      vec3 e2 = ve[2] - ve[0];
 
     valid = valid && !(length(e1) < 0.00001f && length(e2) < 0.00001f);
-    //if (allInvocationsARB(!valid)) return INFINITY;
-    if (!valid) return INFINITY;
+    if (allInvocationsARB(!valid)) return INFINITY;
+    //if (!valid) return INFINITY;
 
      vec3 pvec = cross(dir, e2);
      float det = dot(e1, pvec);
@@ -27,8 +27,8 @@ float intersectTriangle(in vec3 orig, in vec3 dir, in mat3 ve, inout vec2 UV, in
 #else
     if (det <= 0.0f) valid = false;
 #endif
-    //if (allInvocationsARB(!valid)) return INFINITY;
-    if (!valid) return INFINITY;
+    if (allInvocationsARB(!valid)) return INFINITY;
+    //if (!valid) return INFINITY;
 
      vec3 tvec = orig - ve[0];
      float u = dot(tvec, pvec);
@@ -40,8 +40,8 @@ float intersectTriangle(in vec3 orig, in vec3 dir, in mat3 ve, inout vec2 UV, in
         any(lessThan(uvt.xy, vec2(0.f))) || 
         any(greaterThan(vec2(uvt.x) + vec2(0.f, uvt.y), vec2(1.f))) 
     ) valid = false;
-    //if (allInvocationsARB(!valid)) return INFINITY;
-    if (!valid) return INFINITY;
+    if (allInvocationsARB(!valid)) return INFINITY;
+    //if (!valid) return INFINITY;
 
     UV.xy = uvt.xy;
     return (lessF(uvt.z, 0.0f) || !valid) ? INFINITY : uvt.z;
@@ -54,8 +54,8 @@ TResult choiceFirstBaked(inout TResult res) {
         tri >= 0 && 
         tri != LONGEST;
         
-    //if (allInvocationsARB(!validTriangle)) return res;
-    if (!validTriangle) return res;
+    if (allInvocationsARB(!validTriangle)) return res;
+    //if (!validTriangle) return res;
 
      vec2 uv = bakedRangeIntersection[0].yz;
      float _d = bakedRangeIntersection[0].x;
@@ -265,20 +265,20 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     }
 
     for(int i=0;i<8192;i++) {
-        //if (allInvocationsARB(!validBox)) break;
-        if (!validBox) break;
+        if (allInvocationsARB(!validBox)) break;
+        //if (!validBox) break;
         HlbvhNode node = Nodes[idx];
 
         // is leaf
          bool isLeaf = node.pdata.x == node.pdata.y && validBox;
-        //if (anyInvocationARB(isLeaf)) {
-        if (isLeaf) {
+        if (anyInvocationARB(isLeaf)) {
+        //if (isLeaf) {
             testIntersection(lastRes, origin, direct, node.pdata.w, isLeaf);
         }
 
         bool notLeaf = node.pdata.x != node.pdata.y && validBox;
-        //if (anyInvocationARB(notLeaf)) {
-        if (notLeaf) {
+        if (anyInvocationARB(notLeaf)) {
+        //if (notLeaf) {
             bbox lbox = Nodes[node.pdata.x].box;
              bbox rbox = Nodes[node.pdata.y].box;
              vec2 inf2 = vec2(INFINITY);
@@ -299,8 +299,8 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
                 greaterThan(vec2(lastRes.predist), nears * dirlen - PZERO))));
             
              bool anyOverlap = any(overlaps);
-            //if (anyInvocationARB(anyOverlap)) {
-            if (anyOverlap) {
+            if (anyInvocationARB(anyOverlap)) {
+            //if (anyOverlap) {
                  bool leftOrder = all(overlaps) ? lessEqualF(hits.x, hits.y) : overlaps.x;
 
                 ivec2 leftright = mix(ivec2(-1), node.pdata.xy, overlaps);

@@ -597,6 +597,7 @@ Ray emissive(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal){
     if (newRay.params.w == 1) return newRay;
     newRay.final.xyz = max(newRay.color.xyz * color, vec3(0.0f));
     newRay.final = max(newRay.final, vec4(0.0f));
+    newRay.color.xyz *= 0.0f;
     newRay.actived = 0;
     newRay.params.x = 1;
     newRay.origin.xyz = fma(faceforward(hit.normal.xyz, newRay.direct.xyz, -hit.normal.xyz), vec3(GAP), newRay.origin.xyz); // padding
