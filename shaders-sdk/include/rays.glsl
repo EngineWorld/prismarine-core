@@ -49,7 +49,8 @@ void storeHit(inout Ray ray, inout Hit hit) {
 int addRayToList(in Ray ray){
     int rayIndex = ray.idx;
     int actived = -1;
-    if (anyInvocationARB(ray.actived == 1)) { // use batches
+    //if (anyInvocationARB(ray.actived == 1)) { // use batches
+    if (ray.actived == 1) {
         int act = atomicAdd(arcounter.At, 1);
         collBuf.indc[act] = rayIndex; actived = act;
     } else { // if not actived, why need?
