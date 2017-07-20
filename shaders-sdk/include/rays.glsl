@@ -49,7 +49,6 @@ void storeHit(inout Ray ray, inout Hit hit) {
 int addRayToList(in Ray ray){
     int rayIndex = ray.idx;
     int actived = -1;
-    //if (anyInvocationARB(ray.actived == 1)) { // use batches
     if (ray.actived == 1) {
         int act = atomicAdd(arcounter.At, 1);
         collBuf.indc[act] = rayIndex; actived = act;
@@ -96,7 +95,6 @@ int createRayStrict(inout Ray original, in int idx, in int rayIndex) {
         mlength(original.color.xyz) < 0.0001f;
 
     if (allInvocationsARB(invalidRay)) {
-    //if (invalidRay) {
         return rayIndex; 
     }
 
@@ -144,7 +142,6 @@ int createRay(inout Ray original, in int idx) {
         mlength(original.color.xyz) < 0.0001f;
 
     if (allInvocationsARB(invalidRay)) {
-    //if (invalidRay) {
         return -1; 
     }
 
@@ -186,7 +183,6 @@ int createRayIdx(inout Ray original, in int idx, in int rayIndex) {
         mlength(original.color.xyz) < 0.0001f;
 
     if (allInvocationsARB(invalidRay)) {
-    //if (invalidRay) {
         return -1; 
     }
     

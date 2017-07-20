@@ -115,7 +115,6 @@ void main() {
                 hit.triangle = 0;
                 hit.dist = t;
                 hit.materialID = LONGEST;
-                hit.shaded = 1;
             }
         }
     }
@@ -134,6 +133,7 @@ void main() {
         hit.triangle = 0;
         hit.dist = INFINITY;
         hit.materialID = LONGEST;
+        hit.shaded = 1;
     }
 
     newRay.direct.xyz = normalize(newRay.direct.xyz);
@@ -188,13 +188,17 @@ void main() {
     if (hit.shaded < 1) newRay.final.xyz *= 0.f;
 
     if (newRay.actived > 0 && hit.shaded < 1) {
-        diffuseRay.color.xyz *= (1.0f - prom);
-        emissiveRay.color.xyz *= (1.0f - prom);
-        metallicRay.color.xyz *= (1.0f - prom);
+        newRay.final.xyz *= 0.0f;
 
         metallicRay = reflection(metallicRay, hit, vec3(1.0f), normal, 0.02f);
+        metallicRay.color.xyz *= (1.0f - prom);
+
         emissiveRay = emissive(emissiveRay, hit, tx.xyz, normal);
+        emissiveRay.color.xyz *= (1.0f - prom);
+        emissiveRay.final.xyz *= (1.0f - prom);
+
         diffuseRay = diffuse(diffuseRay, hit, tx.xyz, normal);
+        diffuseRay.color.xyz *= (1.0f - prom);
 
         bool isMetallic = haveProp(materialCache, M_ENVIRONMENT);
         mixed(diffuseRay.color.xyz, metallicRay.color.xyz, float(isMetallic) * mix(clamp(pow(1.0f - abs(dot(dir, normal)), 5.0f), 0.0f, 1.0f), 1.0f, 0.05f));
@@ -206,7 +210,6 @@ void main() {
             diffuseRay.color.xyz *= 0.f;
         }
 
-        newRay.final.xyz *= 0.f;
         newRay.color.xyz *= haveProp(materialCache, M_ADDITIVE) ? 1.f : prom;
         if ( haveProp(materialCache, M_REFLECTIVE)) { // mirrors
             newRay = reflection(newRay, hit, vec3(1.0f), normal, 0.02f);
@@ -216,7 +219,6 @@ void main() {
 
         hit.shaded = 1;
     } else {
-        //newRay.color.xyz *= 0.f;
         metallicRay.color.xyz *= 0.f;
         diffuseRay.color.xyz *= 0.f;
         emissiveRay.color.xyz *= 0.f;

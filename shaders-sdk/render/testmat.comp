@@ -117,7 +117,6 @@ void main() {
                 hit.triangle = 0;
                 hit.dist = t;
                 hit.materialID = LONGEST;
-                hit.shaded = 1;
             }
         }
     }
@@ -143,6 +142,7 @@ void main() {
             hit.triangle = 0;
             hit.dist = INFINITY;
             hit.materialID = LONGEST;
+            hit.shaded = 1;
         }
     }
 
@@ -197,7 +197,6 @@ void main() {
     
     if (hit.shaded < 1) newRay.final.xyz *= 0.f;
 
-    bool additiveBlend = false;
     if (newRay.actived > 0 && hit.shaded < 1) {
         newRay.final.xyz *= 0.0f;
 
@@ -210,15 +209,15 @@ void main() {
 
         emissiveRay = emissive(emissiveRay, hit, emi.xyz / min(emis, 1.0f), normal);
         emissiveRay.color.xyz *= (1.0f - prom);
-        
+        emissiveRay.final.xyz *= (1.0f - prom);
+
         mixed(diffuseRay.color.xyz, reflectionRay.color.xyz, clamp(spic, 0.0f, 1.0f));
 
         newRay = promised(newRay, hit, normal);
-        newRay.color.xyz *= additiveBlend ? 1.0f : prom;
+        newRay.color.xyz *= prom;
 
         hit.shaded = 1;
     } else {
-        //newRay.color.xyz *= 0.0f;
         reflectionRay.color.xyz *= 0.0f;
         emissiveRay.color.xyz *= 0.0f;
         diffuseRay.color.xyz *= 0.0f;
