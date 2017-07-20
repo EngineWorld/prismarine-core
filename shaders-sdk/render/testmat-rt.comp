@@ -237,7 +237,7 @@ void main() {
         for (int i=0;i<lightcount;i++) {
             vec3 lightColor = getLightColor(i) * 0.4f;
             if (isMetallic) {
-                lightColor = getLightColor(i) * 0.8f;
+                lightColor = getLightColor(i) * 0.6f;
             }
             applyLight(directLightWhitted(i, diffuseRay, hit, lightColor, normal), diffuseRay, surfacenormal);
         }
