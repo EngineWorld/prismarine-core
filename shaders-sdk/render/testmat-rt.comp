@@ -98,6 +98,8 @@ void main() {
     globalInvocationSMP = it;
 
     Ray newRay = fetchRayDirect(t);
+    if (overflow) newRay.actived = 0;
+
     Hit hit = fetchHitDirect(t);
 
     if (hit.shaded > 0 || newRay.actived < 1) { // already shaded, waiting

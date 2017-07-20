@@ -17,7 +17,9 @@ LOCAL_SIZE_LAYOUT;
 void main()
 {
     const int it = int(gl_GlobalInvocationID.x);
-    if (it >= RAY_BLOCK samplerUniform.rayCount) return; // danger allInvocationsARB
+    const bool overflow = it >= RAY_BLOCK samplerUniform.rayCount;
+
+    if (overflow) return; // danger allInvocationsARB
     const int t = activedBuf.indc[it];
     
     Ray ray = fetchRayDirect(t);
@@ -27,7 +29,7 @@ void main()
     ray.color.xyz = max(vec3(0.0f), ray.color.xyz);
     hit.vmods.w = equalF(hit.dist, 0.f) ? (hit.vmods.w+1.f) : 0.f;
 
-    if (ray.bounce < 0 || hit.shaded <= 0 || mlength(ray.color.xyz) < 0.0001f) {
+    if (ray.bounce < 0 || hit.shaded <= 0 || mlength(ray.color.xyz) < 0.0001f || overflow) {
         ray.actived = 0;
     }
 
