@@ -189,6 +189,13 @@ namespace Paper {
         lightUniformData = new LightUniformStruct[6];
         sorter = new RadixSort();
 
+        for (int i = 0; i < 6;i++) {
+            lightColor[i] = glm::vec4((glm::vec3(255.f, 241.f, 224.f) / 255.f) * 150.f, 40.0f);
+            lightAmbient[i] = glm::vec4(0.0f);
+            lightVector[i] = glm::vec4(0.4f, 1.0f, 0.1f, 400.0f);
+            lightOffset[i] = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+        }
+
         bound.mn.x = 100000.f;
         bound.mn.y = 100000.f;
         bound.mn.z = 100000.f;
@@ -236,6 +243,11 @@ namespace Paper {
         cameraUniformData.enable360 = 0;
         framenum = 0;
         syncUniforms();
+    }
+
+
+    inline void Tracer::setLightCount(size_t lightcount) {
+        materialUniformData.lightcount = lightcount;
     }
 
     inline void Tracer::switchMode() {
@@ -354,6 +366,7 @@ namespace Paper {
             lightUniformData[i].lightColor = *(Vc4 *)glm::value_ptr(lightColor[i]);
             lightUniformData[i].lightVector = *(Vc4 *)glm::value_ptr(lightVector[i]);
             lightUniformData[i].lightOffset = *(Vc4 *)glm::value_ptr(lightOffset[i]);
+            lightUniformData[i].lightAmbient = *(Vc4 *)glm::value_ptr(lightAmbient[i]);
         }
 
         rayBlockData.cameraUniform = cameraUniformData;

@@ -398,8 +398,8 @@ Ray reflection(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal, in floa
     newRay.color.xyz *= color;
     newRay.params.x = SUNLIGHT_CAUSTICS ? 0 : 1;
     newRay.params.z = 1;
-    newRay.bounce = min(3, newRay.bounce); // normal mode
-    //newRay.bounce = min(2, newRay.bounce); // easier mode
+    //newRay.bounce = min(3, newRay.bounce); // normal mode
+    newRay.bounce = min(2, newRay.bounce); // easier mode
     newRay.origin.xyz = fma(faceforward(hit.normal.xyz, newRay.direct.xyz, -hit.normal.xyz), vec3(GAP), newRay.origin.xyz); // padding
     return newRay;
 }
@@ -570,7 +570,24 @@ Ray directLight(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 n
     return directRay;
 }
 
+Ray directLightWhitted(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 normal){
+    if (directRay.params.w == 1) return directRay;
+    directRay.bounce = min(1, directRay.bounce);
+    directRay.actived = 1;
+    directRay.params.w = 1;
+    directRay.params.x = 0;
+    directRay.params.y = i;
+    directRay.actived = 1;
 
+    vec3 ldirect = normalize(sLight(i) - directRay.origin.xyz);
+    float diffuseWeight = clamp(dot(ldirect, normal), 0.0f, 1.0f);
+
+    directRay.direct.xyz = ldirect;
+    directRay.color.xyz = directRay.final.xyz * color * diffuseWeight;
+    directRay.final.xyz *= 0.f;
+    if (DRo < 0.9999f) directRay.color.xyz *= vec3(0.0f);
+    return directRay;
+}
 
 
 
@@ -598,6 +615,7 @@ Ray emissive(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal){
     newRay.final.xyz = max(newRay.color.xyz * color, vec3(0.0f));
     newRay.final = max(newRay.final, vec4(0.0f));
     newRay.color.xyz *= 0.0f;
+    newRay.direct.xyz = normalize(randomCosine(normal));
     newRay.actived = 0;
     newRay.params.x = 1;
     newRay.origin.xyz = fma(faceforward(hit.normal.xyz, newRay.direct.xyz, -hit.normal.xyz), vec3(GAP), newRay.origin.xyz); // padding
@@ -629,7 +647,12 @@ bool doesCubeIntersectSphere(in vec3 C1, in vec3 C2, in vec3 S, in float R)
 }
 
 vec3 getLightColor(in int lc){
-    return lightUniform.lightNode[lc].lightColor.xyz;
+    //return max(lightUniform.lightNode[lc].lightColor.xyz - lightUniform.lightNode[lc].lightAmbient.xyz, vec3(0.f));
+    return max(lightUniform.lightNode[lc].lightColor.xyz, vec3(0.f));
+}
+
+vec3 getLightColor(in int lc, in bool mtl){
+    return max(lightUniform.lightNode[lc].lightColor.xyz, vec3(0.f));
 }
 
 #endif

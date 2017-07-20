@@ -15,6 +15,7 @@ namespace Paper {
             int32_t flags = 0;
             int32_t exflags = 0;
             glm::vec4 colormod = glm::vec4(1.0f);
+            glm::dmat4 modelViewStore;
 
             Transformer(){
                 stack = std::vector<glm::dmat4>();

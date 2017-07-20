@@ -22,7 +22,11 @@ void main()
     const ivec2 xy = ivec2(idx % wh.x, idx / wh.x);
     const vec2 sceneResInv = 1.0f / vec2(RAY_BLOCK samplerUniform.sceneRes.xy);
     if (xy.x < wh.x && xy.y < wh.y) {
+#ifdef RT_OPTIMIZED
+        vec2 coord = (vec2(xy) + clamp(vec2(0.5f), vec2(0.00001f), vec2(0.99999f))) * sceneResInv;
+#else
         vec2 coord = (vec2(xy) + clamp(vec2(random(), random()), vec2(0.00001f), vec2(0.99999f))) * sceneResInv;
+#endif
 
         Texel txfi = texelBuf.nodes[idx];
         txfi.coord.x = coord.x;

@@ -66,7 +66,7 @@ vec4 fetchDiffuse(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 norma
 
     //mat.diffuse.xyz += 0.2f;
     mat.diffuse.xyz *= 1.25f;
-    mat.diffuse = clamp(mat.diffuse, vec4(0.0f), vec4(1.0f));
+    //mat.diffuse = clamp(mat.diffuse, vec4(0.0f), vec4(1.0f));
 
     if (!validateTexture(mat.diffusePart)) {
         result = clamp(mat.diffuse, vec4(0.0f), vec4(1.0f));
@@ -122,7 +122,7 @@ void main() {
     }
 
     if (lc >= 0 && (newRay.params.y == lc || newRay.params.w < 1)){
-        newRay.final.xyz = newRay.color.xyz * getLightColor(lc);
+        newRay.final.xyz = newRay.color.xyz;//* getLightColor(lc);
         newRay.color.xyz *= 0.0f;
         newRay.actived = 0;
         hit.shaded = 1;
@@ -189,32 +189,36 @@ void main() {
 
     if (hit.shaded < 1) newRay.final.xyz *= 0.f;
 
+    bool isMetallic = haveProp(materialCache, M_ENVIRONMENT);
     if (newRay.actived > 0 && hit.shaded < 1) {
         newRay.final.xyz *= 0.0f;
 
-        metallicRay = reflection(metallicRay, hit, vec3(1.0f), normal, 0.02f);
+        metallicRay = reflection(metallicRay, hit, vec3(1.0f), normal, 0.00f);
         metallicRay.color.xyz *= (1.0f - prom);
 
         emissiveRay = emissive(emissiveRay, hit, tx.xyz, normal);
         emissiveRay.color.xyz *= (1.0f - prom);
         emissiveRay.final.xyz *= (1.0f - prom);
 
-        diffuseRay = diffuse(diffuseRay, hit, tx.xyz, normal);
-        diffuseRay.color.xyz *= (1.0f - prom);
-
-        bool isMetallic = haveProp(materialCache, M_ENVIRONMENT);
+        vec3 tmpcol = vec3(1.0f);
         mixed(diffuseRay.color.xyz, metallicRay.color.xyz, float(isMetallic) * mix(clamp(pow(1.0f - abs(dot(dir, normal)), 5.0f), 0.0f, 1.0f), 1.0f, 0.05f));
+
+        //diffuseRay = diffuse(diffuseRay, hit, tx.xyz, normal);
+        diffuseRay = emissive(diffuseRay, hit, tx.xyz, normal);
+        diffuseRay.color.xyz *= (1.0f - prom);
+        diffuseRay.final.xyz *= (1.0f - prom);
 
         if (haveProp(materialCache, M_SHADOWED)) {
             emissiveRay.color.xyz *= 0.f;
             emissiveRay.final.xyz *= 0.f;
         } else {
             diffuseRay.color.xyz *= 0.f;
+            diffuseRay.final.xyz *= 0.f;
         }
 
         newRay.color.xyz *= haveProp(materialCache, M_ADDITIVE) ? 1.f : prom;
         if ( haveProp(materialCache, M_REFLECTIVE)) { // mirrors
-            newRay = reflection(newRay, hit, vec3(1.0f), normal, 0.02f);
+            newRay = reflection(newRay, hit, vec3(1.0f), normal, 0.00f);
         } else { // transparency
             newRay = promised(newRay, hit, normal);
         }
@@ -223,11 +227,23 @@ void main() {
     } else {
         metallicRay.color.xyz *= 0.f;
         diffuseRay.color.xyz *= 0.f;
+        diffuseRay.final.xyz *= 0.f;
         emissiveRay.color.xyz *= 0.f;
     }
 
     if (!overflow) {
-        applyLight(directLight(0, diffuseRay, hit, vec3(1.0f), normal), diffuseRay, surfacenormal);
+        int lightcount = int(min(RAY_BLOCK materialUniform.lightcount, 16));
+
+        for (int i=0;i<lightcount;i++) {
+            vec3 lightColor = getLightColor(i) * 0.4f;
+            if (isMetallic) {
+                lightColor = getLightColor(i) * 0.8f;
+            }
+            applyLight(directLightWhitted(i, diffuseRay, hit, lightColor, normal), diffuseRay, surfacenormal);
+        }
+
+        diffuseRay.final.xyz *= 0.2f;
+
         emitRay(diffuseRay, hit, normal, 1.0f);
         emitRay(emissiveRay, hit, normal, 1.0f);
         emitRay(metallicRay, hit, normal, 1.0f);

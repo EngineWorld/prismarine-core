@@ -8,7 +8,6 @@ namespace Paper {
     typedef float Vc1;
     typedef int32_t iVc1;
 
-
     struct Vc2 {
         float x;
         float y;
@@ -185,6 +184,7 @@ namespace Paper {
         Vc4 lightVector;
         Vc4 lightColor;
         Vc4 lightOffset;
+        Vc4 lightAmbient;
     };
 
     struct GeometryUniformStruct {
