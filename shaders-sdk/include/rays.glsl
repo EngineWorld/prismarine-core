@@ -139,7 +139,7 @@ int createRay(inout Ray original, in int idx) {
 
     if (allInvocationsARB(
         original.actived < 1 || 
-        original.bounce < 0 ||
+        original.bounce <= 0 ||
         mlength(original.color.xyz) < 0.00001f
     )) return -1;
 
@@ -177,7 +177,7 @@ int createRayIdx(inout Ray original, in int idx, in int rayIndex) {
 
     if (allInvocationsARB(
         original.actived < 1 || 
-        original.bounce < 0 || 
+        original.bounce <= 0 || 
         mlength(original.color.xyz) < 0.00001f
     )) return -1; 
     
