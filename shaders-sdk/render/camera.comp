@@ -32,10 +32,6 @@ void main()
         txfi.EXT.y = -1; // no chains
         texelBuf.nodes[idx] = txfi;
 
-        if (RAY_BLOCK cameraUniform.interlace == 1){
-            if ((abs(xy.x + xy.y) % 2) == RAY_BLOCK cameraUniform.interlaceStage) return;
-        }
-
         if (enable360 == 1) {
             coord.x = 1.f - coord.x;
             if (coord.x > 0.5f) {
@@ -97,9 +93,10 @@ void main()
         ray.params.w = 0;
         ray.bounce = 4;
 
-        //ray.final = vec4(1.0f, 1.0f, 0.0f, 1.0f);
-        //ray.actived = 0;
-
+        if (RAY_BLOCK cameraUniform.interlace == 1) {
+            if ((abs(xy.x + xy.y) % 2) == RAY_BLOCK cameraUniform.interlaceStage) ray.actived = 0;
+        }
+        
         createRayIdx(ray, idx, RAY_BLOCK cameraUniform.interlace == 1 ? (idx / 2) : idx);
     }
 }

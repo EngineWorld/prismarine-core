@@ -93,7 +93,8 @@ vec4 fetchDiffuse(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 norma
 
 void main() {
     const int it = int(gl_GlobalInvocationID.x);
-    if (allInvocationsARB(it >= RAY_BLOCK samplerUniform.rayCount)) return;
+    const bool overflow = it >= RAY_BLOCK samplerUniform.rayCount;
+    if (allInvocationsARB(overflow)) return;
 
     const int t = activedBuf.indc[it];
     globalInvocationSMP = it;
@@ -116,6 +117,7 @@ void main() {
                 hit.triangle = 0;
                 hit.dist = t;
                 hit.materialID = LONGEST;
+                hit.shaded = 1;
             }
         }
     }
@@ -193,6 +195,8 @@ void main() {
     Ray emissiveRay = newRay;
     emissiveRay.final.xyz *= 0.0f;
     
+    if (hit.shaded < 1) newRay.final.xyz *= 0.f;
+
     bool additiveBlend = false;
     if (newRay.actived > 0 && hit.shaded < 1) {
         newRay.final.xyz *= 0.0f;
@@ -214,20 +218,21 @@ void main() {
 
         hit.shaded = 1;
     } else {
-        newRay.color.xyz *= 0.0f;
+        //newRay.color.xyz *= 0.0f;
         reflectionRay.color.xyz *= 0.0f;
         emissiveRay.color.xyz *= 0.0f;
         diffuseRay.color.xyz *= 0.0f;
     }
 
-    {
+    if (!overflow) {
         applyLight(directLight(0, diffuseRay, hit, vec3(1.0f), normal), diffuseRay, surfacenormal); // push shadow
         emitRay(reflectionRay, hit, normal, 1.0f);
         emitRay(diffuseRay, hit, normal, 1.0f);
         emitRay(emissiveRay, hit, normal, clamp(emis, 0.0f, 1.0f));
     }
 
-    storeHit(t, hit);
-    storeRay(t, newRay);
-    return;
+    if (!overflow) {
+        storeHit(t, hit);
+        storeRay(t, newRay);
+    }
 }

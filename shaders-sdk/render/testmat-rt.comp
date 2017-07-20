@@ -91,23 +91,21 @@ vec4 fetchDiffuse(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 norma
 
 void main() {
     const int it = int(gl_GlobalInvocationID.x);
+    const bool overflow = it >= RAY_BLOCK samplerUniform.rayCount;
 
-    if (it >= RAY_BLOCK samplerUniform.rayCount) return;
+    if (allInvocationsARB(overflow)) return;
     const int t = activedBuf.indc[it];
     globalInvocationSMP = it;
 
     Ray newRay = fetchRayDirect(t);
     Hit hit = fetchHitDirect(t);
+
     if (hit.shaded > 0 || newRay.actived < 1) { // already shaded, waiting
         hit.shaded = 1;
-        storeHit(t, hit);
-        storeRay(t, newRay);
-        return;
     }
 
     int lc = -1;
-    bool lightedRay = newRay.params.x < 1 && (newRay.params.z > 0 || newRay.params.w > 0 );
-    //if (lightedRay) {
+    if (newRay.params.x < 1 && (newRay.params.z > 0 || newRay.params.w > 0 ) && hit.shaded < 1) {
         for (int i=0;i<min(RAY_BLOCK materialUniform.lightcount, 16);i++) {
             float md = 1.0f;
             float dt = intersectSphere(newRay.origin.xyz, newRay.direct.xyz, lightCenter(i).xyz, lightUniform.lightNode[i].lightColor.w + GAP);
@@ -120,23 +118,22 @@ void main() {
                 hit.shaded = 1;
             }
         }
-    //}
-
-    if (lc >= 0 && (newRay.params.y == lc || newRay.params.w < 1)){
-        newRay.final.xyz = newRay.color.xyz * getLightColor(lc) * float(lightedRay);
-        newRay.color.xyz *= 0.0f;
-        newRay.actived = 0;
     }
 
-    if (greaterEqualF(hit.dist, INFINITY) && newRay.params.w < 1) {
-        newRay.actived = 0;
-        newRay.final.xyz = newRay.color.xyz * vec3(0.0f);
+    if (lc >= 0 && (newRay.params.y == lc || newRay.params.w < 1)){
+        newRay.final.xyz = newRay.color.xyz * getLightColor(lc);
         newRay.color.xyz *= 0.0f;
+        newRay.actived = 0;
+        hit.shaded = 1;
+    }
 
+    if (greaterEqualF(hit.dist, INFINITY) && newRay.params.w < 1 && hit.shaded < 1) {
+        newRay.final.xyz = newRay.color.xyz * vec3(0.f);
+        newRay.color.xyz *= 0.0f;
+        newRay.actived = 0;
         hit.triangle = 0;
         hit.dist = INFINITY;
         hit.materialID = LONGEST;
-        hit.shaded = 1;
     }
 
     newRay.direct.xyz = normalize(newRay.direct.xyz);
@@ -144,20 +141,16 @@ void main() {
 
     if (hit.materialID < 0 || hit.materialID == LONGEST || hit.shaded > 0 || newRay.actived < 1) {
         hit.shaded = 1;
-        storeHit(t, hit);
-        storeRay(t, newRay);
-        return;
     }
 
-     Submat materialCache = submats[hit.materialID];
+    Submat materialCache = submats[hit.materialID];
 
-     vec3 dir = normalize(newRay.direct.xyz);
-     vec3 prenormal = normalize(hit.normal.xyz);
+    vec3 dir = normalize(newRay.direct.xyz);
+    vec3 prenormal = normalize(hit.normal.xyz);
     vec3 normal = normalize(faceforward(prenormal, dir, prenormal));
-     vec3 surfacenormal = normal;
-     vec3 tan = normalize(hit.tangent.xyz);
-     mat3 tbn = mat3(tan, normalize(cross(normal, tan)), normal);
-    //normal = normalize(tbn * getNormalMapping(materialCache, hit.texcoord.xy, newRay.direct.xyz, normal));
+    vec3 surfacenormal = normal;
+    vec3 tan = normalize(hit.tangent.xyz);
+    mat3 tbn = mat3(tan, normalize(cross(normal, tan)), normal);
     normal = faceforward(normal, dir, normal);
 
     // construct orthonormal basis around N
@@ -181,49 +174,63 @@ void main() {
         prom = mix(clamp(pow(1.0f - abs(dot(dir, normal)), 5.0f), 0.0f, 1.0f), 1.0f, prom);
     }
 
+
+
+    Ray metallicRay = newRay;
+    metallicRay.final.xyz *= 0.f;
+
+    Ray diffuseRay = newRay;
+    diffuseRay.final.xyz *= 0.f;
+
+    Ray emissiveRay = newRay;
+    emissiveRay.final.xyz *= 0.f;
+
+    if (hit.shaded < 1) newRay.final.xyz *= 0.f;
+
     if (newRay.actived > 0 && hit.shaded < 1) {
-        // diffuse
-        bool shadowed = false;
-        Ray emitentRay = newRay;
-        Ray reflectionRay = newRay;
+        diffuseRay.color.xyz *= (1.0f - prom);
+        emissiveRay.color.xyz *= (1.0f - prom);
+        metallicRay.color.xyz *= (1.0f - prom);
 
-        emitentRay.color.xyz *= (1.0f - prom);
+        metallicRay = reflection(metallicRay, hit, vec3(1.0f), normal, 0.02f);
+        emissiveRay = emissive(emissiveRay, hit, tx.xyz, normal);
+        diffuseRay = diffuse(diffuseRay, hit, tx.xyz, normal);
 
-        if (haveProp(materialCache, M_ENVIRONMENT) && dot(hit.normal.xyz, emitentRay.direct.xyz) < 0.0f) {
-            mixed(emitentRay.color.xyz, reflectionRay.color.xyz, mix(clamp(pow(1.0f - abs(dot(dir, normal)), 5.0f), 0.0f, 1.0f), 1.0f, 0.05f));
-        } else {
-            mixed(emitentRay.color.xyz, reflectionRay.color.xyz, 0.0f);
-        }
+        bool isMetallic = haveProp(materialCache, M_ENVIRONMENT);
+        mixed(diffuseRay.color.xyz, metallicRay.color.xyz, float(isMetallic) * mix(clamp(pow(1.0f - abs(dot(dir, normal)), 5.0f), 0.0f, 1.0f), 1.0f, 0.05f));
 
         if (haveProp(materialCache, M_SHADOWED)) {
-            emitentRay = diffuse(emitentRay, hit, tx.xyz, normal);
-            shadowed = true;
+            emissiveRay.color.xyz *= 0.f;
+            emissiveRay.final.xyz *= 0.f;
         } else {
-            emitentRay = emissive(emitentRay, hit, tx.xyz, normal);
-        }
-        if (shadowed) applyLight(directLight(0, emitentRay, hit, vec3(1.0f), normal), emitentRay, surfacenormal);
-        emitRay(emitentRay, hit, normal, 1.0f);
-
-        // reflective effects in coins and metals
-        if (haveProp(materialCache, M_ENVIRONMENT) && dot(hit.normal.xyz, reflectionRay.direct.xyz) < 0.0f) {
-            emitRay(reflection(reflectionRay, hit, vec3(1.0f), normal, 0.02f), hit, normal, 1.0f);
+            diffuseRay.color.xyz *= 0.f;
         }
 
-        // transparency or reflection ray
-        if (!haveProp(materialCache, M_ADDITIVE)) { 
-            newRay.color.xyz *= prom;
-        }
+        newRay.final.xyz *= 0.f;
+        newRay.color.xyz *= haveProp(materialCache, M_ADDITIVE) ? 1.f : prom;
         if ( haveProp(materialCache, M_REFLECTIVE)) { // mirrors
             newRay = reflection(newRay, hit, vec3(1.0f), normal, 0.02f);
         } else { // transparency
             newRay = promised(newRay, hit, normal);
         }
+
+        hit.shaded = 1;
+    } else {
+        //newRay.color.xyz *= 0.f;
+        metallicRay.color.xyz *= 0.f;
+        diffuseRay.color.xyz *= 0.f;
+        emissiveRay.color.xyz *= 0.f;
     }
 
-    if (hit.shaded < 1) {
-        hit.shaded = 1;
+    if (!overflow) {
+        applyLight(directLight(0, diffuseRay, hit, vec3(1.0f), normal), diffuseRay, surfacenormal);
+        emitRay(diffuseRay, hit, normal, 1.0f);
+        emitRay(emissiveRay, hit, normal, 1.0f);
+        emitRay(metallicRay, hit, normal, 1.0f);
+    }
+
+    if (!overflow) {
         storeHit(t, hit);
         storeRay(t, newRay);
-        return;
     }
 }
