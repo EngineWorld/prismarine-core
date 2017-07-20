@@ -87,11 +87,12 @@ layout ( local_size_x = WORK_SIZE * SCALARS ) in;
 
 void main() {
     const int it = invoc(int(gl_GlobalInvocationID.x));
-    if (allInvocationsARB(it >= RAY_BLOCK samplerUniform.rayCount || !mt())) return;
+    const bool overflow = it >= RAY_BLOCK samplerUniform.rayCount;
+    if (allInvocationsARB(overflow || !mt())) return;
 
     const int t = activedBuf.indc[it];
     Ray ray = fetchRayDirect(t);
-    if (allInvocationsARB(ray.actived < 1 || it >= RAY_BLOCK samplerUniform.rayCount || !mt())) return;
+    if (allInvocationsARB(ray.actived < 1 || overflow || !mt())) return;
 
     Hit hit = fetchHitDirect(t);
     TResult res = traverse(hit.dist, ray.origin[lane4], ray.direct[lane4], hit);
@@ -120,6 +121,6 @@ void main() {
         
         newHit.vmods.w = sysmod.w;
 
-        if (mt()) storeHit(t, newHit);
+        if (mt() && !overflow) storeHit(t, newHit);
     }
 }

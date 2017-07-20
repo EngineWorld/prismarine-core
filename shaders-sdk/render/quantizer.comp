@@ -16,9 +16,8 @@ layout ( std430, binding = 6 )  buffer BoundingBox {bbox inbound;};
 
 void main(){
     const int it = int(gl_GlobalInvocationID.x);
-    if (allInvocationsARB(it >= RAY_BLOCK samplerUniform.rayCount)) return;
+    if (it >= RAY_BLOCK samplerUniform.rayCount) return;
 
     const int t = activedBuf.indc[it];
     Ray ray = fetchRayDirect(t);
-    //rayMorton[it] = quantizeRay(ray, inbound.mn.xyz, inbound.mx.xyz);
 }

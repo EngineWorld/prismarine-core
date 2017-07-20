@@ -33,7 +33,7 @@ void main()
         ray.actived = 0;
     }
 
-    {
+    if (!overflow) {
         hit.shaded = 1;
         storeHit(t, hit);
         storeRay(t, ray);
