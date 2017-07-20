@@ -5,8 +5,8 @@
 #include "../include/uniforms.glsl"
 #include "./includes.glsl"
 
-#define LEAFIDX(i) (Range.y + i)
-#define NODEIDX(i) (clamp(i, 1, Range.y-1))
+#define LEAFIDX(i) (Range[0] + i)
+#define NODEIDX(i) (clamp(i, 1, Range[0]-1))
 
 layout ( local_size_x = 1024 ) in;
 
@@ -42,7 +42,7 @@ int findSplit( int first, int last)
         if (step <= 1) break; 
     }
 
-    return clamp(split, 0, Range.y-2);
+    return clamp(split, 0, Range[0]-2);
 }
 
 shared int lRange[2];
@@ -61,7 +61,7 @@ void main() {
         HlbvhNode node = Nodes[threadID];
         node.box.mn = vec4(0.0f);
         node.box.mx = vec4(0.0f);
-        node.pdata.xy = ivec2(0, Range.y-1);
+        node.pdata.xy = ivec2(0, Range[0]-1);
         node.pdata.zw = ivec2(-1);
         
         Nodes[threadID] = node;

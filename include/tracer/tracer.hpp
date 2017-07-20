@@ -72,6 +72,42 @@ namespace Paper {
 
     public:
         Tracer() { init(); }
+        ~Tracer() {
+            glDeleteProgram(renderProgram);
+            glDeleteProgram(matProgram);
+            glDeleteProgram(beginProgram);
+            glDeleteProgram(reclaimProgram);
+            glDeleteProgram(cameraProgram);
+            glDeleteProgram(clearProgram);
+            glDeleteProgram(samplerProgram);
+            glDeleteProgram(intersectionProgram);
+
+            glDeleteBuffers(1, &colorchains);
+            glDeleteBuffers(1, &quantized);
+            glDeleteBuffers(1, &rays);
+            glDeleteBuffers(1, &hits);
+            glDeleteBuffers(1, &texels);
+            glDeleteBuffers(1, &activenl);
+            glDeleteBuffers(1, &activel);
+            glDeleteBuffers(1, &freedoms);
+            glDeleteBuffers(1, &availables);
+            glDeleteBuffers(1, &arcounter);
+            glDeleteBuffers(1, &arcounterTemp);
+
+            glDeleteBuffers(1, &lightUniform);
+            glDeleteBuffers(1, &rayBlockUniform);
+
+            glDeleteTextures(1, &presampled);
+            glDeleteTextures(1, &samples);
+            glDeleteTextures(1, &sampleflags);
+            glDeleteTextures(1, &cubeTex);
+
+            glDeleteVertexArrays(1, &vao);
+
+            glDeleteTextures(1, &pivotTexture);
+            glDeleteBuffers(1, &posBuf);
+            glDeleteBuffers(1, &idcBuf);
+        }
 
         uint32_t width = 256;
         uint32_t height = 256;

@@ -24,15 +24,13 @@ namespace Paper {
         GLuint resortProgramH = -1;
         GLuint minmaxProgram2 = -1;
 
-        GLuint ebo_triangle_ssbo = -1;
         GLuint mat_triangle_ssbo = -1;
-        GLuint vbo_triangle_ssbo = -1;
-        GLuint geometryBlockUniform = -1;
-
+        
         GLuint vbo_vertex_textrue = -1;
         GLuint vbo_normal_textrue = -1;
         GLuint vbo_texcoords_textrue = -1;
         GLuint vbo_modifiers_textrue = -1;
+
         GLuint vbo_sampler = -1;
 
         GeometryBlockUniform geometryBlockData;
@@ -40,21 +38,20 @@ namespace Paper {
         OctreeUniformStruct octreeUniformData;
         GeometryUniformStruct geometryUniformData;
         AttributeUniformStruct attributeUniformData;
+        GLuint geometryBlockUniform = -1;
 
         GLuint aabbCounter = -1;
-        GLuint nodeCounter = -1;
-        GLuint numBuffer = -1;
         GLuint leafBuffer = -1;
-        GLuint leafBufferSorted = -1;
         GLuint bvhnodesBuffer = -1;
         GLuint mortonBuffer = -1;
         GLuint mortonBufferIndex = -1;
-
         GLuint bvhflagsBuffer = -1;
-        GLuint lscounterTemp = -1;
-        GLuint tcounter = -1;
-        GLuint minmaxBuf = -1;
-        GLuint minmaxBufRef = -1;
+
+        GLuint lscounterTemp = -1; // zero store
+        GLuint minmaxBufRef = -1; // default bound
+
+        GLuint tcounter = -1; // triangle counter
+        GLuint minmaxBuf = -1; // minmax buffer
 
         void initShaderCompute(std::string str, GLuint& prog);
         void initShaderComputeSPIRV(std::string str, GLuint& prog);
@@ -67,6 +64,34 @@ namespace Paper {
     public:
 
         Intersector() { init(); }
+        ~Intersector() {
+            glDeleteProgram(geometryLoaderProgramI16);
+            glDeleteProgram(geometryLoaderProgram2);
+            glDeleteProgram(buildProgramH);
+            glDeleteProgram(aabbMakerProgramH);
+            glDeleteProgram(refitProgramH);
+            glDeleteProgram(resortProgramH);
+            glDeleteProgram(minmaxProgram2);
+
+            glDeleteBuffers(1, &mat_triangle_ssbo);
+            glDeleteTextures(1, &vbo_vertex_textrue);
+            glDeleteTextures(1, &vbo_normal_textrue);
+            glDeleteTextures(1, &vbo_texcoords_textrue);
+            glDeleteTextures(1, &vbo_modifiers_textrue);
+            glDeleteSamplers(1, &vbo_sampler);
+
+            glDeleteBuffers(1, &geometryBlockUniform);
+            glDeleteBuffers(1, &aabbCounter);
+            glDeleteBuffers(1, &leafBuffer);
+            glDeleteBuffers(1, &bvhnodesBuffer);
+            glDeleteBuffers(1, &mortonBuffer);
+            glDeleteBuffers(1, &mortonBufferIndex);
+            glDeleteBuffers(1, &bvhflagsBuffer);
+            glDeleteBuffers(1, &lscounterTemp);
+            glDeleteBuffers(1, &minmaxBufRef);
+            glDeleteBuffers(1, &tcounter);
+            glDeleteBuffers(1, &minmaxBuf);
+        }
 
         int32_t materialID = 0;
         size_t triangleCount = 0;

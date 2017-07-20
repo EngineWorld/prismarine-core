@@ -137,9 +137,6 @@ namespace Paper {
     inline void Intersector::allocate(const size_t &count) {
         maxt = count;
 
-
-
-
         glCreateTextures(GL_TEXTURE_2D, 1, &vbo_vertex_textrue);
         glTextureStorage2D(vbo_vertex_textrue, 1, GL_RGBA32F, 3072, 1024);
 
@@ -158,27 +155,11 @@ namespace Paper {
         glSamplerParameteri(vbo_sampler, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glSamplerParameteri(vbo_sampler, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-        /*
-        glCreateBuffers(1, &ebo_triangle_ssbo);
-        glNamedBufferStorage(ebo_triangle_ssbo, strided<int32_t>(maxt * 3), nullptr, GL_DYNAMIC_STORAGE_BIT);
-
-        glCreateBuffers(1, &vbo_triangle_ssbo);
-        glNamedBufferStorage(vbo_triangle_ssbo, strided<VboDataStride>(maxt * 3), nullptr, GL_DYNAMIC_STORAGE_BIT);
-        */
-
         glCreateBuffers(1, &mat_triangle_ssbo);
         glNamedBufferStorage(mat_triangle_ssbo, strided<int32_t>(maxt), nullptr, GL_DYNAMIC_STORAGE_BIT);
 
-        glCreateBuffers(1, &nodeCounter);
-        glNamedBufferStorage(nodeCounter, strided<int32_t>(1), nullptr, GL_DYNAMIC_STORAGE_BIT);
-
         glCreateBuffers(1, &aabbCounter);
         glNamedBufferStorage(aabbCounter, strided<int32_t>(1), nullptr, GL_DYNAMIC_STORAGE_BIT);
-
-        glCreateBuffers(1, &numBuffer);
-        glNamedBufferStorage(numBuffer, strided<glm::ivec2>(1), nullptr, GL_DYNAMIC_STORAGE_BIT);
-
-
 
         glCreateBuffers(1, &bvhnodesBuffer);
         glNamedBufferStorage(bvhnodesBuffer, strided<HlbvhNode>(maxt * 4), nullptr, GL_DYNAMIC_STORAGE_BIT);
@@ -191,9 +172,6 @@ namespace Paper {
 
         glCreateBuffers(1, &mortonBufferIndex);
         glNamedBufferStorage(mortonBufferIndex, strided<int32_t>(maxt * 2), nullptr, GL_DYNAMIC_STORAGE_BIT);
-
-        //glCreateBuffers(1, &leafBufferSorted);
-        //glNamedBufferStorage(leafBufferSorted, strided<Leaf>(maxt * 2), nullptr, GL_DYNAMIC_STORAGE_BIT);
 
         glCreateBuffers(1, &leafBuffer);
         glNamedBufferStorage(leafBuffer, strided<Leaf>(maxt * 2), nullptr, GL_DYNAMIC_STORAGE_BIT);
@@ -239,8 +217,6 @@ namespace Paper {
         glBindTextureUnit(3, vbo_modifiers_textrue);
 
         // legacy SSBO
-        //glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, vbo_triangle_ssbo);
-        //glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, ebo_triangle_ssbo);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, mat_triangle_ssbo);
     }
 
@@ -355,10 +331,10 @@ namespace Paper {
         }
 
         glCopyNamedBufferSubData(lscounterTemp, aabbCounter, 0, 0, strided<uint32_t>(1));
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 20, aabbCounter);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, leafBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mortonBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, mortonBufferIndex);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, aabbCounter);
 
         this->bind();
         this->syncUniforms();
@@ -377,20 +353,15 @@ namespace Paper {
         //glGetNamedBufferSubData(mortonBuffer, 0, strided<GLuint>(triangleCount), radixTest.data());
 
         this->syncUniforms();
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, numBuffer);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, leafBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mortonBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, mortonBufferIndex);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, leafBuffer);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, aabbCounter);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, bvhnodesBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, bvhflagsBuffer);
-        glCopyNamedBufferSubData(lscounterTemp, nodeCounter, 0, 0, strided<uint32_t>(1));
-
-        glm::ivec2 range = glm::ivec2(0, triangleCount);
-        glNamedBufferSubData(numBuffer, 0, strided<glm::ivec2>(1), &range);
 
         glUseProgram(buildProgramH);
         glDispatchCompute(1, 1, 1);
-        //glDispatchCompute(tiled(triangleCount, worksize), 1, 1);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
         glUseProgram(refitProgramH);
