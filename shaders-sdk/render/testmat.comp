@@ -173,7 +173,7 @@ void main() {
 
     vec4 tts = 1.0f - clamp(fetchTransmission(materialCache, hit.texcoord.xy, newRay.direct.xyz, normal), vec4(0.0f), vec4(1.0f));
     vec4 sp = clamp(fetchSpecular(materialCache, hit.texcoord.xy, newRay.direct.xyz, normal), vec4(0.0f), vec4(1.0f));
-    vec4 emi = materialCache.emissive * fetchEmissive(materialCache, hit.texcoord.xy, newRay.direct.xyz, normal);
+    vec4 emi = materialCache.emissive * fetchEmissive(materialCache, hit.texcoord.xy, newRay.direct.xyz, normal) * 2.f;
     vec3 dielectric = vec3(clamp(0.04f + pow(1.0f - abs(dot(dir, normal)), 5.0f), 0.0f, 1.0f));
     vec3 sc = mix(dielectric, tx.xyz, sp.z);
 
@@ -199,6 +199,7 @@ void main() {
 
         diffuseRay = diffuse(diffuseRay, hit, tx.xyz, normal);
         diffuseRay.color.xyz *= (1.0f - prom);
+        diffuseRay.color.xyz *= clamp(1.0f - emis, 0.0f, 1.0f);
 
         reflectionRay = reflection(reflectionRay, hit, clamp(sc.xyz / spca, 0.0f, 1.0f), normal, refly);
         reflectionRay.color.xyz *= (1.0f - prom);
