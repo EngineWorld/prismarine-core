@@ -119,4 +119,109 @@ namespace Paper {
 
 
 
+    inline void initShaderComputeSPIRV(std::string path, GLuint & prog) {
+        //std::string str = readSource(path);
+        std::vector<GLchar> str = readBinary(path);
+
+        GLuint comp = glCreateShader(GL_COMPUTE_SHADER);
+        {
+            const GLchar * strc = str.data();//str.c_str();
+            int32_t size = str.size();
+            //glShaderSource(comp, 1, &strc, &size);
+            glShaderBinary(1, &comp, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, strc, size);
+            glSpecializeShaderARB(comp, "main", 0, nullptr, nullptr);
+            //glCompileShader(comp);
+
+            GLint status = false;
+            glGetShaderiv(comp, GL_COMPILE_STATUS, &status);
+            if (!status) {
+                char * log = new char[32768];
+                GLsizei len = 0;
+
+                //std::cout << str << std::endl;
+
+                glGetShaderInfoLog(comp, 32768, &len, log);
+                std::string logStr = std::string(log, len);
+                std::cerr << logStr << std::endl;
+            }
+        }
+
+        prog = glCreateProgram();
+        glAttachShader(prog, comp);
+        glLinkProgram(prog);
+
+        GLint status = false;
+        glGetProgramiv(prog, GL_LINK_STATUS, &status);
+        if (!status) {
+            char * log = new char[32768];
+            GLsizei len = 0;
+
+            glGetProgramInfoLog(prog, 32768, &len, log);
+            std::string logStr = std::string(log, len);
+            std::cerr << logStr << std::endl;
+        }
+    }
+
+    inline void initShaderCompute(std::string path, GLuint & prog) {
+        std::string str = readSource(path);
+
+        GLuint comp = glCreateShader(GL_COMPUTE_SHADER);
+        {
+            const char * strc = str.c_str();
+            int32_t size = str.size();
+            glShaderSource(comp, 1, &strc, &size);
+            glCompileShader(comp);
+
+            GLint status = false;
+            glGetShaderiv(comp, GL_COMPILE_STATUS, &status);
+            if (!status) {
+                char * log = new char[1024];
+                GLsizei len = 0;
+
+                glGetShaderInfoLog(comp, 1024, &len, log);
+                std::string logStr = std::string(log, len);
+                std::cerr << logStr << std::endl;
+            }
+        }
+
+        prog = glCreateProgram();
+        glAttachShader(prog, comp);
+        glLinkProgram(prog);
+
+        GLint status = false;
+        glGetProgramiv(prog, GL_LINK_STATUS, &status);
+        if (!status) {
+            char * log = new char[1024];
+            GLsizei len = 0;
+
+            glGetProgramInfoLog(prog, 1024, &len, log);
+            std::string logStr = std::string(log, len);
+            std::cerr << logStr << std::endl;
+        }
+    }
+
+    template<class T>
+    GLuint allocateBuffer(size_t size = 1) {
+        GLuint buf = 0;
+        glCreateBuffers(1, &buf);
+        glNamedBufferStorage(buf, sizeof(T) * size, nullptr, GL_DYNAMIC_STORAGE_BIT);
+        return buf;
+    }
+
+    template<GLuint format = GL_RGBA8>
+    GLuint allocateTexture2D(size_t width, size_t height) {
+        GLuint tex = 0;
+        glCreateTextures(GL_TEXTURE_2D, 1, &tex);
+        glTextureStorage2D(tex, 1, format, width, height);
+        return tex;
+    }
+
+    void dispatch(const GLuint &program, const GLuint gridSize) {
+        glUseProgram(program);
+        glDispatchCompute(gridSize, 1, 1);
+        glMemoryBarrier(GL_ALL_BARRIER_BITS);
+    }
+
+
+
 }

@@ -10,104 +10,6 @@ namespace Paper {
 
         struct Consts { GLuint NumKeys, Shift, Descending, IsSigned; };
 
-        void initShaderComputeSPIRV(std::string path, GLuint & prog) {
-            //std::string str = readSource(path);
-            std::vector<GLchar> str = readBinary(path);
-
-            GLuint comp = glCreateShader(GL_COMPUTE_SHADER);
-            {
-                const GLchar * strc = str.data();//str.c_str();
-                int32_t size = str.size();
-                //glShaderSource(comp, 1, &strc, &size);
-                glShaderBinary(1, &comp, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, strc, size);
-                glSpecializeShaderARB(comp, "main", 0, nullptr, nullptr);
-                //glCompileShader(comp);
-
-                GLint status = false;
-                glGetShaderiv(comp, GL_COMPILE_STATUS, &status);
-                if (!status) {
-                    char * log = new char[32768];
-                    GLsizei len = 0;
-
-                    //std::cout << str << std::endl;
-
-                    glGetShaderInfoLog(comp, 32768, &len, log);
-                    std::string logStr = std::string(log, len);
-                    std::cerr << logStr << std::endl;
-                }
-            }
-
-            prog = glCreateProgram();
-            glAttachShader(prog, comp);
-            glLinkProgram(prog);
-
-            GLint status = false;
-            glGetProgramiv(prog, GL_LINK_STATUS, &status);
-            if (!status) {
-                char * log = new char[32768];
-                GLsizei len = 0;
-
-                glGetProgramInfoLog(prog, 32768, &len, log);
-                std::string logStr = std::string(log, len);
-                std::cerr << logStr << std::endl;
-            }
-        }
-
-        void initShaderCompute(std::string path, GLuint& prog) {
-            std::string str = readSource(path);
-
-            GLuint comp = glCreateShader(GL_COMPUTE_SHADER);
-            {
-                const char * strc = str.c_str();
-                int32_t size = str.size();
-                glShaderSource(comp, 1, &strc, &size);
-                glCompileShader(comp);
-
-                GLint status = false;
-                glGetShaderiv(comp, GL_COMPILE_STATUS, &status);
-                if (!status) {
-                    char * log = new char[1024];
-                    GLsizei len = 0;
-
-                    glGetShaderInfoLog(comp, 1024, &len, log);
-                    std::string logStr = std::string(log, len);
-                    std::cerr << logStr << std::endl;
-                }
-            }
-
-            prog = glCreateProgram();
-            glAttachShader(prog, comp);
-            glLinkProgram(prog);
-
-            GLint status = false;
-            glGetProgramiv(prog, GL_LINK_STATUS, &status);
-            if (!status) {
-                char * log = new char[1024];
-                GLsizei len = 0;
-
-                glGetProgramInfoLog(prog, 1024, &len, log);
-                std::string logStr = std::string(log, len);
-                std::cerr << logStr << std::endl;
-            }
-        }
-
-
-        template<class T>
-        GLuint allocateBuffer(size_t size = 1) {
-            GLuint buf = 0; 
-            glCreateBuffers(1, &buf); 
-            glNamedBufferStorage(buf, sizeof(T) * size, nullptr, GL_DYNAMIC_STORAGE_BIT); 
-            return buf;
-        }
-
-        void dispatch(const GLuint &program, const GLuint gridSize) {
-            glUseProgram(program);
-            glDispatchCompute(gridSize, 1, 1);
-            glMemoryBarrier(GL_ALL_BARRIER_BITS);
-        }
-
-
-
     public:
 
         RadixSort() {
@@ -138,10 +40,10 @@ namespace Paper {
             const uint32_t WG_COUNT = 8;
             const uint32_t RADICES = 16;
 
-            GLuint OutKeys = this->allocateBuffer<uint32_t>(size);
-            GLuint OutValues = this->allocateBuffer<uint32_t>(size);
-            GLuint HistogramBuffer = this->allocateBuffer<uint32_t>(WG_COUNT * RADICES);
-            GLuint VarBuffer = this->allocateBuffer<Consts>(1);
+            GLuint OutKeys = allocateBuffer<uint32_t>(size);
+            GLuint OutValues = allocateBuffer<uint32_t>(size);
+            GLuint HistogramBuffer = allocateBuffer<uint32_t>(WG_COUNT * RADICES);
+            GLuint VarBuffer = allocateBuffer<Consts>(1);
 
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, InKeys);
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, InVals);
@@ -152,9 +54,9 @@ namespace Paper {
 
             for (GLuint i = 0; i < 8;i++) {
                 glNamedBufferSubData(VarBuffer, 0, strided<Consts>(1), &consts[i]);
-                this->dispatch(histogramProgram, WG_COUNT);
-                this->dispatch(prefixScanProgram, 1);
-                this->dispatch(permuteProgram, WG_COUNT);
+                dispatch(histogramProgram, WG_COUNT);
+                dispatch(prefixScanProgram, 1);
+                dispatch(permuteProgram, WG_COUNT);
                 glCopyNamedBufferSubData(OutKeys, InKeys, 0, 0, strided<uint32_t>(size));
                 glCopyNamedBufferSubData(OutValues, InVals, 0, 0, strided<uint32_t>(size));
             }

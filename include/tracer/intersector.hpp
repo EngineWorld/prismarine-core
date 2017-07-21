@@ -53,8 +53,6 @@ namespace Paper {
         GLuint tcounter = -1; // triangle counter
         GLuint minmaxBuf = -1; // minmax buffer
 
-        void initShaderCompute(std::string str, GLuint& prog);
-        void initShaderComputeSPIRV(std::string str, GLuint& prog);
         void initShaders();
         void init();
 

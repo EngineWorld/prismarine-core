@@ -2,94 +2,6 @@
 
 namespace Paper {
 
-
-
-    inline void Tracer::initShaderComputeSPIRV(std::string path, GLuint & prog) {
-        //std::string str = readSource(path);
-        std::vector<GLchar> str = readBinary(path);
-
-        GLuint comp = glCreateShader(GL_COMPUTE_SHADER);
-        {
-            const GLchar * strc = str.data();//str.c_str();
-            int32_t size = str.size();
-            //glShaderSource(comp, 1, &strc, &size);
-            glShaderBinary(1, &comp, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, strc, size);
-            glSpecializeShaderARB(comp, "main", 0, nullptr, nullptr);
-            //glCompileShader(comp);
-
-            GLint status = false;
-            glGetShaderiv(comp, GL_COMPILE_STATUS, &status);
-            if (!status) {
-                char * log = new char[32768];
-                GLsizei len = 0;
-
-                //std::cout << str << std::endl;
-
-                glGetShaderInfoLog(comp, 32768, &len, log);
-                std::string logStr = std::string(log, len);
-                std::cerr << logStr << std::endl;
-            }
-        }
-
-        prog = glCreateProgram();
-        glAttachShader(prog, comp);
-        glLinkProgram(prog);
-
-        GLint status = false;
-        glGetProgramiv(prog, GL_LINK_STATUS, &status);
-        if (!status) {
-            char * log = new char[32768];
-            GLsizei len = 0;
-
-            glGetProgramInfoLog(prog, 32768, &len, log);
-            std::string logStr = std::string(log, len);
-            std::cerr << logStr << std::endl;
-        }
-    }
-
-
-
-
-    inline void Tracer::initShaderCompute(std::string path, GLuint & prog) {
-        std::string str = readSource(path);
-
-        GLuint comp = glCreateShader(GL_COMPUTE_SHADER);
-        {
-            const char * strc = str.c_str();
-            int32_t size = str.size();
-            glShaderSource(comp, 1, &strc, &size);
-            glCompileShader(comp);
-
-            GLint status = false;
-            glGetShaderiv(comp, GL_COMPILE_STATUS, &status);
-            if (!status) {
-                char * log = new char[1024];
-                GLsizei len = 0;
-
-                std::cout << str << std::endl;
-
-                glGetShaderInfoLog(comp, 1024, &len, log);
-                std::string logStr = std::string(log, len);
-                std::cerr << logStr << std::endl;
-            }
-        }
-
-        prog = glCreateProgram();
-        glAttachShader(prog, comp);
-        glLinkProgram(prog);
-
-        GLint status = false;
-        glGetProgramiv(prog, GL_LINK_STATUS, &status);
-        if (!status) {
-            char * log = new char[1024];
-            GLsizei len = 0;
-
-            glGetProgramInfoLog(prog, 1024, &len, log);
-            std::string logStr = std::string(log, len);
-            std::cerr << logStr << std::endl;
-        }
-    }
-
     inline void Tracer::initShaders() {
 
 #ifdef USE_OPTIMIZED_RT
@@ -205,19 +117,12 @@ namespace Paper {
         bound.mx.z = -100000.f;
         bound.mx.w = -100000.f;
 
+        arcounter = allocateBuffer<int32_t>(5);
+        arcounterTemp = allocateBuffer<int32_t>(1);
+        rayBlockUniform = allocateBuffer<RayBlockUniform>(1);
+        lightUniform = allocateBuffer<LightUniformStruct>(6);
 
-        glCreateBuffers(1, &arcounter);
-        glNamedBufferStorage(arcounter, strided<int32_t>(5), nullptr, GL_DYNAMIC_STORAGE_BIT);
-
-        glCreateBuffers(1, &arcounterTemp);
-        glNamedBufferStorage(arcounterTemp, strided<int32_t>(1), nullptr, GL_DYNAMIC_STORAGE_BIT);
         glNamedBufferSubData(arcounterTemp, 0, strided<int32_t>(1), zero);
-
-        glCreateBuffers(1, &rayBlockUniform);
-        glNamedBufferStorage(rayBlockUniform, strided<RayBlockUniform>(1), nullptr, GL_DYNAMIC_STORAGE_BIT);
-
-        glCreateBuffers(1, &lightUniform);
-        glNamedBufferStorage(lightUniform, strided<LightUniformStruct>(6), nullptr, GL_DYNAMIC_STORAGE_BIT);
 
         Vc2 arr[4] = { { -1.0f, -1.0f }, { 1.0f, -1.0f },{ -1.0f, 1.0f },{ 1.0f, 1.0f } };
         glCreateBuffers(1, &posBuf);
@@ -264,13 +169,9 @@ namespace Paper {
         if (sampleflags != -1) glDeleteTextures(1, &sampleflags);
         if (presampled  != -1) glDeleteTextures(1, &presampled);
 
-        glCreateTextures(GL_TEXTURE_2D, 1, &samples);
-        glCreateTextures(GL_TEXTURE_2D, 1, &sampleflags);
-        glCreateTextures(GL_TEXTURE_2D, 1, &presampled);
-
-        glTextureStorage2D(samples, 1, GL_RGBA32F, displayWidth, displayHeight);
-        glTextureStorage2D(sampleflags, 1, GL_R32UI, displayWidth, displayHeight);
-        glTextureStorage2D(presampled, 1, GL_RGBA32F, displayWidth, displayHeight);
+        samples = allocateTexture2D<GL_RGBA32F>(displayWidth, displayHeight);
+        sampleflags = allocateTexture2D<GL_R32UI>(displayWidth, displayHeight);
+        presampled = allocateTexture2D<GL_RGBA32F>(displayWidth, displayHeight);
 
         // set sampler of
         glTextureParameteri(samples, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -290,6 +191,7 @@ namespace Paper {
         glTextureParameteri(presampled, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTextureParameteri(presampled, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
+        /*
         const float data[] = {
 #include "fit.inl"
         };
@@ -301,6 +203,7 @@ namespace Paper {
         glTextureParameteri(pivotTexture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTextureParameteri(pivotTexture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTextureParameteri(pivotTexture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        */
 
         clearSampler();
     }
@@ -322,25 +225,14 @@ namespace Paper {
         const int32_t wrsize = width * height;
         currentRayLimit = std::min(wrsize * 8, 4096 * 4096);
 
-        glCreateBuffers(1, &quantized);
-        glCreateBuffers(1, &rays);
-        glCreateBuffers(1, &hits);
-        glCreateBuffers(1, &activel);
-        glCreateBuffers(1, &activenl);
-        glCreateBuffers(1, &texels);
-        glCreateBuffers(1, &freedoms);
-        glCreateBuffers(1, &availables);
-        glCreateBuffers(1, &colorchains);
-
-        glNamedBufferStorage(colorchains, strided<ColorChain>(currentRayLimit*2), nullptr, GL_DYNAMIC_STORAGE_BIT);
-        glNamedBufferStorage(rays, strided<Ray>(currentRayLimit), nullptr, GL_DYNAMIC_STORAGE_BIT);
-        glNamedBufferStorage(hits, strided<Hit>(currentRayLimit), nullptr, GL_DYNAMIC_STORAGE_BIT);
-        glNamedBufferStorage(activel, strided<int32_t>(currentRayLimit), nullptr, GL_DYNAMIC_STORAGE_BIT);
-        glNamedBufferStorage(activenl, strided<int32_t>(currentRayLimit), nullptr, GL_DYNAMIC_STORAGE_BIT);
-        glNamedBufferStorage(texels, strided<Texel>(wrsize), nullptr, GL_DYNAMIC_STORAGE_BIT);
-        glNamedBufferStorage(freedoms, strided<int32_t>(currentRayLimit), nullptr, GL_DYNAMIC_STORAGE_BIT);
-        glNamedBufferStorage(availables, strided<int32_t>(currentRayLimit), nullptr, GL_DYNAMIC_STORAGE_BIT);
-        glNamedBufferStorage(quantized, strided<int32_t>(currentRayLimit), nullptr, GL_DYNAMIC_STORAGE_BIT);
+        colorchains = allocateBuffer<ColorChain>(currentRayLimit * 2);
+        rays = allocateBuffer<Ray>(currentRayLimit);
+        hits = allocateBuffer<Hit>(currentRayLimit);
+        activel = allocateBuffer<int32_t>(currentRayLimit);
+        activenl = allocateBuffer<int32_t>(currentRayLimit);
+        texels = allocateBuffer<Texel>(wrsize);
+        freedoms = allocateBuffer<int32_t>(currentRayLimit);
+        availables = allocateBuffer<int32_t>(currentRayLimit);
 
         samplerUniformData.sceneRes = { float(width), float(height) };
         samplerUniformData.currentRayLimit = currentRayLimit;
@@ -418,10 +310,7 @@ namespace Paper {
         if (rsize <= 0) return;
 
         this->bind();
-
-        glUseProgram(beginProgram);
-        glDispatchCompute(tiled(rsize, worksize), 1, 1);
-        glMemoryBarrier(GL_ALL_BARRIER_BITS);
+        dispatch(beginProgram, tiled(rsize, worksize));
     }
 
     inline void Tracer::sample() {
@@ -430,10 +319,7 @@ namespace Paper {
         glBindImageTexture(2, presampled, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 
         this->bind();
-
-        glUseProgram(samplerProgram);
-        glDispatchCompute(tiled(displayWidth * displayHeight, worksize), 1, 1);
-        glMemoryBarrier(GL_ALL_BARRIER_BITS);
+        dispatch(samplerProgram, tiled(displayWidth * displayHeight, worksize));
 
         currentSample = (currentSample + 1) % maxSamples;
         samplerUniformData.currentSample = currentSample;
@@ -451,9 +337,7 @@ namespace Paper {
         cameraUniformData.interlaceStage = (framenum++) % 2;
 
         this->bind();
-        glUseProgram(cameraProgram);
-        glDispatchCompute(tiled(width * height, worksize), 1, 1);
-        glMemoryBarrier(GL_ALL_BARRIER_BITS);
+        dispatch(cameraProgram, tiled(width * height, worksize));
 
         reloadQueuedRays(true);
     }
@@ -481,9 +365,7 @@ namespace Paper {
         this->bind();
 
         glBindImageTexture(0, sampleflags, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
-        glUseProgram(clearProgram);
-        glDispatchCompute(tiled(displayWidth * displayHeight, worksize), 1, 1);
-        glMemoryBarrier(GL_ALL_BARRIER_BITS);
+        dispatch(clearProgram, tiled(displayWidth * displayHeight, worksize));
     }
 
     inline void Tracer::reloadQueuedRays(bool doSort, bool sortMortons) {
@@ -519,9 +401,7 @@ namespace Paper {
 
         this->bind();
 
-        glUseProgram(reclaimProgram);
-        glDispatchCompute(tiled(rsize, worksize), 1, 1);
-        glMemoryBarrier(GL_ALL_BARRIER_BITS);
+        dispatch(reclaimProgram, tiled(rsize, worksize));
         reloadQueuedRays(true);
     }
 
@@ -552,11 +432,7 @@ namespace Paper {
         obj->bind();
         obj->bindBVH();
         this->bind();
-
-        //const size_t worksize = 64;
-        glUseProgram(intersectionProgram);
-        glDispatchCompute(tiled(rsize, worksize), 1, 1);
-        glMemoryBarrier(GL_ALL_BARRIER_BITS);
+        dispatch(intersectionProgram, tiled(rsize, worksize));
 
         glBindSampler(0, 0);
         glBindSampler(1, 0);
@@ -575,16 +451,8 @@ namespace Paper {
 
         this->bind();
         if (cubeTex) glBindTextureUnit(0, cubeTex);
-
-        glUseProgram(matProgram);
         mat->bindWithContext(matProgram);
-
-        //glBindTextureUnit(31, pivotTexture);
-
-        glDispatchCompute(tiled(rsize, worksize), 1, 1);
-        glMemoryBarrier(GL_ALL_BARRIER_BITS);
-
-        //reloadQueuedRays();
+        dispatch(matProgram, tiled(rsize, worksize));
     }
 
     inline int32_t Tracer::getRayCount() {

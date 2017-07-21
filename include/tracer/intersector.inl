@@ -2,88 +2,6 @@
 
 namespace Paper {
 
-
-    inline void Intersector::initShaderComputeSPIRV(std::string path, GLuint & prog) {
-        //std::string str = readSource(path);
-        std::vector<GLchar> str = readBinary(path);
-
-        GLuint comp = glCreateShader(GL_COMPUTE_SHADER);
-        {
-            const GLchar * strc = str.data();//str.c_str();
-            int32_t size = str.size();
-            //glShaderSource(comp, 1, &strc, &size);
-            glShaderBinary(1, &comp, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, strc, size);
-            glSpecializeShaderARB(comp, "main", 0, nullptr, nullptr);
-            //glCompileShader(comp);
-
-            GLint status = false;
-            glGetShaderiv(comp, GL_COMPILE_STATUS, &status);
-            if (!status) {
-                char * log = new char[32768];
-                GLsizei len = 0;
-
-                //std::cout << str << std::endl;
-
-                glGetShaderInfoLog(comp, 32768, &len, log);
-                std::string logStr = std::string(log, len);
-                std::cerr << logStr << std::endl;
-            }
-        }
-
-        prog = glCreateProgram();
-        glAttachShader(prog, comp);
-        glLinkProgram(prog);
-
-        GLint status = false;
-        glGetProgramiv(prog, GL_LINK_STATUS, &status);
-        if (!status) {
-            char * log = new char[32768];
-            GLsizei len = 0;
-
-            glGetProgramInfoLog(prog, 32768, &len, log);
-            std::string logStr = std::string(log, len);
-            std::cerr << logStr << std::endl;
-        }
-    }
-
-    inline void Intersector::initShaderCompute(std::string path, GLuint & prog) {
-        std::string str = readSource(path);
-
-        GLuint comp = glCreateShader(GL_COMPUTE_SHADER);
-        {
-            const char * strc = str.c_str();
-            int32_t size = str.size();
-            glShaderSource(comp, 1, &strc, &size);
-            glCompileShader(comp);
-
-            GLint status = false;
-            glGetShaderiv(comp, GL_COMPILE_STATUS, &status);
-            if (!status) {
-                char * log = new char[1024];
-                GLsizei len = 0;
-
-                glGetShaderInfoLog(comp, 1024, &len, log);
-                std::string logStr = std::string(log, len);
-                std::cerr << logStr << std::endl;
-            }
-        }
-
-        prog = glCreateProgram();
-        glAttachShader(prog, comp);
-        glLinkProgram(prog);
-
-        GLint status = false;
-        glGetProgramiv(prog, GL_LINK_STATUS, &status);
-        if (!status) {
-            char * log = new char[1024];
-            GLsizei len = 0;
-
-            glGetProgramInfoLog(prog, 1024, &len, log);
-            std::string logStr = std::string(log, len);
-            std::cerr << logStr << std::endl;
-        }
-    }
-
     inline void Intersector::initShaders() {
         initShaderCompute("./shaders/hlbvh/refit.comp", refitProgramH);
         initShaderCompute("./shaders/hlbvh/build.comp", buildProgramH);
@@ -106,20 +24,11 @@ namespace Paper {
         initShaders();
         sorter = new RadixSort();
 
-        glCreateBuffers(1, &minmaxBufRef);
-        glNamedBufferStorage(minmaxBufRef, strided<bbox>(1), nullptr, GL_DYNAMIC_STORAGE_BIT);
-
-        glCreateBuffers(1, &minmaxBuf);
-        glNamedBufferStorage(minmaxBuf, strided<bbox>(1), nullptr, GL_DYNAMIC_STORAGE_BIT);
-
-        glCreateBuffers(1, &lscounterTemp);
-        glNamedBufferStorage(lscounterTemp, strided<uint32_t>(1), nullptr, GL_DYNAMIC_STORAGE_BIT);
-
-        glCreateBuffers(1, &tcounter);
-        glNamedBufferStorage(tcounter, strided<uint32_t>(1), nullptr, GL_DYNAMIC_STORAGE_BIT);
-
-        glCreateBuffers(1, &geometryBlockUniform);
-        glNamedBufferStorage(geometryBlockUniform, strided<GeometryBlockUniform>(1), nullptr, GL_DYNAMIC_STORAGE_BIT);
+        minmaxBufRef = allocateBuffer<bbox>(1);
+        minmaxBuf = allocateBuffer<bbox>(1);
+        lscounterTemp = allocateBuffer<uint32_t>(1);
+        tcounter = allocateBuffer<uint32_t>(1);
+        geometryBlockUniform = allocateBuffer<GeometryBlockUniform>(1);
 
         bound.mn.x = 100000.f;
         bound.mn.y = 100000.f;
@@ -137,17 +46,10 @@ namespace Paper {
     inline void Intersector::allocate(const size_t &count) {
         maxt = count;
 
-        glCreateTextures(GL_TEXTURE_2D, 1, &vbo_vertex_textrue);
-        glTextureStorage2D(vbo_vertex_textrue, 1, GL_RGBA32F, 3072, 1024);
-
-        glCreateTextures(GL_TEXTURE_2D, 1, &vbo_normal_textrue);
-        glTextureStorage2D(vbo_normal_textrue, 1, GL_RGBA32F, 3072, 1024);
-
-        glCreateTextures(GL_TEXTURE_2D, 1, &vbo_texcoords_textrue);
-        glTextureStorage2D(vbo_texcoords_textrue, 1, GL_RGBA32F, 3072, 1024);
-
-        glCreateTextures(GL_TEXTURE_2D, 1, &vbo_modifiers_textrue);
-        glTextureStorage2D(vbo_modifiers_textrue, 1, GL_RGBA32F, 3072, 1024);
+        vbo_vertex_textrue = allocateTexture2D<GL_RGBA32F>(3072, 1024);
+        vbo_normal_textrue = allocateTexture2D<GL_RGBA32F>(3072, 1024);
+        vbo_texcoords_textrue = allocateTexture2D<GL_RGBA32F>(3072, 1024);
+        vbo_modifiers_textrue = allocateTexture2D<GL_RGBA32F>(3072, 1024);
 
         glCreateSamplers(1, &vbo_sampler);
         glSamplerParameteri(vbo_sampler, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -155,26 +57,13 @@ namespace Paper {
         glSamplerParameteri(vbo_sampler, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glSamplerParameteri(vbo_sampler, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-        glCreateBuffers(1, &mat_triangle_ssbo);
-        glNamedBufferStorage(mat_triangle_ssbo, strided<int32_t>(maxt), nullptr, GL_DYNAMIC_STORAGE_BIT);
-
-        glCreateBuffers(1, &aabbCounter);
-        glNamedBufferStorage(aabbCounter, strided<int32_t>(1), nullptr, GL_DYNAMIC_STORAGE_BIT);
-
-        glCreateBuffers(1, &bvhnodesBuffer);
-        glNamedBufferStorage(bvhnodesBuffer, strided<HlbvhNode>(maxt * 4), nullptr, GL_DYNAMIC_STORAGE_BIT);
-
-        glCreateBuffers(1, &bvhflagsBuffer);
-        glNamedBufferStorage(bvhflagsBuffer, strided<uint32_t>(maxt * 4), nullptr, GL_DYNAMIC_STORAGE_BIT);
-
-        glCreateBuffers(1, &mortonBuffer);
-        glNamedBufferStorage(mortonBuffer, strided<int32_t>(maxt * 2), nullptr, GL_DYNAMIC_STORAGE_BIT);
-
-        glCreateBuffers(1, &mortonBufferIndex);
-        glNamedBufferStorage(mortonBufferIndex, strided<int32_t>(maxt * 2), nullptr, GL_DYNAMIC_STORAGE_BIT);
-
-        glCreateBuffers(1, &leafBuffer);
-        glNamedBufferStorage(leafBuffer, strided<Leaf>(maxt * 2), nullptr, GL_DYNAMIC_STORAGE_BIT);
+        mat_triangle_ssbo = allocateBuffer<int32_t>(maxt);
+        aabbCounter = allocateBuffer<int32_t>(1);
+        bvhnodesBuffer = allocateBuffer<HlbvhNode>(maxt * 2);
+        bvhflagsBuffer = allocateBuffer<uint32_t>(maxt * 2);
+        mortonBuffer = allocateBuffer<uint32_t>(maxt * 1);
+        mortonBufferIndex = allocateBuffer<uint32_t>(maxt * 1);
+        leafBuffer = allocateBuffer<Leaf>(maxt * 1);
 
         clearTribuffer();
     }
@@ -260,15 +149,7 @@ namespace Paper {
 
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, tcounter);
 
-        if (gobject->index16bit) {
-            glUseProgram(geometryLoaderProgramI16);
-        }
-        else {
-            glUseProgram(geometryLoaderProgram2);
-        }
-        glDispatchCompute(tiled(gobject->nodeCount, worksize), 1, 1);
-        glMemoryBarrier(GL_ALL_BARRIER_BITS);
-
+        dispatch(gobject->index16bit ? geometryLoaderProgramI16 : geometryLoaderProgram2, tiled(gobject->nodeCount, worksize));
         markDirty();
 
         glGetNamedBufferSubData(tcounter, 0, strided<uint32_t>(1), &triangleCount);
@@ -312,9 +193,7 @@ namespace Paper {
         this->syncUniforms();
         this->bind();
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, minmaxBuf);
-        glUseProgram(minmaxProgram2);
-        glDispatchCompute(1, 1, 1);
-        glMemoryBarrier(GL_ALL_BARRIER_BITS);
+        dispatch(minmaxProgram2, 1);
 
         glGetNamedBufferSubData(minmaxBuf, 0, strided<bbox>(1), &bound);
         scale = (glm::make_vec4((float *)&bound.mx) - glm::make_vec4((float *)&bound.mn)).xyz();
@@ -338,9 +217,7 @@ namespace Paper {
 
         this->bind();
         this->syncUniforms();
-        glUseProgram(aabbMakerProgramH);
-        glDispatchCompute(tiled(triangleCount, worksize), 1, 1);
-        glMemoryBarrier(GL_ALL_BARRIER_BITS);
+        dispatch(aabbMakerProgramH, tiled(triangleCount, worksize));
 
         glGetNamedBufferSubData(aabbCounter, 0, strided<uint32_t>(1), &triangleCount);
         if (triangleCount <= 0) return;
@@ -348,9 +225,6 @@ namespace Paper {
         // radix sort of morton-codes
         sorter->sort(mortonBuffer, mortonBufferIndex, triangleCount); // early serial tests
         geometryUniformData.triangleCount = triangleCount;
-
-        //std::vector<GLuint> radixTest = std::vector<GLuint>(triangleCount);
-        //glGetNamedBufferSubData(mortonBuffer, 0, strided<GLuint>(triangleCount), radixTest.data());
 
         this->syncUniforms();
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, leafBuffer);
@@ -360,12 +234,7 @@ namespace Paper {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, bvhnodesBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, bvhflagsBuffer);
 
-        glUseProgram(buildProgramH);
-        glDispatchCompute(1, 1, 1);
-        glMemoryBarrier(GL_ALL_BARRIER_BITS);
-
-        glUseProgram(refitProgramH);
-        glDispatchCompute(tiled(triangleCount, worksize), 1, 1);
-        glMemoryBarrier(GL_ALL_BARRIER_BITS);
+        dispatch(buildProgramH, 1);
+        dispatch(refitProgramH, tiled(triangleCount, worksize));
     }
 }
