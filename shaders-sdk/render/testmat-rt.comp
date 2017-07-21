@@ -204,8 +204,8 @@ void main() {
         emissiveRay.final.xyz *= (1.0f - prom);
 
         vec3 tmpcol = vec3(1.0f);
-        //mixed(diffuseRay.color.xyz, metallicRay.color.xyz, float(metallicSystem) * mix(clamp(pow(1.0f - abs(dot(dir, normal)), 5.0f), 0.0f, 1.0f), 1.0f, 0.1f));
-        metallicRay.color.xyz *= 0.f;
+        mixed(diffuseRay.color.xyz, metallicRay.color.xyz, float(metallicSystem) * mix(clamp(pow(1.0f - abs(dot(dir, normal)), 5.0f), 0.0f, 1.0f), 1.0f, 0.1f));
+        //metallicRay.color.xyz *= 0.f;
 
         //diffuseRay = diffuse(diffuseRay, hit, tx.xyz, normal);
         diffuseRay = emissive(diffuseRay, hit, tx.xyz, normal);
