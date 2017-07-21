@@ -270,7 +270,6 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
 
     // init state
     {
-        idx = 0, deferredPtr = 0, skip = false;
         validBox = lessF(d, INFINITY) && greaterEqualF(d, 0.0f);
     }
 
