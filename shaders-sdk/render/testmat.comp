@@ -94,7 +94,8 @@ vec4 fetchDiffuse(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 norma
 void main() {
     const int it = int(gl_GlobalInvocationID.x);
     const bool overflow = it >= RAY_BLOCK samplerUniform.rayCount;
-    if (allInvocationsARB(overflow)) return;
+    if (overflow) return;
+    //if (allInvocationsARB(overflow)) return;
 
     const int t = activedBuf.indc[it];
     globalInvocationSMP = it;

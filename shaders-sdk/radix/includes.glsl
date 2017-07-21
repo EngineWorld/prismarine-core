@@ -1,7 +1,7 @@
 
 #extension GL_ARB_gpu_shader_int64 : require
 
-//#define EMULATE_BALLOT
+#define EMULATE_BALLOT
 
 #ifndef EMULATE_BALLOT
 #extension GL_ARB_shader_ballot : require

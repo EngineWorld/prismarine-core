@@ -94,7 +94,8 @@ int createRayStrict(inout Ray original, in int idx, in int rayIndex) {
         original.bounce <= 0 || 
         mlength(original.color.xyz) < 0.0001f;
 
-    if (allInvocationsARB(invalidRay)) {
+    //if (allInvocationsARB(invalidRay)) {
+    if (invalidRay) {
         return rayIndex; 
     }
 
@@ -141,7 +142,8 @@ int createRay(inout Ray original, in int idx) {
         original.bounce <= 0 || 
         mlength(original.color.xyz) < 0.0001f;
 
-    if (allInvocationsARB(invalidRay)) {
+    if (invalidRay) {
+    //if (allInvocationsARB(invalidRay)) {
         return -1; 
     }
 
@@ -167,7 +169,8 @@ int createRay(inout Ray original, in int idx) {
         }
     }
 
-    if (anyInvocationARB(rayIndex == -1)) {
+    //if (anyInvocationARB(rayIndex == -1)) {
+    if (rayIndex == -1) {
         rayIndex = atomicAdd(arcounter.Rt, 1);
     }
 
@@ -182,7 +185,8 @@ int createRayIdx(inout Ray original, in int idx, in int rayIndex) {
         original.bounce <= 0 || 
         mlength(original.color.xyz) < 0.0001f;
 
-    if (allInvocationsARB(invalidRay)) {
+    //if (allInvocationsARB(invalidRay)) {
+    if (invalidRay) {
         return -1; 
     }
     
