@@ -64,8 +64,8 @@ vec4 fetchDiffuse(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 norma
         texcoord.xy = fma(reflected.xy, vec2(m), vec2(0.5f));
     }
 
-    //mat.diffuse.xyz += 0.2f;
-    mat.diffuse.xyz *= 1.25f;
+    mat.diffuse.xyz += 0.2f;
+    //mat.diffuse.xyz *= 1.25f;
     //mat.diffuse = clamp(mat.diffuse, vec4(0.0f), vec4(1.0f));
 
     if (!validateTexture(mat.diffusePart)) {
@@ -235,7 +235,7 @@ void main() {
         int lightcount = int(min(RAY_BLOCK materialUniform.lightcount, 16));
 
         for (int i=0;i<lightcount;i++) {
-            vec3 lightColor = getLightColor(i) * 0.4f;
+            vec3 lightColor = lightUniform.lightNode[i].lightAmbient.xyz * 0.6f;
             if (isMetallic) {
                 lightColor = getLightColor(i) * 0.6f;
             }
