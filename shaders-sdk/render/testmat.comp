@@ -1,21 +1,13 @@
 #version 450
 
-#extension GL_ARB_separate_shader_objects : require
-#extension GL_ARB_shading_language_420pack : require
 #extension GL_ARB_bindless_texture : require
-//#extension GL_ARB_shader_group_vote : require
 
 #include "../include/constants.glsl"
-
-//#ifndef USE_EMULATED
-//#extension GL_ARB_bindless_texture : require
-//#endif
 
 #include "../include/structs.glsl"
 #include "../include/uniforms.glsl"
 #include "../include/rays.glsl"
 #include "../include/random.glsl"
-//#include "../include/textureManager.glsl"
 #include "../include/STOmath.glsl"
 #include "../include/materialFunc.glsl"
 
