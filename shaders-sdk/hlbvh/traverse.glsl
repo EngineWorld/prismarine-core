@@ -1,11 +1,19 @@
 layout ( std430, binding = 9 ) readonly buffer NodesBlock { HlbvhNode Nodes[]; };
 
-vec4 bakedRangeIntersection[1];
-int bakedRange[1];
+//vec4 bakedRangeIntersection[1];
+//int bakedRange[1];
 
 const int bakedFragments = 8;
-int bakedStack[bakedFragments];
-int bakedStackCount = 0;
+shared int bakedStack[WORK_SIZE][bakedFragments];
+//int bakedStackCount = 0;
+
+struct SharedVarsData {
+    vec4 bakedRangeIntersection;
+    int bakedRange;
+    int bakedStackCount;
+    uint L;
+};
+
 
 // WARP optimized triangle intersection
 float intersectTriangle(in vec3 orig, in vec3 dir, in mat3 ve, inout vec2 UV, in bool valid) {
@@ -47,8 +55,8 @@ float intersectTriangle(in vec3 orig, in vec3 dir, in mat3 ve, inout vec2 UV, in
     return (lessF(uvt.z, 0.0f) || !valid) ? INFINITY : uvt.z;
 }
 
-TResult choiceFirstBaked(inout TResult res) {
-     int tri = exchange(bakedRange[0], LONGEST);
+TResult choiceFirstBaked(inout SharedVarsData sharedVarsData, inout TResult res) {
+     int tri = exchange(sharedVarsData.bakedRange, LONGEST);
 
      bool validTriangle = 
         tri >= 0 && 
@@ -57,8 +65,8 @@ TResult choiceFirstBaked(inout TResult res) {
     //if (allInvocationsARB(!validTriangle)) return res;
     if (!validTriangle) return res;
 
-     vec2 uv = bakedRangeIntersection[0].yz;
-     float _d = bakedRangeIntersection[0].x;
+     vec2 uv = sharedVarsData.bakedRangeIntersection.yz;
+     float _d = sharedVarsData.bakedRangeIntersection.x;
      bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.dist);
 
     if (near) {
@@ -70,12 +78,12 @@ TResult choiceFirstBaked(inout TResult res) {
     return res;
 }
 
-void reorderTriangles() {
-    bakedStackCount = min(bakedStackCount, bakedFragments);
-    for (int round = 1; round < bakedStackCount; round++) {
-        for (int index = 0; index < bakedStackCount - round; index++) {
-            if (bakedStack[index] <= bakedStack[index+1]) {
-                swap(bakedStack[index], bakedStack[index+1]);
+void reorderTriangles(inout SharedVarsData sharedVarsData) {
+    sharedVarsData.bakedStackCount = min(sharedVarsData.bakedStackCount, bakedFragments);
+    for (int iround = 1; iround < sharedVarsData.bakedStackCount; iround++) {
+        for (int index = 0; index < sharedVarsData.bakedStackCount - iround; index++) {
+            if (bakedStack[sharedVarsData.L][index] <= bakedStack[sharedVarsData.L][index+1]) {
+                swap(bakedStack[sharedVarsData.L][index], bakedStack[sharedVarsData.L][index+1]);
             }
         }
     }
@@ -83,23 +91,22 @@ void reorderTriangles() {
     // clean from dublicates
     int cleanBakedStack[bakedFragments];
     int cleanBakedStackCount = 0;
-    cleanBakedStack[cleanBakedStackCount++] = bakedStack[0];
-    for (int round = 1; round < bakedStackCount; round++) {
-        if(bakedStack[round-1] != bakedStack[round]) {
-            cleanBakedStack[cleanBakedStackCount++] = bakedStack[round];
+    cleanBakedStack[cleanBakedStackCount++] = bakedStack[sharedVarsData.L][0];
+    for (int iround = 1; iround < sharedVarsData.bakedStackCount; iround++) {
+        if(bakedStack[sharedVarsData.L][iround-1] != bakedStack[sharedVarsData.L][iround]) {
+            cleanBakedStack[cleanBakedStackCount++] = bakedStack[sharedVarsData.L][iround];
         }
     }
 
-    // set originally
-    bakedStack = cleanBakedStack;
-    bakedStackCount = cleanBakedStackCount;
+    for (int i=0;i<sharedVarsData.bakedStackCount;i++) bakedStack[sharedVarsData.L][i] = cleanBakedStack[i];
+    sharedVarsData.bakedStackCount = cleanBakedStackCount;
 }
 
-TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
-    choiceFirstBaked(res);
-    reorderTriangles();
+TResult choiceBaked(inout SharedVarsData sharedVarsData, inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
+    choiceFirstBaked(sharedVarsData, res);
+    reorderTriangles(sharedVarsData);
 
-     int tri = tpi < exchange(bakedStackCount, 0) ? bakedStack[tpi] : LONGEST;
+     int tri = tpi < exchange(sharedVarsData.bakedStackCount, 0) ? bakedStack[sharedVarsData.L][tpi] : LONGEST;
 
      bool validTriangle = 
         tri >= 0 && 
@@ -125,8 +132,8 @@ TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
     return res;
 }
 
-TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tri, in bool isValid) {
-     bool validTriangle = 
+TResult testIntersection(inout SharedVarsData sharedVarsData, inout TResult res, in vec3 orig, in vec3 dir, in int tri, in bool isValid) {
+    bool validTriangle = 
         isValid && 
         tri >= 0 && 
         tri != res.triangle &&
@@ -139,11 +146,11 @@ TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tr
     );
 
     vec2 uv = vec2(0.0f);
-     float _d = intersectTriangle(orig, dir, triverts, uv, validTriangle);
-     bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.predist) && greaterEqualF(_d, 0.0f);
-     bool inbaked = equalF(_d, 0.0f);
-     bool isbaked = equalF(_d, res.predist);
-     bool changed = !isbaked && !inbaked;
+    float _d = intersectTriangle(orig, dir, triverts, uv, validTriangle);
+    bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.predist) && greaterEqualF(_d, 0.0f);
+    bool inbaked = equalF(_d, 0.0f);
+    bool isbaked = equalF(_d, res.predist);
+    bool changed = !isbaked && !inbaked;
 
     if (near) {
         if ( changed ) {
@@ -151,11 +158,11 @@ TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tr
             res.triangle = tri;
         }
         if ( inbaked ) {
-            bakedStack[bakedStackCount++] = tri;
+            bakedStack[sharedVarsData.L][sharedVarsData.bakedStackCount++] = tri;
         } else 
-        if ( bakedRange[0] < tri || bakedRange[0] == LONGEST || changed ) {
-            bakedRange[0] = tri;
-            bakedRangeIntersection[0] = vec4(_d, uv, 0.f);
+        if ( sharedVarsData.bakedRange < tri || sharedVarsData.bakedRange == LONGEST || changed ) {
+            sharedVarsData.bakedRange = tri;
+            sharedVarsData.bakedRangeIntersection = vec4(_d, uv, 0.f);
         }
     }
 
@@ -207,15 +214,9 @@ void intersectCubeApart(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 cu
 #endif
 }
 
-
-
 const vec3 padding = vec3(0.00001f);
 const int STACK_SIZE = 16;
 shared int deferredStack[WORK_SIZE][STACK_SIZE];
-int idx = 0, deferredPtr = 0;
-bool validBox = false;
-bool skip = false;
-
 
 bvec2 and2(in bvec2 a, in bvec2 b){
     //return a && b;
@@ -235,12 +236,21 @@ bvec2 not2(in bvec2 a){
 TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     const uint L = gl_LocalInvocationID.x;
 
+    int idx = 0, deferredPtr = 0;
+    bool validBox = false;
+    bool skip = false;
+
     TResult lastRes;
     lastRes.dist = INFINITY;
     lastRes.predist = INFINITY;
     lastRes.triangle = LONGEST;
     lastRes.materialID = LONGEST;
-    bakedRange[0] = LONGEST;
+
+    SharedVarsData sharedVarsData;
+    sharedVarsData.bakedRange = LONGEST;
+    sharedVarsData.bakedStackCount = 0;
+    sharedVarsData.L = L;
+
     deferredStack[L][0] = -1;
 
     // test constants
@@ -273,7 +283,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
          bool isLeaf = node.pdata.x == node.pdata.y && validBox;
         //if (anyInvocationARB(isLeaf)) {
         if (isLeaf) {
-            testIntersection(lastRes, origin, direct, node.pdata.w, isLeaf);
+            testIntersection(sharedVarsData, lastRes, origin, direct, node.pdata.w, isLeaf);
         }
 
         bool notLeaf = node.pdata.x != node.pdata.y && validBox;
@@ -324,6 +334,6 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
         } skip = false;
     }
 
-    choiceBaked(lastRes, origin, direct, bakedStep);
+    choiceBaked(sharedVarsData, lastRes, origin, direct, bakedStep);
     return loadInfo(lastRes);
 }
