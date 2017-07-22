@@ -207,8 +207,6 @@ namespace Paper {
     struct OctreeUniformStruct {
         Vc4x4 project = mat4r;
         Vc4x4 unproject = mat4r;
-        Vc4x4 transform = mat4r;
-        Vc4x4 transformInv = mat4r;
 
         iVc1 maxDepth;
         iVc1 currentDepth;

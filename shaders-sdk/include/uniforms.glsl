@@ -75,8 +75,6 @@ struct GeometryUniformStruct {
 struct OctreeUniformStruct {
     Vc4x4 project;
     Vc4x4 unproject;
-    Vc4x4 transform;
-    Vc4x4 transformInv;
 
     iVc1 maxDepth;
     iVc1 currentDepth;
