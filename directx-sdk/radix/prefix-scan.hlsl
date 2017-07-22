@@ -19,7 +19,7 @@ uint prefix_sum(in uint data, inout uint total_sum) {
 groupshared uint seed;
 
 [numthreads(1, WG_COUNT, 1)]
-void CSMain( uint3 WorkGroupID : SV_DispatchThreadID, uint3 LocalInvocationID : SV_GroupID, uint3 GlobalInvocationID : SV_GroupThreadID, uint LocalInvocationIndex : SV_GroupIndex )
+void CSMain( uint3 WorkGroupID : SV_GroupID, uint3 LocalInvocationID  : SV_GroupThreadID, uint3 GlobalInvocationID : SV_DispatchThreadID)
 {
     WG_IDX = WorkGroupID.x;
     LC_IDX = LocalInvocationID.y;

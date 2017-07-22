@@ -303,7 +303,7 @@ TResult traverse(in uint L, in float distn, in float3 origin, in float3 direct, 
             if (anyOverlap) {
                  bool leftOrder = all(overlaps) ? lessEqualF(hits.x, hits.y) : overlaps.x;
 
-                int2 leftright = lerp(int2(-1, -1), node.pdata.xy, overlaps);
+                int2 leftright = overlaps ? node.pdata.xy : int2(-1, -1);
                 leftright = leftOrder ? leftright : leftright.yx;
 
                 if (anyOverlap) {

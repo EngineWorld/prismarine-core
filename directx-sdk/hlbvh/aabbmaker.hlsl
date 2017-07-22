@@ -15,7 +15,7 @@ uint add(inout uint mem, in uint ops){
 }
 
 [numthreads(WORK_SIZE, 1, 1)]
-void CSMain( uint3 WorkGroupID : SV_DispatchThreadID, uint3 LocalInvocationID : SV_GroupID, uint3 GlobalInvocationID : SV_GroupThreadID, uint LocalInvocationIndex : SV_GroupIndex )
+void CSMain( uint3 WorkGroupID : SV_GroupID, uint3 LocalInvocationID  : SV_GroupThreadID, uint3 GlobalInvocationID : SV_DispatchThreadID)
 {
     uint t = WorkGroupID.x * WORK_SIZE + LocalInvocationID.x;
     if (t < geometryBlock[0].triangleCount) {
