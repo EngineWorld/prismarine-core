@@ -9,26 +9,26 @@ LOCAL_SIZE_LAYOUT;
 
 void main() {
     const int globalID = int(gl_GlobalInvocationID.x);
-    if (globalID >= GEOMETRY_BLOCK geometryUniform.triangleCount) return;
+    if (globalID < GEOMETRY_BLOCK geometryUniform.triangleCount) {
+        int idx = Leafs[globalID].pdata.z;
+        HlbvhNode nd = Nodes[idx];
+        for(int i=0;i<256;i++) {
+            idx = nd.pdata.z;
+            if (idx <= 0) break; 
 
-    int idx = Leafs[globalID].pdata.z;
-    HlbvhNode nd = Nodes[idx];
-    for(int i=0;i<256;i++) {
-        idx = nd.pdata.z;
-        if (idx <= 0) break; 
-
-        nd = Nodes[idx];
-        int tmp = atomicCompSwap(Flags[idx], 0, 1);
-        if (tmp == 1) {
-            HlbvhNode ln = Nodes[nd.pdata.x];
-            HlbvhNode rn = Nodes[nd.pdata.y];
-            bbox bound = nd.box;
-            bound.mn = min(ln.box.mn, rn.box.mn) - 0.00001f;
-            bound.mx = max(ln.box.mx, rn.box.mx) + 0.00001f;
-            nd.box = bound;
-            Nodes[idx] = nd;
-        } else {
-            break;
+            nd = Nodes[idx];
+            int tmp = atomicCompSwap(Flags[idx], 0, 1);
+            if (tmp == 1) {
+                HlbvhNode ln = Nodes[nd.pdata.x];
+                HlbvhNode rn = Nodes[nd.pdata.y];
+                bbox bound = nd.box;
+                bound.mn = min(ln.box.mn, rn.box.mn) - 0.00001f;
+                bound.mx = max(ln.box.mx, rn.box.mx) + 0.00001f;
+                nd.box = bound;
+                Nodes[idx] = nd;
+            } else {
+                break;
+            }
         }
     }
 }

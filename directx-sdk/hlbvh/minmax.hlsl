@@ -26,8 +26,8 @@ bbox getMinMaxPrimitive(in uint idx){
     triverts[2] = mul(triverts[2], geometryBlock[0].project);
 
     bbox result;
-    result.mn = min(min(triverts[0], triverts[1]), triverts[2]) - float4(0.00001f, 0.00001f, 0.00001f, 0.00001f);
-    result.mx = max(max(triverts[0], triverts[1]), triverts[2]) + float4(0.00001f, 0.00001f, 0.00001f, 0.00001f);
+    result.mn = min(min(triverts[0], triverts[1]), triverts[2]) - (0.00001f).xxxx;
+    result.mx = max(max(triverts[0], triverts[1]), triverts[2]) + (0.00001f).xxxx;
     return result;
 }
 
@@ -51,7 +51,7 @@ void main( uint3 WorkGroupID : SV_DispatchThreadID, uint3 LocalInvocationID : SV
     uint i = WorkGroupID.x * (LOCAL_SIZE*2) + tid;
 
     bbox initial;
-    initial.mn = float4(100000.f, 100000.f, 100000.f, 100000.f);
+    initial.mn = (100000.f).xxxx;
     initial.mx = -initial.mn;
     sdata[tid] = initial;
 

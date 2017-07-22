@@ -57,8 +57,8 @@ void main( uint3 WorkGroupID : SV_DispatchThreadID, uint3 LocalInvocationID : SV
         lRange[1] = 1;
 
         HlbvhNode node = Nodes[threadID];
-        node.box.mn = float4(0.0f, 0.0f, 0.0f, 0.0f);
-        node.box.mx = float4(0.0f, 0.0f, 0.0f, 0.0f);
+        node.box.mn = (0.0f).xxxx;
+        node.box.mx = (0.0f).xxxx;
         node.pdata.xy = int2(0, Range[0]-1);
         node.pdata.zw = int2(-1, -1);
         
@@ -69,34 +69,33 @@ void main( uint3 WorkGroupID : SV_DispatchThreadID, uint3 LocalInvocationID : SV
     AllMemoryBarrierWithGroupSync();
 
     for (int h=0;h<256;h++) {
-         uint workSize = min((lRange[1] <= lRange[0]) ? 0 : (((lRange[1] - lRange[0]) - 1) / LOCAL_SIZE + 1), 8192);
+        uint workSize = min((lRange[1] <= lRange[0]) ? 0 : (((lRange[1] - lRange[0]) - 1) / LOCAL_SIZE + 1), 8192);
         for (int i=0;i<workSize;i++) {
             
-             uint sWorkID = LOCAL_SIZE * i;
-             uint prID = lRange[0] + (sWorkID + threadID);
+            uint sWorkID = LOCAL_SIZE * i;
+            uint prID = lRange[0] + (sWorkID + threadID);
 
             if (prID < lRange[1]) {
                 HlbvhNode parentNode = Nodes[prID];
 
                 if (parentNode.pdata.x != parentNode.pdata.y) {
                     // find split
-                     int split = findSplit(parentNode.pdata.x, parentNode.pdata.y);
+                    int split = findSplit(parentNode.pdata.x, parentNode.pdata.y);
 
                     // add to list
-                     int hid = 0;
+                    int hid = 0;
                     InterlockedAdd(lCounter, 2, hid);
-                     int lid = hid+0;
-                     int rid = hid+1;
+                    int lid = hid+0, rid = hid+1;
 
                     HlbvhNode leftNode = Nodes[lid];
-                    leftNode.box.mn = float4(0.0f, 0.0f, 0.0f, 0.0f);
-                    leftNode.box.mx = float4(0.0f, 0.0f, 0.0f, 0.0f);
+                    leftNode.box.mn = (0.0f).xxxx;
+                    leftNode.box.mx = (0.0f).xxxx;
                     leftNode.pdata.xy = int2(parentNode.pdata.x, split+0);
                     leftNode.pdata.zw = int2(prID, -1);
                     
                     HlbvhNode rightNode = Nodes[rid];
-                    rightNode.box.mn = float4(0.0f, 0.0f, 0.0f, 0.0f);
-                    rightNode.box.mx = float4(0.0f, 0.0f, 0.0f, 0.0f);
+                    rightNode.box.mn = (0.0f).xxxx;
+                    rightNode.box.mx = (0.0f).xxxx;
                     rightNode.pdata.xy = int2(split+1, parentNode.pdata.y);
                     rightNode.pdata.zw = int2(prID, -1);
                     
@@ -109,7 +108,7 @@ void main( uint3 WorkGroupID : SV_DispatchThreadID, uint3 LocalInvocationID : SV
                     Flags[rid] = 0;
 
                     // connect with childrens
-                    parentNode.pdata.xy = int2(lid, rid);
+                    parentNode.pdata.xy = (lid, rid);
                     Nodes[prID] = parentNode;
                 } else {
                     uint leafID = MortoncodesIndices[parentNode.pdata.x];

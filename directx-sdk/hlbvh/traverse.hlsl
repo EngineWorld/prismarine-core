@@ -9,7 +9,6 @@ struct TResult {
 
 RWStructuredBuffer<HlbvhNode> Nodes : register(u9);
 
-
 static const int bakedFragments = 8;
 groupshared int bakedStack[WORK_SIZE][bakedFragments];
 
@@ -22,41 +21,34 @@ struct SharedVarData {
 
 // WARP optimized triangle intersection
 float intersectTriangle(in float3 orig, in float3 dir, in float3x3 ve, inout float2 UV, in bool valid) {
-    //if (allInvocationsARB(!valid)) return INFINITY;
     if (!valid) return INFINITY;
 
-     float3 e1 = ve[1] - ve[0];
-     float3 e2 = ve[2] - ve[0];
+    float3 e1 = ve[1] - ve[0];
+    float3 e2 = ve[2] - ve[0];
 
     valid = valid && !(length(e1) < 0.00001f && length(e2) < 0.00001f);
-    //if (allInvocationsARB(!valid)) return INFINITY;
     if (!valid) return INFINITY;
 
-     float3 pvec = cross(dir, e2);
-     float det = dot(e1, pvec);
+    float3 pvec = cross(dir, e2);
+    float det = dot(e1, pvec);
 
 #ifndef CULLING
     if (abs(det) <= 0.0f) valid = false;
 #else
     if (det <= 0.0f) valid = false;
 #endif
-    //if (allInvocationsARB(!valid)) return INFINITY;
     if (!valid) return INFINITY;
 
-     float3 tvec = orig - ve[0];
-     float u = dot(tvec, pvec);
-     float3 qvec = cross(tvec, e1);
-     float v = dot(dir, qvec);
-     float3 uvt = float3(u, v, dot(e2, qvec)) / det;
+    float3 tvec = orig - ve[0];
+    float u = dot(tvec, pvec);
+    float3 qvec = cross(tvec, e1);
+    float v = dot(dir, qvec);
+    float3 uvt = float3(u, v, dot(e2, qvec)) / det;
 
     if (
-        //any(lessThan(uvt.xy, float2(0.f))) || 
-        //any(greaterThan(float2(uvt.x) + float2(0.f, uvt.y), float2(1.f))) 
-
-        any(uvt.xy < float2(0.f, 0.f)) || 
-        any(float2(uvt.x, uvt.x) + float2(0.f, uvt.y) > float2(1.f, 1.f)) 
+        any(uvt.xy                      < (0.f).xx) || 
+        any(uvt.xx + float2(0.f, uvt.y) > (1.f).xx) 
     ) valid = false;
-    //if (allInvocationsARB(!valid)) return INFINITY;
     if (!valid) return INFINITY;
 
     UV.xy = uvt.xy;
@@ -117,7 +109,7 @@ TResult choiceBaked(inout SharedVarData sharedVarData, inout TResult res, in flo
 
     int tri = (tpi < exchange(sharedVarData.bakedStackCount, 0)) ? bakedStack[sharedVarData.L][tpi] : LONGEST;
 
-     bool validTriangle = 
+    bool validTriangle = 
         tri >= 0 && 
         tri != LONGEST;
 
@@ -128,9 +120,9 @@ TResult choiceBaked(inout SharedVarData sharedVarData, inout TResult res, in flo
         fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri)), 2).xyz
     );
 
-    float2 uv = float2(0.0f, 0.0f);
-     float _d = intersectTriangle(orig, dir, triverts, uv, validTriangle);
-     bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.dist);
+    float2 uv = (0.0f).xx;
+    float _d = intersectTriangle(orig, dir, triverts, uv, validTriangle);
+    bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.dist);
 
     if (near) {
         res.dist = _d;
@@ -142,7 +134,7 @@ TResult choiceBaked(inout SharedVarData sharedVarData, inout TResult res, in flo
 }
 
 TResult testIntersection(inout SharedVarData sharedVarData, inout TResult res, in float3 orig, in float3 dir, in int tri, in bool isValid) {
-     bool validTriangle = 
+    bool validTriangle = 
         isValid && 
         tri >= 0 && 
         tri != res.triangleID &&
@@ -154,12 +146,12 @@ TResult testIntersection(inout SharedVarData sharedVarData, inout TResult res, i
         fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri)), 2).xyz
     );
 
-    float2 uv = float2(0.0f, 0.0f);
-     float _d = intersectTriangle(orig, dir, triverts, uv, validTriangle);
-     bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.predist) && greaterEqualF(_d, 0.0f);
-     bool inbaked = equalF(_d, 0.0f);
-     bool isbaked = equalF(_d, res.predist);
-     bool changed = !isbaked && !inbaked;
+    float2 uv = (0.0f).xx;
+    float _d = intersectTriangle(orig, dir, triverts, uv, validTriangle);
+    bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.predist) && greaterEqualF(_d, 0.0f);
+    bool inbaked = equalF(_d, 0.0f);
+    bool isbaked = equalF(_d, res.predist);
+    bool changed = !isbaked && !inbaked;
 
     if (near) {
         if ( changed ) {
@@ -225,34 +217,29 @@ void intersectCubeApart(in float3 origin, in float3 ray, in float4 cubeMin, in f
 
 
 
-static const float3 padding = float3(0.00001f, 0.00001f, 0.00001f);
+static const float3 padding = (0.00001f).xxx;
 static const int STACK_SIZE = 16;
 groupshared int deferredStack[WORK_SIZE][STACK_SIZE];
 
 bool2 and2(in bool2 a, in bool2 b){
-    //return a && b;
     return bool2(a.x && b.x, a.y && b.y);
 }
 
 bool2 or2(in bool2 a, in bool2 b){
-    //return a || b;
     return bool2(a.x || b.x, a.y || b.y);
 }
 
 bool2 not2(in bool2 a){
-    //return !a;
     return bool2(!a.x, !a.y);
 }
 
-TResult traverse(in uint L, in float distn, in float3 origin, in float3 direct, in Hit hit) {
+TResult traverse(in uint L, in float distn, in float3 origin, in float3 direct, in int bakedSkip) {
     TResult lastRes;
     lastRes.dist = INFINITY;
     lastRes.predist = INFINITY;
     lastRes.triangleID = LONGEST;
     lastRes.materialID = LONGEST;
     
-    //int deferredStack[16];
-    //deferredStack[0] = -1;
     deferredStack[L][0] = -1;
     SharedVarData sharedVarData;
     sharedVarData.bakedStackCount = 0;
@@ -264,18 +251,15 @@ TResult traverse(in uint L, in float distn, in float3 origin, in float3 direct, 
     bool skip = false;
 
     // test constants
-     int bakedStep = int(floor(1.f + hit.vmods.w));
-     float3 torig = projectVoxels(origin);
-     float3 tdirproj = mul(float4(direct, 0.0), geometryBlock[0].project).xyz;
-     float dirlen = 1.0f / length(tdirproj);
-     float3 dirproj = normalize(tdirproj);
+    int bakedStep = bakedSkip;
+    float3 torig = projectVoxels(origin);
+    float3 tdirproj = mul(float4(direct, 0.0), geometryBlock[0].project).xyz;
+    float dirlen = 1.0f / length(tdirproj);
+    float3 dirproj = normalize(tdirproj);
 
     // test with root node
-    //HlbvhNode node = Nodes[idx];
-    // bbox lbox = node.box;
     float near = INFINITY, far = INFINITY;
-    // float d = intersectCubeSingle(torig, dirproj, lbox.mn.xyz, lbox.mx.xyz, near, far);
-     float d = intersectCubeSingle(torig, dirproj, float4(float3(0.0f, 0.0f, 0.0f), 1.0f), float4(float3(1.0f, 1.0f, 1.0f), 1.0f), near, far);
+    float d = intersectCubeSingle(torig, dirproj, float4((0.0f).xxx, 1.0f), float4((1.0f).xxx, 1.0f), near, far);
     lastRes.predist = far * dirlen;
 
     // init state
@@ -284,33 +268,30 @@ TResult traverse(in uint L, in float distn, in float3 origin, in float3 direct, 
     }
 
     for(int i=0;i<8192;i++) {
-        //if (allInvocationsARB(!validBox)) break;
         if (!validBox) break;
         HlbvhNode node = Nodes[idx];
 
         // is leaf
          bool isLeaf = node.pdata.x == node.pdata.y && validBox;
-        //if (anyInvocationARB(isLeaf)) {
         if (isLeaf) {
             testIntersection(sharedVarData, lastRes, origin, direct, node.pdata.w, isLeaf);
         }
 
         bool notLeaf = node.pdata.x != node.pdata.y && validBox;
-        //if (anyInvocationARB(notLeaf)) {
         if (notLeaf) {
-            bbox lbox = Nodes[node.pdata.x].box;
-            bbox rbox = Nodes[node.pdata.y].box;
+            HlbvhNode lnode = Nodes[node.pdata.x];
+            HlbvhNode rnode = Nodes[node.pdata.y];
+
             float2 inf2 = float2(INFINITY, INFINITY);
             float2 nearsLR = inf2;
             float2 farsLR = inf2;
-            intersectCubeApart(torig, dirproj, lbox.mn, lbox.mx, nearsLR.x, farsLR.x);
-            intersectCubeApart(torig, dirproj, rbox.mn, rbox.mx, nearsLR.y, farsLR.y);
+            intersectCubeApart(torig, dirproj, lnode.box.mn, lnode.box.mx, nearsLR.x, farsLR.x);
+            intersectCubeApart(torig, dirproj, rnode.box.mn, rnode.box.mx, nearsLR.y, farsLR.y);
 
-             //bool2 isCube = and2(greaterThanEqual(farsLR, nearsLR), greaterThanEqual(farsLR, float2(0.0f)));
-             bool2 isCube = and2(farsLR >= nearsLR, farsLR >= float2(0.f, 0.f));
+             bool2 isCube = and2(farsLR >= nearsLR, farsLR >= (0.f).xx);
              float2 nears = lerp(inf2, nearsLR, isCube);
              float2  fars = lerp(inf2, farsLR, isCube);
-             float2  hits = lerp(nears, fars, nears < float2(0.f, 0.f));
+             float2  hits = lerp(nears, fars, nears < (0.f).xx);
 
              bool2 overlaps = 
                 and2(bool2(notLeaf, notLeaf), 
@@ -319,7 +300,6 @@ TResult traverse(in uint L, in float distn, in float3 origin, in float3 direct, 
                 (float2(lastRes.predist, lastRes.predist) > nears * dirlen - PZERO))));
             
              bool anyOverlap = any(overlaps);
-            //if (anyInvocationARB(anyOverlap)) {
             if (anyOverlap) {
                  bool leftOrder = all(overlaps) ? lessEqualF(hits.x, hits.y) : overlaps.x;
 
@@ -328,7 +308,6 @@ TResult traverse(in uint L, in float distn, in float3 origin, in float3 direct, 
 
                 if (anyOverlap) {
                     if (deferredPtr < STACK_SIZE && leftright.y != -1) {
-                        //deferredStack[deferredPtr++] = leftright.y;
                         deferredStack[L][deferredPtr++] = leftright.y;
                     }
                     idx = leftright.x;
@@ -341,7 +320,6 @@ TResult traverse(in uint L, in float distn, in float3 origin, in float3 direct, 
             int ptr = --deferredPtr;
             bool valid = ptr >= 0;
             idx = -1;
-            //idx = valid ? exchange(deferredStack[ptr], -1) : -1;
             idx = valid ? exchange(deferredStack[L][ptr], -1) : -1;
             validBox = validBox && valid && idx >= 0;
         } skip = false;
@@ -349,5 +327,4 @@ TResult traverse(in uint L, in float distn, in float3 origin, in float3 direct, 
 
     choiceBaked(sharedVarData, lastRes, origin, direct, bakedStep);
     return lastRes;
-    //return loadInfo(lastRes);
 }

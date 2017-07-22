@@ -7,7 +7,6 @@
 void main( uint3 WorkGroupID : SV_DispatchThreadID, uint3 LocalInvocationID : SV_GroupID, uint3 GlobalInvocationID : SV_GroupThreadID, uint LocalInvocationIndex : SV_GroupIndex )
 {
     uint globalID = WorkGroupID.x * WORK_SIZE + LocalInvocationID.x;
-    //if (globalID >= geometryBlock[0].triangleCount) return;
     if (globalID < geometryBlock[0].triangleCount) {
         int idx = Leafs[globalID].pdata.z;
         HlbvhNode nd = Nodes[idx];

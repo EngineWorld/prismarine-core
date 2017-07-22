@@ -62,8 +62,8 @@ void main( uint3 WorkGroupID : SV_DispatchThreadID, uint3 LocalInvocationID : SV
 
                 MortoncodesIndices[to] = int(to);
                 Mortoncodes[to] = encodeMorton3_64(clamp(
-                    uint3(floor(clamp(center.xyz, float3(0.00001f, 0.00001f, 0.00001f), float3(0.99999f, 0.99999f, 0.99999f)) * 1024.0f)), 
-                    uint3(0, 0, 0), uint3(1023, 1023, 1023)));
+                    uint3(floor(clamp(center.xyz, (0.00001f).xxx, (0.99999f).xxx) * 1024.0f)), 
+                    (0).xxx, (1023).xxx));
 
                 Leaf outLeaf = OutLeafs[to];
                 outLeaf.box.mn = current.mn - 0.0001f;

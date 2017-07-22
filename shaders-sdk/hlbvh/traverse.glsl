@@ -295,13 +295,14 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
         bool notLeaf = node.pdata.x != node.pdata.y && validBox;
         //if (anyInvocationARB(notLeaf)) {
         if (notLeaf) {
-            bbox lbox = Nodes[node.pdata.x].box;
-             bbox rbox = Nodes[node.pdata.y].box;
-             vec2 inf2 = vec2(INFINITY);
+            HlbvhNode lnode = Nodes[node.pdata.x];
+            HlbvhNode rnode = Nodes[node.pdata.y];
+
+            vec2 inf2 = vec2(INFINITY);
             vec2 nearsLR = inf2;
             vec2 farsLR = inf2;
-            intersectCubeApart(torig, dirproj, lbox.mn, lbox.mx, nearsLR.x, farsLR.x);
-            intersectCubeApart(torig, dirproj, rbox.mn, rbox.mx, nearsLR.y, farsLR.y);
+            intersectCubeApart(torig, dirproj, lnode.box.mn, lnode.box.mx, nearsLR.x, farsLR.x);
+            intersectCubeApart(torig, dirproj, rnode.box.mn, rnode.box.mx, nearsLR.y, farsLR.y);
 
              bvec2 isCube = and2(greaterThanEqual(farsLR, nearsLR), greaterThanEqual(farsLR, vec2(0.0f)));
              vec2 nears = mix(inf2, nearsLR, isCube);

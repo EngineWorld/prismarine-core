@@ -59,10 +59,10 @@ void main() {
         lRange[1] = 1;
 
         HlbvhNode node = Nodes[threadID];
-        node.box.mn = vec4(0.0f);
-        node.box.mx = vec4(0.0f);
+        node.box.mn = (0.0f).xxxx;
+        node.box.mx = (0.0f).xxxx;
         node.pdata.xy = ivec2(0, Range[0]-1);
-        node.pdata.zw = ivec2(-1);
+        node.pdata.zw = (-1).xx;
         
         Nodes[threadID] = node;
         Flags[threadID] = 0;
@@ -86,18 +86,17 @@ void main() {
 
                     // add to list
                     const int hid = atomicAdd(lCounter, 2);
-                    const int lid = hid+0;
-                    const int rid = hid+1;
+                    const int lid = hid+0, rid = hid+1;
 
                     HlbvhNode leftNode = Nodes[lid];
-                    leftNode.box.mn = vec4(0.0f);
-                    leftNode.box.mx = vec4(0.0f);
+                    leftNode.box.mn = (0.0f).xxxx;
+                    leftNode.box.mx = (0.0f).xxxx;
                     leftNode.pdata.xy = ivec2(parentNode.pdata.x, split+0);
                     leftNode.pdata.zw = ivec2(prID, -1);
                     
                     HlbvhNode rightNode = Nodes[rid];
-                    rightNode.box.mn = vec4(0.0f);
-                    rightNode.box.mx = vec4(0.0f);
+                    rightNode.box.mn = (0.0f).xxxx;
+                    rightNode.box.mx = (0.0f).xxxx;
                     rightNode.pdata.xy = ivec2(split+1, parentNode.pdata.y);
                     rightNode.pdata.zw = ivec2(prID, -1);
                     

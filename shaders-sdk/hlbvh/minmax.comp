@@ -45,7 +45,6 @@ bbox getMinMaxPrimitive(in uint idx){
         max(max(triverts[0], triverts[1]), triverts[2]) + 0.00001f
     );
 #endif
-    
 }
 
 bbox bboxunion(in bbox b1, in bbox b2) {
