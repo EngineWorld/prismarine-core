@@ -1,10 +1,5 @@
 
 struct TResult {
-    float4 normal;
-    float4 tangent;
-    float4 texcoord;
-    float4 color;
-    float4 mods;
     float dist;
     int triangleID;
     int materialID;
