@@ -5,12 +5,12 @@
 #include "../include/STOmath.hlsl"
 
 #define WARP_SIZE 32
-#define WORK_SIZED 512
+#define LOCAL_SIZE 512
 #define WORK_COUNT 1
 
 RWStructuredBuffer<float4> minmax : register(u5);
 
-groupshared bbox sdata[ WORK_SIZED ];
+groupshared bbox sdata[ LOCAL_SIZE ];
 
 bbox getMinMaxPrimitive(in uint idx){
      uint tri = clamp(idx, 0u, uint(geometryBlock[0].triangleCount-1));
@@ -42,13 +42,13 @@ bbox bboxunion(in bbox b1, in bbox b2) {
     return result;
 }
 
-[numthreads(WORK_SIZED, 1, 1)]
+[numthreads(LOCAL_SIZE, 1, 1)]
 void main( uint3 WorkGroupID : SV_DispatchThreadID, uint3 LocalInvocationID : SV_GroupID, uint3 GlobalInvocationID : SV_GroupThreadID, uint LocalInvocationIndex : SV_GroupIndex )
 {
     uint tid = LocalInvocationID.x;
-    uint gridSize = (WORK_SIZED*2)*WORK_COUNT;
+    uint gridSize = (LOCAL_SIZE*2)*WORK_COUNT;
     uint tcount = min(geometryBlock[0].triangleCount, 16777216);
-    uint i = WorkGroupID.x * (WORK_SIZED*2) + tid;
+    uint i = WorkGroupID.x * (LOCAL_SIZE*2) + tid;
 
     bbox initial;
     initial.mn = float4(100000.f, 100000.f, 100000.f, 100000.f);
@@ -62,7 +62,7 @@ void main( uint3 WorkGroupID : SV_DispatchThreadID, uint3 LocalInvocationID : SV
     };
     AllMemoryBarrierWithGroupSync();
 
-    for (uint ik=(WORK_SIZED>>1);ik>=1;ik>>=1) {
+    for (uint ik=(LOCAL_SIZE>>1);ik>=1;ik>>=1) {
         if (tid < ik) {
             bbox bound = sdata[tid];
             bbox opbound = sdata[tid + ik];

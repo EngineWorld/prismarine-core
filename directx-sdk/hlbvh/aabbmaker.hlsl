@@ -14,10 +14,10 @@ uint add(inout uint mem, in uint ops){
     uint tmp = mem; mem += ops; return tmp;
 }
 
-[numthreads(128, 1, 1)]
+[numthreads(WORK_SIZE, 1, 1)]
 void main( uint3 WorkGroupID : SV_DispatchThreadID, uint3 LocalInvocationID : SV_GroupID, uint3 GlobalInvocationID : SV_GroupThreadID, uint LocalInvocationIndex : SV_GroupIndex )
 {
-    uint t = WorkGroupID.x * 128 + LocalInvocationID.x;
+    uint t = WorkGroupID.x * WORK_SIZE + LocalInvocationID.x;
     if (t < geometryBlock[0].triangleCount) {
 
         float4 mn = float4(INFINITY, INFINITY, INFINITY, INFINITY);
