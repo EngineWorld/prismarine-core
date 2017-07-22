@@ -1,4 +1,4 @@
-//#define EMULATE_BALLOT // compatible with SM5.0
+#define EMULATE_BALLOT // compatible with SM5.0
 
 #ifndef EMULATE_BALLOT
 //#extension GL_ARB_gpu_shader_int64 : require
