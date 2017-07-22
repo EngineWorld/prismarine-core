@@ -77,7 +77,12 @@ void main( uint3 WorkGroupID : SV_DispatchThreadID, uint3 LocalInvocationID : SV
 {
     WG_IDX = WorkGroupID.x;
     LC_IDX = LocalInvocationID.y;
+    
+#ifdef EMULATE_BALLOT
     LANE_IDX = LocalInvocationID.x;
+#else
+    LANE_IDX = WaveGetLaneIndex();
+#endif
 
      UVEC_WARP localIdx = WARP_SIZE * LC_IDX + LANE_IDX;
      UVEC_WARP def = 0xFFFFFFFFu;

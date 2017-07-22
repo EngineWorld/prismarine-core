@@ -1,4 +1,4 @@
-#define EMULATE_BALLOT // compatible with SM5.0
+//#define EMULATE_BALLOT // compatible with SM5.0
 
 #ifndef EMULATE_BALLOT
 //#extension GL_ARB_gpu_shader_int64 : require
@@ -86,23 +86,26 @@ uint readLane(in uint val, in uint lane) {
 
 #else
 
-#define UVEC_BALLOT_WARP UVEC64_WARP
+#define UVEC_BALLOT_WARP uint4
 
-uint64_t genLtMask(){
-    //return gl_SubGroupLtMaskARB;
-    return (1 << uint64_t(LANE_IDX))-1;
+uint4 genLtMask(){
+    if (LANE_IDX < 32 ) return uint4(                                    (1 << (LANE_IDX-0 ))-1, 0, 0, 0); else 
+    if (LANE_IDX < 64 ) return uint4(0xFFFFFFFF,                         (1 << (LANE_IDX-32))-1, 0, 0   ); else 
+    if (LANE_IDX < 96 ) return uint4(0xFFFFFFFF, 0xFFFFFFFF,             (1 << (LANE_IDX-64))-1, 0      ); else 
+    if (LANE_IDX < 128) return uint4(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, (1 << (LANE_IDX-96))-1         ); 
+    return uint4(0,0,0,0);
 }
 
-uint bitCount64(in uint64_t a64) {
-    return countbits(a64);
+uint bitCount64(in uint4 a64) {
+    return countbits(a64.x) + countbits(a64.y);
 }
 
 uint readLane(in uint val, in uint lane){
     return WaveReadLaneAt(val, lane);
 }
 
-uint64_t ballot(in bool val) {
-    uint64_t result = WaveActiveBallot(val);
+uint4 ballot(in bool val) {
+    uint4 result = WaveActiveBallot(val);
     return result;
 }
 

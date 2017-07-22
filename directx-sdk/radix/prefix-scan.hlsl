@@ -23,7 +23,12 @@ void main( uint3 WorkGroupID : SV_DispatchThreadID, uint3 LocalInvocationID : SV
 {
     WG_IDX = WorkGroupID.x;
     LC_IDX = LocalInvocationID.y;
+    
+#ifdef EMULATE_BALLOT
     LANE_IDX = LocalInvocationID.x;
+#else
+    LANE_IDX = WaveGetLaneIndex();
+#endif
 
     if (LC_IDX == WG_COUNT - 1) seed = 0;
     AllMemoryBarrierWithGroupSync();
