@@ -21,9 +21,13 @@ bbox getMinMaxPrimitive(in uint idx){
         fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri)), 2)
     );
 
-    triverts[0] = mul(triverts[0], geometryBlock[0].project);
-    triverts[1] = mul(triverts[1], geometryBlock[0].project);
-    triverts[2] = mul(triverts[2], geometryBlock[0].project);
+    //triverts[0] = mul(triverts[0], geometryBlock[0].project);
+    //triverts[1] = mul(triverts[1], geometryBlock[0].project);
+    //triverts[2] = mul(triverts[2], geometryBlock[0].project);
+
+    triverts[0] = mul(geometryBlock[0].project, triverts[0]);
+    triverts[1] = mul(geometryBlock[0].project, triverts[1]);
+    triverts[2] = mul(geometryBlock[0].project, triverts[2]);
 
     bbox result;
     result.mn = min(min(triverts[0], triverts[1]), triverts[2]) - (0.00001f).xxxx;

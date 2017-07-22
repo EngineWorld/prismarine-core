@@ -50,7 +50,7 @@
 #endif
 
 // compute shaders
-#define WORK_SIZE 64
+#define WORK_SIZE 128
 #define LOCAL_SIZE_LAYOUT layout ( local_size_x = WORK_SIZE ) in
 
 // variable compute

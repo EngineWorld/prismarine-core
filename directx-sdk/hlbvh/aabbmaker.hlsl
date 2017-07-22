@@ -29,9 +29,13 @@ void CSMain( uint3 WorkGroupID : SV_GroupID, uint3 LocalInvocationID  : SV_Group
             fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(t)), 2)
         );
 
-        triverts[0] = mul(triverts[0], geometryBlock[0].project);
-        triverts[1] = mul(triverts[1], geometryBlock[0].project);
-        triverts[2] = mul(triverts[2], geometryBlock[0].project);
+        triverts[0] = mul(geometryBlock[0].project, triverts[0]);
+        triverts[1] = mul(geometryBlock[0].project, triverts[1]);
+        triverts[2] = mul(geometryBlock[0].project, triverts[2]);
+
+        //triverts[0] = mul(triverts[0], geometryBlock[0].project);
+        //triverts[1] = mul(triverts[1], geometryBlock[0].project);
+        //triverts[2] = mul(triverts[2], geometryBlock[0].project);
 
         float4 tcenter = (triverts[0] + triverts[1] + triverts[2]) * 0.33333333333333f;
         if (length(abs(triverts[0] - tcenter).xyz + abs(triverts[1] - tcenter).xyz + abs(triverts[2] - tcenter).xyz) < 1.e-5) return;
