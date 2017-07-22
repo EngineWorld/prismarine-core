@@ -17,7 +17,7 @@ uint add(inout uint mem, in uint ops){
 [numthreads(WORK_SIZE, 1, 1)]
 void CSMain( uint3 WorkGroupID : SV_GroupID, uint3 LocalInvocationID  : SV_GroupThreadID, uint3 GlobalInvocationID : SV_DispatchThreadID)
 {
-    uint t = WorkGroupID.x * WORK_SIZE + LocalInvocationID.x;
+    uint t = GlobalInvocationID.x;
     if (t < geometryBlock[0].triangleCount) {
 
         float4 mn = float4(INFINITY, INFINITY, INFINITY, INFINITY);
@@ -53,10 +53,10 @@ void CSMain( uint3 WorkGroupID : SV_GroupID, uint3 LocalInvocationID  : SV_Group
 
         uint maxSplits = 0;
         uint countBox = 1;
-        uint iteration = 0;
-        uint i = 0;
 
-        for (iteration=0;iteration<10;iteration++) {
+        for (uint i=0;i<4;i++) {
+            if (i >= countBox) break;
+
             bbox current = stack[i];
             float4 center = (current.mn + current.mx) * 0.5f;
 
@@ -97,8 +97,6 @@ void CSMain( uint3 WorkGroupID : SV_GroupID, uint3 LocalInvocationID  : SV_Group
                 split[halfBoxRight] = split[i]+1;
                 stack[halfBoxRight] = rightBox;
             }
-
-            i++;
         }
     }
 }

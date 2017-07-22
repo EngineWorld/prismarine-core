@@ -44,7 +44,7 @@ LResult loadInfo(in TResult hitp) {
             triverts[x] = fetchMosaic(vertex_texture, mos, x).xyz;
             trinorms[x] = fetchMosaic(normal_texture, mos, x).xyz;
             texcoords[x] = fetchMosaic(texcoords_texture, mos, x);
-            colors[x] = float4(1.0f,1.0f,1.0f,1.0f);
+            colors[x] = (1.0f).xxxx;
             mods[x] = fetchMosaic(modifiers_texture, mos, x);
         }
 
@@ -56,18 +56,18 @@ LResult loadInfo(in TResult hitp) {
         normal = lessF(length(normal), 0.f) ? nor : normalize(normal);
         normal = normal * sign(dot(normal, nor));
 
-        bool delta = all(texcoords[0].xy == texcoords[1].xy) && all(texcoords[0].xy == texcoords[2].xy);
+        bool delta = all((texcoords[0].xy == texcoords[1].xy)) && all((texcoords[0].xy == texcoords[2].xy));
         float2 deltaUV1 = delta ? float2(1.0f, 0.0f) : texcoords[1].xy - texcoords[0].xy;
         float2 deltaUV2 = delta ? float2(0.0f, 1.0f) : texcoords[2].xy - texcoords[0].xy;
 
         float f = 1.0f / mad(deltaUV1.x, deltaUV2.y, -deltaUV1.y * deltaUV2.x);
         float3 tan = mad(deltaPos1, (deltaUV2.y).xxx, -deltaPos2 * deltaUV1.y) * f;
 
-        res.normal = float4(normal, 0.0f);
-        res.tangent = float4(normalize(tan - normal * sign(dot(tan, nor))), 0.0f);
+        res.normal   = float4(normal, 0.0f);
+        res.tangent  = float4(normalize(tan - normal * sign(dot(tan, nor))), 0.0f);
         res.texcoord = mad(texcoords[0], (1.0f - uv.x - uv.y).xxxx, mad(texcoords[1], (uv.x).xxxx, texcoords[2] * (uv.y).xxxx));
-        res.color = mad(colors[0], (1.0f - uv.x - uv.y).xxxx, mad(colors[1], (uv.x).xxxx, colors[2] * (uv.y).xxxx));
-        res.mods = mad(mods[0], (1.0f - uv.x - uv.y).xxxx, mad(mods[1], (uv.x).xxxx, mods[2] * (uv.y).xxxx));
+        res.color    = mad(   colors[0], (1.0f - uv.x - uv.y).xxxx, mad(   colors[1], (uv.x).xxxx,    colors[2] * (uv.y).xxxx));
+        res.mods     = mad(     mods[0], (1.0f - uv.x - uv.y).xxxx, mad(     mods[1], (uv.x).xxxx,      mods[2] * (uv.y).xxxx));
         res.materialID = mats[tri];
     }
 
@@ -78,7 +78,7 @@ LResult loadInfo(in TResult hitp) {
 [numthreads(WORK_SIZE, 1, 1)]
 void CSMain( uint3 WorkGroupID : SV_GroupID, uint3 LocalInvocationID  : SV_GroupThreadID, uint3 GlobalInvocationID : SV_DispatchThreadID)
 {
-    uint it = WorkGroupID.x * WORK_SIZE + LocalInvocationID.x;
+    uint it = GlobalInvocationID.x;
     bool overflow = it >= rayBlock[0].rayCount;
     if (overflow) return;
 
@@ -88,7 +88,7 @@ void CSMain( uint3 WorkGroupID : SV_GroupID, uint3 LocalInvocationID  : SV_Group
 
     Hit hit = fetchHitDirect(t);
 
-    LResult res = loadInfo(traverse(LocalInvocationID.x, hit.dist, ray.origin.xyz, ray.direct.xyz, 0));
+    LResult res = loadInfo(traverse(LocalInvocationID.x, hit.dist, ray.origin.xyz, ray.direct.xyz, int(floor(1.f + hit.vmods.w))));
 
     if (
         greaterEqualF(res.dist, 0.0f) &&

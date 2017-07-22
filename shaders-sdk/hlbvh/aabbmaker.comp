@@ -73,10 +73,9 @@ void main() {
 
     const uint maxSplits = 0;
     uint countBox = 1;
-    uint iteration = 0;
 
-    for (uint i=0;i<countBox;i++) {
-        if ((iteration++) >= 10) break;
+    for (uint i=0;i<4;i++) {
+        if (i >= countBox) break;
         
         bbox current = stack[i];
         vec4 center = (current.mn + current.mx) * 0.5f;

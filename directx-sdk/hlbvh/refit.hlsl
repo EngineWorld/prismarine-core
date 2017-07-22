@@ -6,7 +6,7 @@
 [numthreads(WORK_SIZE, 1, 1)]
 void CSMain( uint3 WorkGroupID : SV_GroupID, uint3 LocalInvocationID  : SV_GroupThreadID, uint3 GlobalInvocationID : SV_DispatchThreadID)
 {
-    uint globalID = WorkGroupID.x * WORK_SIZE + LocalInvocationID.x;
+    uint globalID = GlobalInvocationID.x;
     if (globalID < geometryBlock[0].triangleCount) {
         int idx = Leafs[globalID].pdata.z;
         HlbvhNode nd = Nodes[idx];
@@ -15,7 +15,6 @@ void CSMain( uint3 WorkGroupID : SV_GroupID, uint3 LocalInvocationID  : SV_Group
             if (idx <= 0) break; 
 
             nd = Nodes[idx];
-
             int tmp = 0;
             InterlockedCompareExchange(Flags[idx], 0, 1, tmp);
             if (tmp == 1) {

@@ -119,7 +119,7 @@ namespace Paper {
 
 
 
-    inline void initShaderComputeSPIRV(std::string path, GLuint & prog) {
+    inline void initShaderComputeSPIRV(std::string path, GLuint & prog, std::string entryName = "main") {
         //std::string str = readSource(path);
         std::vector<GLchar> str = readBinary(path);
 
@@ -129,7 +129,7 @@ namespace Paper {
             int32_t size = str.size();
             //glShaderSource(comp, 1, &strc, &size);
             glShaderBinary(1, &comp, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, strc, size);
-            glSpecializeShaderARB(comp, "main", 0, nullptr, nullptr);
+            glSpecializeShaderARB(comp, entryName.c_str(), 0, nullptr, nullptr);
             //glCompileShader(comp);
 
             GLint status = false;

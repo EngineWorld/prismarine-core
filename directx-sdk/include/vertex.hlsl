@@ -18,7 +18,7 @@ int2 gatherMosaic(in int2 uniformCoord){
     return int2(uniformCoord.x * 3 + uniformCoord.y % 3, uniformCoord.y);
 }
 
-float4 fetchMosaic(in Texture2D<float4> vertices, in int2 mosaicCoord, in uint idc){
+float4 fetchMosaic( Texture2D<float4> vertices, in int2 mosaicCoord, in uint idc){
     return vertices.Load(int3(mosaicCoord + mit[idc], 0));
 }
 

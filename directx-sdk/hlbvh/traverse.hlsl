@@ -46,8 +46,8 @@ float intersectTriangle(in float3 orig, in float3 dir, in float3x3 ve, inout flo
     float3 uvt = float3(u, v, dot(e2, qvec)) / det;
 
     if (
-        any(uvt.xy                      < (0.f).xx) || 
-        any(uvt.xx + float2(0.f, uvt.y) > (1.f).xx) 
+        any( uvt.xy                       < (0.f).xx) || 
+        any((uvt.xx + float2(0.f, uvt.y)) > (1.f).xx) 
     ) valid = false;
     if (!valid) return INFINITY;
 
@@ -62,7 +62,6 @@ TResult choiceFirstBaked(inout SharedVarData sharedVarData, inout TResult res) {
         tri >= 0 && 
         tri != LONGEST;
         
-    //if (allInvocationsARB(!validTriangle)) return res;
     if (!validTriangle) return res;
 
      float2 uv = sharedVarData.bakedRangeIntersection.yz;
@@ -172,13 +171,11 @@ TResult testIntersection(inout SharedVarData sharedVarData, inout TResult res, i
 
 float3 projectVoxels(in float3 orig) {
     float4 nps = mul(geometryBlock[0].project, float4(orig, 1.0f));
-     //float4 nps = mul(float4(orig, 1.0f), geometryBlock[0].project);
     return nps.xyz / nps.w;
 }
 
 float3 unprojectVoxels(in float3 orig) {
     float4 nps = mul(geometryBlock[0].unproject, float4(orig, 1.0f));
-     //float4 nps = mul(float4(orig, 1.0f), geometryBlock[0].unproject);
     return nps.xyz / nps.w;
 }
 
@@ -235,7 +232,7 @@ bool2 not2(in bool2 a){
     return bool2(!a.x, !a.y);
 }
 
-TResult traverse(in uint L, in float distn, in float3 origin, in float3 direct, in int bakedSkip) {
+TResult traverse(in uint L, in float distn, in float3 origin, in float3 direct, in int bakedStep) {
     TResult lastRes;
     lastRes.dist = INFINITY;
     lastRes.predist = INFINITY;
@@ -253,9 +250,7 @@ TResult traverse(in uint L, in float distn, in float3 origin, in float3 direct, 
     bool skip = false;
 
     // test constants
-    int bakedStep = bakedSkip;
     float3 torig = projectVoxels(origin);
-    //float3 tdirproj = mul(float4(direct, 0.0), geometryBlock[0].project).xyz;
     float3 tdirproj = mul(geometryBlock[0].project, float4(direct, 0.0)).xyz;
     float dirlen = 1.0f / length(tdirproj);
     float3 dirproj = normalize(tdirproj);
@@ -291,22 +286,31 @@ TResult traverse(in uint L, in float distn, in float3 origin, in float3 direct, 
             intersectCubeApart(torig, dirproj, lnode.box.mn, lnode.box.mx, nearsLR.x, farsLR.x);
             intersectCubeApart(torig, dirproj, rnode.box.mn, rnode.box.mx, nearsLR.y, farsLR.y);
 
-             bool2 isCube = and2(farsLR >= nearsLR, farsLR >= (0.f).xx);
-             float2 nears = lerp(inf2, nearsLR, isCube);
-             float2  fars = lerp(inf2, farsLR, isCube);
-             float2  hits = lerp(nears, fars, nears < (0.f).xx);
+            bool2 isCube = and2(farsLR >= nearsLR, farsLR >= (0.f).xx);
+             
+            //float2 nears = lerp(inf2, nearsLR, isCube);
+            //float2  fars = lerp(inf2, farsLR, isCube);
+            //float2  hits = lerp(nears, fars, nears < (0.f).xx);
 
-             bool2 overlaps = 
+            float2 nears = float2(isCube.x ? nearsLR.x : INFINITY, isCube.y ? nearsLR.y : INFINITY);
+            float2  fars = float2(isCube.x ?  farsLR.x : INFINITY, isCube.y ?  farsLR.y : INFINITY);
+            float2  hits = float2(nears.x < 0.0f ? fars.x : nears.x, nears.y < 0.0f ? fars.y : nears.y);
+
+            bool2 overlaps = 
                 and2(bool2(notLeaf, notLeaf), 
                 and2((hits <= float2(INFINITY-PZERO, INFINITY-PZERO)),
                 and2((hits > -float2(PZERO, PZERO)),
                 (float2(lastRes.predist, lastRes.predist) > nears * dirlen - PZERO))));
             
-             bool anyOverlap = any(overlaps);
+            bool anyOverlap = any(overlaps);
             if (anyOverlap) {
                  bool leftOrder = all(overlaps) ? lessEqualF(hits.x, hits.y) : overlaps.x;
 
-                int2 leftright = overlaps ? node.pdata.xy : int2(-1, -1);
+                //int2 leftright = overlaps ? node.pdata.xy : int2(-1, -1); // XShaderCompiler have bug with
+                int2 leftright = int2(
+                    overlaps.x ? node.pdata.x : -1,
+                    overlaps.y ? node.pdata.y : -1
+                );
                 leftright = leftOrder ? leftright : leftright.yx;
 
                 if (anyOverlap) {

@@ -9,10 +9,12 @@
 
 int nlz (in uint x) {
     return 31-firstbithigh(x);
+    //return 31-firstbitlow(x);
 }
 
 int nlz (in int x) {
     return 31-firstbithigh(uint(x));
+    //return 31-firstbitlow(uint(x));
 }
 
 int findSplit( int first, int last)
