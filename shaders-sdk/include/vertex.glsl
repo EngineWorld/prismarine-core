@@ -1,9 +1,9 @@
 #ifndef _VERTEX_H
 #define _VERTEX_H
 
-//layout ( std430, binding = 3 )  buffer GeomVertexSSBO {VboDataStride verts[];};
-//layout ( std430, binding = 4 )  buffer GeomIndicesSSBO {int indics[];};
-layout ( std430, binding = 5 )  buffer GeomMaterialsSSBO {int mats[];};
+//layout ( std430, binding = 3 ) restrict buffer GeomVertexSSBO {VboDataStride verts[];};
+//layout ( std430, binding = 4 ) restrict buffer GeomIndicesSSBO {int indics[];};
+layout ( std430, binding = 5 ) restrict buffer GeomMaterialsSSBO {int mats[];};
 
 layout (binding = 0) uniform sampler2D vertex_texture;
 layout (binding = 1) uniform sampler2D normal_texture;

@@ -7,19 +7,19 @@
 #include "../include/morton.glsl"
 #include "../include/STOmath.glsl"
 
-layout ( std430, binding = 0 )  buffer OutLeafBlock {
+layout ( std430, binding = 0 ) restrict buffer OutLeafBlock {
     Leaf OutLeafs[];
 } outLeafsBuf;
 
-layout ( std430, binding = 1 )  buffer MortoncodesBlock {
+layout ( std430, binding = 1 ) restrict buffer MortoncodesBlock {
     uint Mortoncodes[];
 } mortonBuf;
 
-layout ( std430, binding = 2 )  buffer IndicesBlock {
+layout ( std430, binding = 2 ) restrict buffer IndicesBlock {
     int MortoncodesIndices[];
 } mortonIdc;
 
-layout ( std430, binding = 3 ) buffer CounterBlock {
+layout ( std430, binding = 3 ) restrict buffer CounterBlock {
     int aabbCounter[1];
 } counters;
 

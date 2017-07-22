@@ -30,17 +30,17 @@
 //#define READ_LANE(V, I) ((I >= 0 && I < WARP_SIZE) ? readLane(V, I) : 0)
 #define READ_LANE(V, I) (uint(I >= 0 && I < WARP_SIZE) * readLane(V, I))
 
-layout (std430, binding = 0)  buffer KeyInBlock {uint KeyIn[];};
-layout (std430, binding = 1)  buffer ValueInBlock {uint ValueIn[];};
-layout (std430, binding = 2)  buffer KeyOutBlock {uint KeyOut[];};
-layout (std430, binding = 3)  buffer ValueOutBlock {uint ValueOut[];};
-layout (std430, binding = 4)  buffer VarsBlock {
+layout (std430, binding = 0) restrict buffer KeyInBlock {uint KeyIn[];};
+layout (std430, binding = 1) restrict buffer ValueInBlock {uint ValueIn[];};
+layout (std430, binding = 2) restrict buffer KeyOutBlock {uint KeyOut[];};
+layout (std430, binding = 3) restrict buffer ValueOutBlock {uint ValueOut[];};
+layout (std430, binding = 4) restrict buffer VarsBlock {
     uint NumKeys;
     uint Shift;
     uint Descending;
     uint IsSigned;
 };
-layout (std430, binding = 5)  buffer HistogramBlock {uint Histogram[];};
+layout (std430, binding = 5) restrict buffer HistogramBlock {uint Histogram[];};
 
 struct blocks_info { uint count; uint offset; };
 blocks_info get_blocks_info(in uint n, in uint wg_idx) {

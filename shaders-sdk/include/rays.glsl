@@ -4,21 +4,21 @@
 #include "../include/STOmath.glsl"
 #include "../include/morton.glsl"
 
-layout ( std430, binding = 0 )  buffer RaysSSBO { Ray nodes[]; } rayBuf;
-layout ( std430, binding = 1 )  buffer HitsSSBO { Hit nodes[]; } hitBuf;
-layout ( std430, binding = 2 )  buffer TexelsSSBO { Texel nodes[]; } texelBuf;
+layout ( std430, binding = 0 ) restrict buffer RaysSSBO { Ray nodes[]; } rayBuf;
+layout ( std430, binding = 1 ) restrict buffer HitsSSBO { Hit nodes[]; } hitBuf;
+layout ( std430, binding = 2 ) restrict buffer TexelsSSBO { Texel nodes[]; } texelBuf;
 layout ( std430, binding = 6 ) readonly buffer ActivedIndicesSSBO { int indc[]; } activedBuf;
-layout ( std430, binding = 7 )  buffer CollectedActivesSSBO { int indc[]; } collBuf;
-layout ( std430, binding = 8 )  buffer FreedomIndicesSSBO { int indc[]; } freedBuf;
+layout ( std430, binding = 7 ) restrict buffer CollectedActivesSSBO { int indc[]; } collBuf;
+layout ( std430, binding = 8 ) restrict buffer FreedomIndicesSSBO { int indc[]; } freedBuf;
 layout ( std430, binding = 14 ) readonly buffer AvailablesIndicesSSBO { int indc[]; } availBuf;
-layout ( std430, binding = 20 )  buffer CounterBlock { 
+layout ( std430, binding = 20 ) restrict buffer CounterBlock { 
     int At;
     int Rt;
     int Qt;
     int Ut;
     int Ct;
 } arcounter;
-layout ( std430, binding = 21 )  buffer ColorChainBlock { ColorChain chains[]; } chBuf;
+layout ( std430, binding = 21 ) restrict buffer ColorChainBlock { ColorChain chains[]; } chBuf;
 
 void _collect(inout Ray ray) {
     vec4 color = max(ray.final, vec4(0.f));
