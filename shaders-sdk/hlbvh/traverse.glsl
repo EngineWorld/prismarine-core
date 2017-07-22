@@ -14,6 +14,13 @@ struct SharedVarsData {
     uint L;
 };
 
+struct TResult {
+    float dist;
+    int triangle;
+    int materialID; // legacy
+    float predist;
+    vec4 uv;
+};
 
 // WARP optimized triangle intersection
 float intersectTriangle(in vec3 orig, in vec3 dir, in mat3 ve, inout vec2 UV, in bool valid) {
@@ -334,5 +341,5 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     }
 
     choiceBaked(sharedVarsData, lastRes, origin, direct, bakedStep);
-    return loadInfo(lastRes);
+    return lastRes;
 }

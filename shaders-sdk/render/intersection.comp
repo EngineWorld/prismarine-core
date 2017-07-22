@@ -7,25 +7,33 @@
 #include "../include/vertex.glsl"
 #include "../include/morton.glsl"
 #include "../include/STOmath.glsl"
+#include "../hlbvh/traverse.glsl"
 
-struct TResult {
+
+struct LResult {
     vec4 normal;
     vec4 tangent;
     vec4 texcoord;
     vec4 color;
     vec4 mods;
+
     float dist;
     int triangle;
     int materialID;
-    float predist;
-
-    vec4 uv;
+    float predist; // legacy
+    vec4 uv; // legacy
 };
 
-TResult loadInfo(inout TResult res) {
-    int tri = res.triangle;
-    
-    if (greaterEqualF(res.dist, 0.0f) && lessF(res.dist, INFINITY) && tri != LONGEST) {
+LResult loadInfo(in TResult hitp) {
+    LResult res;
+    res.dist = hitp.dist;
+    res.triangle = hitp.triangle;
+    res.materialID = -1;
+    res.predist = hitp.predist; // legacy
+    res.uv = hitp.uv; // legacy
+
+    int tri = hitp.triangle;
+    if (greaterEqualF(hitp.dist, 0.0f) && lessF(hitp.dist, INFINITY) && tri != LONGEST) {
         vec3 trinorms[3];
         vec3 triverts[3];
         vec4 texcoords[3];
@@ -33,19 +41,17 @@ TResult loadInfo(inout TResult res) {
         vec4 mods[3];
 
         for (int x=0;x<3;x++) {
-            //int j = tri * 3 + x;
             ivec2 mos = gatherMosaic(getUniformCoord(tri));
-            triverts[x] = fetchMosaic(vertex_texture, mos, x).xyz; //vec3(verts[j].vertex);
-            trinorms[x] = fetchMosaic(normal_texture, mos, x).xyz;//vec3(verts[j].normal);
-            texcoords[x] = fetchMosaic(texcoords_texture, mos, x);//vec4(verts[j].texcoord);
-            colors[x] = vec4(1.0f);//vec4(verts[j].color);
-            mods[x] = fetchMosaic(modifiers_texture, mos, x);//vec4(verts[j].modifiers);
+            triverts[x] = fetchMosaic(vertex_texture, mos, x).xyz;
+            trinorms[x] = fetchMosaic(normal_texture, mos, x).xyz;
+            texcoords[x] = fetchMosaic(texcoords_texture, mos, x);
+            colors[x] = vec4(1.0f);
+            mods[x] = fetchMosaic(modifiers_texture, mos, x);
         }
 
         vec3 deltaPos1 = triverts[1] - triverts[0];
         vec3 deltaPos2 = triverts[2] - triverts[0];
-
-        vec2 uv = res.uv.xy;
+        vec2 uv = hitp.uv.xy;
         vec3 nor = normalize(cross(deltaPos1, deltaPos2));
         vec3 normal = fma(trinorms[0], vec3(1.0f - uv.x - uv.y), fma(trinorms[1], vec3(uv.x), trinorms[2] * vec3(uv.y)));
         normal = lessF(length(normal), 0.f) ? nor : normalize(normal);
@@ -63,14 +69,11 @@ TResult loadInfo(inout TResult res) {
         res.texcoord = fma(texcoords[0], vec4(1.0f - uv.x - uv.y), fma(texcoords[1], vec4(uv.x), texcoords[2] * vec4(uv.y)));
         res.color = fma(colors[0], vec4(1.0f - uv.x - uv.y), fma(colors[1], vec4(uv.x), colors[2] * vec4(uv.y)));
         res.mods = fma(mods[0], vec4(1.0f - uv.x - uv.y), fma(mods[1], vec4(uv.x), mods[2] * vec4(uv.y)));
-        
         res.materialID = mats[tri];
     }
 
     return res;
 }
-
-#include "../hlbvh/traverse.glsl"
 
 LOCAL_SIZE_LAYOUT;
 
@@ -86,7 +89,7 @@ void main() {
     if (ray.actived < 1 || overflow) return;
 
     Hit hit = fetchHitDirect(t);
-    TResult res = traverse(hit.dist, ray.origin.xyz, ray.direct.xyz, hit);
+    LResult res = loadInfo(traverse(hit.dist, ray.origin.xyz, ray.direct.xyz, hit));
 
     if (
         greaterEqualF(res.dist, 0.0f) &&

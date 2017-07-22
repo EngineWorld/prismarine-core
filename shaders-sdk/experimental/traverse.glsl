@@ -7,6 +7,16 @@ const int bakedFragments = 8;
 int bakedStack[bakedFragments];
 int bakedStackCount = 0;
 
+struct TResult {
+    float dist;
+    int triangle;
+    int materialID; // legacy
+    float predist;
+    vec4 uv;
+};
+
+
+
 // WARP optimized triangle intersection
 float intersectTriangle(in VEC3 orig, in VEC3 dir, in vec3 ve, inout vec2 UV) {
      float e1 = ve.y - ve.x;
@@ -296,5 +306,5 @@ TResult traverse(in float distn, in VEC3 origin, in VEC3 direct, in Hit hit) {
     }
 
     choiceBaked(lastRes, origin, direct, bakedStep);
-    return loadInfo(lastRes);
+    return lastRes;
 }

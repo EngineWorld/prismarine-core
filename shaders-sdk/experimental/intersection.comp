@@ -13,31 +13,39 @@
 #include "../include/morton.glsl"
 #include "../include/STOmath.glsl"
 #include "../experimental/ultraMath.glsl"
+#include "../experimental/traverse.glsl"
 
-struct TResult {
+struct LResult {
     vec4 normal;
     vec4 tangent;
     vec4 texcoord;
     vec4 color;
     vec4 mods;
+
     float dist;
     int triangle;
     int materialID;
     float predist;
-
     vec4 uv;
 };
 
 // unoptimized at now, and can do dublicate operations
-TResult loadInfo(inout TResult res) {
-    int tri = res.triangle;
+LResult loadInfo(in TResult hitp) {
+    int tri = hitp.triangle;
     vec3 triverts = vec3(0.f);
     vec3 trinorms = vec3(0.f);
     vec3 texcoords = vec3(0.f);
     vec3 colors = vec3(0.f);
     vec3 mods = vec3(0.f);
+    
+    LResult res;
+    res.dist = hitp.dist;
+    res.triangle = hitp.triangle;
+    res.materialID = -1;
+    res.predist = hitp.predist; // legacy
+    res.uv = hitp.uv; // legacy
 
-     bool valid = greaterEqualF(res.dist, 0.0f) && lessF(res.dist, INFINITY) && tri != LONGEST;
+    bool valid = greaterEqualF(hitp.dist, 0.0f) && lessF(hitp.dist, INFINITY) && tri != LONGEST;
     if (bs(valid)) {
 
         triverts = gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri)), lane4).wzx;
@@ -46,7 +54,7 @@ TResult loadInfo(inout TResult res) {
         mods = gatherMosaicCompDyn(modifiers_texture, gatherMosaic(getUniformCoord(tri)), lane4).wzx;
         colors = vec3(1.f);
 
-        vec2 uv = x(res.uv.xy);
+        vec2 uv = x(hitp.uv.xy);
         vec3 interpol = vec3(1.0f - uv.x - uv.y, uv.x, uv.y);
 
         VEC3 deltaPos1 = triverts.y - triverts.x;
@@ -68,18 +76,16 @@ TResult loadInfo(inout TResult res) {
         );
         VEC3 tang = dot(vec2(deltaPos1, -deltaPos2), vec2(y(deltaUV2), y(deltaUV1))) * f;
 
-        res.mods = compvec4(dot(mods, interpol)); //fma(mods[0], vec4(1.0f - uv.x - uv.y), fma(mods[1], vec4(uv.x), mods[2] * vec4(uv.y)));;
         res.normal.xyz = compvec3(normal);
-        res.texcoord = compvec4(dot(texcoords, interpol));
-        res.materialID = mats[tri];
         res.tangent.xyz = compvec3(normalize3(tang - normal * sign(dot3(tang, normal))));
+        res.texcoord = compvec4(dot(texcoords, interpol));
         res.color = compvec4(dot(colors, interpol));
+        res.mods = compvec4(dot(mods, interpol));
+        res.materialID = mats[tri];
     }
 
     return res;
 }
-
-#include "../experimental/traverse.glsl"
 
 layout ( local_size_x = WORK_SIZE * SCALARS ) in;
 
@@ -93,7 +99,7 @@ void main() {
     if (allInvocationsARB(ray.actived < 1 || overflow || !mt())) return;
 
     Hit hit = fetchHitDirect(t);
-    TResult res = traverse(hit.dist, ray.origin[lane4], ray.direct[lane4], hit);
+    LResult res = loadInfo(traverse(hit.dist, ray.origin[lane4], ray.direct[lane4], hit));
 
     if (
         greaterEqualF(res.dist, 0.0f) &&
