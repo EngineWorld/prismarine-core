@@ -97,7 +97,7 @@ uint4 genLtMask(){
 }
 
 uint bitCount64(in uint4 a64) {
-    return countbits(a64.x) + countbits(a64.y);
+    return countbits(a64.x) + countbits(a64.y) + countbits(a64.z) + countbits(a64.w);
 }
 
 uint readLane(in uint val, in uint lane){
