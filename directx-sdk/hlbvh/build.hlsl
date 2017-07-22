@@ -5,6 +5,7 @@
 
 #define LEAFIDX(i) (Range[0] + i)
 #define NODEIDX(i) (clamp(i, 1, Range[0]-1))
+#define WORK_SIZED 1024
 
 int nlz (in uint x) {
     return 31-firstbithigh(x);
@@ -44,8 +45,8 @@ int findSplit( int first, int last)
 groupshared int lRange[2];
 groupshared int lCounter;
 
-[numthreads(1024, 1, 1)]
-void main( uint3 WorkGroupID : SV_DispatchThreadID, uint3 LocalInvocationID : SV_GroupIndex )
+[numthreads(WORK_SIZED, 1, 1)]
+void main( uint3 WorkGroupID : SV_DispatchThreadID, uint3 LocalInvocationID : SV_GroupID, uint3 GlobalInvocationID : SV_GroupThreadID, uint LocalInvocationIndex : SV_GroupIndex )
 {
     if (WorkGroupID.x > 0) return; // not supported
     uint threadID = uint(LocalInvocationID.x);
@@ -68,10 +69,10 @@ void main( uint3 WorkGroupID : SV_DispatchThreadID, uint3 LocalInvocationID : SV
     AllMemoryBarrierWithGroupSync();
 
     for (int h=0;h<256;h++) {
-         uint workSize = min((lRange[1] <= lRange[0]) ? 0 : (((lRange[1] - lRange[0]) - 1) / 1024 + 1), 8192);
+         uint workSize = min((lRange[1] <= lRange[0]) ? 0 : (((lRange[1] - lRange[0]) - 1) / WORK_SIZE + 1), 8192);
         for (int i=0;i<workSize;i++) {
             
-             uint sWorkID = 1024 * i;
+             uint sWorkID = WORK_SIZED * i;
              uint prID = lRange[0] + (sWorkID + threadID);
 
             if (prID < lRange[1]) {

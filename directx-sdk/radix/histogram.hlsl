@@ -4,7 +4,7 @@
 groupshared uint localHistogram[RADICES];
 
 [numthreads(WARP_SIZE, WORK_SIZE, 1)]
-void main( uint3 WorkGroupID : SV_DispatchThreadID, uint3 LocalInvocationID : SV_GroupIndex )
+void main( uint3 WorkGroupID : SV_DispatchThreadID, uint3 LocalInvocationID : SV_GroupID, uint3 GlobalInvocationID : SV_GroupThreadID, uint LocalInvocationIndex : SV_GroupIndex )
 {
     WG_IDX = WorkGroupID.x;
     LC_IDX = LocalInvocationID.y;

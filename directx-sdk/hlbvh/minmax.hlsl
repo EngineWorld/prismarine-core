@@ -5,13 +5,15 @@
 #include "../include/STOmath.hlsl"
 
 #define WARP_SIZE 32
+#define WORK_SIZED 512
+#define WORK_COUNT 1
 
 RWStructuredBuffer<float4> minmax : register(u5);
 
-groupshared bbox sdata[ 512 ];
+groupshared bbox sdata[ WORK_SIZED ];
 
 bbox getMinMaxPrimitive(in uint idx){
-     uint tri = clamp(idx, 0u, uint(GEOMETRY_BLOCK geometryUniform.triangleCount-1));
+     uint tri = clamp(idx, 0u, uint(geometryBlock[0].triangleCount-1));
 
     float3x4 triverts = float3x4(
         fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri)), 0), 
@@ -19,9 +21,9 @@ bbox getMinMaxPrimitive(in uint idx){
         fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri)), 2)
     );
 
-    triverts[0] = mul(triverts[0], GEOMETRY_BLOCK octreeUniform.project);
-    triverts[1] = mul(triverts[1], GEOMETRY_BLOCK octreeUniform.project);
-    triverts[2] = mul(triverts[2], GEOMETRY_BLOCK octreeUniform.project);
+    triverts[0] = mul(triverts[0], geometryBlock[0].project);
+    triverts[1] = mul(triverts[1], geometryBlock[0].project);
+    triverts[2] = mul(triverts[2], geometryBlock[0].project);
 
     bbox result;
     result.mn = min(min(triverts[0], triverts[1]), triverts[2]) - float4(0.00001f, 0.00001f, 0.00001f, 0.00001f);
@@ -29,32 +31,42 @@ bbox getMinMaxPrimitive(in uint idx){
     return result;
 }
 
-bbox bboxunion(in bbox b1, in bbox b2) {
-    bbox result;
+void bboxunion(inout bbox result, in bbox b1, in bbox b2) {
     result.mn = min(b1.mn, b2.mn);
     result.mx = max(b1.mx, b2.mx);
+}
+
+bbox bboxunion(in bbox b1, in bbox b2) {
+    bbox result;
+    bboxunion(result, b1, b2);
     return result;
 }
 
-[numthreads(512, 1, 1)]
-void main( uint3 WorkGroupID : SV_DispatchThreadID, uint3 LocalInvocationID : SV_GroupIndex )
+[numthreads(WORK_SIZED, 1, 1)]
+void main( uint3 WorkGroupID : SV_DispatchThreadID, uint3 LocalInvocationID : SV_GroupID, uint3 GlobalInvocationID : SV_GroupThreadID, uint LocalInvocationIndex : SV_GroupIndex )
 {
     uint tid = LocalInvocationID.x;
-    uint gridSize = (512*2)*1;
-    uint tcount = min(GEOMETRY_BLOCK geometryUniform.triangleCount, 16777216);
-    uint i = WorkGroupID.x * (512*2) + tid;
+    uint gridSize = (WORK_SIZED*2)*WORK_COUNT;
+    uint tcount = min(geometryBlock[0].triangleCount, 16777216);
+    uint i = WorkGroupID.x * (WORK_SIZED*2) + tid;
 
-    sdata[tid].mn =  float4(100000.f, 100000.f, 100000.f, 100000.f);
-    sdata[tid].mx = -float4(100000.f, 100000.f, 100000.f, 100000.f);
+    bbox initial;
+    initial.mn = float4(100000.f, 100000.f, 100000.f, 100000.f);
+    initial.mx = -initial.mn;
+    sdata[tid] = initial;
+
     while (i < tcount) {
-        sdata[tid] = bboxunion(sdata[tid], bboxunion(getMinMaxPrimitive(i), getMinMaxPrimitive(i + 512)));
+        bbox bound = sdata[tid];
+        sdata[tid] = bboxunion(bound, bboxunion(getMinMaxPrimitive(i), getMinMaxPrimitive(i + 512)));
         i += gridSize;
     };
     AllMemoryBarrierWithGroupSync();
 
-    for (uint ik=(512>>1);ik>=1;ik>>=1) {
+    for (uint ik=(WORK_SIZED>>1);ik>=1;ik>>=1) {
         if (tid < ik) {
-            sdata[tid] = bboxunion(sdata[tid], sdata[tid + ik]); 
+            bbox bound = sdata[tid];
+            bbox opbound = sdata[tid + ik];
+            sdata[tid] = bboxunion(bound, opbound);
         }
         if (ik > WARP_SIZE) {
             AllMemoryBarrierWithGroupSync();
@@ -62,7 +74,7 @@ void main( uint3 WorkGroupID : SV_DispatchThreadID, uint3 LocalInvocationID : SV
     }
 
     if (tid == 0) {
-        minmax[WorkGroupID.x*2 + 0] = sdata[0].mn; 
-        minmax[WorkGroupID.x*2 + 1] = sdata[0].mx; 
+        minmax[WorkGroupID.x*2 + 0] = sdata[0].mn;
+        minmax[WorkGroupID.x*2 + 1] = sdata[0].mx;
     }
 }

@@ -12,7 +12,7 @@
 #include "./hlbvh/traverse.hlsl"
 
 [numthreads(128, 1, 1)]
-void main( uint3 WorkGroupID : SV_DispatchThreadID, uint3 LocalInvocationID : SV_GroupIndex )
+void main( uint3 WorkGroupID : SV_DispatchThreadID, uint3 LocalInvocationID : SV_GroupID, uint3 GlobalInvocationID : SV_GroupThreadID, uint LocalInvocationIndex : SV_GroupIndex )
 {
     uint t = WorkGroupID.x * 128 + LocalInvocationID.x;
 }
