@@ -6,6 +6,7 @@
 
 #define GAP PZERO*1.0f
 
+
 struct Submat {
     vec4 diffuse;
     vec4 specular;
@@ -31,7 +32,11 @@ struct Submat {
 };
 
 const uint MAX_TEXTURES = 64;
+#ifdef USE_BINDLESS
 layout ( location = 0 ) uniform uint64_t samplers[MAX_TEXTURES];
+#else
+layout ( location = 0 ) uniform sampler2D samplers[MAX_TEXTURES];
+#endif
 //layout ( location = 0, bindless_sampler ) uniform sampler2D samplers[MAX_TEXTURES];
 //layout ( binding = 31 ) uniform sampler2D u_PivotSampler;
 
@@ -46,24 +51,27 @@ bool haveProp(in int flags, in int prop) {
 }
 
 bool validateTexture(in uint binding){
-    //return smp != 0;//0xFFFFFFFF;
-    //return textureSize(samplers[binding], 0).x > 0;
-    //return binding != -1 && binding != 0 && binding != LONGEST && binding >= 0 && binding < MAX_TEXTURES && textureSize(samplers[binding], 0).x > 0;
-      return binding != -1 && binding != 0 && binding != LONGEST && binding >= 0 && binding < MAX_TEXTURES && textureSize(sampler2D(samplers[binding]), 0).x > 0;
+#ifdef USE_BINDLESS
+    return binding != -1 && binding != 0 && binding != LONGEST && binding >= 0 && binding < MAX_TEXTURES && textureSize(sampler2D(samplers[binding]), 0).x > 0;
+#else
+    return binding != -1 && binding != 0 && binding != LONGEST && binding >= 0 && binding < MAX_TEXTURES && textureSize(samplers[binding], 0).x > 0;
+#endif
 }
 
 vec4 fetchPart(in uint binding, in vec2 texcoord){
-    //return texelFetchWrap(binding, texcoord);
-    //return texelFetchLinear(binding, texcoord);
-    //return texture(samplers[binding], texcoord);
+#ifdef USE_BINDLESS
     return texture(sampler2D(samplers[binding]), texcoord);
+#else
+    return texture(samplers[binding], texcoord);
+#endif
 }
 
 vec4 fetchPart(in uint binding, in vec2 texcoord, in ivec2 offset){
-    //return texelFetchWrap(binding, texcoord, offset);
-    //return texelFetchLinear(binding, texcoord, offset);
-    //return texture(samplers[binding], texcoord + vec2(offset) / textureSize(samplers[binding], 0));
+#ifdef USE_BINDLESS
     return texture(sampler2D(samplers[binding]), texcoord + vec2(offset) / textureSize(sampler2D(samplers[binding]), 0));
+#else
+    return texture(samplers[binding], texcoord + vec2(offset) / textureSize(samplers[binding], 0));
+#endif
 }
 
 vec4 fetchSpecular(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 normal){

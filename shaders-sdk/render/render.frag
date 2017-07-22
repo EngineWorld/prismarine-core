@@ -15,8 +15,6 @@
 
 layout ( location = 0 ) out vec4 outFragColor;
 layout ( location = 0 ) uniform sampler2D samples;
-
-uniform vec2 viewport;
 layout ( location = 0 ) in vec2 texcoord;
 
 

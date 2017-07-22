@@ -78,4 +78,6 @@
 
 //#extension GL_ARB_shader_group_vote : require
 
+//#define USE_BINDLESS
+
 #endif
