@@ -46,7 +46,7 @@ groupshared int lRange[2];
 groupshared int lCounter;
 
 [numthreads(LOCAL_SIZE, 1, 1)]
-void main( uint3 WorkGroupID : SV_DispatchThreadID, uint3 LocalInvocationID : SV_GroupID, uint3 GlobalInvocationID : SV_GroupThreadID, uint LocalInvocationIndex : SV_GroupIndex )
+void CSMain( uint3 WorkGroupID : SV_DispatchThreadID, uint3 LocalInvocationID : SV_GroupID, uint3 GlobalInvocationID : SV_GroupThreadID, uint LocalInvocationIndex : SV_GroupIndex )
 {
     if (WorkGroupID.x > 0) return; // not supported
     uint threadID = uint(LocalInvocationID.x);

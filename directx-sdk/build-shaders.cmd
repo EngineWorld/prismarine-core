@@ -1,4 +1,4 @@
-set FLAGS= -E main -T cs_5_0 -HV 2017 -WX -O0 
+set FLAGS= -E CSMain -T cs_5_0 -HV 2017 -WX -O0 
  dxc %FLAGS% render/intersection.hlsl  -Fo render/intersection.bin
  dxc %FLAGS% hlbvh/aabbmaker.hlsl      -Fo hlbvh/aabbmaker.bin
  dxc %FLAGS% hlbvh/build.hlsl          -Fo hlbvh/build.bin

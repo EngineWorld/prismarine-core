@@ -76,7 +76,7 @@ LResult loadInfo(in TResult hitp) {
 
 
 [numthreads(WORK_SIZE, 1, 1)]
-void main( uint3 WorkGroupID : SV_DispatchThreadID, uint3 LocalInvocationID : SV_GroupID, uint3 GlobalInvocationID : SV_GroupThreadID, uint LocalInvocationIndex : SV_GroupIndex )
+void CSMain( uint3 WorkGroupID : SV_DispatchThreadID, uint3 LocalInvocationID : SV_GroupID, uint3 GlobalInvocationID : SV_GroupThreadID, uint LocalInvocationIndex : SV_GroupIndex )
 {
     uint it = WorkGroupID.x * WORK_SIZE + LocalInvocationID.x;
     bool overflow = it >= rayBlock[0].rayCount;

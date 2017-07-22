@@ -43,7 +43,7 @@ bbox bboxunion(in bbox b1, in bbox b2) {
 }
 
 [numthreads(LOCAL_SIZE, 1, 1)]
-void main( uint3 WorkGroupID : SV_DispatchThreadID, uint3 LocalInvocationID : SV_GroupID, uint3 GlobalInvocationID : SV_GroupThreadID, uint LocalInvocationIndex : SV_GroupIndex )
+void CSMain( uint3 WorkGroupID : SV_DispatchThreadID, uint3 LocalInvocationID : SV_GroupID, uint3 GlobalInvocationID : SV_GroupThreadID, uint LocalInvocationIndex : SV_GroupIndex )
 {
     uint tid = LocalInvocationID.x;
     uint gridSize = (LOCAL_SIZE*2)*WORK_COUNT;
