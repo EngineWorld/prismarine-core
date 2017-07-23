@@ -110,7 +110,7 @@ void CSMain( uint3 WorkGroupID : SV_GroupID, uint3 LocalInvocationID  : SV_Group
                     Flags[rid] = 0;
 
                     // connect with childrens
-                    parentNode.pdata.xy = (lid, rid);
+                    parentNode.pdata.xy = int2(lid, rid);
                     Nodes[prID] = parentNode;
                 } else {
                     uint leafID = MortoncodesIndices[parentNode.pdata.x];

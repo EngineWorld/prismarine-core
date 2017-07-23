@@ -7,4 +7,5 @@ set FLAGS= -E CSMain -T cs_5_0 -HV 2017 -WX -O0
  dxc %FLAGS% radix/histogram.hlsl      -Fo radix/histogram.bin
  dxc %FLAGS% radix/permute.hlsl        -Fo radix/permute.bin
  dxc %FLAGS% radix/prefix-scan.hlsl    -Fo radix/prefix-scan.bin
+ 
 pause
