@@ -1,9 +1,9 @@
-#include "../include/constants.hlsl"
-#include "../include/structs.hlsl"
-#include "../include/uniforms.hlsl"
-#include "../include/vertex.hlsl"
-#include "../include/morton.hlsl"
-#include "../include/STOmath.hlsl"
+#include "../include/constants.hlsli"
+#include "../include/structs.hlsli"
+#include "../include/uniforms.hlsli"
+#include "../include/vertex.hlsli"
+#include "../include/morton.hlsli"
+#include "../include/STOmath.hlsli"
 
 RWStructuredBuffer<Leaf> OutLeafs : register(u0);
 RWStructuredBuffer<uint> Mortoncodes : register(u1);

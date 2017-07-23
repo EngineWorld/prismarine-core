@@ -1,7 +1,7 @@
-#include "../include/constants.hlsl"
-#include "../include/structs.hlsl"
-#include "../include/uniforms.hlsl"
-#include "./includes.hlsl"
+#include "../include/constants.hlsli"
+#include "../include/structs.hlsli"
+#include "../include/uniforms.hlsli"
+#include "./includes.hlsli"
 
 #define LEAFIDX(i) (Range[0] + i)
 #define NODEIDX(i) (clamp(i, 1, Range[0]-1))

@@ -1,11 +1,11 @@
 
-#include "../include/constants.hlsl"
-#include "../include/structs.hlsl"
-#include "../include/uniforms.hlsl"
-#include "../include/STOmath.hlsl"
-#include "../include/vertex.hlsl"
-#include "../include/rays.hlsl"
-#include "../hlbvh/traverse.hlsl"
+#include "../include/constants.hlsli"
+#include "../include/structs.hlsli"
+#include "../include/uniforms.hlsli"
+#include "../include/STOmath.hlsli"
+#include "../include/vertex.hlsli"
+#include "../include/rays.hlsli"
+#include "../include/traverse.hlsli"
 
 struct LResult {
     float4 normal;

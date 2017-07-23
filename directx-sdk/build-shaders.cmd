@@ -1,11 +1,11 @@
 set FLAGS= -E CSMain -T cs_5_0 -HV 2017 -WX -O0 
- dxc %FLAGS% render/intersection.hlsl  -Fo render/intersection.bin
- dxc %FLAGS% hlbvh/aabbmaker.hlsl      -Fo hlbvh/aabbmaker.bin
- dxc %FLAGS% hlbvh/build.hlsl          -Fo hlbvh/build.bin
- dxc %FLAGS% hlbvh/minmax.hlsl         -Fo hlbvh/minmax.bin
- dxc %FLAGS% hlbvh/refit.hlsl          -Fo hlbvh/refit.bin
- dxc %FLAGS% radix/histogram.hlsl      -Fo radix/histogram.bin
- dxc %FLAGS% radix/permute.hlsl        -Fo radix/permute.bin
- dxc %FLAGS% radix/prefix-scan.hlsl    -Fo radix/prefix-scan.bin
+ dxc %FLAGS% render/intersection.compute  -Fo bin/render/intersection.bin
+ dxc %FLAGS% hlbvh/aabbmaker.compute      -Fo bin/hlbvh/aabbmaker.bin
+ dxc %FLAGS% hlbvh/build.compute          -Fo bin/hlbvh/build.bin
+ dxc %FLAGS% hlbvh/minmax.compute         -Fo bin/hlbvh/minmax.bin
+ dxc %FLAGS% hlbvh/refit.compute          -Fo bin/hlbvh/refit.bin
+ dxc %FLAGS% radix/histogram.compute      -Fo bin/radix/histogram.bin
+ dxc %FLAGS% radix/permute.compute        -Fo bin/radix/permute.bin
+ dxc %FLAGS% radix/prefix-scan.compute    -Fo bin/radix/prefix-scan.bin
  
 pause

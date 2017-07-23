@@ -1,5 +1,5 @@
 
-#include "./includes.hlsl"
+#include "./includes.hlsli"
 
 groupshared uint localSort[BLOCK_SIZE];
 groupshared uint localSortVal[BLOCK_SIZE];

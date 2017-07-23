@@ -1,5 +1,5 @@
 
-#include "./includes.hlsl"
+#include "./includes.hlsli"
 
 groupshared uint local_sort[WG_COUNT];
 

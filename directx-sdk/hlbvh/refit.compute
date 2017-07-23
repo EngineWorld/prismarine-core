@@ -1,7 +1,7 @@
-#include "../include/constants.hlsl"
-#include "../include/structs.hlsl"
-#include "../include/uniforms.hlsl"
-#include "./includes.hlsl"
+#include "../include/constants.hlsli"
+#include "../include/structs.hlsli"
+#include "../include/uniforms.hlsli"
+#include "./includes.hlsli"
 
 [numthreads(WORK_SIZE, 1, 1)]
 void CSMain( uint3 WorkGroupID : SV_GroupID, uint3 LocalInvocationID  : SV_GroupThreadID, uint3 GlobalInvocationID : SV_DispatchThreadID)

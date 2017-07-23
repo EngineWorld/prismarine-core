@@ -7,7 +7,7 @@
 #include "../include/vertex.glsl"
 #include "../include/morton.glsl"
 #include "../include/STOmath.glsl"
-#include "../hlbvh/traverse.glsl"
+#include "../include/traverse.glsl"
 
 struct LResult {
     vec4 normal;
