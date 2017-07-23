@@ -7,8 +7,6 @@
 #include "../include/rays.hlsl"
 #include "../hlbvh/traverse.hlsl"
 
-
-
 struct LResult {
     float4 normal;
     float4 tangent;

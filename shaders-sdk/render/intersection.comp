@@ -9,7 +9,6 @@
 #include "../include/STOmath.glsl"
 #include "../hlbvh/traverse.glsl"
 
-
 struct LResult {
     vec4 normal;
     vec4 tangent;
