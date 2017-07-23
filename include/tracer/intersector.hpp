@@ -11,7 +11,6 @@ namespace Paper {
     private:
         RadixSort * sorter = nullptr;
 
-        const int32_t zero[1] = { 0 };
         bool dirty = false;
         uint32_t maxt = 1024 * 1024 * 1;
         uint32_t worksize = 128;

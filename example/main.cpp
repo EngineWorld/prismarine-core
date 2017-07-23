@@ -83,7 +83,7 @@ namespace PaperExample {
         std::vector<uint32_t> rtTextures = std::vector<uint32_t>();
 #endif
 
-        double absscale = 0.75f;
+        //double absscale = 0.75f;
         struct {
             bool show_test_window = false;
             bool show_another_window = false;
@@ -624,7 +624,7 @@ uint32_t rand32() {
 
 
 
-
+/*
 uint64_t ticks(void) {
     const uint64_t ticks_per_second = UINT64_C(10000000);
     static LARGE_INTEGER freq;
@@ -662,7 +662,7 @@ void APIENTRY debug_message(
 }
 
 #define EACH(i, size) for (auto i = decltype(size)(0); i < size; i++)
-
+*/
 
 
 
@@ -685,12 +685,12 @@ int main(const int argc, const char ** argv)
     int32_t width = 1280;
     int32_t height = 720;
 
-    GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+    //GLFWmonitor* monitor = glfwGetPrimaryMonitor();
     GLFWwindow* window = glfwCreateWindow(width, height, "Simple example", NULL, NULL);
     if (!window) { glfwTerminate(); exit(EXIT_FAILURE); }
 
 #ifdef _WIN32 //Windows DPI scaling
-    HWND win = glfwGetWin32Window(window);
+    //HWND win = glfwGetWin32Window(window);
     int32_t baseDPI = 96;
     int32_t dpi = baseDPI;//GetDpiForWindow(win);
 #else //Other not supported

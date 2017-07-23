@@ -16,7 +16,6 @@ namespace Paper {
     inline void Material::bindWithContext(GLuint & prog) {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 15, mats);
 
-        const GLuint firstBind = 0;
         const GLuint textureLocation = 0;
         uint32_t pcount = std::min((uint32_t)samplers.size(), 64u);
 
@@ -29,6 +28,7 @@ namespace Paper {
         glProgramUniformHandleui64vARB(prog, textureLocation, pcount, vctr.data());
         
         /*
+        const GLuint firstBind = 0;
         std::vector<uint32_t> vctr(pcount);
         for (int i = 0; i < pcount; i++) vctr[i] = firstBind + i;
         glBindTextures(firstBind, pcount, samplers.data());

@@ -6,7 +6,7 @@ namespace Paper {
         GLuint permuteProgram;
         GLuint prefixScanProgram;
         GLuint histogramProgram;
-        GLuint flipProgram;
+        //GLuint flipProgram;
 
         struct Consts { GLuint NumKeys, Shift, Descending, IsSigned; };
 
@@ -27,14 +27,14 @@ namespace Paper {
 
         void sort(GLuint &InKeys, GLuint &InVals, uint32_t size = 1, uint32_t descending = 0) {
             Consts consts[] = {
-                size, 0, descending, 0,
-                size, 4, descending, 0,
-                size, 8, descending, 0,
-                size, 12, descending, 0,
-                size, 16, descending, 0,
-                size, 20, descending, 0,
-                size, 24, descending, 0,
-                size, 28, descending, 0
+                { size, 0, descending, 0 },
+                { size, 4, descending, 0 },
+                { size, 8, descending, 0 },
+                { size, 12, descending, 0 },
+                { size, 16, descending, 0 },
+                { size, 20, descending, 0 },
+                { size, 24, descending, 0 },
+                { size, 28, descending, 0 }
             };
 
             const uint32_t WG_COUNT = 8;

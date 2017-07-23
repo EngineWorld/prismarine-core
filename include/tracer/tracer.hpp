@@ -55,9 +55,8 @@ namespace Paper {
 
         GLuint posBuf = -1;
         GLuint idcBuf = -1;
-        GLuint posattr = -1;
+        //GLuint posattr = -1;
 
-        const int32_t zero[1] = { 0 };
         void initShaders();
         void init();
 

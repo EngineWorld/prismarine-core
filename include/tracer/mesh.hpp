@@ -20,18 +20,15 @@ namespace Paper {
         GLuint vbo_triangle_ssbo = -1;
         GLuint mat_triangle_ssbo = -1;
         GLuint vebo_triangle_ssbo = -1;
-        int32_t _toffset = 0;
 
         glm::mat4 texmat = glm::mat4(1.0f);
         glm::mat4 trans = glm::mat4(1.0f);
         glm::vec4 colormod = glm::vec4(1.0f);
 
         int32_t materialID = 0;
-        int32_t maxDepth = 4;
         int32_t unindexed = 1;
         int32_t offset = 0;
         size_t nodeCount = 0;
-        size_t verticeCount = 0;
         float voffset = 0;
         bool index16bit = false;
 

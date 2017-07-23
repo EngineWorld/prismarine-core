@@ -36,7 +36,7 @@ namespace Paper {
         };
 
     private:
-        int32_t materialID = 0;
+        //int32_t materialID = 0;
         GLuint mats = -1;
 
         void init();
