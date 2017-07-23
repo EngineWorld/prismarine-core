@@ -4,6 +4,10 @@ set (APPLICATION_NAME paper-render)
 
 project (${PROJECT_NAME})
 
+if (COMPILER_ID MATCHES "MSVC")
+  set(MSVC_${lang}_ARCHITECTURE_ID "${ARCHITECTURE_ID}")
+endif()
+
 set(SOURCES_LIST 
     "./example/*.cpp"
 
@@ -69,8 +73,8 @@ set (LIBS
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
 set (CMAKE_CXX_STANDARD 17)
 set (CMAKE_CXX_EXTENSIONS ON)
-set (CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -Ofast)
-add_compile_options(-std=c++17)
+set (CMAKE_CXX_FLAGS "/EHsc")
+set (CMAKE_C_FLAGS "/EHsc /std:c++latest")
 
 set (INCLUDE_LIST 
     ${INC_DIR}
