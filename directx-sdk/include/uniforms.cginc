@@ -1,7 +1,7 @@
 #ifndef _UNIFORMS_H
 #define _UNIFORMS_H
 
-#include "../include/structs.hlsli"
+#include "../include/structs.cginc"
 
 //#define RAY_BLOCK rayBlock[0].
 //#define GEOMETRY_BLOCK geometryBlock[0].

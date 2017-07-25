@@ -1,5 +1,6 @@
+#pragma kernel CSMain
 
-#include "./includes.hlsli"
+#include "./includes.cginc"
 
 groupshared uint localSort[BLOCK_SIZE];
 groupshared uint localSortVal[BLOCK_SIZE];

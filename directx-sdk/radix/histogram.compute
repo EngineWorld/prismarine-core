@@ -1,5 +1,6 @@
+#pragma kernel CSMain
 
-#include "./includes.hlsli"
+#include "./includes.cginc"
 
 groupshared uint localHistogram[RADICES];
 

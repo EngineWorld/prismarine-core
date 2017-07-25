@@ -1,5 +1,6 @@
+#pragma kernel CSMain
 
-#include "./includes.hlsli"
+#include "./includes.cginc"
 
 groupshared uint local_sort[WG_COUNT];
 

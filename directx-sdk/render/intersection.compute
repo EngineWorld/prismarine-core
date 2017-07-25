@@ -1,11 +1,13 @@
 
-#include "../include/constants.hlsli"
-#include "../include/structs.hlsli"
-#include "../include/uniforms.hlsli"
-#include "../include/STOmath.hlsli"
-#include "../include/vertex.hlsli"
-#include "../include/rays.hlsli"
-#include "../include/traverse.hlsli"
+#pragma kernel CSMain
+
+#include "../include/constants.cginc"
+#include "../include/structs.cginc"
+#include "../include/uniforms.cginc"
+#include "../include/STOmath.cginc"
+#include "../include/vertex.cginc"
+#include "../include/rays.cginc"
+#include "../include/traverse.cginc"
 
 struct LResult {
     float4 normal;

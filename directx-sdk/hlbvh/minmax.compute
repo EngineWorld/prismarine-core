@@ -1,8 +1,10 @@
-#include "../include/constants.hlsli"
-#include "../include/structs.hlsli"
-#include "../include/uniforms.hlsli"
-#include "../include/vertex.hlsli"
-#include "../include/STOmath.hlsli"
+#pragma kernel CSMain
+
+#include "../include/constants.cginc"
+#include "../include/structs.cginc"
+#include "../include/uniforms.cginc"
+#include "../include/vertex.cginc"
+#include "../include/STOmath.cginc"
 
 #define WARP_SIZE 32
 #define LOCAL_SIZE 512

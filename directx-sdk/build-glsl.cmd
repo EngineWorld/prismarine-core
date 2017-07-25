@@ -1,6 +1,6 @@
 set FLAGS= -E CSMain -T comp -Vout GLSL450 -Vin HLSL6 --explicit-bind ON --wrapper ON
  
-::xsc -o "../build/shaders/render/intersection.comp" "./render/intersection.hlsli"
+::xsc -o "../build/shaders/render/intersection.comp" "./render/intersection.cginc"
 
  xsc -o ../build/shaders/render/intersection.comp %FLAGS% render/intersection.compute 
  xsc -o ../build/shaders/hlbvh/aabbmaker.comp     %FLAGS% hlbvh/aabbmaker.compute     

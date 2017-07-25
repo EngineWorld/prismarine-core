@@ -1,7 +1,9 @@
-#include "../include/constants.hlsli"
-#include "../include/structs.hlsli"
-#include "../include/uniforms.hlsli"
-#include "./includes.hlsli"
+#pragma kernel CSMain
+
+#include "../include/constants.cginc"
+#include "../include/structs.cginc"
+#include "../include/uniforms.cginc"
+#include "./includes.cginc"
 
 [numthreads(WORK_SIZE, 1, 1)]
 void CSMain( uint3 WorkGroupID : SV_GroupID, uint3 LocalInvocationID  : SV_GroupThreadID, uint3 GlobalInvocationID : SV_DispatchThreadID)

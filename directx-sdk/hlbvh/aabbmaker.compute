@@ -1,9 +1,11 @@
-#include "../include/constants.hlsli"
-#include "../include/structs.hlsli"
-#include "../include/uniforms.hlsli"
-#include "../include/vertex.hlsli"
-#include "../include/morton.hlsli"
-#include "../include/STOmath.hlsli"
+#pragma kernel CSMain
+
+#include "../include/constants.cginc"
+#include "../include/structs.cginc"
+#include "../include/uniforms.cginc"
+#include "../include/vertex.cginc"
+#include "../include/morton.cginc"
+#include "../include/STOmath.cginc"
 
 RWStructuredBuffer<Leaf> OutLeafs : register(u0);
 RWStructuredBuffer<uint> Mortoncodes : register(u1);

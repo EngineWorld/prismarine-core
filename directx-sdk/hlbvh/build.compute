@@ -1,7 +1,9 @@
-#include "../include/constants.hlsli"
-#include "../include/structs.hlsli"
-#include "../include/uniforms.hlsli"
-#include "./includes.hlsli"
+#pragma kernel CSMain
+
+#include "../include/constants.cginc"
+#include "../include/structs.cginc"
+#include "../include/uniforms.cginc"
+#include "./includes.cginc"
 
 #define LEAFIDX(i) (Range[0] + i)
 #define NODEIDX(i) (clamp(i, 1, Range[0]-1))
