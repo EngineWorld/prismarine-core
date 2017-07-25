@@ -82,26 +82,23 @@ uint readLane(in uint val, in uint lane) {
 
 #else
 
-#define UVEC_BALLOT_WARP UVEC64_WARP
+//#define UVEC_BALLOT_WARP UVEC64_WARP
+#define UVEC_BALLOT_WARP uvec2
 
-uint64_t genLtMask(){
-    return gl_SubGroupLtMaskARB;
+uvec2 genLtMask(){
+    return unpackUint2x32(gl_SubGroupLtMaskARB);
 }
 
-uint bitCount64(in uint64_t a64) {
-    // uvec2 lh = unpackUint2x32(a64);
-    //return bitCount(lh.x) + bitCount(lh.y);
-     uint lo = uint((a64 >> 0ul ) & 0xFFFFFFFFul);
-     uint hi = uint((a64 >> 32ul) & 0xFFFFFFFFul);
-    return bitCount(lo) + bitCount(hi);
+uint bitCount64(in uvec2 a64) {
+    return bitCount(lh.x) + bitCount(lh.y);
 }
 
 uint readLane(in uint val, in uint lane){
     return readInvocationARB(val, lane);
 }
 
-uint64_t ballot(in bool val) {
-    return ballotARB(val);
+uvec2 ballot(in bool val) {
+    return unpackUint2x32(ballotARB(val));
 }
 
 #endif

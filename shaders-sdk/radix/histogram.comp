@@ -14,21 +14,10 @@ void main(){
     for (int i=0;i<4096;i++) {
         if (i >= blocks.count) break;
 
-         BVEC_WARP validAddress = addr < NumKeys;
-         UVEC_WARP data = KeyIn[addr];
-         UVEC_WARP k = bitfieldExtract(data, int(Shift), BITS_PER_PASS);
-         UVEC_WARP key = k;
-
-        /*
-        // warp histogram counting
-        UVEC_WARP inWarpHist = 0;
-        for (int ri=0;ri<RADICES;ri++) {  // limited RADICES by WARP_SIZE
-             BVEC_WARP cmp = key == ri && validAddress;
-             UVEC_WARP blt = uint(ballot( cmp ));
-            if (ri == LANE_IDX) inWarpHist = bitCount(blt);
-        }
-        atomicAdd(localHistogram[LANE_IDX], inWarpHist); // much synchronized atomicAdd
-        */
+        BVEC_WARP validAddress = addr < NumKeys;
+        UVEC_WARP data = KeyIn[addr];
+        UVEC_WARP k = bitfieldExtract(data, int(Shift), BITS_PER_PASS);
+        UVEC_WARP key = k;
 
         // smaller version (generalized)
         atomicAdd(localHistogram[key], UVEC_WARP(validAddress));

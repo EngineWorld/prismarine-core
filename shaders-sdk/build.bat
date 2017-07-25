@@ -1,6 +1,6 @@
 
 cd %~dp0
-set CFLAGS=--target-env=opengl -x glsl -Werror -Os -E -S
+set CFLAGS=--target-env=opengl -x glsl -Werror -Os -E -S -DUSE_BINDLESS
 set INDIR=.\
 set OUTDIR=..\build\shaders\
 set VXL2=tools\
