@@ -31,6 +31,12 @@ LResult loadInfo(in TResult hitp) {
     res.predist = hitp.predist; // legacy
     res.uv = hitp.uv; // legacy
 
+    res.mods = (0.f).xxxx;
+    res.color = (0.f).xxxx;
+    res.texcoord = (0.f).xxxx;
+    res.tangent = (0.f).xxxx;
+    res.normal = (0.f).xxxx;
+
     int tri = hitp.triangleID;
     if (greaterEqualF(hitp.dist, 0.0f) && lessF(hitp.dist, INFINITY) && tri != LONGEST) {
         float3 trinorms[3];

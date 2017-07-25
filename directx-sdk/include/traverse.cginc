@@ -238,7 +238,8 @@ TResult traverse(in uint L, in float distn, in float3 origin, in float3 direct, 
     lastRes.predist = INFINITY;
     lastRes.triangleID = LONGEST;
     lastRes.materialID = LONGEST;
-    
+    lastRes.uv = (0.f).xxxx;
+
     deferredStack[L][0] = -1;
     SharedVarData sharedVarData;
     sharedVarData.bakedStackCount = 0;

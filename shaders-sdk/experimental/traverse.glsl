@@ -224,6 +224,7 @@ TResult traverse(in float distn, in VEC3 origin, in VEC3 direct, in Hit hit) {
     lastRes.predist = INFINITY;
     lastRes.triangle = LONGEST;
     lastRes.materialID = LONGEST;
+    lastRes.uv = (0.f).xxxx;
     bakedRange[0] = LONGEST;
 
     // test constants

@@ -8,6 +8,7 @@ shared uint localHistogram[RADICES];
 shared uint warpPScan[WORK_SIZE];
 shared uint psums[WORK_SIZE];
 shared uint totals[WORK_SIZE];
+shared uint bcount;
 
 layout (local_size_x = WARP_SIZE, local_size_y = WORK_SIZE) in;
 
@@ -80,9 +81,11 @@ void main(){
 
     blocks_info blocks = get_blocks_info(NumKeys, WG_IDX);
     UVEC_WARP addr = blocks.offset + localIdx;
+    if (LANE_IDX == 0 && LC_IDX == 0) bcount = blocks.count;
+    barrier(); memoryBarrier();
 
-    for ( int i_block=0; i_block < 4096 ; i_block++ ) {
-        if (i_block >= blocks.count) break;
+    for ( int i_block=0; i_block < 1024 ; i_block++ ) {
+        if (i_block >= bcount) break;
 
          BVEC_WARP validAddress = addr < NumKeys;
         UVEC_WARP data      = validAddress ?   KeyIn[addr] : def;
