@@ -32,26 +32,26 @@ void main(){
     const ivec3 xyl = ivec3(it % whs.x, it / whs.x, 0);
 
     int samplecount = 0;
-     ivec2 basis = ivec2(vec2(xyl.xy) * aspect);
+    ivec2 basis = ivec2(vec2(xyl.xy) * aspect);
     vec4 newc = vec4(0.0f, 0.0f, 0.0f, 1.0f);
-     vec2 screen = vec2(xyl.xy);
+    vec2 screen = vec2(xyl.xy);
     for(int x=-1;x<=scl.x;x++){
         for(int y=-1;y<=scl.y;y++){
-
-             ivec2 cmp = basis + ivec2(x, y);
-            if (cmp.x >= 0.f && cmp.y >= 0.f && cmp.x < wh.x && cmp.y < wh.y) {
-                 int ts = cmp.y * wh.x + cmp.x;
+            ivec2 cmp = basis + ivec2(x, y);
+            if (
+                cmp.x >= 0 && cmp.x < wh.x && 
+                cmp.y >= 0 && cmp.y < wh.y
+            ) {
                 if (RAY_BLOCK cameraUniform.interlace == 1){
                     if ((abs(cmp.x + cmp.y) % 2) == RAY_BLOCK cameraUniform.interlaceStage) continue;
                 }
 
-                 vec2 surround = vec2(texelBuf.nodes[ts].coord.x, texelBuf.nodes[ts].coord.y) * vec2(whs);
-                 vec2 diff = surround - screen;
+                int ts = cmp.y * wh.x + cmp.x;
+                vec2 surround = vec2(texelBuf.nodes[ts].coord.x, texelBuf.nodes[ts].coord.y) * vec2(whs);
+                vec2 diff = surround - screen + 0.00001f;
                 if (
-                    diff.x >= -0.0f &&
-                    diff.y >= -0.0f &&
-                    diff.x < 1.0f &&
-                    diff.y < 1.0f
+                    diff.x >= 0.0f && diff.x < 1.0f &&
+                    diff.y >= 0.0f && diff.y < 1.0f
                 ) {
                     samplecount++;
                     newc.xyz += collectSamples(texelBuf.nodes[ts]).xyz;
