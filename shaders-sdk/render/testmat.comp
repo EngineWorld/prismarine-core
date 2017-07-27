@@ -201,7 +201,7 @@ void main() {
         diffuseRay.color.xyz *= (1.0f - prom);
         diffuseRay.color.xyz *= clamp(1.0f - emis, 0.0f, 1.0f);
 
-        spic = 0.f; // test purpose
+        //spic = 0.f; // test purpose
         reflectionRay = reflection(reflectionRay, hit, clamp(sc.xyz / spca, 0.0f, 1.0f), normal, refly);
         reflectionRay.color.xyz *= (1.0f - prom);
         mixed(diffuseRay.color.xyz, reflectionRay.color.xyz, clamp(spic, 0.0f, 1.0f));
