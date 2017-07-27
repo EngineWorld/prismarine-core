@@ -649,7 +649,7 @@ int main(const int argc, const char ** argv)
 #endif
     
     // DPI scaling for Windows
-#ifdef MSVC and _WIN32
+#if (defined MSVC && defined _WIN32)
     dpi = GetDpiForWindow(win);
 #endif
 
@@ -680,7 +680,7 @@ int main(const int argc, const char ** argv)
         glfwGetFramebufferSize(window, &w, &h);
 
         // DPI scaling for Windows
-#ifdef MSVC and _WIN32
+#if (defined MSVC && defined _WIN32)
         dpi = GetDpiForWindow(win);
 #endif
 
