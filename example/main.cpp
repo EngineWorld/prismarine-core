@@ -441,8 +441,6 @@ static void mouse_move_callback(GLFWwindow* window, double x, double y){
     app->mouseMove(x, y);
 }
 
-const unsigned super_sampling = 2;
-
 int main(const int argc, const char ** argv)
 {
     glfwSetErrorCallback(error_callback);
@@ -452,6 +450,7 @@ int main(const int argc, const char ** argv)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+    const unsigned superSampling = 2;
     int32_t baseWidth = 640;
     int32_t baseHeight = 360;
 
@@ -483,7 +482,7 @@ int main(const int argc, const char ** argv)
     if (!gladLoadGL()) { glfwTerminate(); exit(EXIT_FAILURE); }
 
     app = new PaperExample::PathTracerApplication(argc, argv, window);
-    app->resizeBuffers(baseWidth * super_sampling, baseHeight * super_sampling);
+    app->resizeBuffers(baseWidth * superSampling, baseHeight * superSampling);
     app->resize(canvasWidth, canvasHeight);
 
     glfwSetKeyCallback(window, key_callback);
