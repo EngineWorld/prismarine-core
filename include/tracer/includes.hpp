@@ -24,9 +24,3 @@
 #include "external/include/FreeImage.h"
 #endif
 
-#ifdef ASSIMP_SUPPORT
-#include "assimp/Importer.hpp"
-#include <assimp/scene.h>           // Output data structure
-#include <assimp/postprocess.h>     // Post processing flags
-#include <assimp/texture.h>
-#endif

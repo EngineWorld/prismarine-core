@@ -43,10 +43,6 @@ namespace Paper {
         void setIndices(const GLuint &buf, const bool &all = true);
         void setLoadingOffset(const int32_t &off);
 
-#ifdef ASSIMP_SUPPORT
-        void loadMesh(aiMesh ** meshes, int32_t meshCount);
-#endif
-
         void bind();
     };
 }
