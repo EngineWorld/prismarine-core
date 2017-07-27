@@ -423,7 +423,7 @@ namespace PaperExample {
 PaperExample::PathTracerApplication * app;
 
 static void error_callback(int32_t error, const char* description){
-    fprintf(stderr, "Error: %s\n", description);
+    std::cerr << ("Error: \n" + std::string(description)) << std::endl;
 }
 
 static void key_callback(GLFWwindow* window, int32_t key, int32_t scancode, int32_t action, int32_t mods){
