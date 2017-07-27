@@ -666,6 +666,8 @@ void APIENTRY debug_message(
 
 
 
+const unsigned super_sampling = 2;
+
 int main(const int argc, const char ** argv)
 {
     glfwSetErrorCallback(error_callback);
@@ -673,24 +675,17 @@ int main(const int argc, const char ** argv)
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    glfwWindowHint(GLFW_SAMPLES, 0);
-    glfwWindowHint(GLFW_RED_BITS, 10);
-    glfwWindowHint(GLFW_GREEN_BITS, 10);
-    glfwWindowHint(GLFW_BLUE_BITS, 10);
-    glfwWindowHint(GLFW_ALPHA_BITS, 2);
-    glfwWindowHint(GLFW_DEPTH_BITS, 32); 
+    // super sampled, and DPI scaled
+    int32_t width = 640;
+    int32_t height = 360;
 
-    int32_t width = 1280;
-    int32_t height = 720;
-
-    //GLFWmonitor* monitor = glfwGetPrimaryMonitor();
     GLFWwindow* window = glfwCreateWindow(width, height, "Simple example", NULL, NULL);
     if (!window) { glfwTerminate(); exit(EXIT_FAILURE); }
 
 #ifdef _WIN32 //Windows DPI scaling
-    //HWND win = glfwGetWin32Window(window);
+    HWND win = glfwGetWin32Window(window);
     int32_t baseDPI = 96;
     int32_t dpi = baseDPI;//GetDpiForWindow(win);
 #else //Other not supported
@@ -707,7 +702,7 @@ int main(const int argc, const char ** argv)
     if (!gladLoadGL()) { glfwTerminate(); exit(EXIT_FAILURE); }
 
     app = new PaperExample::PathTracerApplication(argc, argv, window);
-    app->resizeBuffers(width, height);
+    app->resizeBuffers(width * super_sampling, height * super_sampling);
     app->resize(w, h);
 
     glfwSetKeyCallback(window, key_callback);
@@ -722,7 +717,7 @@ int main(const int argc, const char ** argv)
         int32_t oldDPI = dpi;
         
         glfwGetFramebufferSize(window, &w, &h);
-        //dpi = GetDpiForWindow(win); // don't rescaling at now (laggy)
+        dpi = GetDpiForWindow(win); // don't rescaling at now (laggy)
 
         double ratio = ((double)dpi / (double)baseDPI);
         if (oldDPI != dpi) {
