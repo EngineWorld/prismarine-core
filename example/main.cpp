@@ -666,7 +666,7 @@ void APIENTRY debug_message(
 
 
 
-const unsigned super_sampling = 1;
+const unsigned super_sampling = 2;
 
 int main(const int argc, const char ** argv)
 {
@@ -678,8 +678,8 @@ int main(const int argc, const char ** argv)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // super sampled, and DPI scaled
-    int32_t width = 1280;
-    int32_t height = 720;
+    int32_t width = 640;
+    int32_t height = 360;
 
     GLFWwindow* window = glfwCreateWindow(width, height, "Simple example", NULL, NULL);
     if (!window) { glfwTerminate(); exit(EXIT_FAILURE); }
