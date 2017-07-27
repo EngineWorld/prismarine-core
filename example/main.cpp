@@ -85,12 +85,6 @@ GLuint loadCubemap() {
         uint32_t height = FreeImage_GetHeight(imagen);
         uint8_t * pixelsPtr = FreeImage_GetBits(imagen);
 
-        //glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
-        //glTexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, pixelsPtr);
-        //glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-
-        //glTextureSubImage2DEXT(texture, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, pixelsPtr);
-
         glTextureSubImage3D(texture, 0, 0, 0, i, width, height, 1, GL_BGRA, GL_UNSIGNED_BYTE, pixelsPtr);
     }
 
