@@ -83,12 +83,9 @@ namespace detail
 
 	// -- Implicit basic constructors --
 
-#	if !GLM_HAS_DEFAULTED_FUNCTIONS || !defined(GLM_FORCE_NO_CTOR_INIT)
+#	if !GLM_HAS_DEFAULTED_FUNCTIONS
 		template<typename T, precision P>
 		GLM_FUNC_QUALIFIER GLM_CONSTEXPR tquat<T, P>::tquat()
-#			ifndef GLM_FORCE_NO_CTOR_INIT
-				: x(0), y(0), z(0), w(1)
-#			endif
 		{}
 #	endif
 
@@ -106,10 +103,6 @@ namespace detail
 	{}
 
 	// -- Explicit basic constructors --
-
-	template<typename T, precision P>
-	GLM_FUNC_QUALIFIER GLM_CONSTEXPR_CTOR tquat<T, P>::tquat(ctor)
-	{}
 
 	template<typename T, precision P>
 	GLM_FUNC_QUALIFIER GLM_CONSTEXPR tquat<T, P>::tquat(T s, vec<3, T, P> const& v)
@@ -294,19 +287,19 @@ namespace detail
 	// -- Binary operators --
 
 	template<typename T, precision P>
-	GLM_FUNC_QUALIFIER tquat<T, P> operator+(tquat<T, P> const & q,	tquat<T, P> const & p)
+	GLM_FUNC_QUALIFIER tquat<T, P> operator+(tquat<T, P> const & q, tquat<T, P> const & p)
 	{
 		return tquat<T, P>(q) += p;
 	}
 
 	template<typename T, precision P>
-	GLM_FUNC_QUALIFIER tquat<T, P> operator*(tquat<T, P> const & q,	tquat<T, P> const & p)
+	GLM_FUNC_QUALIFIER tquat<T, P> operator*(tquat<T, P> const & q, tquat<T, P> const & p)
 	{
 		return tquat<T, P>(q) *= p;
 	}
 
 	template<typename T, precision P>
-	GLM_FUNC_QUALIFIER vec<3, T, P> operator*(tquat<T, P> const & q,	vec<3, T, P> const & v)
+	GLM_FUNC_QUALIFIER vec<3, T, P> operator*(tquat<T, P> const & q, vec<3, T, P> const & v)
 	{
 		vec<3, T, P> const QuatVector(q.x, q.y, q.z);
 		vec<3, T, P> const uv(glm::cross(QuatVector, v));
@@ -380,7 +373,7 @@ namespace detail
 	{
 		T len = length(q);
 		if(len <= T(0)) // Problem
-			return tquat<T, P>(1, 0, 0, 0);
+			return tquat<T, P>(static_cast<T>(1), static_cast<T>(0), static_cast<T>(0), static_cast<T>(0));
 		T oneOverLen = T(1) / len;
 		return tquat<T, P>(q.w * oneOverLen, q.x * oneOverLen, q.y * oneOverLen, q.z * oneOverLen);
 	}
@@ -652,7 +645,7 @@ namespace detail
 		T biggestVal = sqrt(fourBiggestSquaredMinus1 + T(1)) * T(0.5);
 		T mult = static_cast<T>(0.25) / biggestVal;
 
-		tquat<T, P> Result(uninitialize);
+		tquat<T, P> Result;
 		switch(biggestIndex)
 		{
 		case 0:
@@ -712,7 +705,7 @@ namespace detail
 	template<typename T, precision P>
 	GLM_FUNC_QUALIFIER tquat<T, P> angleAxis(T const & angle, vec<3, T, P> const & v)
 	{
-		tquat<T, P> Result(uninitialize);
+		tquat<T, P> Result;
 
 		T const a(angle);
 		T const s = glm::sin(a * static_cast<T>(0.5));
@@ -727,7 +720,7 @@ namespace detail
 	template<typename T, precision P>
 	GLM_FUNC_QUALIFIER vec<4, bool, P> lessThan(tquat<T, P> const & x, tquat<T, P> const & y)
 	{
-		vec<4, bool, P> Result(uninitialize);
+		vec<4, bool, P> Result;
 		for(length_t i = 0; i < x.length(); ++i)
 			Result[i] = x[i] < y[i];
 		return Result;
@@ -736,7 +729,7 @@ namespace detail
 	template<typename T, precision P>
 	GLM_FUNC_QUALIFIER vec<4, bool, P> lessThanEqual(tquat<T, P> const & x, tquat<T, P> const & y)
 	{
-		vec<4, bool, P> Result(uninitialize);
+		vec<4, bool, P> Result;
 		for(length_t i = 0; i < x.length(); ++i)
 			Result[i] = x[i] <= y[i];
 		return Result;
@@ -745,7 +738,7 @@ namespace detail
 	template<typename T, precision P>
 	GLM_FUNC_QUALIFIER vec<4, bool, P> greaterThan(tquat<T, P> const & x, tquat<T, P> const & y)
 	{
-		vec<4, bool, P> Result(uninitialize);
+		vec<4, bool, P> Result;
 		for(length_t i = 0; i < x.length(); ++i)
 			Result[i] = x[i] > y[i];
 		return Result;
@@ -754,7 +747,7 @@ namespace detail
 	template<typename T, precision P>
 	GLM_FUNC_QUALIFIER vec<4, bool, P> greaterThanEqual(tquat<T, P> const & x, tquat<T, P> const & y)
 	{
-		vec<4, bool, P> Result(uninitialize);
+		vec<4, bool, P> Result;
 		for(length_t i = 0; i < x.length(); ++i)
 			Result[i] = x[i] >= y[i];
 		return Result;
@@ -763,7 +756,7 @@ namespace detail
 	template<typename T, precision P>
 	GLM_FUNC_QUALIFIER vec<4, bool, P> equal(tquat<T, P> const & x, tquat<T, P> const & y)
 	{
-		vec<4, bool, P> Result(uninitialize);
+		vec<4, bool, P> Result;
 		for(length_t i = 0; i < x.length(); ++i)
 			Result[i] = x[i] == y[i];
 		return Result;
@@ -772,7 +765,7 @@ namespace detail
 	template<typename T, precision P>
 	GLM_FUNC_QUALIFIER vec<4, bool, P> notEqual(tquat<T, P> const & x, tquat<T, P> const & y)
 	{
-		vec<4, bool, P> Result(uninitialize);
+		vec<4, bool, P> Result;
 		for(length_t i = 0; i < x.length(); ++i)
 			Result[i] = x[i] != y[i];
 		return Result;

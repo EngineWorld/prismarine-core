@@ -5,7 +5,7 @@
 #ifdef OS_WIN
 #define GLFW_EXPOSE_NATIVE_WIN32
 #define GLFW_EXPOSE_NATIVE_WGL
-#include <Windows.h>
+//#include <Windows.h>
 #endif
 
 #ifdef OS_LNX
@@ -56,7 +56,7 @@ namespace PaperExample {
         
         double time = 0;
         double diff = 0;
-        glm::vec2 mousepos;
+        glm::dvec2 mousepos;
         double mscale = 1.0f;
         int32_t depth = 16;
         int32_t switch360key = false;
@@ -387,7 +387,7 @@ namespace PaperExample {
         if (button == GLFW_MOUSE_BUTTON_LEFT) lbutton = false;
     }
 
-    void PathTracerApplication::mouseMove(const double& x = 0, const double& y = 0) {
+    void PathTracerApplication::mouseMove(const double& x, const double& y) {
         mousepos.x = x;
         mousepos.y = y;
     }
@@ -622,58 +622,6 @@ static void mouse_move_callback(GLFWwindow* window, double x, double y){
     app->mouseMove(x, y);
 }
 
-uint32_t rand32() {
-    uint32_t x = rand() % 0x100;
-    x |= (rand() % 0x100) << 8;
-    x |= (rand() % 0x100) << 16;
-    x |= (rand() % 0x100) << 24;
-    return x;
-}
-
-
-
-/*
-uint64_t ticks(void) {
-    const uint64_t ticks_per_second = UINT64_C(10000000);
-    static LARGE_INTEGER freq;
-    static uint64_t start_time;
-    LARGE_INTEGER value;
-    QueryPerformanceCounter(&value);
-    if (!freq.QuadPart) {
-        QueryPerformanceFrequency(&freq);
-        start_time = value.QuadPart;
-    }
-    return ((value.QuadPart - start_time) * ticks_per_second) / freq.QuadPart;
-}
-
-template<typename F>
-uint64_t timed(F && f) {
-    auto start = ticks();
-    f();
-    return ticks() - start;
-};
-
-void APIENTRY debug_message(
-    GLenum source, GLenum type, GLuint id, GLenum severity,
-    GLsizei, GLchar const * message, void const *) {
-    std::cout << std::resetiosflags << std::hex << std::setfill('0')
-        << "0x" << std::setw(8) << source << ":"
-        << "0x" << std::setw(8) << type << ":"
-        << "0x" << std::setw(8) << id << ":"
-        << "0x" << std::setw(8) << severity << std::endl
-        << message << std::endl;
-    if (type == GL_DEBUG_TYPE_ERROR) {
-        std::cout << "Press [ENTER] to exit...";
-        std::cin.ignore();
-        exit(1);
-    }
-}
-
-#define EACH(i, size) for (auto i = decltype(size)(0); i < size; i++)
-*/
-
-
-
 const unsigned super_sampling = 2;
 
 int main(const int argc, const char ** argv)
@@ -685,18 +633,8 @@ int main(const int argc, const char ** argv)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    // super sampled, and DPI scaled
-    //int32_t width = 960;
-    //int32_t height = 540;
-
-    //int32_t width = 640;
-    //int32_t height = 360;
-
-    //int32_t width = 400;
-    //int32_t height = 300;
-
-    int32_t width = 960;
-    int32_t height = 540;
+    int32_t width = 640;
+    int32_t height = 360;
 
     GLFWwindow* window = glfwCreateWindow(width, height, "Simple example", NULL, NULL);
     if (!window) { glfwTerminate(); exit(EXIT_FAILURE); }
@@ -704,15 +642,19 @@ int main(const int argc, const char ** argv)
 #ifdef _WIN32 //Windows DPI scaling
     HWND win = glfwGetWin32Window(window);
     int32_t baseDPI = 96;
-    int32_t dpi = baseDPI;//GetDpiForWindow(win);
+    int32_t dpi = baseDPI;
 #else //Other not supported
     int32_t baseDPI = 96;
     int32_t dpi = 96;
 #endif
     
+    // DPI scaling for Windows
+#ifdef MSVC and _WIN32
+    dpi = GetDpiForWindow(win);
+#endif
+
     int32_t w = width * ((double)dpi / (double)baseDPI);
     int32_t h = height * ((double)dpi / (double)baseDPI);
-    glfwSetWindowSize(window, w, h);
 
     glfwMakeContextCurrent(window);
     glfwSwapInterval(0);
@@ -726,6 +668,8 @@ int main(const int argc, const char ** argv)
     glfwSetMouseButtonCallback(window, mouse_callback);
     glfwSetCursorPosCallback(window, mouse_move_callback);
 
+    glfwSetWindowSize(window, w, h);
+
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
@@ -734,7 +678,11 @@ int main(const int argc, const char ** argv)
         int32_t oldDPI = dpi;
         
         glfwGetFramebufferSize(window, &w, &h);
-        dpi = GetDpiForWindow(win); // don't rescaling at now (laggy)
+
+        // DPI scaling for Windows
+#ifdef MSVC and _WIN32
+        dpi = GetDpiForWindow(win);
+#endif
 
         double ratio = ((double)dpi / (double)baseDPI);
         if (oldDPI != dpi) {

@@ -73,8 +73,14 @@ set (LIBS
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
 set (CMAKE_CXX_STANDARD 17)
 set (CMAKE_CXX_EXTENSIONS ON)
-set (CMAKE_CXX_FLAGS "/EHsc")
-set (CMAKE_C_FLAGS "/EHsc /std:c++latest")
+
+if(MSVC)
+set (CMAKE_CXX_FLAGS "/EHsc /std:c++latest -DMSVC")
+set (CMAKE_C_FLAGS "/EHsc")
+else()
+set (CMAKE_CXX_FLAGS "-std=c++1z")
+set (CMAKE_C_FLAGS "")
+endif()
 
 set (INCLUDE_LIST 
     ${INC_DIR}

@@ -154,41 +154,34 @@ namespace detail
 
 	// -- Implicit basic constructors --
 
-#	if !GLM_HAS_DEFAULTED_FUNCTIONS || !defined(GLM_FORCE_NO_CTOR_INIT)
+#	if !GLM_HAS_DEFAULTED_FUNCTIONS
 		template<typename T, precision P>
-		GLM_FUNC_QUALIFIER GLM_CONSTEXPR_SIMD vec<4, T, P>::vec()
-#			ifndef GLM_FORCE_NO_CTOR_INIT
-				: x(0), y(0), z(0), w(0)
-#			endif
+		GLM_FUNC_QUALIFIER GLM_CONSTEXPR_CTOR vec<4, T, P>::vec()
 		{}
 #	endif//!GLM_HAS_DEFAULTED_FUNCTIONS
 
 #	if !GLM_HAS_DEFAULTED_FUNCTIONS
 		template<typename T, precision P>
-		GLM_FUNC_QUALIFIER GLM_CONSTEXPR_SIMD vec<4, T, P>::vec(vec<4, T, P> const & v)
+		GLM_FUNC_QUALIFIER GLM_CONSTEXPR_CTOR vec<4, T, P>::vec(vec<4, T, P> const & v)
 			: x(v.x), y(v.y), z(v.z), w(v.w)
 		{}
 #	endif//!GLM_HAS_DEFAULTED_FUNCTIONS
 
 	template<typename T, precision P>
 	template<precision Q>
-	GLM_FUNC_QUALIFIER GLM_CONSTEXPR_SIMD vec<4, T, P>::vec(vec<4, T, Q> const & v)
+	GLM_FUNC_QUALIFIER GLM_CONSTEXPR_CTOR vec<4, T, P>::vec(vec<4, T, Q> const & v)
 		: x(v.x), y(v.y), z(v.z), w(v.w)
 	{}
 
 	// -- Explicit basic constructors --
 
 	template<typename T, precision P>
-	GLM_FUNC_QUALIFIER GLM_CONSTEXPR_SIMD vec<4, T, P>::vec(ctor)
-	{}
-
-	template<typename T, precision P>
-	GLM_FUNC_QUALIFIER GLM_CONSTEXPR_SIMD vec<4, T, P>::vec(T scalar)
+	GLM_FUNC_QUALIFIER GLM_CONSTEXPR_CTOR vec<4, T, P>::vec(T scalar)
 		: x(scalar), y(scalar), z(scalar), w(scalar)
 	{}
 
 	template <typename T, precision P>
-	GLM_FUNC_QUALIFIER GLM_CONSTEXPR_SIMD vec<4, T, P>::vec(T _x, T _y, T _z, T _w)
+	GLM_FUNC_QUALIFIER GLM_CONSTEXPR_CTOR vec<4, T, P>::vec(T _x, T _y, T _z, T _w)
 		: x(_x), y(_y), z(_z), w(_w)
 	{}
 
@@ -196,7 +189,7 @@ namespace detail
 
 	template<typename T, precision P>
 	template<typename X, typename Y, typename Z, typename W>
-	GLM_FUNC_QUALIFIER GLM_CONSTEXPR_SIMD vec<4, T, P>::vec(X _x, Y _y, Z _z, W _w)
+	GLM_FUNC_QUALIFIER GLM_CONSTEXPR_CTOR vec<4, T, P>::vec(X _x, Y _y, Z _z, W _w)
 		: x(static_cast<T>(_x))
 		, y(static_cast<T>(_y))
 		, z(static_cast<T>(_z))

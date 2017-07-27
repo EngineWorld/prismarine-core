@@ -692,19 +692,13 @@
 
 #if GLM_HAS_DEFAULTED_FUNCTIONS
 #	define GLM_DEFAULT = default
-#	ifdef GLM_FORCE_NO_CTOR_INIT
-#		define GLM_DEFAULT_CTOR = default
-#	else
-#		define GLM_DEFAULT_CTOR
-#	endif
 #else
 #	define GLM_DEFAULT
-#	define GLM_DEFAULT_CTOR
 #endif
 
 #if GLM_HAS_CONSTEXPR || GLM_HAS_CONSTEXPR_PARTIAL
 #	define GLM_CONSTEXPR constexpr
-#	if GLM_COMPILER & GLM_COMPILER_VC // Visual C++ has a bug #594 https://github.com/g-truc/glm/issues/594
+#	if ((GLM_COMPILER & GLM_COMPILER_VC) && (GLM_COMPILER <= GLM_COMPILER_VC14)) // Visual C++ has a bug #594 https://github.com/g-truc/glm/issues/594
 #		define GLM_CONSTEXPR_CTOR
 #	else
 #		define GLM_CONSTEXPR_CTOR constexpr
@@ -718,12 +712,6 @@
 #	define GLM_RELAXED_CONSTEXPR constexpr
 #else
 #	define GLM_RELAXED_CONSTEXPR const
-#endif
-
-#if GLM_ARCH == GLM_ARCH_PURE
-#	define GLM_CONSTEXPR_SIMD GLM_CONSTEXPR_CTOR
-#else
-#	define GLM_CONSTEXPR_SIMD
 #endif
 
 #ifdef GLM_FORCE_EXPLICIT_CTOR
@@ -765,10 +753,6 @@ namespace glm
 ///////////////////////////////////////////////////////////////////////////////////
 // countof
 
-#ifndef __has_feature
-#	define __has_feature(x) 0 // Compatibility with non-clang compilers.
-#endif
-
 #if GLM_HAS_CONSTEXPR_PARTIAL
 	namespace glm
 	{
@@ -784,14 +768,6 @@ namespace glm
 #else
 #	define GLM_COUNTOF(arr) sizeof(arr) / sizeof(arr[0])
 #endif
-
-///////////////////////////////////////////////////////////////////////////////////
-// Uninitialize constructors
-
-namespace glm
-{
-	enum ctor{uninitialize};
-}//namespace glm
 
 ///////////////////////////////////////////////////////////////////////////////////
 // Check inclusions of different versions of GLM

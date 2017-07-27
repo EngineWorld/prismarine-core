@@ -82,29 +82,28 @@ namespace glm
 
 		/// Return the count of components of the vector
 		typedef length_t length_type;
-		GLM_FUNC_DECL static length_type length(){return 4;}
+		GLM_FUNC_DECL static GLM_CONSTEXPR length_type length(){return 4;}
 
 		GLM_FUNC_DECL T & operator[](length_type i);
 		GLM_FUNC_DECL T const & operator[](length_type i) const;
 
 		// -- Implicit basic constructors --
 
-		GLM_FUNC_DECL GLM_CONSTEXPR_SIMD vec() GLM_DEFAULT_CTOR;
-		GLM_FUNC_DECL GLM_CONSTEXPR_SIMD vec(vec<4, T, P> const& v) GLM_DEFAULT;
+		GLM_FUNC_DECL GLM_CONSTEXPR_CTOR vec() GLM_DEFAULT;
+		GLM_FUNC_DECL GLM_CONSTEXPR_CTOR vec(vec<4, T, P> const& v) GLM_DEFAULT;
 		template<precision Q>
-		GLM_FUNC_DECL GLM_CONSTEXPR_SIMD vec(vec<4, T, Q> const& v);
+		GLM_FUNC_DECL GLM_CONSTEXPR_CTOR vec(vec<4, T, Q> const& v);
 
 		// -- Explicit basic constructors --
 
-		GLM_FUNC_DECL GLM_CONSTEXPR_SIMD explicit vec(ctor);
-		GLM_FUNC_DECL GLM_CONSTEXPR_SIMD explicit vec(T scalar);
-		GLM_FUNC_DECL GLM_CONSTEXPR_SIMD vec(T x, T y, T z, T w);
+		GLM_FUNC_DECL GLM_CONSTEXPR_CTOR explicit vec(T scalar);
+		GLM_FUNC_DECL GLM_CONSTEXPR_CTOR vec(T x, T y, T z, T w);
 
 		// -- Conversion scalar constructors --
 
 		/// Explicit conversions (From section 5.4.1 Conversion and scalar constructors of GLSL 1.30.08 specification)
 		template<typename X, typename Y, typename Z, typename W>
-		GLM_FUNC_DECL GLM_CONSTEXPR_SIMD vec(X _x, Y _y, Z _z, W _w);
+		GLM_FUNC_DECL GLM_CONSTEXPR_CTOR vec(X _x, Y _y, Z _z, W _w);
 		template<typename X, typename Y, typename Z, typename W>
 		GLM_FUNC_DECL GLM_CONSTEXPR_CTOR vec(vec<1, X, P> const& _x, vec<1, Y, P> const& _Y, vec<1, Z, P> const& _z, vec<1, W, P> const& _w);
 

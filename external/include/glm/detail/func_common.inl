@@ -132,7 +132,7 @@ namespace detail
 	{
 		GLM_FUNC_QUALIFIER static vecType<L, T, P> call(vecType<L, T, P> const & x, vecType<L, T, P> const & y, vecType<L, bool, P> const & a)
 		{
-			vecType<L, T, P> Result(uninitialize);
+			vecType<L, T, P> Result;
 			for(length_t i = 0; i < x.length(); ++i)
 				Result[i] = a[i] ? y[i] : x[i];
 			return Result;
@@ -696,7 +696,15 @@ namespace detail
 
 	GLM_FUNC_QUALIFIER int floatBitsToInt(float const & v)
 	{
-		return reinterpret_cast<int&>(const_cast<float&>(v));
+		union
+		{
+			float in;
+			int out;
+		} u;
+
+		u.in = v;
+
+		return u.out;
 	}
 
 	template<template<length_t, typename, precision> class vecType, length_t L, precision P>
@@ -707,7 +715,15 @@ namespace detail
 
 	GLM_FUNC_QUALIFIER uint floatBitsToUint(float const & v)
 	{
-		return reinterpret_cast<uint&>(const_cast<float&>(v));
+		union
+		{
+			float in;
+			uint out;
+		} u;
+
+		u.in = v;
+
+		return u.out;
 	}
 
 	template<template<length_t, typename, precision> class vecType, length_t L, precision P>
@@ -718,7 +734,15 @@ namespace detail
 
 	GLM_FUNC_QUALIFIER float intBitsToFloat(int const & v)
 	{
-		return reinterpret_cast<float&>(const_cast<int&>(v));
+		union
+		{
+			int in;
+			float out;
+		} u;
+
+		u.in = v;
+
+		return u.out;
 	}
 
 	template<template<length_t, typename, precision> class vecType, length_t L, precision P>
@@ -729,7 +753,15 @@ namespace detail
 
 	GLM_FUNC_QUALIFIER float uintBitsToFloat(uint const & v)
 	{
-		return reinterpret_cast<float&>(const_cast<uint&>(v));
+		union
+		{
+			uint in;
+			float out;
+		} u;
+
+		u.in = v;
+
+		return u.out;
 	}
 
 	template<template<length_t, typename, precision> class vecType, length_t L, precision P>

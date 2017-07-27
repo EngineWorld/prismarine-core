@@ -70,21 +70,20 @@ namespace glm
 
 		typedef length_t length_type;
 		/// Return the count of components of a quaternion
-		GLM_FUNC_DECL static length_type length(){return 4;}
+		GLM_FUNC_DECL static GLM_CONSTEXPR length_type length(){return 4;}
 
 		GLM_FUNC_DECL T & operator[](length_type i);
 		GLM_FUNC_DECL T const & operator[](length_type i) const;
 
 		// -- Implicit basic constructors --
 
-		GLM_FUNC_DECL GLM_CONSTEXPR tquat() GLM_DEFAULT_CTOR;
+		GLM_FUNC_DECL GLM_CONSTEXPR tquat() GLM_DEFAULT;
 		GLM_FUNC_DECL GLM_CONSTEXPR tquat(tquat<T, P> const& q) GLM_DEFAULT;
 		template<precision Q>
 		GLM_FUNC_DECL GLM_CONSTEXPR tquat(tquat<T, Q> const& q);
 
 		// -- Explicit basic constructors --
 
-		GLM_FUNC_DECL GLM_CONSTEXPR_CTOR explicit tquat(ctor);
 		GLM_FUNC_DECL GLM_CONSTEXPR tquat(T s, vec<3, T, P> const& v);
 		GLM_FUNC_DECL GLM_CONSTEXPR tquat(T w, T x, T y, T z);
 

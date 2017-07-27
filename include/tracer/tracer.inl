@@ -416,7 +416,6 @@ namespace Paper {
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
         glBindVertexArray(0);
-        glFlush();
     }
 
     inline int Tracer::intersection(Intersector * obj, const int clearDepth) {
