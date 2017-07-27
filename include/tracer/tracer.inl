@@ -375,9 +375,9 @@ namespace Paper {
 
         uint32_t availableCount = 0;
         glGetNamedBufferSubData(arcounter, 2 * sizeof(int32_t), 1 * sizeof(int32_t), &availableCount);
-        glNamedBufferSubData(arcounter, 3 * sizeof(int32_t), 1 * sizeof(int32_t), &availableCount);
-        glNamedBufferSubData(arcounter, 2 * sizeof(int32_t), 1 * sizeof(int32_t), zero);
-        glNamedBufferSubData(arcounter, 0 * sizeof(int32_t), 1 * sizeof(int32_t), zero); // clear newlist counter
+        glCopyNamedBufferSubData(arcounter, arcounter, 2 * sizeof(int32_t), 3 * sizeof(int32_t), sizeof(int32_t));
+        glCopyNamedBufferSubData(arcounterTemp, arcounter, 0, sizeof(uint32_t) * 2, sizeof(uint32_t));
+        glCopyNamedBufferSubData(arcounterTemp, arcounter, 0, sizeof(uint32_t) * 0, sizeof(uint32_t));
 
         if (raycountCache > 0) {
             glCopyNamedBufferSubData(activenl, activel, 0, 0, strided<uint32_t>(raycountCache));

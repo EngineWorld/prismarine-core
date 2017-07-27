@@ -39,6 +39,7 @@ namespace Paper {
         bound.mx.z = -100000.f;
         bound.mx.w = -100000.f;
 
+        glNamedBufferSubData(lscounterTemp, 0, strided<int32_t>(1), zero);
         glNamedBufferSubData(minmaxBuf, 0, strided<bbox>(1), &bound);
         glNamedBufferSubData(minmaxBufRef, 0, strided<bbox>(1), &bound);
     }
