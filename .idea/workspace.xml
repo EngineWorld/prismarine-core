@@ -11,249 +11,7 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="51796bcb-b09b-4f77-b58f-07a9f181b785" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/vcs.xml" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/external/include/glm/gtx/color_encoding.hpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/external/include/glm/gtx/color_encoding.inl" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/external/include/glm/gtx/exterior_product.hpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/external/include/glm/gtx/exterior_product.inl" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/external/include/glm/gtx/matrix_factorisation.hpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/external/include/glm/gtx/matrix_factorisation.inl" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/external/include/glm/gtx/vec_swizzle.hpp" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/example/main.cpp" afterPath="$PROJECT_DIR$/example/main.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/common.hpp" afterPath="$PROJECT_DIR$/external/include/glm/common.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/_features.hpp" afterPath="$PROJECT_DIR$/external/include/glm/detail/_features.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/_noise.hpp" afterPath="$PROJECT_DIR$/external/include/glm/detail/_noise.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/_swizzle.hpp" afterPath="$PROJECT_DIR$/external/include/glm/detail/_swizzle.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/_swizzle_func.hpp" afterPath="$PROJECT_DIR$/external/include/glm/detail/_swizzle_func.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/_vectorize.hpp" afterPath="$PROJECT_DIR$/external/include/glm/detail/_vectorize.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/dummy.cpp" afterPath="$PROJECT_DIR$/external/include/glm/detail/dummy.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/func_common.hpp" afterPath="$PROJECT_DIR$/external/include/glm/detail/func_common.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/func_common.inl" afterPath="$PROJECT_DIR$/external/include/glm/detail/func_common.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/func_common_simd.inl" afterPath="$PROJECT_DIR$/external/include/glm/detail/func_common_simd.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/func_exponential.hpp" afterPath="$PROJECT_DIR$/external/include/glm/detail/func_exponential.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/func_exponential.inl" afterPath="$PROJECT_DIR$/external/include/glm/detail/func_exponential.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/func_exponential_simd.inl" afterPath="$PROJECT_DIR$/external/include/glm/detail/func_exponential_simd.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/func_geometric.hpp" afterPath="$PROJECT_DIR$/external/include/glm/detail/func_geometric.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/func_geometric.inl" afterPath="$PROJECT_DIR$/external/include/glm/detail/func_geometric.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/func_geometric_simd.inl" afterPath="$PROJECT_DIR$/external/include/glm/detail/func_geometric_simd.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/func_integer.hpp" afterPath="$PROJECT_DIR$/external/include/glm/detail/func_integer.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/func_integer.inl" afterPath="$PROJECT_DIR$/external/include/glm/detail/func_integer.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/func_integer_simd.inl" afterPath="$PROJECT_DIR$/external/include/glm/detail/func_integer_simd.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/func_matrix.hpp" afterPath="$PROJECT_DIR$/external/include/glm/detail/func_matrix.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/func_matrix.inl" afterPath="$PROJECT_DIR$/external/include/glm/detail/func_matrix.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/func_matrix_simd.inl" afterPath="$PROJECT_DIR$/external/include/glm/detail/func_matrix_simd.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/func_trigonometric.hpp" afterPath="$PROJECT_DIR$/external/include/glm/detail/func_trigonometric.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/func_trigonometric.inl" afterPath="$PROJECT_DIR$/external/include/glm/detail/func_trigonometric.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/func_vector_relational.hpp" afterPath="$PROJECT_DIR$/external/include/glm/detail/func_vector_relational.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/func_vector_relational.inl" afterPath="$PROJECT_DIR$/external/include/glm/detail/func_vector_relational.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/glm.cpp" afterPath="$PROJECT_DIR$/external/include/glm/detail/glm.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/precision.hpp" afterPath="$PROJECT_DIR$/external/include/glm/detail/precision.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/setup.hpp" afterPath="$PROJECT_DIR$/external/include/glm/detail/setup.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/type_gentype.hpp" afterPath="$PROJECT_DIR$/external/include/glm/detail/type_gentype.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/type_gentype.inl" afterPath="$PROJECT_DIR$/external/include/glm/detail/type_gentype.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/type_half.inl" afterPath="$PROJECT_DIR$/external/include/glm/detail/type_half.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/type_int.hpp" afterPath="$PROJECT_DIR$/external/include/glm/detail/type_int.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/type_mat.hpp" afterPath="$PROJECT_DIR$/external/include/glm/detail/type_mat.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/type_mat2x2.hpp" afterPath="$PROJECT_DIR$/external/include/glm/detail/type_mat2x2.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/type_mat2x2.inl" afterPath="$PROJECT_DIR$/external/include/glm/detail/type_mat2x2.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/type_mat2x3.hpp" afterPath="$PROJECT_DIR$/external/include/glm/detail/type_mat2x3.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/type_mat2x3.inl" afterPath="$PROJECT_DIR$/external/include/glm/detail/type_mat2x3.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/type_mat2x4.hpp" afterPath="$PROJECT_DIR$/external/include/glm/detail/type_mat2x4.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/type_mat2x4.inl" afterPath="$PROJECT_DIR$/external/include/glm/detail/type_mat2x4.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/type_mat3x2.hpp" afterPath="$PROJECT_DIR$/external/include/glm/detail/type_mat3x2.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/type_mat3x2.inl" afterPath="$PROJECT_DIR$/external/include/glm/detail/type_mat3x2.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/type_mat3x3.hpp" afterPath="$PROJECT_DIR$/external/include/glm/detail/type_mat3x3.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/type_mat3x3.inl" afterPath="$PROJECT_DIR$/external/include/glm/detail/type_mat3x3.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/type_mat3x4.hpp" afterPath="$PROJECT_DIR$/external/include/glm/detail/type_mat3x4.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/type_mat3x4.inl" afterPath="$PROJECT_DIR$/external/include/glm/detail/type_mat3x4.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/type_mat4x2.hpp" afterPath="$PROJECT_DIR$/external/include/glm/detail/type_mat4x2.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/type_mat4x2.inl" afterPath="$PROJECT_DIR$/external/include/glm/detail/type_mat4x2.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/type_mat4x3.hpp" afterPath="$PROJECT_DIR$/external/include/glm/detail/type_mat4x3.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/type_mat4x3.inl" afterPath="$PROJECT_DIR$/external/include/glm/detail/type_mat4x3.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/type_mat4x4.hpp" afterPath="$PROJECT_DIR$/external/include/glm/detail/type_mat4x4.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/type_mat4x4.inl" afterPath="$PROJECT_DIR$/external/include/glm/detail/type_mat4x4.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/type_vec.hpp" afterPath="$PROJECT_DIR$/external/include/glm/detail/type_vec.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/type_vec1.hpp" afterPath="$PROJECT_DIR$/external/include/glm/detail/type_vec1.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/type_vec1.inl" afterPath="$PROJECT_DIR$/external/include/glm/detail/type_vec1.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/type_vec2.hpp" afterPath="$PROJECT_DIR$/external/include/glm/detail/type_vec2.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/type_vec2.inl" afterPath="$PROJECT_DIR$/external/include/glm/detail/type_vec2.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/type_vec3.hpp" afterPath="$PROJECT_DIR$/external/include/glm/detail/type_vec3.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/type_vec3.inl" afterPath="$PROJECT_DIR$/external/include/glm/detail/type_vec3.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/type_vec4.hpp" afterPath="$PROJECT_DIR$/external/include/glm/detail/type_vec4.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/type_vec4.inl" afterPath="$PROJECT_DIR$/external/include/glm/detail/type_vec4.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/detail/type_vec4_simd.inl" afterPath="$PROJECT_DIR$/external/include/glm/detail/type_vec4_simd.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/exponential.hpp" afterPath="$PROJECT_DIR$/external/include/glm/exponential.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/ext.hpp" afterPath="$PROJECT_DIR$/external/include/glm/ext.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/fwd.hpp" afterPath="$PROJECT_DIR$/external/include/glm/fwd.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/geometric.hpp" afterPath="$PROJECT_DIR$/external/include/glm/geometric.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/glm.hpp" afterPath="$PROJECT_DIR$/external/include/glm/glm.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/bitfield.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtc/bitfield.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/bitfield.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtc/bitfield.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/color_space.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtc/color_space.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/color_space.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtc/color_space.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/constants.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtc/constants.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/constants.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtc/constants.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/epsilon.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtc/epsilon.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/epsilon.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtc/epsilon.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/functions.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtc/functions.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/functions.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtc/functions.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/integer.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtc/integer.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/integer.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtc/integer.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/matrix_access.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtc/matrix_access.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/matrix_access.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtc/matrix_access.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/matrix_integer.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtc/matrix_integer.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/matrix_inverse.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtc/matrix_inverse.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/matrix_inverse.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtc/matrix_inverse.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/matrix_transform.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtc/matrix_transform.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/matrix_transform.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtc/matrix_transform.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/noise.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtc/noise.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/noise.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtc/noise.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/packing.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtc/packing.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/packing.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtc/packing.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/quaternion.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtc/quaternion.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/quaternion.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtc/quaternion.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/quaternion_simd.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtc/quaternion_simd.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/random.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtc/random.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/random.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtc/random.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/reciprocal.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtc/reciprocal.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/reciprocal.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtc/reciprocal.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/round.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtc/round.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/round.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtc/round.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/type_aligned.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtc/type_aligned.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/type_precision.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtc/type_precision.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/type_ptr.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtc/type_ptr.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/type_ptr.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtc/type_ptr.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/ulp.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtc/ulp.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtc/ulp.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtc/ulp.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/associated_min_max.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/associated_min_max.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/associated_min_max.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/associated_min_max.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/bit.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/bit.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/bit.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/bit.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/closest_point.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/closest_point.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/closest_point.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/closest_point.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/color_space.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/color_space.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/color_space.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/color_space.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/color_space_YCoCg.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/color_space_YCoCg.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/color_space_YCoCg.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/color_space_YCoCg.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/common.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/common.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/common.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/common.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/compatibility.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/compatibility.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/compatibility.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/compatibility.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/component_wise.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/component_wise.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/component_wise.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/component_wise.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/dual_quaternion.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/dual_quaternion.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/dual_quaternion.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/dual_quaternion.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/euler_angles.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/euler_angles.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/euler_angles.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/euler_angles.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/extend.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/extend.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/extend.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/extend.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/extended_min_max.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/extended_min_max.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/extended_min_max.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/extended_min_max.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/fast_exponential.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/fast_exponential.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/fast_exponential.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/fast_exponential.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/fast_square_root.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/fast_square_root.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/fast_square_root.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/fast_square_root.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/fast_trigonometry.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/fast_trigonometry.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/fast_trigonometry.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/fast_trigonometry.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/float_notmalize.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/float_notmalize.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/gradient_paint.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/gradient_paint.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/gradient_paint.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/gradient_paint.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/handed_coordinate_space.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/handed_coordinate_space.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/handed_coordinate_space.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/handed_coordinate_space.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/hash.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/hash.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/hash.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/hash.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/integer.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/integer.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/integer.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/integer.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/intersect.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/intersect.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/intersect.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/intersect.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/io.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/io.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/io.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/io.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/log_base.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/log_base.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/log_base.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/log_base.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/matrix_cross_product.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/matrix_cross_product.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/matrix_cross_product.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/matrix_cross_product.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/matrix_decompose.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/matrix_decompose.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/matrix_decompose.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/matrix_decompose.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/matrix_interpolation.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/matrix_interpolation.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/matrix_interpolation.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/matrix_interpolation.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/matrix_major_storage.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/matrix_major_storage.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/matrix_major_storage.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/matrix_major_storage.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/matrix_operation.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/matrix_operation.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/matrix_operation.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/matrix_operation.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/matrix_query.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/matrix_query.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/matrix_query.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/matrix_query.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/matrix_transform_2d.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/matrix_transform_2d.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/matrix_transform_2d.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/matrix_transform_2d.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/mixed_product.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/mixed_product.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/mixed_product.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/mixed_product.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/norm.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/norm.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/norm.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/norm.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/normal.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/normal.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/normal.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/normal.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/normalize_dot.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/normalize_dot.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/normalize_dot.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/normalize_dot.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/number_precision.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/number_precision.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/optimum_pow.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/optimum_pow.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/optimum_pow.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/optimum_pow.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/orthonormalize.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/orthonormalize.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/orthonormalize.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/orthonormalize.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/perpendicular.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/perpendicular.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/perpendicular.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/perpendicular.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/polar_coordinates.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/polar_coordinates.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/polar_coordinates.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/polar_coordinates.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/projection.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/projection.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/projection.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/projection.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/quaternion.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/quaternion.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/quaternion.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/quaternion.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/range.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/range.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/raw_data.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/raw_data.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/rotate_normalized_axis.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/rotate_normalized_axis.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/rotate_normalized_axis.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/rotate_normalized_axis.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/rotate_vector.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/rotate_vector.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/rotate_vector.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/rotate_vector.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/scalar_multiplication.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/scalar_multiplication.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/scalar_relational.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/scalar_relational.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/scalar_relational.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/scalar_relational.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/spline.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/spline.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/spline.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/spline.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/std_based_type.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/std_based_type.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/string_cast.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/string_cast.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/string_cast.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/string_cast.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/transform.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/transform.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/transform.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/transform.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/transform2.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/transform2.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/transform2.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/transform2.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/type_aligned.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/type_aligned.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/type_trait.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/type_trait.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/vector_angle.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/vector_angle.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/vector_angle.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/vector_angle.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/vector_query.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/vector_query.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/vector_query.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/vector_query.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/wrap.hpp" afterPath="$PROJECT_DIR$/external/include/glm/gtx/wrap.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/gtx/wrap.inl" afterPath="$PROJECT_DIR$/external/include/glm/gtx/wrap.inl" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/integer.hpp" afterPath="$PROJECT_DIR$/external/include/glm/integer.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/mat2x2.hpp" afterPath="$PROJECT_DIR$/external/include/glm/mat2x2.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/mat2x3.hpp" afterPath="$PROJECT_DIR$/external/include/glm/mat2x3.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/mat2x4.hpp" afterPath="$PROJECT_DIR$/external/include/glm/mat2x4.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/mat3x2.hpp" afterPath="$PROJECT_DIR$/external/include/glm/mat3x2.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/mat3x3.hpp" afterPath="$PROJECT_DIR$/external/include/glm/mat3x3.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/mat3x4.hpp" afterPath="$PROJECT_DIR$/external/include/glm/mat3x4.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/mat4x2.hpp" afterPath="$PROJECT_DIR$/external/include/glm/mat4x2.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/mat4x3.hpp" afterPath="$PROJECT_DIR$/external/include/glm/mat4x3.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/mat4x4.hpp" afterPath="$PROJECT_DIR$/external/include/glm/mat4x4.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/matrix.hpp" afterPath="$PROJECT_DIR$/external/include/glm/matrix.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/packing.hpp" afterPath="$PROJECT_DIR$/external/include/glm/packing.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/simd/common.h" afterPath="$PROJECT_DIR$/external/include/glm/simd/common.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/simd/matrix.h" afterPath="$PROJECT_DIR$/external/include/glm/simd/matrix.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/simd/platform.h" afterPath="$PROJECT_DIR$/external/include/glm/simd/platform.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/trigonometric.hpp" afterPath="$PROJECT_DIR$/external/include/glm/trigonometric.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/vec2.hpp" afterPath="$PROJECT_DIR$/external/include/glm/vec2.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/vec3.hpp" afterPath="$PROJECT_DIR$/external/include/glm/vec3.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/vec4.hpp" afterPath="$PROJECT_DIR$/external/include/glm/vec4.hpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/external/include/glm/vector_relational.hpp" afterPath="$PROJECT_DIR$/external/include/glm/vector_relational.hpp" />
-    </list>
+    <list default="true" id="51796bcb-b09b-4f77-b58f-07a9f181b785" name="Default" comment="" />
     <ignored path="$PROJECT_DIR$/build/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -267,8 +25,8 @@
       <file leaf-file-name="main.cpp" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/example/main.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="159">
-              <caret line="657" column="0" lean-forward="false" selection-start-line="657" selection-start-column="0" selection-end-line="657" selection-end-column="0" />
+            <state relative-caret-position="23">
+              <caret line="649" column="4" lean-forward="true" selection-start-line="649" selection-start-column="4" selection-end-line="649" selection-end-column="4" />
               <folding>
                 <element signature="e#23736#23779#0" expanded="true" />
                 <element signature="e#23864#23891#0" expanded="true" />
@@ -378,12 +136,12 @@
       <option name="presentableId" value="Default" />
       <updated>1501177625232</updated>
       <workItem from="1501177626405" duration="307000" />
-      <workItem from="1501177934739" duration="474000" />
+      <workItem from="1501177934739" duration="527000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="781000" />
+    <option name="totallyTimeSpent" value="834000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-6" y="-6" width="1933" height="1053" extended-state="6" />
@@ -394,7 +152,7 @@
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32980973" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="CMake" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32980973" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32980973" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -423,8 +181,8 @@
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/example/main.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="159">
-          <caret line="657" column="0" lean-forward="false" selection-start-line="657" selection-start-column="0" selection-end-line="657" selection-end-column="0" />
+        <state relative-caret-position="23">
+          <caret line="649" column="4" lean-forward="true" selection-start-line="649" selection-start-column="4" selection-end-line="649" selection-end-column="4" />
           <folding>
             <element signature="e#23736#23779#0" expanded="true" />
             <element signature="e#23864#23891#0" expanded="true" />
