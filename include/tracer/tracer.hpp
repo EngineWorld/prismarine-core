@@ -5,7 +5,6 @@
 #include "structs.hpp"
 #include "intersector.hpp"
 #include "material.hpp"
-#include <cmath>
 
 namespace Paper {
 

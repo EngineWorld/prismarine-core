@@ -17,8 +17,16 @@
 #include "glm/gtc/type_ptr.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtx/component_wise.hpp"
+#include "glm/gtx/rotate_vector.hpp"
 #include "glad/glad.h"
 
 #ifdef USE_FREEIMAGE
 #include "external/include/FreeImage.h"
+#endif
+
+#ifdef ASSIMP_SUPPORT
+#include "assimp/Importer.hpp"
+#include <assimp/scene.h>           // Output data structure
+#include <assimp/postprocess.h>     // Post processing flags
+#include <assimp/texture.h>
 #endif

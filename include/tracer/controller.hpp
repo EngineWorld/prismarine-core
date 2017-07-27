@@ -3,7 +3,6 @@
 #include "includes.hpp"
 #include "utils.hpp"
 #include "tracer.hpp"
-#include "glm/gtx/rotate_vector.hpp"
 
 namespace Paper {
     class Controller : public PTObject {
