@@ -127,7 +127,8 @@ namespace PaperExample {
             std::cerr << "-m (--model) for load obj model, -s (--scale) for resize model" << std::endl;
         }
         std::string model_input = "";
-        
+        std::string directory = ".";
+
         for (int i = 1; i < argc; ++i) {
             std::string arg = std::string(argv[i]);
             if ((arg == "-m") || (arg == "--model")) {
@@ -139,17 +140,23 @@ namespace PaperExample {
                 }
             }
             else
-                if ((arg == "-s") || (arg == "--scale")) {
+            if ((arg == "-s") || (arg == "--scale")) {
                     if (i + 1 < argc) {
                         mscale = std::stof(argv[++i]);
                     }
+            }
+            else
+            if ((arg == "-di") || (arg == "--dir")) {
+                if (i + 1 < argc) {
+                    directory = std::string(argv[++i]);
                 }
-                else
-                    if ((arg == "-d") || (arg == "--depth")) {
-                        if (i + 1 < argc) {
-                            depth = std::stoi(argv[++i]);
-                        }
+            }
+            else
+            if ((arg == "-d") || (arg == "--depth")) {
+                    if (i + 1 < argc) {
+                        depth = std::stoi(argv[++i]);
                     }
+            }
         }
 
         if (model_input == "") {
@@ -182,12 +189,13 @@ namespace PaperExample {
 #ifdef EXPERIMENTAL_GLTF
         tinygltf::TinyGLTF loader;
         std::string err = "";
-        loader.LoadASCIIFromFile(&gltfModel, &err, model_input);
+        loader.LoadASCIIFromFile(&gltfModel, &err, directory + "/" + model_input);
 
         // load textures (TODO - native samplers support in ray tracers)
         for (int i = 0; i < gltfModel.textures.size(); i++) {
             tinygltf::Texture& gltfTexture = gltfModel.textures[i];
-            uint32_t rtTexture = supermat->loadTexture(gltfModel.images[gltfTexture.source].uri);
+            std::string uri = directory + "/" + gltfModel.images[gltfTexture.source].uri;
+            uint32_t rtTexture = supermat->loadTexture(uri);
             // todo with rtTexture processing
             rtTextures.push_back(rtTexture);
         }
@@ -678,8 +686,17 @@ int main(const int argc, const char ** argv)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // super sampled, and DPI scaled
-    int32_t width = 960;
-    int32_t height = 540;
+    //int32_t width = 960;
+    //int32_t height = 540;
+
+    //int32_t width = 640;
+    //int32_t height = 360;
+
+    //int32_t width = 400;
+    //int32_t height = 300;
+
+    int32_t width = 800;
+    int32_t height = 600;
 
     GLFWwindow* window = glfwCreateWindow(width, height, "Simple example", NULL, NULL);
     if (!window) { glfwTerminate(); exit(EXIT_FAILURE); }
