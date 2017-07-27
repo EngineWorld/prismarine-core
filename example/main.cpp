@@ -633,10 +633,10 @@ int main(const int argc, const char ** argv)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    int32_t width = 640;
-    int32_t height = 360;
+    int32_t baseWidth = 640;
+    int32_t baseHeight = 360;
 
-    GLFWwindow* window = glfwCreateWindow(width, height, "Simple example", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(baseWidth, baseHeight, "Simple example", NULL, NULL);
     if (!window) { glfwTerminate(); exit(EXIT_FAILURE); }
 
 #ifdef _WIN32 //Windows DPI scaling
@@ -651,50 +651,64 @@ int main(const int argc, const char ** argv)
     // DPI scaling for Windows
 #if (defined MSVC && defined _WIN32)
     dpi = GetDpiForWindow(win);
+#else
+    glfwGetFramebufferSize(window, &canvasWidth, &canvasHeight);
+    dpi = double(baseDPI) * (double(canvasWidth) / double(baseWidth));
 #endif
 
-    int32_t w = width * ((double)dpi / (double)baseDPI);
-    int32_t h = height * ((double)dpi / (double)baseDPI);
+    int32_t canvasWidth = baseWidth * ((double)dpi / (double)baseDPI);
+    int32_t canvasHeight = baseHeight * ((double)dpi / (double)baseDPI);
 
     glfwMakeContextCurrent(window);
     glfwSwapInterval(0);
     if (!gladLoadGL()) { glfwTerminate(); exit(EXIT_FAILURE); }
 
     app = new PaperExample::PathTracerApplication(argc, argv, window);
-    app->resizeBuffers(width * super_sampling, height * super_sampling);
-    app->resize(w, h);
+    app->resizeBuffers(baseWidth * super_sampling, baseHeight * super_sampling);
+    app->resize(canvasWidth, canvasHeight);
 
     glfwSetKeyCallback(window, key_callback);
     glfwSetMouseButtonCallback(window, mouse_callback);
     glfwSetCursorPosCallback(window, mouse_move_callback);
-
-    glfwSetWindowSize(window, w, h);
+    glfwSetWindowSize(window, canvasWidth, canvasHeight);
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
-        int32_t oldWidth = w;
-        int32_t oldHeight = h;
+        int32_t oldWidth = canvasWidth;
+        int32_t oldHeight = canvasHeight;
         int32_t oldDPI = dpi;
-        
-        glfwGetFramebufferSize(window, &w, &h);
+
+        glfwGetFramebufferSize(window, &canvasWidth, &canvasHeight);
 
         // DPI scaling for Windows
 #if (defined MSVC && defined _WIN32)
         dpi = GetDpiForWindow(win);
+#else
+        {
+            uint32_t baseWidth = w;
+            uint32_t baseHeight = h;
+            glfwGetWindowSize(window, &baseWidth, &baseHeight);
+            dpi = double(baseDPI) * (double(canvasWidth) / double(baseWidth));
+        }
 #endif
 
-        double ratio = ((double)dpi / (double)baseDPI);
+        // scale window by DPI
+        double ratio = double(dpi) / double(baseDPI);
         if (oldDPI != dpi) {
-            w = width  * ratio;
-            h = height * ratio;
-            glfwSetWindowSize(window, w, h);
+            canvasWidth  = baseWidth  * ratio;
+            canvasHeight = baseHeight * ratio;
+            glfwSetWindowSize(window, canvasWidth, canvasHeight);
         }
 
-        if (oldWidth != w || oldHeight != h) {
-            width  = w / ratio;
-            height = h / ratio;
-            app->resize(w, h);
+        // scale canvas
+        if (oldWidth != canvasWidth || oldHeight != canvasHeight) {
+            // set new base size
+            baseWidth  = canvasWidth / ratio;
+            baseHeight = canvasHeight / ratio;
+
+            // resize canvas
+            app->resize(canvasWidth, canvasHeight);
         }
 
         app->dpiscaling = ratio;
