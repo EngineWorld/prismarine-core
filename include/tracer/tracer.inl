@@ -102,7 +102,7 @@ namespace Paper {
         sorter = new RadixSort();
 
         for (int i = 0; i < 6;i++) {
-            lightColor[i] = glm::vec4((glm::vec3(255.f, 241.f, 224.f) / 255.f) * 150.f, 40.0f);
+            lightColor[i] = glm::vec4((glm::vec3(255.f, 250.f, 244.f) / 255.f) * 150.f, 40.0f);
             lightAmbient[i] = glm::vec4(0.0f);
             lightVector[i] = glm::vec4(0.4f, 1.0f, 0.1f, 400.0f);
             lightOffset[i] = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
@@ -452,6 +452,19 @@ namespace Paper {
         this->bind();
         if (cubeTex) glBindTextureUnit(0, cubeTex);
         mat->bindWithContext(matProgram);
+
+
+        // load texture by bindless
+        //GLuint uniformLoc = 64;
+        //uint64_t texHandle = glGetTextureHandleARB(skybox);
+        //glMakeTextureHandleResidentARB(texHandle);
+        //glProgramUniformHandleui64ARB(matProgram, uniformLoc, texHandle);
+
+        GLuint uniformLoc = 64;
+        GLuint skyboxBind = 1;
+        glBindTextureUnit(skyboxBind, skybox);
+        //glProgramUniform1i(matProgram, 64, skyboxBind);
+
         dispatch(matProgram, tiled(rsize, worksize));
     }
 

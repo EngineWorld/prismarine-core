@@ -31,12 +31,18 @@ struct Submat {
     ivec4 iModifiers0;
 };
 
+
+
 const uint MAX_TEXTURES = 64;
 #ifdef USE_BINDLESS
 layout ( location = 0 ) uniform uint64_t samplers[MAX_TEXTURES];
 #else
 layout ( location = 0 ) uniform sampler2D samplers[MAX_TEXTURES];
 #endif
+
+//layout ( location = 64 ) uniform samplerCube skybox[1];
+layout ( binding = 1 ) uniform samplerCube skybox[1];
+
 //layout ( location = 0, bindless_sampler ) uniform sampler2D samplers[MAX_TEXTURES];
 //layout ( binding = 31 ) uniform sampler2D u_PivotSampler;
 

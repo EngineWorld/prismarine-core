@@ -28,7 +28,7 @@ namespace Paper {
         glProgramUniformHandleui64vARB(prog, textureLocation, pcount, vctr.data());
         
         /*
-        const GLuint firstBind = 0;
+        const GLuint firstBind = 1;
         std::vector<uint32_t> vctr(pcount);
         for (int i = 0; i < pcount; i++) vctr[i] = firstBind + i;
         glBindTextures(firstBind, pcount, samplers.data());

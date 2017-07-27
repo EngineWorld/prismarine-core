@@ -12,6 +12,8 @@ namespace Paper {
     private:
         RadixSort * sorter = nullptr;
 
+        GLuint skybox = -1;
+
         GLuint renderProgram = -1;
         GLuint matProgram = -1;
         GLuint beginProgram = -1;
@@ -67,6 +69,7 @@ namespace Paper {
         bbox bound;
 
     public:
+
         Tracer() { init(); }
         ~Tracer() {
             glDeleteProgram(renderProgram);
@@ -109,6 +112,11 @@ namespace Paper {
         uint32_t height = 256;
         uint32_t displayWidth = 256;
         uint32_t displayHeight = 256;
+
+
+        void setSkybox(GLuint skb) {
+            skybox = skb;
+        }
 
         void switchMode();
         void resize(const uint32_t & w, const uint32_t & h);

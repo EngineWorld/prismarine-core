@@ -26,6 +26,82 @@
 #include "tracer/radix.hpp"
 #include <functional>
 
+
+
+
+
+std::string cubemap[6] = {
+    "cubemap/petesoasis_ft.tga",
+    "cubemap/petesoasis_bk.tga",
+
+    "cubemap/petesoasis_dn.tga",
+    "cubemap/petesoasis_up.tga",
+
+    "cubemap/petesoasis_rt.tga",
+    "cubemap/petesoasis_lf.tga"
+};
+
+GLuint loadCubemap() {
+    FREE_IMAGE_FORMAT formato = FreeImage_GetFileType(cubemap[0].c_str(), 0);
+    if (formato == FIF_UNKNOWN) {
+        return 0;
+    }
+    FIBITMAP* imagen = FreeImage_Load(formato, cubemap[0].c_str());
+    if (!imagen) {
+        return 0;
+    }
+
+    FIBITMAP* temp = FreeImage_ConvertTo32Bits(imagen);
+    FreeImage_Unload(imagen);
+    imagen = temp;
+
+    uint32_t width = FreeImage_GetWidth(imagen);
+    uint32_t height = FreeImage_GetHeight(imagen);
+
+    GLuint texture = 0;
+    glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &texture);
+    glTextureStorage2D(texture, 1, GL_RGBA8, width, height);
+    glTextureParameteri(texture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(texture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTextureParameteri(texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+    for (int i = 0; i < 6;i++) {
+        FREE_IMAGE_FORMAT formato = FreeImage_GetFileType(cubemap[i].c_str(), 0);
+        if (formato == FIF_UNKNOWN) {
+            return 0;
+        }
+
+        FIBITMAP* imagen = FreeImage_Load(formato, cubemap[i].c_str());
+        if (!imagen) {
+            return 0;
+        }
+
+        FIBITMAP* temp = FreeImage_ConvertTo32Bits(imagen);
+        FreeImage_Unload(imagen);
+        imagen = temp;
+
+        uint32_t width = FreeImage_GetWidth(imagen);
+        uint32_t height = FreeImage_GetHeight(imagen);
+        uint8_t * pixelsPtr = FreeImage_GetBits(imagen);
+
+        //glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
+        //glTexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, pixelsPtr);
+        //glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
+        //glTextureSubImage2DEXT(texture, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, pixelsPtr);
+
+        glTextureSubImage3D(texture, 0, 0, 0, i, width, height, 1, GL_BGRA, GL_UNSIGNED_BYTE, pixelsPtr);
+    }
+
+    return texture;
+}
+
+
+
+
+
+
 namespace PaperExample {
     using namespace Paper;
 
@@ -149,7 +225,13 @@ namespace PaperExample {
             std::cerr << "No model found :(" << std::endl;
         }
 
+        GLuint cubeTexture = loadCubemap();
+
         rays = new Tracer();
+        rays->setSkybox(cubeTexture);
+        
+
+
         cam = new Controller();
         cam->setRays(rays);
         supermat = new Material();
