@@ -35,18 +35,13 @@ struct Submat {
 
 const uint MAX_TEXTURES = 66;
 #ifdef USE_BINDLESS
-layout ( binding = 13 ) readonly buffer Textures { uint64_t samplers[]; }; //uniform uint64_t samplers[MAX_TEXTURES];
+layout ( binding = 13 ) readonly buffer Textures { sampler2D samplers[]; }; //uniform uint64_t samplers[MAX_TEXTURES];
 #else
 layout ( binding = 13, set = 0 ) uniform sampler2D samplers[MAX_TEXTURES];
 #endif
 
-//layout ( location = 64 ) uniform samplerCube skybox[1];
 layout ( binding = 1 ) uniform samplerCube skybox[1];
-
-//layout ( location = 0, bindless_sampler ) uniform sampler2D samplers[MAX_TEXTURES];
-//layout ( binding = 31 ) uniform sampler2D u_PivotSampler;
-
-layout ( binding=15, std430 ) readonly buffer MaterialsSSBO {Submat submats[];};
+layout ( binding = 15, std430 ) readonly buffer MaterialsSSBO {Submat submats[];};
 
 bool haveProp(in Submat material, in int prop) {
     return (material.flags & prop) > 0;
@@ -57,27 +52,15 @@ bool haveProp(in int flags, in int prop) {
 }
 
 bool validateTexture(in uint binding){
-#ifdef USE_BINDLESS
-    return binding != -1 && binding != 0 && binding != LONGEST && binding >= 0 && binding < MAX_TEXTURES && textureSize(sampler2D(samplers[binding]), 0).x > 0;
-#else
     return binding != -1 && binding != 0 && binding != LONGEST && binding >= 0 && binding < MAX_TEXTURES && textureSize(samplers[binding], 0).x > 0;
-#endif
 }
 
 vec4 fetchPart(in uint binding, in vec2 texcoord){
-#ifdef USE_BINDLESS
-    return texture(sampler2D(samplers[binding]), texcoord);
-#else
     return texture(samplers[binding], texcoord);
-#endif
 }
 
 vec4 fetchPart(in uint binding, in vec2 texcoord, in ivec2 offset){
-#ifdef USE_BINDLESS
-    return texture(sampler2D(samplers[binding]), texcoord + vec2(offset) / textureSize(sampler2D(samplers[binding]), 0));
-#else
     return texture(samplers[binding], texcoord + vec2(offset) / textureSize(samplers[binding], 0));
-#endif
 }
 
 vec4 fetchSpecular(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 normal){
