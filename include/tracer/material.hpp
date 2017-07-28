@@ -38,6 +38,7 @@ namespace Paper {
     private:
         //int32_t materialID = 0;
         GLuint mats = -1;
+        GLuint textures = -1;
 
         void init();
 

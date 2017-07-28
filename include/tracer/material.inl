@@ -7,33 +7,24 @@ namespace Paper {
 
     inline void Material::init(){
         glCreateBuffers(1, &mats);
+        glCreateBuffers(1, &textures);
     }
 
     inline void Material::loadToVGA() {
-        glNamedBufferData(mats, strided<Submat>(submats.size()), submats.data(), GL_STATIC_DRAW);
-    }
-
-    inline void Material::bindWithContext(GLuint & prog) {
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 15, mats);
-
-        const GLuint textureLocation = 0;
         uint32_t pcount = std::min((uint32_t)samplers.size(), 64u);
-
         std::vector<uint64_t> vctr(pcount);
         for (int i = 0; i < pcount; i++) {
             uint64_t texHandle = glGetTextureHandleARB(samplers[i]);
             glMakeTextureHandleResidentARB(texHandle);
             vctr[i] = texHandle;
         }
-        glProgramUniformHandleui64vARB(prog, textureLocation, pcount, vctr.data());
-        
-        /*
-        const GLuint firstBind = 1;
-        std::vector<uint32_t> vctr(pcount);
-        for (int i = 0; i < pcount; i++) vctr[i] = firstBind + i;
-        glBindTextures(firstBind, pcount, samplers.data());
-        glProgramUniform1iv(prog, textureLocation, pcount, (int32_t *)vctr.data());
-        */
+        glNamedBufferData(textures, vctr.size() * sizeof(GLuint64), vctr.data(), GL_STATIC_DRAW);
+        glNamedBufferData(mats, strided<Submat>(submats.size()), submats.data(), GL_STATIC_DRAW);
+    }
+
+    inline void Material::bindWithContext(GLuint & prog) {
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 15, mats);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 13, textures);
     }
     
     inline void Material::clearGlTextures() {

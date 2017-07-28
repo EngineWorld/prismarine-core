@@ -33,11 +33,11 @@ struct Submat {
 
 
 
-const uint MAX_TEXTURES = 64;
+const uint MAX_TEXTURES = 63;
 #ifdef USE_BINDLESS
-layout ( location = 0 ) uniform uint64_t samplers[MAX_TEXTURES];
+layout ( binding = 13 ) readonly buffer Textures { uint64_t samplers[]; }; //uniform uint64_t samplers[MAX_TEXTURES];
 #else
-layout ( location = 0 ) uniform sampler2D samplers[MAX_TEXTURES];
+layout ( binding = 13, set = 0 ) uniform sampler2D samplers[MAX_TEXTURES];
 #endif
 
 //layout ( location = 64 ) uniform samplerCube skybox[1];
