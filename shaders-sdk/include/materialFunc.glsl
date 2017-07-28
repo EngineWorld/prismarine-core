@@ -33,7 +33,7 @@ struct Submat {
 
 
 
-const uint MAX_TEXTURES = 63;
+const uint MAX_TEXTURES = 66;
 #ifdef USE_BINDLESS
 layout ( binding = 13 ) readonly buffer Textures { uint64_t samplers[]; }; //uniform uint64_t samplers[MAX_TEXTURES];
 #else
