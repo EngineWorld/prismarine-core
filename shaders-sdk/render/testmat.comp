@@ -205,7 +205,7 @@ void main() {
         //spic = 0.f; // test purpose
         reflectionRay = reflection(reflectionRay, hit, clamp(sc.xyz / spca, 0.0f, 1.0f), normal, refly);
         reflectionRay.color.xyz *= (1.0f - prom);
-        mixed(diffuseRay.color.xyz, reflectionRay.color.xyz, clamp(spic, 0.0f, 1.0f));
+        
 
         emissiveRay = emissive(emissiveRay, hit, emi.xyz / min(emis, 1.0f), normal);
         emissiveRay.color.xyz *= (1.0f - prom);
@@ -222,9 +222,13 @@ void main() {
     }
 
     if (!overflow) {
-        applyLight(directLight(0, diffuseRay, hit, vec3(1.0f), normal), diffuseRay, surfacenormal); // push shadow
-        emitRay(reflectionRay, hit, normal, 1.0f);
-        emitRay(diffuseRay, hit, normal, 1.0f);
+        //mixed(diffuseRay.color.xyz, reflectionRay.color.xyz, clamp(spic, 0.0f, 1.0f));
+        if (random() < spic) {
+            emitRay(reflectionRay, hit, normal, 1.0f);
+        } else {
+            applyLight(directLight(0, diffuseRay, hit, vec3(1.0f), normal), diffuseRay, surfacenormal); // push shadow
+            emitRay(diffuseRay, hit, normal, 1.0f);
+        }
         emitRay(emissiveRay, hit, normal, clamp(emis, 0.0f, 1.0f));
     }
 

@@ -315,7 +315,7 @@ namespace PaperExample {
 
                     if (it->first.compare("POSITION") == 0) { // vertices
                         geom->attributeUniformData.vertexOffset = (accessor.byteOffset + bufferView.byteOffset) / 4;
-                        geom->attributeUniformData.stride = (bufferView.byteStride < 4) ? 0 : (bufferView.byteStride / 4);
+                        geom->attributeUniformData.stride = (bufferView.byteStride <= 4) ? 0 : (bufferView.byteStride / 4);
                         geom->setVertices(glBuffers[bufferView.buffer]);
                     } else
                     

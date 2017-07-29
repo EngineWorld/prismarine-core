@@ -386,13 +386,12 @@ struct BufferView {
   int buffer;         // Required
   size_t byteOffset;  // minimum 0, default 0
   size_t byteLength;  // required, minimum 1
-  size_t byteStride;  // minimum 4, maximum 252 (multiple of 4), default 0 =
-                      // understood to be tightly packed
+  size_t byteStride;  // minimum 4, maximum 252 (multiple of 4)
   int target;         // ["ARRAY_BUFFER", "ELEMENT_ARRAY_BUFFER"]
   int pad0;
   Value extras;
 
-  BufferView() : byteOffset(0), byteStride(0) {}
+  BufferView() : byteOffset(0), byteStride(4) {}
 };
 
 struct Accessor {
@@ -400,57 +399,37 @@ struct Accessor {
                    // are not supported
   std::string name;
   size_t byteOffset;
-  bool normalized;    // optinal.
+  size_t byteStride;
   int componentType;  // (required) One of TINYGLTF_COMPONENT_TYPE_***
   size_t count;       // required
   int type;           // (required) One of TINYGLTF_TYPE_***   ..
   Value extras;
 
-  std::vector<double> minValues;  // optional
-  std::vector<double> maxValues;  // optional
-
-  // TODO(syoyo): "sparse"
+  std::vector<double> minValues;  // required
+  std::vector<double> maxValues;  // required
 
   Accessor() { bufferView = -1; }
 };
 
-struct PerspectiveCamera {
-  float aspectRatio;  // min > 0
-  float yfov;         // required. min > 0
-  float zfar;         // min > 0
-  float znear;        // required. min > 0
-
-  PerspectiveCamera()
-      : aspectRatio(0.0f),
-        yfov(0.0f),
-        zfar(0.0f)  // 0 = use infinite projecton matrix
-        ,
-        znear(0.0f) {}
-
-  ParameterMap extensions;
-  Value extras;
-};
-
-struct OrthographicCamera {
-  float xmag;   // required. must not be zero.
-  float ymag;   // required. must not be zero.
-  float zfar;   // required. `zfar` must be greater than `znear`.
-  float znear;  // required
-
-  OrthographicCamera() : xmag(0.0f), ymag(0.0f), zfar(0.0f), znear(0.0f) {}
-
-  ParameterMap extensions;
-  Value extras;
-};
-
-struct Camera {
-  std::string type;  // required. "perspective" or "orthographic"
-  std::string name;
-
-  PerspectiveCamera perspective;
-  OrthographicCamera orthographic;
-
+class Camera {
+ public:
   Camera() {}
+  ~Camera() {}
+
+  std::string name;
+  bool isOrthographic;  // false = perspective.
+
+  // Orthographic properties
+  float xMag;   // required
+  float yMag;   // required
+  float zFar;   // required
+  float zNear;  // required
+
+  // Perspective properties
+  float aspectRatio;
+  float yfov;  // required
+  float zfar;
+  float znear;  // required
 
   ParameterMap extensions;
   Value extras;
@@ -488,7 +467,7 @@ typedef struct {
 
 class Node {
  public:
-  Node() : camera(-1), skin(-1), mesh(-1) {}
+  Node() : skin(-1), mesh(-1) {}
 
   ~Node() {}
 
@@ -548,7 +527,6 @@ class Model {
   std::vector<Image> images;
   std::vector<Skin> skins;
   std::vector<Sampler> samplers;
-  std::vector<Camera> cameras;
   std::vector<Scene> scenes;
 
   int defaultScene;
@@ -1145,18 +1123,12 @@ static bool ParseExtrasProperty(Value *ret, const picojson::object &o) {
 
 static bool ParseBooleanProperty(bool *ret, std::string *err,
                                  const picojson::object &o,
-                                 const std::string &property,
-                                 const bool required,
-                                 const std::string &parent_node = "") {
+                                 const std::string &property, bool required) {
   picojson::object::const_iterator it = o.find(property);
   if (it == o.end()) {
     if (required) {
       if (err) {
-        (*err) += "'" + property + "' property is missing";
-        if (!parent_node.empty()) {
-          (*err) += " in " + parent_node;
-        }
-        (*err) += ".\n";
+        (*err) += "'" + property + "' property is missing.\n";
       }
     }
     return false;
@@ -1608,30 +1580,8 @@ static bool ParseBufferView(BufferView *bufferView, std::string *err,
     return false;
   }
 
-  size_t byteStride = 0;
-  double byteStrideValue = 0.0;
-  if (!ParseNumberProperty(&byteStrideValue, err, o, "byteStride", false)) {
-    // Spec says: When byteStride of referenced bufferView is not defined, it
-    // means that accessor elements are tightly packed, i.e., effective stride
-    // equals the size of the element.
-    // We cannot determine the actual byteStride until Accessor are parsed, thus
-    // set 0(= tightly packed) here(as done in OpenGL's VertexAttribPoiner)
-    byteStride = 0;
-  } else {
-    byteStride = static_cast<size_t>(byteStrideValue);
-  }
-
-  if ((byteStride > 252) || ((byteStride % 4) != 0)) {
-    if (err) {
-      std::stringstream ss;
-      ss << "Invalid `byteStride' value. `byteStride' must be the multiple of "
-            "4 : "
-         << byteStride << std::endl;
-
-      (*err) += ss.str();
-    }
-    return false;
-  }
+  double byteStride = 4.0;
+  ParseNumberProperty(&byteLength, err, o, "byteStride", false);
 
   double target = 0.0;
   ParseNumberProperty(&target, err, o, "target", false);
@@ -1664,9 +1614,6 @@ static bool ParseAccessor(Accessor *accessor, std::string *err,
 
   double byteOffset = 0.0;
   ParseNumberProperty(&byteOffset, err, o, "byteOffset", false, "Accessor");
-
-  bool normalized = false;
-  ParseBooleanProperty(&normalized, err, o, "normalized", false, "Accessor");
 
   double componentType = 0.0;
   if (!ParseNumberProperty(&componentType, err, o, "componentType", true,
@@ -1707,19 +1654,27 @@ static bool ParseAccessor(Accessor *accessor, std::string *err,
     return false;
   }
 
+  double byteStride = 0.0;
+  ParseNumberProperty(&byteStride, err, o, "byteStride", false);
+
   ParseStringProperty(&accessor->name, err, o, "name", false);
 
   accessor->minValues.clear();
   accessor->maxValues.clear();
-  ParseNumberArrayProperty(&accessor->minValues, err, o, "min", false,
-                           "Accessor");
+  if (!ParseNumberArrayProperty(&accessor->minValues, err, o, "min", true,
+                                "Accessor")) {
+    return false;
+  }
 
-  ParseNumberArrayProperty(&accessor->maxValues, err, o, "max", false,
-                           "Accessor");
+  if (!ParseNumberArrayProperty(&accessor->maxValues, err, o, "max", true,
+                                "Accessor")) {
+    return false;
+  }
 
   accessor->count = static_cast<size_t>(count);
   accessor->bufferView = static_cast<int>(bufferView);
   accessor->byteOffset = static_cast<size_t>(byteOffset);
+  accessor->byteStride = static_cast<size_t>(byteStride);
 
   {
     int comp = static_cast<int>(componentType);
@@ -2131,145 +2086,6 @@ static bool ParseSkin(Skin *skin, std::string *err, const picojson::object &o) {
   return true;
 }
 
-static bool ParsePerspectiveCamera(PerspectiveCamera *camera, std::string *err,
-                                   const picojson::object &o) {
-  double yfov = 0.0;
-  if (!ParseNumberProperty(&yfov, err, o, "yfov", true, "OrthographicCamera")) {
-    return false;
-  }
-
-  double znear = 0.0;
-  if (!ParseNumberProperty(&znear, err, o, "znear", true,
-                           "PerspectiveCamera")) {
-    return false;
-  }
-
-  double aspectRatio = 0.0;  // = invalid
-  ParseNumberProperty(&aspectRatio, err, o, "aspectRatio", false,
-                      "PerspectiveCamera");
-
-  double zfar = 0.0;  // = invalid
-  ParseNumberProperty(&zfar, err, o, "zfar", false, "PerspectiveCamera");
-
-  camera->aspectRatio = float(aspectRatio);
-  camera->zfar = float(zfar);
-  camera->yfov = float(yfov);
-  camera->znear = float(znear);
-
-  ParseExtrasProperty(&(camera->extras), o);
-
-  // TODO(syoyo): Validate parameter values.
-
-  return true;
-}
-
-static bool ParseOrthographicCamera(OrthographicCamera *camera,
-                                    std::string *err,
-                                    const picojson::object &o) {
-  double xmag = 0.0;
-  if (!ParseNumberProperty(&xmag, err, o, "xmag", true, "OrthographicCamera")) {
-    return false;
-  }
-
-  double ymag = 0.0;
-  if (!ParseNumberProperty(&ymag, err, o, "ymag", true, "OrthographicCamera")) {
-    return false;
-  }
-
-  double zfar = 0.0;
-  if (!ParseNumberProperty(&zfar, err, o, "zfar", true, "OrthographicCamera")) {
-    return false;
-  }
-
-  double znear = 0.0;
-  if (!ParseNumberProperty(&znear, err, o, "znear", true,
-                           "OrthographicCamera")) {
-    return false;
-  }
-
-  ParseExtrasProperty(&(camera->extras), o);
-
-  camera->xmag = float(xmag);
-  camera->ymag = float(ymag);
-  camera->zfar = float(zfar);
-  camera->znear = float(znear);
-
-  // TODO(syoyo): Validate parameter values.
-
-  return true;
-}
-
-static bool ParseCamera(Camera *camera, std::string *err,
-                        const picojson::object &o) {
-  if (!ParseStringProperty(&camera->type, err, o, "type", true, "Camera")) {
-    return false;
-  }
-
-  if (camera->type.compare("orthographic") == 0) {
-    if (o.find("orthographic") == o.end()) {
-      if (err) {
-        std::stringstream ss;
-        ss << "Orhographic camera description not found." << std::endl;
-        (*err) += ss.str();
-      }
-      return false;
-    }
-
-    const picojson::value &v = o.find("orthographic")->second;
-    if (!v.is<picojson::object>()) {
-      if (err) {
-        std::stringstream ss;
-        ss << "\"orthographic\" is not a JSON object." << std::endl;
-        (*err) += ss.str();
-      }
-      return false;
-    }
-
-    if (!ParseOrthographicCamera(&camera->orthographic, err,
-                                 v.get<picojson::object>())) {
-      return false;
-    }
-  } else if (camera->type.compare("perspective") == 0) {
-    if (o.find("perspective") == o.end()) {
-      if (err) {
-        std::stringstream ss;
-        ss << "Perspective camera description not found." << std::endl;
-        (*err) += ss.str();
-      }
-      return false;
-    }
-
-    const picojson::value &v = o.find("perspective")->second;
-    if (!v.is<picojson::object>()) {
-      if (err) {
-        std::stringstream ss;
-        ss << "\"perspective\" is not a JSON object." << std::endl;
-        (*err) += ss.str();
-      }
-      return false;
-    }
-
-    if (!ParsePerspectiveCamera(&camera->perspective, err,
-                                v.get<picojson::object>())) {
-      return false;
-    }
-  } else {
-    if (err) {
-      std::stringstream ss;
-      ss << "Invalid camera type: \"" << camera->type
-         << "\". Must be \"perspective\" or \"orthographic\"" << std::endl;
-      (*err) += ss.str();
-    }
-    return false;
-  }
-
-  ParseStringProperty(&camera->name, err, o, "name", false);
-
-  ParseExtrasProperty(&(camera->extras), o);
-
-  return true;
-}
-
 bool TinyGLTF::LoadFromString(Model *model, std::string *err, const char *str,
                               unsigned int length, const std::string &base_dir,
                               unsigned int check_sections) {
@@ -2335,7 +2151,6 @@ bool TinyGLTF::LoadFromString(Model *model, std::string *err, const char *str,
   model->bufferViews.clear();
   model->accessors.clear();
   model->meshes.clear();
-  model->cameras.clear();
   model->nodes.clear();
   model->extensionsUsed.clear();
   model->extensionsRequired.clear();
@@ -2606,22 +2421,6 @@ bool TinyGLTF::LoadFromString(Model *model, std::string *err, const char *str,
       }
 
       model->samplers.push_back(sampler);
-    }
-  }
-
-  // 14. Parse Camera
-  if (v.contains("cameras") && v.get("cameras").is<picojson::array>()) {
-    const picojson::array &root = v.get("cameras").get<picojson::array>();
-
-    picojson::array::const_iterator it(root.begin());
-    picojson::array::const_iterator itEnd(root.end());
-    for (; it != itEnd; ++it) {
-      Camera camera;
-      if (!ParseCamera(&camera, err, it->get<picojson::object>())) {
-        return false;
-      }
-
-      model->cameras.push_back(camera);
     }
   }
   return true;
@@ -3095,10 +2894,6 @@ static void SerializeGltfNode(Node &node, picojson::object &o) {
     SerializeNumberProperty<int>("skin", node.skin, o);
   }
 
-  if (node.camera != -1) {
-    SerializeNumberProperty<int>("camera", node.camera, o);
-  }
-
   SerializeStringProperty("name", node.name, o);
   SerializeNumberArrayProperty<int>("children", node.children, o);
 }
@@ -3108,46 +2903,6 @@ static void SerializeGltfSampler(Sampler &sampler, picojson::object &o) {
   SerializeNumberProperty("minFilter", sampler.minFilter, o);
   SerializeNumberProperty("wrapS", sampler.wrapS, o);
   SerializeNumberProperty("wrapT", sampler.wrapT, o);
-}
-
-static void SerializeGltfOrthographicCamera(const OrthographicCamera &camera,
-                                            picojson::object &o) {
-  SerializeNumberProperty("zfar", camera.zfar, o);
-  SerializeNumberProperty("znear", camera.znear, o);
-  SerializeNumberProperty("xmag", camera.xmag, o);
-  SerializeNumberProperty("ymag", camera.ymag, o);
-}
-
-static void SerializeGltfPerspectiveCamera(const PerspectiveCamera &camera,
-                                           picojson::object &o) {
-  SerializeNumberProperty("zfar", camera.zfar, o);
-  SerializeNumberProperty("znear", camera.znear, o);
-  if (camera.aspectRatio > 0) {
-    SerializeNumberProperty("aspectRatio", camera.aspectRatio, o);
-  }
-
-  if (camera.yfov > 0) {
-    SerializeNumberProperty("yfov", camera.yfov, o);
-  }
-}
-
-static void SerializeGltfCamera(const Camera &camera, picojson::object &o) {
-  SerializeStringProperty("type", camera.type, o);
-  if (!camera.name.empty()) {
-    SerializeStringProperty("name", camera.type, o);
-  }
-
-  if (camera.type.compare("orthographic") == 0) {
-    picojson::object orthographic;
-    SerializeGltfOrthographicCamera(camera.orthographic, orthographic);
-    o.insert(json_object_pair("orthographic", picojson::value(orthographic)));
-  } else if (camera.type.compare("perspective") == 0) {
-    picojson::object perspective;
-    SerializeGltfPerspectiveCamera(camera.perspective, perspective);
-    o.insert(json_object_pair("perspective", picojson::value(perspective)));
-  } else {
-    // ???
-  }
 }
 
 static void SerializeGltfScene(Scene &scene, picojson::object &o) {
@@ -3335,15 +3090,6 @@ bool TinyGLTF::WriteGltfSceneToFile(
     samplers.push_back(picojson::value(sampler));
   }
   output.insert(json_object_pair("samplers", picojson::value(samplers)));
-
-  // CAMERAS
-  picojson::array cameras;
-  for (unsigned int i = 0; i < model->cameras.size(); ++i) {
-    picojson::object camera;
-    SerializeGltfCamera(model->cameras[i], camera);
-    cameras.push_back(picojson::value(camera));
-  }
-  output.insert(json_object_pair("cameras", picojson::value(cameras)));
 
   WriteGltfFile(filename, picojson::value(output).serialize());
   return true;
