@@ -205,7 +205,7 @@ Ray reflection(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal, in floa
     newRay.params.x = SUNLIGHT_CAUSTICS ? 0 : 1;
     newRay.params.z = 1;
     //newRay.bounce = min(3, newRay.bounce); // normal mode
-    newRay.bounce = min(2, newRay.bounce); // easier mode
+    newRay.bounce = min(3, newRay.bounce); // easier mode
     newRay.origin.xyz = fma(faceforward(hit.normal.xyz, newRay.direct.xyz, -hit.normal.xyz), vec3(GAP), newRay.origin.xyz); // padding
     return newRay;
 }
