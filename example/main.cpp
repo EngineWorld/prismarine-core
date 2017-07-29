@@ -315,7 +315,7 @@ namespace PaperExample {
 
                     if (it->first.compare("POSITION") == 0) { // vertices
                         geom->attributeUniformData.vertexOffset = (accessor.byteOffset + bufferView.byteOffset) / 4;
-                        geom->attributeUniformData.stride = (bufferView.byteStride <= 4) ? 0 : (bufferView.byteStride / 4);
+                        geom->attributeUniformData.stride = (bufferView.byteStride < 4) ? 0 : (bufferView.byteStride / 4);
                         geom->setVertices(glBuffers[bufferView.buffer]);
                     } else
                     
@@ -567,7 +567,7 @@ int main(const int argc, const char ** argv)
     glfwSetWindowSize(window, canvasWidth, canvasHeight);
 
     double lastTime = glfwGetTime();
-    int nbFrames = 0;
+    double prevFrameTime = lastTime;
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
@@ -613,15 +613,13 @@ int main(const int argc, const char ** argv)
 
         // Measure speed
         const double measureSeconds = 2.0;
+        
         double currentTime = glfwGetTime();
-        nbFrames++;
-        if (currentTime - lastTime >= measureSeconds) { // If last prinf() was more than 1 sec ago
-                                             // printf and reset timer
-            //printf("%f ms/frame\n", 1000.0 / double(nbFrames));
-            std::cout << "FPS: " << (double(nbFrames) / measureSeconds) << std::endl;
-            nbFrames = 0;
+        if (currentTime - lastTime >= measureSeconds) {
+            std::cout << "FPS: " << 1.f / (currentTime - prevFrameTime) << std::endl;
             lastTime += measureSeconds;
         }
+        prevFrameTime = currentTime;
 
         glfwSwapBuffers(window);
     }

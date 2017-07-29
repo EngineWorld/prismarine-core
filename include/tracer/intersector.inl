@@ -48,8 +48,8 @@ namespace Paper {
         maxt = count;
 
         vbo_vertex_textrue = allocateTexture2D<GL_RGBA32F>(3072, 1024);
-        vbo_normal_textrue = allocateTexture2D<GL_RGBA16F>(3072, 1024);
-        vbo_texcoords_textrue = allocateTexture2D<GL_RGBA16F>(3072, 1024);
+        vbo_normal_textrue = allocateTexture2D<GL_RGBA32F>(3072, 1024);
+        vbo_texcoords_textrue = allocateTexture2D<GL_RGBA32F>(3072, 1024);
         vbo_modifiers_textrue = allocateTexture2D<GL_RGBA32F>(3072, 1024);
 
         glCreateSamplers(1, &vbo_sampler);
@@ -90,8 +90,8 @@ namespace Paper {
     inline void Intersector::bind() {
         // mosaic buffers for write
         glBindImageTexture(0, vbo_vertex_textrue, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
-        glBindImageTexture(1, vbo_normal_textrue, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA16F);
-        glBindImageTexture(2, vbo_texcoords_textrue, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA16F);
+        glBindImageTexture(1, vbo_normal_textrue, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+        glBindImageTexture(2, vbo_texcoords_textrue, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
         glBindImageTexture(3, vbo_modifiers_textrue, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 
         // use mosaic sampler
