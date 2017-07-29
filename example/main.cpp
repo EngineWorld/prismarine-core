@@ -566,6 +566,9 @@ int main(const int argc, const char ** argv)
     glfwSetCursorPosCallback(window, mouse_move_callback);
     glfwSetWindowSize(window, canvasWidth, canvasHeight);
 
+    double lastTime = glfwGetTime();
+    int nbFrames = 0;
+
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
@@ -607,6 +610,18 @@ int main(const int argc, const char ** argv)
 
         app->dpiscaling = ratio;
         app->draw();
+
+        // Measure speed
+        const double measureSeconds = 2.0;
+        double currentTime = glfwGetTime();
+        nbFrames++;
+        if (currentTime - lastTime >= measureSeconds) { // If last prinf() was more than 1 sec ago
+                                             // printf and reset timer
+            //printf("%f ms/frame\n", 1000.0 / double(nbFrames));
+            std::cout << "FPS: " << (double(nbFrames) / measureSeconds) << std::endl;
+            nbFrames = 0;
+            lastTime += measureSeconds;
+        }
 
         glfwSwapBuffers(window);
     }
