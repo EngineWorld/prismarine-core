@@ -408,7 +408,7 @@ namespace Paper {
     inline void Tracer::render() {
         this->bind();
         glEnable(GL_TEXTURE_2D);
-        glBindTextureUnit(0, presampled);
+        glBindTextureUnit(5, presampled);
         glScissor(0, 0, displayWidth, displayHeight);
         glViewport(0, 0, displayWidth, displayHeight);
         glUseProgram(renderProgram);
@@ -433,11 +433,6 @@ namespace Paper {
         this->bind();
         dispatch(intersectionProgram, tiled(rsize, worksize));
 
-        glBindSampler(0, 0);
-        glBindSampler(1, 0);
-        glBindSampler(2, 0);
-        glBindSampler(3, 0);
-
         return 1;
     }
 
@@ -449,20 +444,9 @@ namespace Paper {
         materialUniformData.time = rand();
 
         this->bind();
-        if (cubeTex) glBindTextureUnit(0, cubeTex);
         mat->bindWithContext(matProgram);
 
-
-        // load texture by bindless
-        //GLuint uniformLoc = 64;
-        //uint64_t texHandle = glGetTextureHandleARB(skybox);
-        //glMakeTextureHandleResidentARB(texHandle);
-        //glProgramUniformHandleui64ARB(matProgram, uniformLoc, texHandle);
-
-        GLuint uniformLoc = 64;
-        GLuint skyboxBind = 1;
-        glBindTextureUnit(skyboxBind, skybox);
-        //glProgramUniform1i(matProgram, 64, skyboxBind);
+        glBindTextureUnit(5, skybox);
 
         dispatch(matProgram, tiled(rsize, worksize));
     }

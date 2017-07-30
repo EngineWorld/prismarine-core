@@ -16,7 +16,7 @@
 layout ( location = 0 ) out vec4 outFragColor;
 layout ( location = 0 ) in vec2 texcoord;
 
-layout ( binding = 0 ) uniform sampler2D samples;
+layout ( binding = 5 ) uniform sampler2D samples;
 
 
 void mediumSwap(inout vec4 c0, inout vec4 c1){
