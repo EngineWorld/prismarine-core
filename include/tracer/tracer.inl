@@ -371,7 +371,10 @@ namespace Paper {
 
         // set available pointer
         int32_t availablePtr = int32_t(availableCount) - 1;
-        glNamedBufferSubData(arcounter, 3 * sizeof(int32_t), sizeof(int32_t), &availablePtr);
+        //glNamedBufferSubData(arcounter, 3 * sizeof(int32_t), sizeof(int32_t), &availablePtr);
+
+        // copy pointer+1
+        glCopyNamedBufferSubData(arcounter, arcounter, 2 * sizeof(int32_t), 3 * sizeof(int32_t), sizeof(int32_t));
 
         // set to zeros
         glCopyNamedBufferSubData(arcounterTemp, arcounter, 0, sizeof(uint32_t) * 2, sizeof(uint32_t));

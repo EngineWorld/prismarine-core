@@ -183,9 +183,9 @@ int createRay(inout Ray original, in int idx) {
     while (freed >= 0 && iterations >= 0) {
         iterations--;
 
-        atomicMax(arcounter.Ut, -1); // prevent most decreasing
-        int freed = atomicAdd(arcounter.Ut, -1);
-        atomicMax(arcounter.Ut, -1); // prevent most decreasing
+        atomicMax(arcounter.Ut, 0); // prevent most decreasing
+        int freed = atomicAdd(arcounter.Ut, -1)-1;
+        atomicMax(arcounter.Ut, 0); // prevent most decreasing
 
         if (
             freed >= 0 && 

@@ -45,12 +45,12 @@ namespace Paper {
             GLuint HistogramBuffer = allocateBuffer<uint32_t>(WG_COUNT * RADICES);
             GLuint VarBuffer = allocateBuffer<Consts>(1);
 
-            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, InKeys);
-            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, InVals);
-            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, OutKeys);
-            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, OutValues);
-            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, VarBuffer);
-            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, HistogramBuffer);
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 20, InKeys);
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 21, InVals);
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 22, OutKeys);
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 23, OutValues);
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 24, VarBuffer);
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 25, HistogramBuffer);
 
             for (GLuint i = 0; i < 8;i++) {
                 glNamedBufferSubData(VarBuffer, 0, strided<Consts>(1), &consts[i]);

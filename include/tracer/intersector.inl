@@ -227,10 +227,10 @@ namespace Paper {
         //glGetNamedBufferSubData(mortonBufferIndex, 0, strided<GLuint>(mortons.size()), mortons.data());
 
         this->syncUniforms();
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, mortonBuffer);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mortonBufferIndex);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, aabbCounter);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, leafBuffer);
+       // glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, mortonBuffer);
+        //glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mortonBufferIndex);
+        //glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, aabbCounter);
+        //glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, leafBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, bvhnodesBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, bvhflagsBuffer);
 

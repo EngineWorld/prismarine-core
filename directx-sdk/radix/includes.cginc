@@ -27,11 +27,6 @@ static uint LANE_IDX = 0;
 #define READ_LANE(V, I) (uint(I >= 0 && I < WARP_SIZE) * readLane(V, I))
 #define BFE(m, i, s) ((m >> (i)) & ((1 << (s))-1))
 
-RWStructuredBuffer<uint> KeyIn : register(u0);
-RWStructuredBuffer<uint> ValueIn : register(u1);
-RWStructuredBuffer<uint> KeyOut : register(u2);
-RWStructuredBuffer<uint> ValueOut : register(u3);
-
 struct VarsBlock {
     uint NumKeys;
     uint Shift;
@@ -39,8 +34,12 @@ struct VarsBlock {
     uint IsSigned;
 };
 
-RWStructuredBuffer<VarsBlock> vars : register(u4);
-RWStructuredBuffer<uint> Histogram : register(u5);
+RWStructuredBuffer<uint> KeyIn     : register(u20);
+RWStructuredBuffer<uint> ValueIn   : register(u21);
+RWStructuredBuffer<uint> KeyOut    : register(u22);
+RWStructuredBuffer<uint> ValueOut  : register(u23);
+RWStructuredBuffer<VarsBlock> vars : register(u24);
+RWStructuredBuffer<uint> Histogram : register(u25);
 
 struct blocks_info { uint count; uint offset; };
 blocks_info get_blocks_info(in uint n, in uint wg_idx) {
