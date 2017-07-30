@@ -31,14 +31,14 @@ struct Submat {
     ivec4 iModifiers0;
 };
 
-const uint MAX_TEXTURES = 66;
+const uint MAX_TEXTURES = 79;
 layout ( binding = 15, std430 ) readonly buffer MaterialsSSBO {Submat submats[];};
 
 
 #ifdef USE_BINDLESS
 layout ( binding = 16 ) readonly buffer Textures { sampler2D samplers[]; }; //uniform uint64_t samplers[MAX_TEXTURES];
 #else
-layout ( binding = 0, set = 0 ) uniform sampler2D samplers[MAX_TEXTURES]; // vulkan API type (future)
+layout ( binding = 0, set = 1 ) uniform sampler2D samplers[MAX_TEXTURES]; // vulkan API type (future)
 #endif
 
 

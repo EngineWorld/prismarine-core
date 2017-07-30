@@ -12,13 +12,13 @@ set EXPR=experimental\
 set HLBV=hlbvh\
 set RDXI=radix\
 
-set CMPPROF=-fshader-stage=comp
+set CMPPROF=-fshader-stage=compute
 set FRGPROF=-fshader-stage=fragment
 set VRTPROF=-fshader-stage=vertex
 set GMTPROF=-fshader-stage=geometry
 
 
-set CMPPROFM=-e CSMain -S comp --hlsl-iomap --target-env opengl -V -D 
+set CMPPROFM=-e CSMain -S compute --hlsl-iomap --target-env opengl -V -D 
 
 
 mkdir %OUTDIR%
