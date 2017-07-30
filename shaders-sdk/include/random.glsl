@@ -37,7 +37,7 @@ float random() {
     //uint hs = ++randomClocks;
     uint hs = randomClocks; randomClocks = hash(++randomClocks);
     //uint hs = hash(++randomClocks); randomClocks = hs;
-    return random(uvec3( globalInvocationSMP, hs, RAY_BLOCK randomUniform.time << 5 ));
+    return random(uvec3( globalInvocationSMP, hs, RAY_BLOCK materialUniform.time << 5 ));
 #endif
 }
 

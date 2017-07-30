@@ -61,7 +61,6 @@ namespace Paper {
         void initShaders();
         void init();
 
-        RandomUniformStruct randomUniformData;
         MaterialUniformStruct materialUniformData;
         SamplerUniformStruct samplerUniformData;
         CameraUniformStruct cameraUniformData;
@@ -134,8 +133,6 @@ namespace Paper {
         glm::vec4 lightOffset[6] = { glm::vec4(0.0f, 0.0f, 0.0f, 0.0f) };
 
         void setLightCount(size_t lightcount);
-        void enableReflections(const int32_t flag);
-        void enableShadows(const int32_t flag);
         void includeCubemap(GLuint cube);
         void bindUniforms();
         void bind();

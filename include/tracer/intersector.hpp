@@ -32,10 +32,14 @@ namespace Paper {
 
         GLuint vbo_sampler = -1;
 
+        // uniform buffer
+        GLuint geometryBlockUniform = -1;
         GeometryBlockUniform geometryBlockData;
+
+        // uniforms
         GeometryUniformStruct geometryUniformData;
         AttributeUniformStruct attributeUniformData;
-        GLuint geometryBlockUniform = -1;
+
 
         GLuint aabbCounter = -1;
         GLuint leafBuffer = -1;

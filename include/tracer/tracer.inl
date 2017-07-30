@@ -139,8 +139,6 @@ namespace Paper {
         glVertexArrayAttribFormat(vao, 0, 2, GL_FLOAT, GL_FALSE, 0);
         glVertexArrayVertexBuffer(vao, 0, posBuf, 0, strided<Vc2>(1));
 
-        materialUniformData.f_reflections = 1;
-        materialUniformData.f_shadows = 1;
         materialUniformData.lightcount = 1;
         samplerUniformData.currentSample = currentSample;
         samplerUniformData.maxSamples = maxSamples;
@@ -241,14 +239,6 @@ namespace Paper {
         syncUniforms();
     }
 
-    inline void Tracer::enableReflections(const int32_t flag) {
-        materialUniformData.f_reflections = flag;
-    }
-
-    inline void Tracer::enableShadows(const int32_t flag) {
-        materialUniformData.f_shadows = flag;
-    }
-
     inline void Tracer::includeCubemap(GLuint cube) { 
         cubeTex = cube; 
     }
@@ -264,7 +254,6 @@ namespace Paper {
         rayBlockData.cameraUniform = cameraUniformData;
         rayBlockData.samplerUniform = samplerUniformData;
         rayBlockData.materialUniform = materialUniformData;
-        rayBlockData.randomUniform = randomUniformData;
 
         glNamedBufferSubData(rayBlockUniform, 0, strided<RayBlockUniform>(1), &rayBlockData);
         glNamedBufferSubData(lightUniform, 0, strided<LightUniformStruct>(6), lightUniformData);
@@ -333,7 +322,7 @@ namespace Paper {
 
         clearRays();
 
-        randomUniformData.time = rand();
+        materialUniformData.time = rand();
         cameraUniformData.camInv = *(Vc4x4 *)glm::value_ptr(glm::inverse(frontSide));
         cameraUniformData.projInv = *(Vc4x4 *)glm::value_ptr(glm::inverse(persp));
         cameraUniformData.interlace = 0;
@@ -457,7 +446,7 @@ namespace Paper {
         if (rsize <= 0) return;
 
         samplerUniformData.rayCount = rsize;
-        randomUniformData.time = rand();
+        materialUniformData.time = rand();
 
         this->bind();
         if (cubeTex) glBindTextureUnit(0, cubeTex);

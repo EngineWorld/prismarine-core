@@ -9,18 +9,11 @@
 //#define RAY_BLOCK 
 //#define GEOMETRY_BLOCK 
 
-struct RandomUniformStruct {
-    uint time;
-    Vc1 _reserved0;
-    Vc1 _reserved1;
-    Vc1 _reserved2;
-};
-
 struct MaterialUniformStruct {
-    Vc1 materialID;
-    Vc1 f_shadows;
-    Vc1 f_reflections;
-    Vc1 lightcount;
+    iVc1 materialID;
+    iVc1 _reserved;
+    iVc1 time;
+    iVc1 lightcount;
     Vc4 backgroundColor; // for skybox configure
     iVc4 iModifiers0;
     iVc4 iModifiers1;
@@ -117,7 +110,6 @@ layout ( std430, binding = 13 ) readonly buffer RayBlockUniform {
     SamplerUniformStruct samplerUniform;
     CameraUniformStruct cameraUniform;
     MaterialUniformStruct materialUniform;
-    RandomUniformStruct randomUniform;
 } rayBlock; 
 
 layout ( std430, binding = 14 ) readonly buffer GeometryBlockUniform {

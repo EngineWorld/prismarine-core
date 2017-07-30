@@ -28,13 +28,6 @@ namespace Paper {
         return millis;
     }
 
-    /*
-    static float frandom() {
-        std::ranlux48 eng{ std::random_device{}() };
-        std::uniform_real_distribution<float> dist(0.0f, 1.0f);
-        return dist(eng);
-    }*/
-
     template<class T>
     size_t strided(size_t sizeo) {
         return sizeof(T) * sizeo;
