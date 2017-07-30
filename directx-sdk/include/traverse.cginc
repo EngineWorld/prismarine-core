@@ -170,12 +170,12 @@ TResult testIntersection(inout SharedVarData sharedVarData, inout TResult res, i
 }
 
 float3 projectVoxels(in float3 orig) {
-    float4 nps = mul(geometryBlock[0].project, float4(orig, 1.0f));
+    float4 nps = mul(geometryBlock[0].transform, float4(orig, 1.0f));
     return nps.xyz / nps.w;
 }
 
 float3 unprojectVoxels(in float3 orig) {
-    float4 nps = mul(geometryBlock[0].unproject, float4(orig, 1.0f));
+    float4 nps = mul(geometryBlock[0].transformInv, float4(orig, 1.0f));
     return nps.xyz / nps.w;
 }
 
@@ -252,7 +252,7 @@ TResult traverse(in uint L, in float distn, in float3 origin, in float3 direct, 
 
     // test constants
     float3 torig = projectVoxels(origin);
-    float3 tdirproj = mul(geometryBlock[0].project, float4(direct, 0.0)).xyz;
+    float3 tdirproj = mul(geometryBlock[0].transform, float4(direct, 0.0)).xyz;
     float dirlen = 1.0f / length(tdirproj);
     float3 dirproj = normalize(tdirproj);
 

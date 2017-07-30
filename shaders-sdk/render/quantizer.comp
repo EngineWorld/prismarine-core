@@ -7,9 +7,6 @@
 #include "../include/morton.glsl"
 #include "../include/STOmath.glsl"
 
-layout ( std430, binding = 5 ) restrict buffer RayMortons {uint rayMorton[];};
-layout ( std430, binding = 6 ) restrict buffer BoundingBox {bbox inbound;};
-
 void main(){
     const int it = int(gl_GlobalInvocationID.x);
     if (it >= RAY_BLOCK samplerUniform.rayCount) return;

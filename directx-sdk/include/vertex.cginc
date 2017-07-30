@@ -1,7 +1,7 @@
 #ifndef _VERTEX_H
 #define _VERTEX_H
 
-RWStructuredBuffer<int> mats : register(u5);
+RWStructuredBuffer<int> mats : register(u10);
 
 Texture2D<float4> vertex_texture : register(t0);
 Texture2D<float4> normal_texture : register(t1);

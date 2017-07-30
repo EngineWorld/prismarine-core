@@ -159,12 +159,12 @@ TResult testIntersection(inout TResult res, in VEC3 orig, in VEC3 dir, in int tr
 }
 
 VEC3 projectVoxels(in VEC3 orig) {
-     VEC4 nps = mult4w(eql(3) ? 1.0f : orig, GEOMETRY_BLOCK octreeUniform.project);
+     VEC4 nps = mult4w(eql(3) ? 1.0f : orig, GEOMETRY_BLOCK geometryUniform.transform);
     return nps / w(nps);
 }
 
 VEC3 unprojectVoxels(in VEC3 orig) {
-     VEC4 nps = mult4w(eql(3) ? 1.0f : orig, GEOMETRY_BLOCK octreeUniform.unproject);
+     VEC4 nps = mult4w(eql(3) ? 1.0f : orig, GEOMETRY_BLOCK geometryUniform.transformInv);
     return nps / w(nps);
 }
 
@@ -230,7 +230,7 @@ TResult traverse(in float distn, in VEC3 origin, in VEC3 direct, in Hit hit) {
     // test constants
      int bakedStep = int(floor(1.f + hit.vmods.w));
      VEC4 torig = projectVoxels(origin);
-     VEC4 tdirproj = mult4w(direct, GEOMETRY_BLOCK octreeUniform.project);
+     VEC4 tdirproj = mult4w(direct, GEOMETRY_BLOCK geometryUniform.transform);
      float dirlen = 1.0f / length3(tdirproj);
      VEC4 dirproj = tdirproj * dirlen;
     

@@ -146,13 +146,6 @@ namespace Paper {
         Vc1 _reserved2;
     };
 
-    struct MinmaxUniformStruct {
-        iVc1 heap;
-        Vc1 prec;
-        Vc1 _reserved0;
-        Vc1 _reserved1;
-    };
-
     struct MaterialUniformStruct {
         Vc1 materialID;
         Vc1 f_shadows;
@@ -204,16 +197,6 @@ namespace Paper {
         iVc1 clearDepth = 0;
     };
 
-    struct OctreeUniformStruct {
-        Vc4x4 project = mat4r;
-        Vc4x4 unproject = mat4r;
-
-        iVc1 maxDepth;
-        iVc1 currentDepth;
-        iVc1 nodeCount;
-        iVc1 unk0;
-    };
-
     struct CameraUniformStruct {
         Vc4x4 projInv = mat4r;
         Vc4x4 camInv = mat4r;
@@ -251,8 +234,6 @@ namespace Paper {
     struct GeometryBlockUniform {
         AttributeUniformStruct attributeUniform = AttributeUniformStruct();
         GeometryUniformStruct geometryUniform = GeometryUniformStruct();
-        OctreeUniformStruct octreeUniform = OctreeUniformStruct();
-        MinmaxUniformStruct minmaxUniform = MinmaxUniformStruct();
     };
 
     struct RayBlockUniform {

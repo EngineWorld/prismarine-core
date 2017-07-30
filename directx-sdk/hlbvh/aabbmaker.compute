@@ -7,10 +7,10 @@
 #include "../include/morton.cginc"
 #include "../include/STOmath.cginc"
 
-RWStructuredBuffer<Leaf> OutLeafs : register(u0);
-RWStructuredBuffer<uint> Mortoncodes : register(u1);
-RWStructuredBuffer<int> MortoncodesIndices : register(u2);
-RWStructuredBuffer<int> AABBCounter : register(u3);
+RWStructuredBuffer<uint> Mortoncodes : register(u0);
+RWStructuredBuffer<int> MortoncodesIndices : register(u1);
+RWStructuredBuffer<int> AABBCounter : register(u2);
+RWStructuredBuffer<Leaf> OutLeafs : register(u3);
 
 uint add(inout uint mem, in uint ops){
     uint tmp = mem; mem += ops; return tmp;
@@ -31,13 +31,9 @@ void CSMain( uint3 WorkGroupID : SV_GroupID, uint3 LocalInvocationID  : SV_Group
             fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(t)), 2)
         );
 
-        triverts[0] = mul(geometryBlock[0].project, triverts[0]);
-        triverts[1] = mul(geometryBlock[0].project, triverts[1]);
-        triverts[2] = mul(geometryBlock[0].project, triverts[2]);
-
-        //triverts[0] = mul(triverts[0], geometryBlock[0].project);
-        //triverts[1] = mul(triverts[1], geometryBlock[0].project);
-        //triverts[2] = mul(triverts[2], geometryBlock[0].project);
+        triverts[0] = mul(geometryBlock[0].transform, triverts[0]);
+        triverts[1] = mul(geometryBlock[0].transform, triverts[1]);
+        triverts[2] = mul(geometryBlock[0].transform, triverts[2]);
 
         float4 tcenter = (triverts[0] + triverts[1] + triverts[2]) * 0.33333333333333f;
         if (length(abs(triverts[0] - tcenter).xyz + abs(triverts[1] - tcenter).xyz + abs(triverts[2] - tcenter).xyz) < 1.e-5) return;

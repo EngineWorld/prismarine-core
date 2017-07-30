@@ -272,20 +272,24 @@ namespace Paper {
     }
 
     inline void Tracer::bindUniforms() {
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 10, lightUniform);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 11, rayBlockUniform);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 12, lightUniform);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 13, rayBlockUniform);
     }
 
     inline void Tracer::bind() {
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 21, colorchains);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 20, arcounter);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, rays);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, hits);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, texels);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, activel);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, activenl);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, freedoms);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 14, availables);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, colorchains);
+
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, activel);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, availables);
+
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, activenl);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, freedoms);
+        
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, arcounter);
+
 
         syncUniforms();
         bindUniforms();
@@ -314,9 +318,8 @@ namespace Paper {
     }
 
     inline void Tracer::sample() {
-        glBindImageTexture(0, sampleflags, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
-        glBindImageTexture(1, samples, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
-        glBindImageTexture(2, presampled, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+        glBindImageTexture(0, presampled, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+        glBindImageTexture(1, sampleflags, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
 
         this->bind();
         dispatch(samplerProgram, tiled(displayWidth * displayHeight, worksize));
@@ -375,15 +378,22 @@ namespace Paper {
         syncUniforms();
 
         uint32_t availableCount = 0;
-        glGetNamedBufferSubData(arcounter, 2 * sizeof(int32_t), 1 * sizeof(int32_t), &availableCount);
-        glCopyNamedBufferSubData(arcounter, arcounter, 2 * sizeof(int32_t), 3 * sizeof(int32_t), sizeof(int32_t));
+        glGetNamedBufferSubData(arcounter, 2 * sizeof(int32_t), sizeof(int32_t), &availableCount);
+
+        // set available pointer
+        int32_t availablePtr = int32_t(availableCount) - 1;
+        glNamedBufferSubData(arcounter, 3 * sizeof(int32_t), sizeof(int32_t), &availablePtr);
+
+        // set to zeros
         glCopyNamedBufferSubData(arcounterTemp, arcounter, 0, sizeof(uint32_t) * 2, sizeof(uint32_t));
         glCopyNamedBufferSubData(arcounterTemp, arcounter, 0, sizeof(uint32_t) * 0, sizeof(uint32_t));
 
+        // copy active collection
         if (raycountCache > 0) {
             glCopyNamedBufferSubData(activenl, activel, 0, 0, strided<uint32_t>(raycountCache));
         }
 
+        // copy collection of available ray memory 
         if (availableCount > 0) {
             glCopyNamedBufferSubData(freedoms, availables, 0, 0, strided<uint32_t>(availableCount));
         }

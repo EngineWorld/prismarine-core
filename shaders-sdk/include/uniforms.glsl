@@ -16,13 +16,6 @@ struct RandomUniformStruct {
     Vc1 _reserved2;
 };
 
-struct MinmaxUniformStruct {
-    iVc1 heap;
-    Vc1 prec;
-    Vc1 _reserved0;
-    Vc1 _reserved1;
-};
-
 struct MaterialUniformStruct {
     Vc1 materialID;
     Vc1 f_shadows;
@@ -116,22 +109,20 @@ struct AttributeUniformStruct {
     Vc4 fModifiers1;
 };
 
-layout ( std430, binding = 10 ) readonly buffer LightUniform {
+layout ( std430, binding = 12 ) readonly buffer LightUniform {
     LightUniformStruct lightNode[];
 } lightUniform;
 
-layout ( std430, binding = 11 ) readonly buffer RayBlockUniform {
+layout ( std430, binding = 13 ) readonly buffer RayBlockUniform {
     SamplerUniformStruct samplerUniform;
     CameraUniformStruct cameraUniform;
     MaterialUniformStruct materialUniform;
     RandomUniformStruct randomUniform;
 } rayBlock; 
 
-layout ( std430, binding = 12 ) readonly buffer GeometryBlockUniform {
+layout ( std430, binding = 14 ) readonly buffer GeometryBlockUniform {
     AttributeUniformStruct attributeUniform;
     GeometryUniformStruct geometryUniform;
-    OctreeUniformStruct octreeUniform;
-    MinmaxUniformStruct minmaxUniform;
 } geometryBlock;
 
 #endif

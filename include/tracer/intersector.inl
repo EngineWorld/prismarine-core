@@ -72,8 +72,6 @@ namespace Paper {
     inline void Intersector::syncUniforms() {
         geometryBlockData.geometryUniform = geometryUniformData;
         geometryBlockData.attributeUniform = attributeUniformData;
-        geometryBlockData.octreeUniform = octreeUniformData;
-        geometryBlockData.minmaxUniform = minmaxUniformData;
         glNamedBufferSubData(geometryBlockUniform, 0, strided<GeometryBlockUniform>(1), &geometryBlockData);
 
         this->bindUniforms();
@@ -84,7 +82,7 @@ namespace Paper {
     }
 
     inline void Intersector::bindUniforms() {
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 12, geometryBlockUniform);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 14, geometryBlockUniform);
     }
 
     inline void Intersector::bind() {
@@ -106,8 +104,8 @@ namespace Paper {
         glBindTextureUnit(2, vbo_texcoords_textrue);
         glBindTextureUnit(3, vbo_modifiers_textrue);
 
-        // legacy SSBO
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, mat_triangle_ssbo);
+        // material SSBO
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 10, mat_triangle_ssbo);
     }
 
     inline void Intersector::bindBVH() {
@@ -181,19 +179,17 @@ namespace Paper {
         glCopyNamedBufferSubData(minmaxBufRef, minmaxBuf, 0, 0, strided<bbox>(1));
         geometryUniformData.triangleOffset = 0;
         geometryUniformData.triangleCount = triangleCount;
-        minmaxUniformData.prec = prec;
-        minmaxUniformData.heap = 1;
 
         {
             glm::dmat4 mat(1.0);
             mat *= glm::inverse(optimization);
-            octreeUniformData.project = *(Vc4x4 *)glm::value_ptr(glm::transpose(glm::mat4(mat)));
-            octreeUniformData.unproject = *(Vc4x4 *)glm::value_ptr(glm::transpose(glm::inverse(glm::mat4(mat))));
+            geometryUniformData.transform = *(Vc4x4 *)glm::value_ptr(glm::transpose(glm::mat4(mat)));
+            geometryUniformData.transformInv = *(Vc4x4 *)glm::value_ptr(glm::transpose(glm::inverse(glm::mat4(mat))));
         }
 
         this->syncUniforms();
         this->bind();
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, minmaxBuf);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, minmaxBuf);
         dispatch(minmaxProgram2, 1);
 
         glGetNamedBufferSubData(minmaxBuf, 0, strided<bbox>(1), &bound);
@@ -206,15 +202,15 @@ namespace Paper {
             mat = glm::translate(mat, -glm::dvec3(offset));
             mat *= glm::inverse(glm::dmat4(optimization));
 
-            octreeUniformData.project = *(Vc4x4 *)glm::value_ptr(glm::transpose(glm::mat4(mat)));
-            octreeUniformData.unproject = *(Vc4x4 *)glm::value_ptr(glm::transpose(glm::inverse(glm::mat4(mat))));
+            geometryUniformData.transform = *(Vc4x4 *)glm::value_ptr(glm::transpose(glm::mat4(mat)));
+            geometryUniformData.transformInv = *(Vc4x4 *)glm::value_ptr(glm::transpose(glm::inverse(glm::mat4(mat))));
         }
 
         glCopyNamedBufferSubData(lscounterTemp, aabbCounter, 0, 0, strided<uint32_t>(1));
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, leafBuffer);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mortonBuffer);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, mortonBufferIndex);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, aabbCounter);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, mortonBuffer);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mortonBufferIndex);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, aabbCounter);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, leafBuffer);
 
         this->bind();
         this->syncUniforms();
@@ -231,10 +227,10 @@ namespace Paper {
         //glGetNamedBufferSubData(mortonBufferIndex, 0, strided<GLuint>(mortons.size()), mortons.data());
 
         this->syncUniforms();
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, leafBuffer);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mortonBuffer);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, mortonBufferIndex);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, aabbCounter);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, mortonBuffer);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mortonBufferIndex);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, aabbCounter);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, leafBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, bvhnodesBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, bvhflagsBuffer);
 

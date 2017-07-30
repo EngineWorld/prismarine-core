@@ -7,21 +7,21 @@
 #include "../include/morton.glsl"
 #include "../include/STOmath.glsl"
 
-layout ( std430, binding = 0 ) restrict buffer OutLeafBlock {
-    Leaf OutLeafs[];
-} outLeafsBuf;
-
-layout ( std430, binding = 1 ) restrict buffer MortoncodesBlock {
+layout ( std430, binding = 0 ) restrict buffer MortoncodesBlock {
     uint Mortoncodes[];
 } mortonBuf;
 
-layout ( std430, binding = 2 ) restrict buffer IndicesBlock {
+layout ( std430, binding = 1 ) restrict buffer IndicesBlock {
     int MortoncodesIndices[];
 } mortonIdc;
 
-layout ( std430, binding = 3 ) restrict buffer CounterBlock {
+layout ( std430, binding = 2 ) restrict buffer CounterBlock {
     int aabbCounter[1];
 } counters;
+
+layout ( std430, binding = 3 ) restrict buffer OutLeafBlock {
+    Leaf OutLeafs[];
+} outLeafsBuf;
 
 LOCAL_SIZE_LAYOUT;
 
@@ -49,9 +49,9 @@ void main() {
         fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(t)), 2)
     );
 
-    triverts[0] = mult4(triverts[0], GEOMETRY_BLOCK octreeUniform.project);
-    triverts[1] = mult4(triverts[1], GEOMETRY_BLOCK octreeUniform.project);
-    triverts[2] = mult4(triverts[2], GEOMETRY_BLOCK octreeUniform.project);
+    triverts[0] = mult4(triverts[0], GEOMETRY_BLOCK geometryUniform.transform);
+    triverts[1] = mult4(triverts[1], GEOMETRY_BLOCK geometryUniform.transform);
+    triverts[2] = mult4(triverts[2], GEOMETRY_BLOCK geometryUniform.transform);
 
     vec4 tcenter = (triverts[0] + triverts[1] + triverts[2]) * 0.33333333333333f;
     if (length(abs(triverts[0] - tcenter).xyz + abs(triverts[1] - tcenter).xyz + abs(triverts[2] - tcenter).xyz) < 1.e-5) return;

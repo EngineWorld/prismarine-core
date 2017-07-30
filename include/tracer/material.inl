@@ -24,7 +24,7 @@ namespace Paper {
 
     inline void Material::bindWithContext(GLuint & prog) {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 15, mats);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 13, textures);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 16, textures);
     }
     
     inline void Material::clearGlTextures() {

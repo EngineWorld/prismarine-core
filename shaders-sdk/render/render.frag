@@ -14,8 +14,9 @@
 #define O(u,v) (ivec2(u, v))
 
 layout ( location = 0 ) out vec4 outFragColor;
-layout ( location = 0 ) uniform sampler2D samples;
 layout ( location = 0 ) in vec2 texcoord;
+
+layout ( binding = 0 ) uniform sampler2D samples;
 
 
 void mediumSwap(inout vec4 c0, inout vec4 c1){
@@ -25,8 +26,6 @@ void mediumSwap(inout vec4 c0, inout vec4 c1){
     c1 = mx;
 }
 
-
-
 vec4 median(in vec4 cl[3], in int n){
     for(int i=0;i<n-1;i++){
         for(int j=i+1;j<n;j++){
@@ -35,8 +34,6 @@ vec4 median(in vec4 cl[3], in int n){
     }
     return cl[n >> 1];
 }
-
-
 
 vec4 checkerFetch(in sampler2D samples, in ivec2 tx, in int lod){ 
     vec4 t00 = texelFetch(samples, tx, lod);

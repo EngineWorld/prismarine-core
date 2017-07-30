@@ -33,8 +33,6 @@ namespace Paper {
         GLuint vbo_sampler = -1;
 
         GeometryBlockUniform geometryBlockData;
-        MinmaxUniformStruct minmaxUniformData;
-        OctreeUniformStruct octreeUniformData;
         GeometryUniformStruct geometryUniformData;
         AttributeUniformStruct attributeUniformData;
         GLuint geometryBlockUniform = -1;

@@ -4,6 +4,7 @@
 #include "../include/STOmath.glsl"
 #include "../include/morton.glsl"
 
+/*
 layout ( std430, binding = 0 ) restrict buffer RaysSSBO { Ray nodes[]; } rayBuf;
 layout ( std430, binding = 1 ) restrict buffer HitsSSBO { Hit nodes[]; } hitBuf;
 layout ( std430, binding = 2 ) restrict buffer TexelsSSBO { Texel nodes[]; } texelBuf;
@@ -19,6 +20,34 @@ layout ( std430, binding = 20 ) restrict buffer CounterBlock {
     int Ct;
 } arcounter;
 layout ( std430, binding = 21 ) restrict buffer ColorChainBlock { ColorChain chains[]; } chBuf;
+*/
+
+
+
+layout ( std430, binding = 0 ) restrict buffer RaysSSBO { Ray nodes[]; } rayBuf;
+layout ( std430, binding = 1 ) restrict buffer HitsSSBO { Hit nodes[]; } hitBuf;
+layout ( std430, binding = 2 ) restrict buffer TexelsSSBO { Texel nodes[]; } texelBuf;
+layout ( std430, binding = 3 ) restrict buffer ColorChainBlock { ColorChain chains[]; } chBuf;
+
+// current list
+layout ( std430, binding = 4 ) readonly buffer ActivedIndicesSSBO { int indc[]; } activedBuf;
+layout ( std430, binding = 5 ) readonly buffer AvailablesIndicesSSBO { int indc[]; } availBuf;
+
+// new list
+layout ( std430, binding = 6 ) restrict buffer CollectedActivesSSBO { int indc[]; } collBuf;
+layout ( std430, binding = 7 ) restrict buffer FreedomIndicesSSBO { int indc[]; } freedBuf;
+
+// counters
+layout ( std430, binding = 8 ) restrict buffer CounterBlock { 
+    int At; // new list collection counter
+    int Rt; // ray list counter
+    int Qt; // next available ptr 
+    int Ut; // free list counter
+    int Ct; // color chain list counter
+} arcounter;
+
+
+
 
 void _collect(inout Ray ray) {
     vec4 color = max(ray.final, vec4(0.f));
@@ -154,9 +183,9 @@ int createRay(inout Ray original, in int idx) {
     while (freed >= 0 && iterations >= 0) {
         iterations--;
 
-        atomicMax(arcounter.Ut, 0); // prevent most decreasing
-        int freed = atomicAdd(arcounter.Ut, -1)-1;
-        atomicMax(arcounter.Ut, 0); // prevent most decreasing
+        atomicMax(arcounter.Ut, -1); // prevent most decreasing
+        int freed = atomicAdd(arcounter.Ut, -1);
+        atomicMax(arcounter.Ut, -1); // prevent most decreasing
 
         if (
             freed >= 0 && 

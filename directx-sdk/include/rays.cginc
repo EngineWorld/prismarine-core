@@ -8,12 +8,13 @@ static const int Ct = 4;
 RWStructuredBuffer<Ray> rayBuf : register(u0);
 RWStructuredBuffer<Hit> hitBuf : register(u1);
 RWStructuredBuffer<Texel> texelBuf : register(u2);
-RWStructuredBuffer<int> activedBuf : register(u6);
-RWStructuredBuffer<int> collBuf : register(u7);
-RWStructuredBuffer<int> freedBuf : register(u8);
-RWStructuredBuffer<int> availBuf : register(u14);
-RWStructuredBuffer<int> arcounter : register(u20);
-RWStructuredBuffer<ColorChain> chBuf : register(u21);
+RWStructuredBuffer<ColorChain> chBuf : register(u3);
+RWStructuredBuffer<int> activedBuf : register(u4);
+RWStructuredBuffer<int> availBuf : register(u5);
+RWStructuredBuffer<int> collBuf : register(u6);
+RWStructuredBuffer<int> freedBuf : register(u7);
+RWStructuredBuffer<int> arcounter : register(u8);
+
 
 
 void _collect(inout Ray ray) {
