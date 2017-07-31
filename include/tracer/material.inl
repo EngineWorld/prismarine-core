@@ -7,40 +7,41 @@ namespace Paper {
 
     inline void Material::init(){
         glCreateBuffers(1, &mats);
-        glCreateBuffers(1, &textures);
+        glCreateBuffers(1, &texturesBuffer);
     }
 
     inline void Material::loadToVGA() {
-        uint32_t pcount = std::min((uint32_t)samplers.size(), 64u);
-        std::vector<uint64_t> vctr(pcount);
+        uint32_t pcount = std::min((uint32_t)textures.size(), 64u);
+        vctr.resize(pcount);
         for (int i = 0; i < pcount; i++) {
-            uint64_t texHandle = glGetTextureHandleARB(samplers[i]);
+            uint64_t texHandle = glGetTextureHandleARB(textures[i]);
             glMakeTextureHandleResidentARB(texHandle);
             vctr[i] = texHandle;
         }
-        glNamedBufferData(textures, vctr.size() * sizeof(GLuint64), vctr.data(), GL_STATIC_DRAW);
+        glNamedBufferData(texturesBuffer, vctr.size() * sizeof(GLuint64), vctr.data(), GL_STATIC_DRAW);
         glNamedBufferData(mats, strided<Submat>(submats.size()), submats.data(), GL_STATIC_DRAW);
     }
 
     inline void Material::bindWithContext(GLuint & prog) {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 15, mats);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 16, textures);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 16, texturesBuffer);
+        //glProgramUniformHandleui64vARB(prog, 1, vctr.size(), vctr.data());
     }
     
     inline void Material::clearGlTextures() {
-        for (int i = 1; i < samplers.size(); i++) {
+        for (int i = 1; i < textures.size(); i++) {
             this->freeTexture(i);
         }
     }
 
     inline void Material::freeTexture(const uint32_t& idx) {
-        freedomSamplers.push_back(idx);
-        samplers[idx] = -1;
+        freedomTextures.push_back(idx);
+        textures[idx] = -1;
     }
 
 	inline void Material::freeTextureByGL(const GLuint & gltexture) {
-        for (int i = 1; i < samplers.size(); i++) {
-            if (samplers[i] == gltexture) {
+        for (int i = 1; i < textures.size(); i++) {
+            if (textures[i] == gltexture) {
                 this->freeTexture(i);
             }
         }
@@ -48,27 +49,27 @@ namespace Paper {
 
     // get texture by GL
     inline uint32_t Material::getTexture(const GLuint & gltexture) {
-        for (int i = 1; i < samplers.size(); i++) {
-            if (samplers[i] == gltexture && samplers[i] != -1) return i;
+        for (int i = 1; i < textures.size(); i++) {
+            if (textures[i] == gltexture && textures[i] != -1) return i;
         }
         return 0;
     }
 
     inline GLuint Material::getGLTexture(const uint32_t & idx) {
-        return samplers[idx];
+        return textures[idx];
     }
 
     inline uint32_t Material::loadTexture(const GLuint & gltexture) {
         int32_t idx = getTexture(gltexture);
         if (idx && idx >= 0 && idx != -1) return idx;
-        if (freedomSamplers.size() > 0) {
-            idx = freedomSamplers[freedomSamplers.size() - 1];
-            freedomSamplers.pop_back();
-            samplers[idx] = gltexture;
+        if (freedomTextures.size() > 0) {
+            idx = freedomTextures[freedomTextures.size() - 1];
+            freedomTextures.pop_back();
+            textures[idx] = gltexture;
         }
         else {
-            idx = samplers.size();
-            samplers.push_back(gltexture);
+            idx = textures.size();
+            textures.push_back(gltexture);
         }
         return idx;
     };

@@ -38,22 +38,23 @@ namespace Paper {
     private:
         //int32_t materialID = 0;
         GLuint mats = -1;
-        GLuint textures = -1;
+        GLuint texturesBuffer = -1;
+        std::vector<uint64_t> vctr;
 
         void init();
 
     public:
         std::vector<Submat> submats;
-        std::vector<uint32_t> samplers;
-        std::vector<uint32_t> freedomSamplers;
+        std::vector<uint32_t> textures;
+        std::vector<uint32_t> freedomTextures;
         std::map<std::string, uint32_t> texnames;
 
         Material() {
 			submats = std::vector<Submat>(0); // init
-            samplers = std::vector<uint32_t>(0);
-            samplers.push_back(-1);
+            textures = std::vector<uint32_t>(0);
+            textures.push_back(-1);
 
-            freedomSamplers = std::vector<uint32_t>(0);
+            freedomTextures = std::vector<uint32_t>(0);
             texnames = std::map<std::string, uint32_t>();
             init();
         }

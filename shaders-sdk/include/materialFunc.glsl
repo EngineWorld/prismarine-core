@@ -38,7 +38,8 @@ layout ( binding = 15, std430 ) readonly buffer MaterialsSSBO {Submat submats[];
 layout ( binding = 5 ) uniform samplerCube skybox[1];
 
 #ifdef USE_BINDLESS
-layout ( binding = 16 ) readonly buffer Textures { sampler2D samplers[]; }; //uniform uint64_t samplers[MAX_TEXTURES];
+layout ( binding = 16 ) readonly buffer Textures { sampler2D samplers[]; };
+//layout ( location = 1, bindless_sampler ) uniform sampler2D samplers[MAX_TEXTURES];
 #else
 layout ( binding = 6, set = 1 ) uniform sampler2D samplers[MAX_TEXTURES]; // vulkan API type (future)
 #endif
