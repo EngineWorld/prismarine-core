@@ -1,11 +1,7 @@
 layout ( std430, binding = 9 ) readonly buffer NodesBlock { HlbvhNode Nodes[]; };
 
-//vec4 bakedRangeIntersection[1];
-//int bakedRange[1];
-
 const int bakedFragments = 8;
 shared int bakedStack[WORK_SIZE][bakedFragments];
-//int bakedStackCount = 0;
 
 struct SharedVarsData {
     vec4 bakedRangeIntersection;
@@ -24,26 +20,23 @@ struct TResult {
 
 // WARP optimized triangle intersection
 float intersectTriangle(in vec3 orig, in vec3 dir, in mat3 ve, inout vec2 UV, in bool valid) {
-    //if (allInvocationsARB(!valid)) return INFINITY;
-    if (!valid) return INFINITY;
+    if (allInvocations(!valid)) return INFINITY;
 
-     vec3 e1 = ve[1] - ve[0];
-     vec3 e2 = ve[2] - ve[0];
+    vec3 e1 = ve[1] - ve[0];
+    vec3 e2 = ve[2] - ve[0];
 
     valid = valid && !(length(e1) < 0.00001f && length(e2) < 0.00001f);
-    //if (allInvocationsARB(!valid)) return INFINITY;
-    if (!valid) return INFINITY;
+    if (allInvocations(!valid)) return INFINITY;
 
-     vec3 pvec = cross(dir, e2);
-     float det = dot(e1, pvec);
+    vec3 pvec = cross(dir, e2);
+    float det = dot(e1, pvec);
 
 #ifndef CULLING
     if (abs(det) <= 0.0f) valid = false;
 #else
     if (det <= 0.0f) valid = false;
 #endif
-    //if (allInvocationsARB(!valid)) return INFINITY;
-    if (!valid) return INFINITY;
+    if (allInvocations(!valid)) return INFINITY;
 
      vec3 tvec = orig - ve[0];
      float u = dot(tvec, pvec);
@@ -55,8 +48,7 @@ float intersectTriangle(in vec3 orig, in vec3 dir, in mat3 ve, inout vec2 UV, in
         any(lessThan(uvt.xy, vec2(0.f))) || 
         any(greaterThan(vec2(uvt.x) + vec2(0.f, uvt.y), vec2(1.f))) 
     ) valid = false;
-    //if (allInvocationsARB(!valid)) return INFINITY;
-    if (!valid) return INFINITY;
+    if (allInvocations(!valid)) return INFINITY;
 
     UV.xy = uvt.xy;
     return (lessF(uvt.z, 0.0f) || !valid) ? INFINITY : uvt.z;
@@ -69,8 +61,7 @@ TResult choiceFirstBaked(inout SharedVarsData sharedVarsData, inout TResult res)
         tri >= 0 && 
         tri != LONGEST;
         
-    //if (allInvocationsARB(!validTriangle)) return res;
-    if (!validTriangle) return res;
+    if (allInvocations(!validTriangle)) return res;
 
      vec2 uv = sharedVarsData.bakedRangeIntersection.yz;
      float _d = sharedVarsData.bakedRangeIntersection.x;
@@ -113,11 +104,13 @@ TResult choiceBaked(inout SharedVarsData sharedVarsData, inout TResult res, in v
     choiceFirstBaked(sharedVarsData, res);
     reorderTriangles(sharedVarsData);
 
-     int tri = tpi < exchange(sharedVarsData.bakedStackCount, 0) ? bakedStack[sharedVarsData.L][tpi] : LONGEST;
+    int tri = tpi < exchange(sharedVarsData.bakedStackCount, 0) ? bakedStack[sharedVarsData.L][tpi] : LONGEST;
 
-     bool validTriangle = 
+    bool validTriangle = 
         tri >= 0 && 
         tri != LONGEST;
+
+    if (allInvocations(!validTriangle)) return res;
 
     // fetch directly
     mat3 triverts = mat3(
@@ -127,8 +120,8 @@ TResult choiceBaked(inout SharedVarsData sharedVarsData, inout TResult res, in v
     );
 
     vec2 uv = vec2(0.0f);
-     float _d = intersectTriangle(orig, dir, triverts, uv, validTriangle);
-     bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.dist);
+    float _d = intersectTriangle(orig, dir, triverts, uv, validTriangle);
+    bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.dist);
 
     if (near) {
         res.dist = _d;
@@ -145,6 +138,8 @@ TResult testIntersection(inout SharedVarsData sharedVarsData, inout TResult res,
         tri >= 0 && 
         tri != res.triangle &&
         tri != LONGEST;
+
+    if (allInvocations(!validTriangle)) return res;
 
     mat3 triverts = mat3(
         fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri)), 0).xyz, 
@@ -225,18 +220,15 @@ const vec3 padding = vec3(0.00001f);
 const int STACK_SIZE = 16;
 shared int deferredStack[WORK_SIZE][STACK_SIZE];
 
-bvec2 and2(in bvec2 a, in bvec2 b){
-    //return a && b;
+bvec2 and2(in bvec2 a, in bvec2 b) {
     return bvec2(a.x && b.x, a.y && b.y);
 }
 
-bvec2 or2(in bvec2 a, in bvec2 b){
-    //return a || b;
+bvec2 or2(in bvec2 a, in bvec2 b) {
     return bvec2(a.x || b.x, a.y || b.y);
 }
 
-bvec2 not2(in bvec2 a){
-    //return !a;
+bvec2 not2(in bvec2 a) {
     return bvec2(!a.x, !a.y);
 }
 
@@ -261,18 +253,15 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     deferredStack[L][0] = -1;
 
     // test constants
-     int bakedStep = int(floor(1.f + hit.vmods.w));
-     vec3 torig = projectVoxels(origin);
-     vec3 tdirproj = mult4(vec4(direct, 0.0), GEOMETRY_BLOCK geometryUniform.transform).xyz;
-     float dirlen = 1.0f / length(tdirproj);
-     vec3 dirproj = normalize(tdirproj);
+    int bakedStep = int(floor(1.f + hit.vmods.w));
+    vec3 torig = projectVoxels(origin);
+    vec3 tdirproj = mult4(vec4(direct, 0.0), GEOMETRY_BLOCK geometryUniform.transform).xyz;
+    float dirlen = 1.0f / length(tdirproj);
+    vec3 dirproj = normalize(tdirproj);
 
     // test with root node
-    //HlbvhNode node = Nodes[idx];
-    // bbox lbox = node.box;
     float near = INFINITY, far = INFINITY;
-    // float d = intersectCubeSingle(torig, dirproj, lbox.mn.xyz, lbox.mx.xyz, near, far);
-     float d = intersectCubeSingle(torig, dirproj, vec4(vec3(0.0f), 1.0f), vec4(1.0f), near, far);
+    float d = intersectCubeSingle(torig, dirproj, vec4(vec3(0.0f), 1.0f), vec4(1.0f), near, far);
     lastRes.predist = far * dirlen;
 
     // init state
@@ -281,20 +270,17 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     }
 
     for(int i=0;i<8192;i++) {
-        //if (allInvocationsARB(!validBox)) break;
-        if (!validBox) break;
+        if (allInvocations(!validBox)) break;
         HlbvhNode node = Nodes[idx];
 
         // is leaf
-         bool isLeaf = node.pdata.x == node.pdata.y && validBox;
-        //if (anyInvocationARB(isLeaf)) {
-        if (isLeaf) {
+        bool isLeaf = node.pdata.x == node.pdata.y && validBox;
+        if (anyInvocation(isLeaf)) {
             testIntersection(sharedVarsData, lastRes, origin, direct, node.pdata.w, isLeaf);
         }
 
         bool notLeaf = node.pdata.x != node.pdata.y && validBox;
-        //if (anyInvocationARB(notLeaf)) {
-        if (notLeaf) {
+        if (anyInvocation(notLeaf)) {
             HlbvhNode lnode = Nodes[node.pdata.x];
             HlbvhNode rnode = Nodes[node.pdata.y];
 
@@ -315,9 +301,8 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
                 and2(greaterThan(hits, -vec2(PZERO)),
                 greaterThan(vec2(lastRes.predist), nears * dirlen - PZERO))));
             
-             bool anyOverlap = any(overlaps);
-            //if (anyInvocationARB(anyOverlap)) {
-            if (anyOverlap) {
+            bool anyOverlap = any(overlaps);
+            if (anyInvocation(anyOverlap)) {
                  bool leftOrder = all(overlaps) ? lessEqualF(hits.x, hits.y) : overlaps.x;
 
                 ivec2 leftright = mix(ivec2(-1), node.pdata.xy, overlaps);

@@ -527,11 +527,11 @@ int main(const int argc, const char ** argv)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     const unsigned superSampling = 2;
-    int32_t baseWidth = 800;
-    int32_t baseHeight = 600;
+    //int32_t baseWidth = 800;
+    //int32_t baseHeight = 600;
 
-    //int32_t baseWidth = 640;
-    //int32_t baseHeight = 360;
+    int32_t baseWidth = 640;
+    int32_t baseHeight = 360;
 
     GLFWwindow* window = glfwCreateWindow(baseWidth, baseHeight, "Simple example", NULL, NULL);
     if (!window) { glfwTerminate(); exit(EXIT_FAILURE); }

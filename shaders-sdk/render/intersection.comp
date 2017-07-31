@@ -1,4 +1,4 @@
-#version 450
+#version 460
 
 #include "../include/constants.glsl"
 #include "../include/structs.glsl"
@@ -79,13 +79,11 @@ LOCAL_SIZE_LAYOUT;
 void main() {
     const int it = int(gl_GlobalInvocationID.x);
     const bool overflow = it >= RAY_BLOCK samplerUniform.rayCount;
-    //if (allInvocationsARB(overflow)) return;
-    if (overflow) return;
+    if (allInvocations(overflow)) return;
 
     const int t = activedBuf.indc[it];
     Ray ray = fetchRayDirect(t);
-    //if (allInvocationsARB(ray.actived < 1 || overflow)) return;
-    if (ray.actived < 1 || overflow) return;
+    if (allInvocations(ray.actived < 1 || overflow)) return;
 
     Hit hit = fetchHitDirect(t);
     LResult res = loadInfo(traverse(hit.dist, ray.origin.xyz, ray.direct.xyz, hit));
