@@ -24,9 +24,6 @@ set(SOURCES_LIST
     "./external/include/*.hh"
     "./external/include/*.h"
     
-    #GLAD
-    "./external/src/glad/*.c"
-    
     #ray-tracer
     "./include/tracer/*.hpp"
     "./include/tracer/*.inl"
@@ -47,7 +44,6 @@ set (DEFINES
     -DEXPERIMENTAL_GLTF
     -DTINYGLTF_IMPLEMENTATION
     -DSTB_IMAGE_IMPLEMENTATION
-    -DGLAD_SUPPORT
 )
 
 set (DEP_DIR "${PROJECT_SOURCE_DIR}")
@@ -66,6 +62,7 @@ set (LIBS
     glfw3 
     FreeImage 
     assimp-vc140-mt
+	glew32
 )
 
 set (CMAKE_CXX_STANDARD_REQUIRED ON)

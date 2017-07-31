@@ -1,5 +1,9 @@
 # OpenGL Ray Tracer (aka. "Paper")
 
+## OpenGL 4.6 Teaser
+
+<img src="logo/opengl46.png" alt="OpenGL46" width="960"/>
+
 ## Details
 
 - Here is headers-only (at this moment) ray tracer. May used for other projects. Main framework in shaders.

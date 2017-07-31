@@ -18,7 +18,7 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtx/component_wise.hpp"
 #include "glm/gtx/rotate_vector.hpp"
-#include "glad/glad.h"
+#include "GL/glew.h"
 
 #ifdef USE_FREEIMAGE
 #include "external/include/FreeImage.h"

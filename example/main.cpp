@@ -523,7 +523,7 @@ int main(const int argc, const char ** argv)
     if (!glfwInit()) exit(EXIT_FAILURE);
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     const unsigned superSampling = 2;
@@ -558,7 +558,9 @@ int main(const int argc, const char ** argv)
 
     glfwMakeContextCurrent(window);
     glfwSwapInterval(0);
-    if (!gladLoadGL()) { glfwTerminate(); exit(EXIT_FAILURE); }
+    //if (!gladLoadGL()) { glfwTerminate(); exit(EXIT_FAILURE); }
+    //glewExperimental = true;
+    if (glewInit() != GLEW_OK) { glfwTerminate(); exit(EXIT_FAILURE); }
 
     app = new PaperExample::PathTracerApplication(argc, argv, window);
     app->resizeBuffers(baseWidth * superSampling, baseHeight * superSampling);
