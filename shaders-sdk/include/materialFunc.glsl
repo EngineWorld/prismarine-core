@@ -35,7 +35,8 @@ const uint MAX_TEXTURES = 72;
 layout ( binding = 15, std430 ) readonly buffer MaterialsSSBO {Submat submats[];};
 
 
-layout ( binding = 5 ) uniform samplerCube skybox[1];
+//layout ( binding = 5 ) uniform samplerCube skybox[1];
+layout ( binding = 5 ) uniform sampler2D skybox[1];
 
 #ifdef USE_BINDLESS
 layout ( binding = 16 ) readonly buffer Textures { sampler2D samplers[]; };
@@ -43,6 +44,12 @@ layout ( binding = 16 ) readonly buffer Textures { sampler2D samplers[]; };
 #else
 layout ( binding = 6, set = 1 ) uniform sampler2D samplers[MAX_TEXTURES]; // vulkan API type (future)
 #endif
+
+
+vec4 readEnv(in vec3 r){
+    return texture(skybox[0], vec2(atan(r.x, r.z) / PI * 0.5f + 0.5f, clamp(r.y / length(r), -1.f, 1.f) * 0.5f + 0.5f));
+}
+
 
 
 bool haveProp(in Submat material, in int prop) {
