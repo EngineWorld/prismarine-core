@@ -4,6 +4,13 @@
 
 <img src="logo/opengl46.png" alt="OpenGL46" width="960"/>
 
+- [x] Use compatible library with OpenGL 4.6
+- [x] Change shading language version to *460*
+- [x] OpenGL 4.6 group vote in traverse code
+- [ ] Memory objects and semaphores extensions
+- [ ] Extended SPIR-V support (compilers not yet ready)
+
+
 ## Details
 
 - Here is headers-only (at this moment) ray tracer. May used for other projects. Main framework in shaders.
