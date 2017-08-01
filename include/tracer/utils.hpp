@@ -76,8 +76,8 @@ namespace Paper {
             const GLchar * strc = str.data();//str.c_str();
             int32_t size = str.size();
             //glShaderSource(comp, 1, &strc, &size);
-            glShaderBinary(1, &comp, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, strc, size);
-            glSpecializeShaderARB(comp, entryName.c_str(), 0, nullptr, nullptr);
+            glShaderBinary(1, &comp, GL_SHADER_BINARY_FORMAT_SPIR_V, strc, size);
+            glSpecializeShader(comp, entryName.c_str(), 0, nullptr, nullptr);
             //glCompileShader(comp);
 
             GLint status = false;
