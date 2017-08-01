@@ -115,7 +115,8 @@ uvec2 genLtMask(){
 }
 
 uint bitCount64(in uvec2 lh) {
-    return bitCount(lh.x) + bitCount(lh.y);
+    //return bitCount(lh.x) + bitCount(lh.y);
+    return bitCount(lh.x);
 }
 
 uint readLane(in uint val, in int lane){
