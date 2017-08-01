@@ -13,16 +13,14 @@ namespace Paper {
     public:
 
         RadixSort() {
+            /*
             initShaderCompute("./shaders/radix/permute.comp", permuteProgram);
             initShaderCompute("./shaders/radix/prefix-scan.comp", prefixScanProgram);
             initShaderCompute("./shaders/radix/histogram.comp", histogramProgram);
-            
-
-            /*
+            */
             initShaderComputeSPIRV("./shaders-spv/radix/permute.comp.spv", permuteProgram);
             initShaderComputeSPIRV("./shaders-spv/radix/prefix-scan.comp.spv", prefixScanProgram);
             initShaderComputeSPIRV("./shaders-spv/radix/histogram.comp.spv", histogramProgram);
-            */
         }
 
         void sort(GLuint &InKeys, GLuint &InVals, uint32_t size = 1, uint32_t descending = 0) {
