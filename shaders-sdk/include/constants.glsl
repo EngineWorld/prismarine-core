@@ -1,6 +1,7 @@
 #ifndef _CONSTANTS_H
 #define _CONSTANTS_H
 
+//#define EMULATE_BALLOT
 
 // hardware or driver options
 #define USE_INT64
@@ -75,6 +76,11 @@
 #undef DIRECT_LIGHT
 #define SUNLIGHT_CAUSTICS true
 #endif
+
+#ifndef EMULATE_BALLOT
+#extension GL_ARB_shader_ballot : require
+#endif
+
 
 //#extension GL_ARB_shader_group_vote : require
 

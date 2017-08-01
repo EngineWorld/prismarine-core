@@ -1,4 +1,4 @@
-#define EMULATE_BALLOT
+//#define EMULATE_BALLOT
 
 #ifndef EMULATE_BALLOT
 #extension GL_ARB_gpu_shader_int64 : require
@@ -89,8 +89,11 @@ uvec2 genLtMask(){
     return unpackUint2x32(gl_SubGroupLtMaskARB);
 }
 
-uint bitCount64(in uvec2 a64) {
-    return bitCount(lh.x) + bitCount(lh.y);
+uint bitCount64(in uvec2 lh) {
+    int btx = bitCount(lh.x);
+    int bty = bitCount(lh.y);
+    //return uint(btx + bty);
+    return uint(btx);
 }
 
 uint readLane(in uint val, in uint lane){

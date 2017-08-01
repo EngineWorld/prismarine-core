@@ -50,17 +50,25 @@ vec4 mult4(in mat4 tmat, in vec4 vec){
 }
 
 
+int modi(in int a, in int b){
+    return (a % b + b) % b;
+}
+
+
+
 // ordered increment
 #if (!defined(FRAGMENT_SHADER) && !defined(ORDERING_NOT_REQUIRED))
 
 // ballot math (alpha version)
-
 #define WARP_SIZE 32
+#ifdef EMULATE_BALLOT
+
 #define   LC_IDX (gl_LocalInvocationID.x / WARP_SIZE)
 #define LANE_IDX (gl_LocalInvocationID.x % WARP_SIZE)
+#define UVEC_BALLOT_WARP uint
 
-shared uint ballotCache[WORK_SIZE/WARP_SIZE];
-shared uint invocationCache[WORK_SIZE/WARP_SIZE][WARP_SIZE];
+shared uint ballotCache[WORK_SIZE];
+shared uint invocationCache[WORK_SIZE][WARP_SIZE];
 
 uint genLtMask(){
     return (1 << LANE_IDX)-1;
@@ -92,22 +100,51 @@ int readLane(in int val, in int lane) {
     return int(invocationCache[LC_IDX][lane]);
 }
 
+int firstActive(){
+    UVEC_BALLOT_WARP bits = ballot(true); return modi(findMSB(bits.x), WARP_SIZE);
+}
 
-int modi(in int a, in int b){
-    return (a % b + b) % b;
+#else
+
+#define   LC_IDX (gl_LocalInvocationID.x / gl_SubGroupSizeARB)
+#define LANE_IDX (gl_SubGroupInvocationARB)
+#define UVEC_BALLOT_WARP uvec2
+
+uvec2 genLtMask(){
+    return unpackUint2x32(gl_SubGroupLtMaskARB);
+}
+
+uint bitCount64(in uvec2 lh) {
+    return bitCount(lh.x) + bitCount(lh.y);
+}
+
+uint readLane(in uint val, in int lane){
+    return readInvocationARB(val, lane);
+}
+
+int readLane(in int val, in int lane){
+    return readInvocationARB(val, lane);
+}
+
+uvec2 ballot(in bool val) {
+    return unpackUint2x32(ballotARB(val));
 }
 
 int firstActive(){
-    uint bits = ballot(true); return modi(findMSB(bits), WARP_SIZE);
+    UVEC_BALLOT_WARP bits = ballot(true);
+    int msb = findMSB(bits.x);
+    return modi(msb >= 0 ? msb : findMSB(bits.y), int(gl_SubGroupSizeARB));
 }
 
+#endif
+
 uint makeOrder(in bool value){
-    uint bits = ballot(value);
+    UVEC_BALLOT_WARP bits = ballot(value);
     return bitCount64(genLtMask() & bits);
 }
 
 uint countValid(in bool value){
-    uint bits = ballot(value);
+    UVEC_BALLOT_WARP bits = ballot(value);
     return bitCount64(bits);
 }
 

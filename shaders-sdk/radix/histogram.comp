@@ -6,7 +6,7 @@ layout (local_size_x = WARP_SIZE, local_size_y = WORK_SIZE) in;
 
 void main(){
     blocks_info blocks = get_blocks_info(NumKeys, WG_IDX);
-     uint localIdx = WARP_SIZE * LC_IDX + LANE_IDX;
+    uint localIdx = WARP_SIZE * LC_IDX + LANE_IDX;
     if (localIdx < RADICES) localHistogram[localIdx] = 0;
     barrier(); memoryBarrier();
 

@@ -42,13 +42,13 @@ uint prefix_sum(in uint data, inout uint total_sum) {
 
 
 void sortBits(inout uint sort, inout uint sortVal){
-     UVEC_WARP addr = WARP_SIZE * LC_IDX + LANE_IDX;
+    UVEC_WARP addr = WARP_SIZE * LC_IDX + LANE_IDX;
     for (int i=0;i<BITS_PER_PASS;i++) {
         BVEC_WARP cmp = bitfieldExtract(sort, int(Shift) + i, 1) == 0;
         UVEC_WARP warpKey = UVEC_WARP(cmp);
 
         // prefix scan for WARP vector
-         uint pscan = prefix_scan(warpKey);
+        uint pscan = prefix_scan(warpKey);
         if (LANE_IDX == 0) warpPScan[LC_IDX] = pscan; // cache by WARP ID
         barrier(); memoryBarrier();
 
@@ -92,20 +92,20 @@ void main(){
     for ( int i_block=0; i_block < 1024 ; i_block++ ) {
         if (i_block >= bcount) break;
 
-         BVEC_WARP validAddress = addr < NumKeys;
+        BVEC_WARP validAddress = addr < NumKeys;
         UVEC_WARP data      = validAddress ?   KeyIn[addr] : def;
         UVEC_WARP dataValue = validAddress ? ValueIn[addr] : 0u;
         sortBits(data, dataValue);
 
-         UVEC_WARP k = bitfieldExtract(data, int(Shift), BITS_PER_PASS);
-         UVEC_WARP      key = k;
-         UVEC_WARP  histKey = key;
-         UVEC_WARP localKey = key + (LC_IDX / RADICES) * RADICES;
+        UVEC_WARP k = bitfieldExtract(data, int(Shift), BITS_PER_PASS);
+        UVEC_WARP      key = k;
+        UVEC_WARP  histKey = key;
+        UVEC_WARP localKey = key + (LC_IDX / RADICES) * RADICES;
         if (localIdx < WORK_SIZE) localSort[LANE_IDX] = 0;
         barrier(); memoryBarrier();
 
         atomicAdd(localSort[localKey], uint(validAddress));
-         UVEC_WARP offset = localHistogramToCarry[k] + localIdx;
+        UVEC_WARP offset = localHistogramToCarry[k] + localIdx;
         barrier(); memoryBarrier();
 
         // Use LANE_IDX as LC_IDX (non-vector mode)
@@ -130,7 +130,7 @@ void main(){
         }
         barrier(); memoryBarrier();
 
-         UVEC_WARP outKey = offset - localHistogram[histKey];
+        UVEC_WARP outKey = offset - localHistogram[histKey];
         if (validAddress)   KeyOut[outKey] = data;
         if (validAddress) ValueOut[outKey] = dataValue;
         barrier(); memoryBarrier();
