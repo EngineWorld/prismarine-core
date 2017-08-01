@@ -93,10 +93,12 @@ int readLane(in int val, in int lane) {
 }
 
 
-
+int modi(in int a, in int b){
+    return (a % b + b) % b;
+}
 
 int firstActive(){
-    uint bits = ballot(true); return clamp(findMSB(bits), 0, WARP_SIZE-1);
+    uint bits = ballot(true); return modi(findMSB(bits), WARP_SIZE);
 }
 
 uint makeOrder(in bool value){
