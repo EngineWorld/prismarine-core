@@ -562,8 +562,8 @@ int main(const int argc, const char ** argv)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     const unsigned superSampling = 2;
-    int32_t baseWidth = 1000;
-    int32_t baseHeight = 500;
+    int32_t baseWidth = 500;
+    int32_t baseHeight = 250;
 
     GLFWwindow* window = glfwCreateWindow(baseWidth, baseHeight, "Simple example", NULL, NULL);
     if (!window) { glfwTerminate(); exit(EXIT_FAILURE); }
