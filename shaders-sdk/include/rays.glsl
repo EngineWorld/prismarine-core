@@ -53,7 +53,7 @@ void _collect(inout Ray ray) {
     vec4 color = max(ray.final, vec4(0.f));
     float amplitude = mlength(color.xyz);
     //if (amplitude >= 0.00001f) {
-        int idx = atomicAdd(arcounter.Ct, 1);
+        int idx = atomicIncWarpOrdered(arcounter.Ct, true, int);//atomicAdd(arcounter.Ct, 1);
         int prev = atomicExchange(texelBuf.nodes[ray.texel].EXT.y, idx);
         ColorChain ch = chBuf.chains[idx];
         ch.color = vec4(ray.final.xyz, 1.0f);
@@ -80,13 +80,15 @@ int addRayToList(in Ray ray){
     int actived = -1;
 
     // do ordered counting
-    int act = atomicIncWarpOrdered(arcounter.At, ray.actived == 1, int);
-    int freed = atomicIncWarpOrdered(arcounter.Qt, ray.actived != 1, int);
+    //int act = atomicIncWarpOrdered(arcounter.At, ray.actived == 1, int);
+    //int freed = atomicIncWarpOrdered(arcounter.Qt, ray.actived != 1, int);
 
     // ordered form list
     if (ray.actived == 1) {
+        int act = atomicIncWarpOrdered(arcounter.At, true, int);
         collBuf.indc[act] = rayIndex; actived = act;
     } else { // if not actived, why need?
+        int freed = atomicIncWarpOrdered(arcounter.Qt, true, int);
         freedBuf.indc[freed] = rayIndex;
     }
 
@@ -205,7 +207,7 @@ int createRay(inout Ray original, in int idx) {
 
     //if (anyInvocationARB(rayIndex == -1)) {
     if (rayIndex == -1) {
-        rayIndex = atomicAdd(arcounter.Rt, 1);
+        rayIndex = atomicIncWarpOrdered(arcounter.Rt, true, int);//atomicAdd(arcounter.Rt, 1);
     }
 
     return createRayStrict(original, idx, rayIndex);
