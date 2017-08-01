@@ -149,11 +149,13 @@ uint countValid(in bool value){
     return bitCount64(bits);
 }
 
-#define atomicIncWarpOrdered(mem, value, T) (readLane(atomicAdd(mem, mix(0, T(countValid(value)), LANE_IDX == firstActive())), firstActive()) + T(makeOrder(value)))
+#define atomicIncWarpOrdered(mem, value, T) (readLane(atomicAdd(mem, mix(0,  T(countValid(value)), LANE_IDX == firstActive())), firstActive()) + T(makeOrder(value)))
+#define atomicDecWarpOrdered(mem, value, T) (readLane(atomicAdd(mem, mix(0, -T(countValid(value)), LANE_IDX == firstActive())), firstActive()) - T(makeOrder(value)))
 
 #else
 
-#define atomicIncWarpOrdered(mem, value, T) atomicAdd(mem, T(value))
+#define atomicIncWarpOrdered(mem, value, T) atomicAdd(mem,  T(value))
+#define atomicDecWarpOrdered(mem, value, T) atomicAdd(mem, -T(value))
 
 #endif
 

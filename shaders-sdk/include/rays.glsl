@@ -191,7 +191,7 @@ int createRay(inout Ray original, in int idx) {
         iterations--;
 
         atomicMax(arcounter.Ut, 0); // prevent most decreasing
-        int freed = atomicAdd(arcounter.Ut, -1)-1;
+        int freed = atomicDecWarpOrdered(arcounter.Ut, true, int)-1;
         atomicMax(arcounter.Ut, 0); // prevent most decreasing
 
         if (
