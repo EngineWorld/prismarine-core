@@ -85,6 +85,11 @@ struct AttributeUniformStruct {
     iVc1 texcoordOffset;
     iVc1 lightcoordOffset;
 
+    iVc1 vertexStride;
+    iVc1 normalStride;
+    iVc1 texcoordStride;
+    iVc1 lightcoordStride;
+
     iVc1 colorOffset;
     iVc1 stride;
     iVc1 mode;

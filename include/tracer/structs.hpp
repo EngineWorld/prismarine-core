@@ -206,6 +206,11 @@ namespace Paper {
         iVc1 texcoordOffset = 0;
         iVc1 lightcoordOffset = 0;
 
+        iVc1 vertexStride = 3;
+        iVc1 normalStride = 3;
+        iVc1 texcoordStride = 2;
+        iVc1 lightcoordStride = 2;
+
         iVc1 colorOffset = 0;
         iVc1 stride = 3;
         iVc1 mode = 0;

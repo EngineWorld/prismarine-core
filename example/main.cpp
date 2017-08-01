@@ -348,18 +348,21 @@ namespace PaperExample {
 
                     if (it->first.compare("POSITION") == 0) { // vertices
                         geom->attributeUniformData.vertexOffset = (accessor.byteOffset + bufferView.byteOffset) / 4;
-                        geom->attributeUniformData.stride = (bufferView.byteStride <= 4) ? 0 : (bufferView.byteStride / 4);
+                        geom->attributeUniformData.vertexStride = (bufferView.byteStride / 4);
+                        //geom->attributeUniformData.stride = (bufferView.byteStride <= 4) ? 0 : (bufferView.byteStride / 4);
                         geom->setVertices(glBuffers[bufferView.buffer]);
                     } else
                     
                     if (it->first.compare("NORMAL") == 0) {
                         geom->attributeUniformData.haveNormal = true;
                         geom->attributeUniformData.normalOffset = (accessor.byteOffset + bufferView.byteOffset) / 4;
+                        geom->attributeUniformData.normalStride = (bufferView.byteStride / 4);
                     } else
-
+                    
                     if (it->first.compare("TEXCOORD_0") == 0) {
                         geom->attributeUniformData.haveTexcoord = true;
                         geom->attributeUniformData.texcoordOffset = (accessor.byteOffset + bufferView.byteOffset) / 4;
+                        geom->attributeUniformData.texcoordStride = (bufferView.byteStride / 4);
                     }
                 }
 

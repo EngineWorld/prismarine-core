@@ -79,10 +79,13 @@ void main()
         vec3 vnorm = vec3(0.0f);
         vec4 color = vec4(1.0f);
         vec4 modf = vec4(0.0f);
+        vec2 ml = vec2(0.0f);
+        vec2 lt = vec2(0.0f);
+        vec2 tx = vec2(0.0f);
 
         {
             const bool is2D = GEOMETRY_BLOCK attributeUniform.iModifiers0.z == 1;
-            const uint vstride = stride <= 0 ? (is2D ? 2 : 3) : stride;
+            const uint vstride = (GEOMETRY_BLOCK attributeUniform.vertexStride) <= 0 ? (is2D ? 2 : 3) : (GEOMETRY_BLOCK attributeUniform.vertexStride);
             vpos = vec3(
                 iverts[(vindices) * vstride + GEOMETRY_BLOCK attributeUniform.vertexOffset + 0],
                 iverts[(vindices) * vstride + GEOMETRY_BLOCK attributeUniform.vertexOffset + 1],
@@ -93,44 +96,25 @@ void main()
             );
 
             if (GEOMETRY_BLOCK attributeUniform.haveNormal > 0) {
-                const uint nstride = stride <= 0 ? 3 : stride;
+                const uint nstride = (GEOMETRY_BLOCK attributeUniform.normalStride) <= 0 ? 3 : (GEOMETRY_BLOCK attributeUniform.normalStride);
                 vnorm = vec3(
                     iverts[(vindices) * nstride + GEOMETRY_BLOCK attributeUniform.normalOffset + 0],
                     iverts[(vindices) * nstride + GEOMETRY_BLOCK attributeUniform.normalOffset + 1],
                     iverts[(vindices) * nstride + GEOMETRY_BLOCK attributeUniform.normalOffset + 2]
                 );
             }
-
-            if (GEOMETRY_BLOCK attributeUniform.haveColor > 0) {
-                if (GEOMETRY_BLOCK attributeUniform.colorFormat == 0) {
-                    const uint cstride = stride <= 0 ? 4 : stride;
-                    color = vec4(
-                        iverts[(vindices) * cstride + GEOMETRY_BLOCK attributeUniform.colorOffset + 0],
-                        iverts[(vindices) * cstride + GEOMETRY_BLOCK attributeUniform.colorOffset + 1],
-                        iverts[(vindices) * cstride + GEOMETRY_BLOCK attributeUniform.colorOffset + 2],
-                        iverts[(vindices) * cstride + GEOMETRY_BLOCK attributeUniform.colorOffset + 3]
-                    );
-                } else
-                if (GEOMETRY_BLOCK attributeUniform.colorFormat == 1) {
-                    color = unpackUnorm4x8(floatBitsToUint(iverts[(vindices) * stride + GEOMETRY_BLOCK attributeUniform.colorOffset]));
-                }
-            }
-
-
-            vec2 tx = vec2(0.0f);
+            
             if (GEOMETRY_BLOCK attributeUniform.haveTexcoord > 0) {
-                const uint tstride = stride <= 0 ? 2 : stride;
+                const uint tstride = (GEOMETRY_BLOCK attributeUniform.texcoordStride) <= 0 ? 2 : (GEOMETRY_BLOCK attributeUniform.texcoordStride);
                 tx.x = iverts[(vindices) * tstride + GEOMETRY_BLOCK attributeUniform.texcoordOffset + 0];
                 tx.y = iverts[(vindices) * tstride + GEOMETRY_BLOCK attributeUniform.texcoordOffset + 1];
 #ifdef INVERT_TX_Y
                 tx.y = 1.0f - tx.y; // invert Y
 #endif
             }
-
-            vec2 lt = vec2(0.0f);
+            
             if (GEOMETRY_BLOCK attributeUniform.haveLightcoord > 0) {
                 if (GEOMETRY_BLOCK attributeUniform.iModifiers0.x == 1) {
-
                     const uint bits = floatBitsToUint(iverts[(vindices) * stride + GEOMETRY_BLOCK attributeUniform.lightcoordOffset]);
                     const ivec3 bts = ivec3(
                         (bits >> 4) & 0xF,
@@ -138,20 +122,13 @@ void main()
                         0
                     );
                     lt.xy = vec2(bts.x / 15.f, bts.z);
-
                 } else {
-                    const uint lstride = stride <= 0 ? 2 : stride;
+                    const uint lstride = (GEOMETRY_BLOCK attributeUniform.lightcoordStride) <= 0 ? 2 : (GEOMETRY_BLOCK attributeUniform.lightcoordStride);
                     lt.x = iverts[(vindices) * lstride + GEOMETRY_BLOCK attributeUniform.lightcoordOffset + 0];
                     lt.y = iverts[(vindices) * lstride + GEOMETRY_BLOCK attributeUniform.lightcoordOffset + 1];
                 }
             }
-
-            vec2 ml = vec2(0.0f);
-            if (GEOMETRY_BLOCK attributeUniform.iModifiers0.y == 1) {
-                const uint nstride = stride <= 0 ? 1 : stride;
-                ml.xy = unpackUnorm2x16(floatBitsToUint(iverts[(vindices) * nstride + GEOMETRY_BLOCK attributeUniform.iModifiers1.y]));
-            }
-
+            
             vec4 txf = vec4(tx.xy, 0.0f, 1.0f) * GEOMETRY_BLOCK geometryUniform.texmatrix;
             txf /= txf.w;
 
