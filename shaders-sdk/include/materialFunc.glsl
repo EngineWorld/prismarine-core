@@ -136,17 +136,6 @@ vec3 glossy(in vec3 dir, in vec3 normal, in float refli) {
     return normalize(mix(normalize(dir), randomCosine(normal), clamp(sqrt(random()) * refli, 0.0f, 1.0f)));
 }
 
-void mixed(inout vec3 src, inout vec3 dst, in float coef){
-    dst *= coef;
-    src *= 1.0f - coef;
-}
-
-void mixed(inout vec3 src, inout vec3 dst, in vec3 coef){
-    dst *= coef;
-    src *= 1.0f - coef;
-}
-
-
 void generateLightPolygon(in vec3 center, in float radius, inout vec3 polygon[4]){
     polygon[0] = center + vec3( 1.0f, 0.0f,  1.0f) * radius;
     polygon[1] = center + vec3(-1.0f, 0.0f,  1.0f) * radius;

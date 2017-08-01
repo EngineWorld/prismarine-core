@@ -1,3 +1,6 @@
+#ifndef TRAVERSE_H
+#define TRAVERSE_H
+
 layout ( std430, binding = 9 ) readonly buffer NodesBlock { HlbvhNode Nodes[]; };
 
 const int bakedFragments = 8;
@@ -38,11 +41,11 @@ float intersectTriangle(in vec3 orig, in vec3 dir, in mat3 ve, inout vec2 UV, in
 #endif
     if (allInvocations(!valid)) return INFINITY;
 
-     vec3 tvec = orig - ve[0];
-     float u = dot(tvec, pvec);
-     vec3 qvec = cross(tvec, e1);
-     float v = dot(dir, qvec);
-     vec3 uvt = vec3(u, v, dot(e2, qvec)) / det;
+    vec3 tvec = orig - ve[0];
+    float u = dot(tvec, pvec);
+    vec3 qvec = cross(tvec, e1);
+    float v = dot(dir, qvec);
+    vec3 uvt = vec3(u, v, dot(e2, qvec)) / det;
 
     if (
         any(lessThan(uvt.xy, vec2(0.f))) || 
@@ -63,9 +66,9 @@ TResult choiceFirstBaked(inout SharedVarsData sharedVarsData, inout TResult res)
         
     if (allInvocations(!validTriangle)) return res;
 
-     vec2 uv = sharedVarsData.bakedRangeIntersection.yz;
-     float _d = sharedVarsData.bakedRangeIntersection.x;
-     bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.dist);
+    vec2 uv = sharedVarsData.bakedRangeIntersection.yz;
+    float _d = sharedVarsData.bakedRangeIntersection.x;
+    bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.dist);
 
     if (near) {
         res.dist = _d;
@@ -172,29 +175,29 @@ TResult testIntersection(inout SharedVarsData sharedVarsData, inout TResult res,
 }
 
 vec3 projectVoxels(in vec3 orig) {
-     vec4 nps = mult4(vec4(orig, 1.0f), GEOMETRY_BLOCK geometryUniform.transform);
+    vec4 nps = mult4(vec4(orig, 1.0f), GEOMETRY_BLOCK geometryUniform.transform);
     return nps.xyz / nps.w;
 }
 
 vec3 unprojectVoxels(in vec3 orig) {
-     vec4 nps = mult4(vec4(orig, 1.0f), GEOMETRY_BLOCK geometryUniform.transformInv);
+    vec4 nps = mult4(vec4(orig, 1.0f), GEOMETRY_BLOCK geometryUniform.transformInv);
     return nps.xyz / nps.w;
 }
 
 float intersectCubeSingle(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 cubeMax, inout float near, inout float far) {
-     vec3 dr = 1.0f / ray;
-     vec3 tMin = (cubeMin.xyz - origin) * dr;
-     vec3 tMax = (cubeMax.xyz - origin) * dr;
-     vec3 t1 = min(tMin, tMax);
-     vec3 t2 = max(tMin, tMax);
+    vec3 dr = 1.0f / ray;
+    vec3 tMin = (cubeMin.xyz - origin) * dr;
+    vec3 tMax = (cubeMax.xyz - origin) * dr;
+    vec3 t1 = min(tMin, tMax);
+    vec3 t2 = max(tMin, tMax);
 #ifdef ENABLE_AMD_INSTRUCTION_SET
-     float tNear = max3(t1.x, t1.y, t1.z);
-     float tFar  = min3(t2.x, t2.y, t2.z);
+    float tNear = max3(t1.x, t1.y, t1.z);
+    float tFar  = min3(t2.x, t2.y, t2.z);
 #else
-     float tNear = max(max(t1.x, t1.y), t1.z);
-     float tFar  = min(min(t2.x, t2.y), t2.z);
+    float tNear = max(max(t1.x, t1.y), t1.z);
+    float tFar  = min(min(t2.x, t2.y), t2.z);
 #endif
-     bool isCube = tFar >= tNear && greaterEqualF(tFar, 0.0f);
+    bool isCube = tFar >= tNear && greaterEqualF(tFar, 0.0f);
     near = isCube ? tNear : INFINITY;
     far  = isCube ? tFar  : INFINITY;
     return isCube ? (lessF(tNear, 0.0f) ? tFar : tNear) : INFINITY;
@@ -202,11 +205,11 @@ float intersectCubeSingle(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 
 
 
 void intersectCubeApart(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 cubeMax, inout float near, inout float far) {
-     vec3 dr = 1.0f / ray;
-     vec3 tMin = (cubeMin.xyz - origin) * dr;
-     vec3 tMax = (cubeMax.xyz - origin) * dr;
-     vec3 t1 = min(tMin, tMax);
-     vec3 t2 = max(tMin, tMax);
+    vec3 dr = 1.0f / ray;
+    vec3 tMin = (cubeMin.xyz - origin) * dr;
+    vec3 tMax = (cubeMax.xyz - origin) * dr;
+    vec3 t1 = min(tMin, tMax);
+    vec3 t2 = max(tMin, tMax);
 #ifdef ENABLE_AMD_INSTRUCTION_SET
     near = max3(t1.x, t1.y, t1.z);
     far  = min3(t2.x, t2.y, t2.z);
@@ -219,18 +222,6 @@ void intersectCubeApart(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 cu
 const vec3 padding = vec3(0.00001f);
 const int STACK_SIZE = 16;
 shared int deferredStack[WORK_SIZE][STACK_SIZE];
-
-bvec2 and2(in bvec2 a, in bvec2 b) {
-    return bvec2(a.x && b.x, a.y && b.y);
-}
-
-bvec2 or2(in bvec2 a, in bvec2 b) {
-    return bvec2(a.x || b.x, a.y || b.y);
-}
-
-bvec2 not2(in bvec2 a) {
-    return bvec2(!a.x, !a.y);
-}
 
 TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     const uint L = gl_LocalInvocationID.x;
@@ -290,12 +281,12 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
             intersectCubeApart(torig, dirproj, lnode.box.mn, lnode.box.mx, nearsLR.x, farsLR.x);
             intersectCubeApart(torig, dirproj, rnode.box.mn, rnode.box.mx, nearsLR.y, farsLR.y);
 
-             bvec2 isCube = and2(greaterThanEqual(farsLR, nearsLR), greaterThanEqual(farsLR, vec2(0.0f)));
-             vec2 nears = mix(inf2, nearsLR, isCube);
-             vec2  fars = mix(inf2, farsLR, isCube);
-             vec2  hits = mix(nears, fars, lessThan(nears, vec2(0.0f)));
+            bvec2 isCube = and2(greaterThanEqual(farsLR, nearsLR), greaterThanEqual(farsLR, vec2(0.0f)));
+            vec2 nears = mix(inf2, nearsLR, isCube);
+            vec2  fars = mix(inf2, farsLR, isCube);
+            vec2  hits = mix(nears, fars, lessThan(nears, vec2(0.0f)));
 
-             bvec2 overlaps = 
+            bvec2 overlaps = 
                 and2(bvec2(notLeaf), 
                 and2(lessThanEqual(hits, vec2(INFINITY-PZERO)),
                 and2(greaterThan(hits, -vec2(PZERO)),
@@ -303,7 +294,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
             
             bool anyOverlap = any(overlaps);
             if (anyInvocation(anyOverlap)) {
-                 bool leftOrder = all(overlaps) ? lessEqualF(hits.x, hits.y) : overlaps.x;
+                bool leftOrder = all(overlaps) ? lessEqualF(hits.x, hits.y) : overlaps.x;
 
                 ivec2 leftright = mix(ivec2(-1), node.pdata.xy, overlaps);
                 leftright = leftOrder ? leftright : leftright.yx;
@@ -319,8 +310,8 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
         }
 
         if (!skip) {
-             int ptr = --deferredPtr;
-             bool valid = ptr >= 0;
+            int ptr = --deferredPtr;
+            bool valid = ptr >= 0;
             idx = valid ? exchange(deferredStack[L][ptr], -1) : -1;
             validBox = validBox && valid && idx >= 0;
         } skip = false;
@@ -329,3 +320,5 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     choiceBaked(sharedVarsData, lastRes, origin, direct, bakedStep);
     return lastRes;
 }
+
+#endif
