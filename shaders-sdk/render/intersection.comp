@@ -1,5 +1,7 @@
 #version 460
 
+#define ORDERING_NOT_REQUIRED
+
 #include "../include/constants.glsl"
 #include "../include/structs.glsl"
 #include "../include/uniforms.glsl"

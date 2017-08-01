@@ -78,13 +78,18 @@ void storeHit(inout Ray ray, inout Hit hit) {
 int addRayToList(in Ray ray){
     int rayIndex = ray.idx;
     int actived = -1;
+
+    // do ordered counting
+    int act = atomicIncWarpOrdered(arcounter.At, ray.actived == 1, int);
+    int freed = atomicIncWarpOrdered(arcounter.Qt, ray.actived != 1, int);
+
+    // ordered form list
     if (ray.actived == 1) {
-        int act = atomicAdd(arcounter.At, 1);
         collBuf.indc[act] = rayIndex; actived = act;
     } else { // if not actived, why need?
-        int freed = atomicAdd(arcounter.Qt, 1);
         freedBuf.indc[freed] = rayIndex;
     }
+
     return actived;
 }
 

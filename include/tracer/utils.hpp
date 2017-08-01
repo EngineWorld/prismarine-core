@@ -111,7 +111,7 @@ namespace Paper {
     }
 
     inline void initShaderCompute(std::string path, GLuint & prog) {
-        std::string str = readSource(path);
+        std::string str = readSource(path, true);
 
         GLuint comp = glCreateShader(GL_COMPUTE_SHADER);
         {

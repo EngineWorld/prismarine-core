@@ -1,5 +1,7 @@
 #version 460
 
+#define FRAGMENT_SHADER
+
 #include "../include/constants.glsl"
 #include "../include/structs.glsl"
 #include "../include/uniforms.glsl"

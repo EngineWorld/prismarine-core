@@ -50,4 +50,71 @@ vec4 mult4(in mat4 tmat, in vec4 vec){
 }
 
 
+// ordered increment
+#if (!defined(FRAGMENT_SHADER) && !defined(ORDERING_NOT_REQUIRED))
+
+// ballot math (alpha version)
+
+#define WARP_SIZE 32
+#define   LC_IDX (gl_LocalInvocationID.x / WARP_SIZE)
+#define LANE_IDX (gl_LocalInvocationID.x % WARP_SIZE)
+
+shared uint ballotCache[WORK_SIZE/WARP_SIZE];
+shared uint invocationCache[WORK_SIZE/WARP_SIZE][WARP_SIZE];
+
+uint genLtMask(){
+    return (1 << LANE_IDX)-1;
+}
+
+uint ballot(in bool val) {
+    ballotCache[LC_IDX] = 0;
+    // warp can be have barrier, but is not required
+    atomicOr(ballotCache[LC_IDX], uint(val) << LANE_IDX);
+    // warp can be have barrier, but is not required
+    return ballotCache[LC_IDX];
+}
+
+uint bitCount64(in uint a64) {
+    return bitCount(a64);
+}
+
+uint readLane(in uint val, in int lane) {
+    // warp can be have barrier, but is not required
+    atomicExchange(invocationCache[LC_IDX][LANE_IDX], val);
+    // warp can be have barrier, but is not required
+    return invocationCache[LC_IDX][lane];
+}
+
+int readLane(in int val, in int lane) {
+    // warp can be have barrier, but is not required
+    atomicExchange(invocationCache[LC_IDX][LANE_IDX], uint(val));
+    // warp can be have barrier, but is not required
+    return int(invocationCache[LC_IDX][lane]);
+}
+
+
+
+
+int firstActive(){
+    uint bits = ballot(true); return clamp(findMSB(bits), 0, WARP_SIZE-1);
+}
+
+uint makeOrder(in bool value){
+    uint bits = ballot(value);
+    return bitCount64(genLtMask() & bits);
+}
+
+uint countValid(in bool value){
+    uint bits = ballot(value);
+    return bitCount64(bits);
+}
+
+#define atomicIncWarpOrdered(mem, value, T) (readLane(atomicAdd(mem, mix(0, T(countValid(value)), LANE_IDX == firstActive())), firstActive()) + T(makeOrder(value)))
+
+#else
+
+#define atomicIncWarpOrdered(mem, value, T) atomicAdd(mem, T(value))
+
+#endif
+
 #endif

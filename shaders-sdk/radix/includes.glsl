@@ -62,7 +62,7 @@ uint genLtMask(){
 }
 
 uint ballot(in bool val) {
-    if (LANE_IDX == 0) ballotCache[LC_IDX] = 0;
+    ballotCache[LC_IDX] = 0;
     // warp can be have barrier, but is not required
     atomicOr(ballotCache[LC_IDX], uint(val) << LANE_IDX);
     // warp can be have barrier, but is not required
