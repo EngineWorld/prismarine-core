@@ -7,9 +7,8 @@
 - [x] Use compatible library with OpenGL 4.6
 - [x] Change shading language version to *460*
 - [x] OpenGL 4.6 group vote in traverse code
+- [x] Extended SPIR-V support
 - [ ] Memory objects and semaphores extensions
-- [ ] Extended SPIR-V support (compilers not yet ready)
-
 
 ## Details
 
