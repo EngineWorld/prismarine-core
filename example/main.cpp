@@ -505,9 +505,11 @@ namespace PaperExample {
 
         // load scene
         uint32_t sceneID = 0;
-        for (int n = 0; n < gltfModel.scenes[sceneID].nodes.size();n++) {
-            tinygltf::Node & node = gltfModel.nodes[gltfModel.scenes[sceneID].nodes[n]];
-            traverse(node, glm::dmat4(matrix), 2);
+        if (gltfModel.scenes.size() > 0) {
+            for (int n = 0; n < gltfModel.scenes[sceneID].nodes.size(); n++) {
+                tinygltf::Node & node = gltfModel.nodes[gltfModel.scenes[sceneID].nodes[n]];
+                traverse(node, glm::dmat4(matrix), 2);
+            }
         }
 #endif
 
@@ -560,8 +562,8 @@ int main(const int argc, const char ** argv)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     const unsigned superSampling = 2;
-    int32_t baseWidth = 640;
-    int32_t baseHeight = 360;
+    int32_t baseWidth = 1000;
+    int32_t baseHeight = 500;
 
     GLFWwindow* window = glfwCreateWindow(baseWidth, baseHeight, "Simple example", NULL, NULL);
     if (!window) { glfwTerminate(); exit(EXIT_FAILURE); }
