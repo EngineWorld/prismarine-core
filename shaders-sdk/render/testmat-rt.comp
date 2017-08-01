@@ -6,15 +6,10 @@
 #extension GL_ARB_bindless_texture : require
 #endif
 
-//#ifndef USE_EMULATED
-//#extension GL_ARB_bindless_texture : require
-//#endif
-
 #include "../include/structs.glsl"
 #include "../include/uniforms.glsl"
 #include "../include/rays.glsl"
 #include "../include/random.glsl"
-//#include "../include/textureManager.glsl"
 #include "../include/STOmath.glsl"
 #include "../include/materialFunc.glsl"
 

@@ -24,8 +24,18 @@ namespace Paper {
 
     inline void Material::bindWithContext(GLuint & prog) {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 15, mats);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 16, texturesBuffer);
-        //glProgramUniformHandleui64vARB(prog, 1, vctr.size(), vctr.data());
+        //glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 16, texturesBuffer); // bindless texture buffer
+        //glProgramUniformHandleui64vARB(prog, 1, vctr.size(), vctr.data()); // bindless texture (uniform)
+
+        // bind from 7th binding
+        uint32_t pcount = std::min((uint32_t)textures.size(), 64u);
+        std::vector<GLint> vctr(pcount);
+        GLuint firstBind = 6;
+        glBindTextures(firstBind, pcount-1, textures.data()+1); // bind textures, except first
+        for (int i = 0; i < pcount; i++) {
+            vctr[i] = firstBind+i-1; // use bindings, except first (move indice)
+        }
+        glProgramUniform1iv(prog, 1, vctr.size(), vctr.data());
     }
     
     inline void Material::clearGlTextures() {

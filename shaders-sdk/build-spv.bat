@@ -1,6 +1,6 @@
 
 cd %~dp0
-set CFLAGS=--target-env=vulkan -x glsl -Werror 
+set CFLAGS=--target-env=opengl -x glsl -Werror -DUSE_OPENGL 
 set HFLAGS=--target-env=vulkan -x hlsl -Werror 
 set INDIR=.\
 set DXDIR=..\directx-sdk\
