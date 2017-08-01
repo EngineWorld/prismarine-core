@@ -156,7 +156,7 @@ namespace Paper {
         return buf;
     }
 
-    template<GLuint format = GL_RGBA8>
+    template<GLenum format = GL_RGBA8>
     GLuint allocateTexture2D(size_t width, size_t height) {
         GLuint tex = 0;
         glCreateTextures(GL_TEXTURE_2D, 1, &tex);

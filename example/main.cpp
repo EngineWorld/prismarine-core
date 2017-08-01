@@ -95,42 +95,39 @@ GLuint loadCubemap() {
 
 const std::string bgTexName = "background.jpg";
 
-GLuint loadCubemap() {
-    FREE_IMAGE_FORMAT formato = FreeImage_GetFileType(bgTexName.c_str(), 0);
-    if (formato == FIF_UNKNOWN) {
-        return 0;
-    }
-    FIBITMAP* imagen = FreeImage_Load(formato, bgTexName.c_str());
-    if (!imagen) {
-        return 0;
-    }
-
-    FIBITMAP* temp = FreeImage_ConvertTo32Bits(imagen);
-    FreeImage_Unload(imagen);
-    imagen = temp;
-
-    uint32_t width = FreeImage_GetWidth(imagen);
-    uint32_t height = FreeImage_GetHeight(imagen);
-
-    GLuint texture = 0;
-    glCreateTextures(GL_TEXTURE_2D, 1, &texture);
-    glTextureStorage2D(texture, 1, GL_RGBA8, width, height);
-    glTextureParameteri(texture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTextureParameteri(texture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTextureParameteri(texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-    uint8_t * pixelsPtr = FreeImage_GetBits(imagen);
-    glTextureSubImage2D(texture, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, pixelsPtr);
-
-    return texture;
-}
-
-
-
-
 namespace PaperExample {
     using namespace Paper;
+
+    GLuint loadCubemap() {
+        FREE_IMAGE_FORMAT formato = FreeImage_GetFileType(bgTexName.c_str(), 0);
+        if (formato == FIF_UNKNOWN) {
+            return 0;
+        }
+        FIBITMAP* imagen = FreeImage_Load(formato, bgTexName.c_str());
+        if (!imagen) {
+            return 0;
+        }
+
+        FIBITMAP* temp = FreeImage_ConvertTo32Bits(imagen);
+        FreeImage_Unload(imagen);
+        imagen = temp;
+
+        uint32_t width = FreeImage_GetWidth(imagen);
+        uint32_t height = FreeImage_GetHeight(imagen);
+
+        GLuint texture = 0;
+        glCreateTextures(GL_TEXTURE_2D, 1, &texture);
+        glTextureStorage2D(texture, 1, GL_RGBA8, width, height);
+        glTextureParameteri(texture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(texture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTextureParameteri(texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+        uint8_t * pixelsPtr = FreeImage_GetBits(imagen);
+        glTextureSubImage2D(texture, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, pixelsPtr);
+
+        return texture;
+    }
 
     class PathTracerApplication {
     public:
@@ -594,9 +591,10 @@ int main(const int argc, const char ** argv)
 
     glfwMakeContextCurrent(window);
     glfwSwapInterval(0);
+
     //if (!gladLoadGL()) { glfwTerminate(); exit(EXIT_FAILURE); }
-    //glewExperimental = true;
-    if (glewInit() != GLEW_OK) { glfwTerminate(); exit(EXIT_FAILURE); }
+    //if (glewInit() != GLEW_OK) { glfwTerminate(); exit(EXIT_FAILURE); }
+    glbinding::Binding::initialize();
 
     app = new PaperExample::PathTracerApplication(argc, argv, window);
     app->resizeBuffers(baseWidth * superSampling, baseHeight * superSampling);

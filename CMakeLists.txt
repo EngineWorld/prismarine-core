@@ -62,7 +62,7 @@ set (LIBS
     glfw3 
     FreeImage 
     assimp-vc140-mt
-	glew32
+	glbinding
 )
 
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
