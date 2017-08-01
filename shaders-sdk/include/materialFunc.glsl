@@ -47,7 +47,8 @@ layout ( binding = 6, set = 1 ) uniform sampler2D samplers[MAX_TEXTURES]; // vul
 
 
 vec4 readEnv(in vec3 r) {
-    return texture(skybox[0], vec2(fma(vec2(atan(r.z, r.x) / PI, r.y), vec2(0.5), vec2(0.5))));
+    vec3 nr = normalize(r);
+    return texture(skybox[0], vec2(fma(vec2(atan(nr.z, nr.x) / PI, nr.y), vec2(0.5), vec2(0.5))));
 }
 
 
