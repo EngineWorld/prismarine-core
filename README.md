@@ -2,7 +2,7 @@
 
 ## OpenGL 4.6 Teaser
 
-<img src="logo/opengl46.png" alt="OpenGL46" width="960"/>
+<img src="logo/opengl46_2.png" alt="OpenGL46" width="960"/>
 
 - [x] Use compatible library with OpenGL 4.6
 - [x] Change shading language version to *460*
