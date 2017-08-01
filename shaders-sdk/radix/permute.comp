@@ -26,7 +26,7 @@ uint prefix_scan(inout UVEC_WARP v){
 uint prefix_sum(in uint data, inout uint total_sum) {
     UVEC_WARP rsort = data;
     for (uint i = 1; i < WORK_SIZE; i <<= 1) {
-         UVEC_WARP tmp = READ_LANE(rsort, LANE_IDX - i) * uint(LANE_IDX < WORK_SIZE);
+        UVEC_WARP tmp = READ_LANE(rsort, LANE_IDX - i) * uint(LANE_IDX < WORK_SIZE);
         rsort += tmp;
     }
     total_sum = READ_LANE(rsort, WORK_SIZE-1);
