@@ -9,6 +9,7 @@ shared uint warpPScan[WORK_SIZE];
 shared uint psums[WORK_SIZE];
 shared uint totals[WORK_SIZE];
 shared uint bcount;
+//shared uint sum[WORK_SIZE];
 
 layout (local_size_x = WARP_SIZE, local_size_y = WORK_SIZE) in;
 
@@ -19,6 +20,10 @@ uint prefix_scan(inout UVEC_WARP v){
     UVEC_WARP sum = bitCount64(bits);
     v = bitCount64(bits & genLtMask());
     return sum;
+    //return sum;
+    //sum[LC_IDX] = 0;
+    //v = atomicAdd(sum[LC_IDX], v);
+    //return sum[LC_IDX];
 }
 
 
