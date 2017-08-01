@@ -68,14 +68,14 @@ void main() {
         Flags[threadID] = 0;
     }
     
-    barrier(); memoryBarrier();
+    for (int h=0;h<256;h++) { // every level of BVH
+        // begin work on splitting
+        barrier(); memoryBarrier();
+        if (lRange[1] <= lRange[0]) break; // no work, break
 
-    for (int h=0;h<256;h++) {
         const uint workSize = min((lRange[1] <= lRange[0]) ? 0 : (((lRange[1] - lRange[0]) - 1) / gl_WorkGroupSize.x + 1), 8192);
         for (int i=0;i<workSize;i++) {
-            
-            const uint sWorkID = gl_WorkGroupSize.x * i;
-            const uint prID = lRange[0] + (sWorkID + threadID);
+            const uint prID = lRange[0] + (gl_WorkGroupSize.x * i + threadID);
 
             if (prID < lRange[1]) {
                 HlbvhNode parentNode = Nodes[prID];
@@ -127,21 +127,16 @@ void main() {
                     parentNode.pdata.z = parentTmp;
                     Nodes[prID] = parentNode;
                 }
+            } else {
+                break;
             }
-
-            // barrier for every loop?
-            //barrier(); memoryBarrier();
         }
 
+        // synchronize, and make next work view
         barrier(); memoryBarrier();
         if (threadID == 0) {
             lRange[0] = lRange[1];
             lRange[1] = lCounter;
-        }
-        barrier(); memoryBarrier();
-
-        if (lRange[1] <= lRange[0]) {
-            break;
         }
     }
 }

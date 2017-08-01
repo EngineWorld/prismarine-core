@@ -9,6 +9,13 @@ namespace Paper {
         //GLuint flipProgram;
 
         struct Consts { GLuint NumKeys, Shift, Descending, IsSigned; };
+        const uint32_t WG_COUNT = 8;
+        const uint32_t RADICES = 16;
+
+        GLuint OutKeys;
+        GLuint OutValues;
+        GLuint HistogramBuffer;
+        GLuint VarBuffer;
 
     public:
 
@@ -21,6 +28,11 @@ namespace Paper {
             initShaderComputeSPIRV("./shaders-spv/radix/permute.comp.spv", permuteProgram);
             initShaderComputeSPIRV("./shaders-spv/radix/prefix-scan.comp.spv", prefixScanProgram);
             initShaderComputeSPIRV("./shaders-spv/radix/histogram.comp.spv", histogramProgram);
+
+             OutKeys = allocateBuffer<uint32_t>(1024 * 1024 * 4);
+             OutValues = allocateBuffer<uint32_t>(1024 * 1024 * 4);
+             HistogramBuffer = allocateBuffer<uint32_t>(WG_COUNT * RADICES);
+             VarBuffer = allocateBuffer<Consts>(1);
         }
 
         void sort(GLuint &InKeys, GLuint &InVals, uint32_t size = 1, uint32_t descending = 0) {
@@ -34,14 +46,6 @@ namespace Paper {
                 { size, 24, descending, 0 },
                 { size, 28, descending, 0 }
             };
-
-            const uint32_t WG_COUNT = 8;
-            const uint32_t RADICES = 16;
-
-            GLuint OutKeys = allocateBuffer<uint32_t>(size);
-            GLuint OutValues = allocateBuffer<uint32_t>(size);
-            GLuint HistogramBuffer = allocateBuffer<uint32_t>(WG_COUNT * RADICES);
-            GLuint VarBuffer = allocateBuffer<Consts>(1);
 
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 20, InKeys);
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 21, InVals);
@@ -60,10 +64,6 @@ namespace Paper {
             }
 
             glFlush();
-            glDeleteBuffers(1, &OutKeys);
-            glDeleteBuffers(1, &OutValues);
-            glDeleteBuffers(1, &HistogramBuffer);
-            glDeleteBuffers(1, &VarBuffer);
         }
 
     };
