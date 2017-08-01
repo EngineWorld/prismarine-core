@@ -1,7 +1,7 @@
 #ifndef _MORTON_H
 #define _MORTON_H
 
-#ifdef INT64_MORTON
+#if (defined(INT64_MORTON) && defined(USE_INT64))
 
 uint64_t part1By2_64(in uint a){
     uint64_t x = uint64_t(a);
