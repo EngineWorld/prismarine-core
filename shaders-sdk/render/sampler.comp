@@ -33,7 +33,7 @@ void main(){
 
     int samplecount = 0;
     ivec2 basis = ivec2(vec2(xyl.xy) * aspect);
-    vec4 newc = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+    vec4 newc = vec4(0.0f);
     vec2 screen = vec2(xyl.xy);
     for(int x=-1;x<=scl.x;x++){
         for(int y=-1;y<=scl.y;y++){
@@ -42,11 +42,8 @@ void main(){
                 cmp.x >= 0 && cmp.x < wh.x && 
                 cmp.y >= 0 && cmp.y < wh.y
             ) {
-                if (RAY_BLOCK cameraUniform.interlace == 1){
-                    if ((abs(cmp.x + cmp.y) % 2) == RAY_BLOCK cameraUniform.interlaceStage) continue;
-                }
-
                 int ts = cmp.y * wh.x + cmp.x;
+                if (texelBuf.nodes[ts].EXT.y < 0 || texelBuf.nodes[ts].EXT.y == LONGEST) continue;
                 vec2 surround = vec2(texelBuf.nodes[ts].coord.x, texelBuf.nodes[ts].coord.y) * vec2(whs);
                 vec2 diff = surround - screen + 0.00001f;
                 if (
@@ -54,15 +51,14 @@ void main(){
                     diff.y >= 0.0f && diff.y < 1.0f
                 ) {
                     samplecount++;
-                    newc.xyz += collectSamples(texelBuf.nodes[ts]).xyz;
+                    newc += collectSamples(texelBuf.nodes[ts]);
                 }
             }
             
         }
     }
 
-    newc.xyz /= max((aspect.x * aspect.y), 1.0f);
-
+    newc /= float(samplecount);
     if (samplecount > 0) {
 #ifndef MOTION_BLUR
         if (imageLoad(sampleflags, xyl.xy).x > 0) {
@@ -74,18 +70,17 @@ void main(){
         vec4 xsample = imageLoad(presampled, xyl.xy);
         {
 #ifdef MOTION_BLUR
-             float inpage = 1.0f / MB_PAGES;
-             float outpage = 1.0f - inpage;
+            float inpage = 1.0f / MB_PAGES;
+            float outpage = 1.0f - inpage;
             xsample = fma(imageLoad(presampled, xyl.xy), vec4(outpage), newc * inpage);
 #else
-             float next = xsample.w + newc.w;
-             float prev = xsample.w;
-             float divisor = prev / next;
+            float next = xsample.w + newc.w;
+            float prev = xsample.w;
+            float divisor = prev / next;
             xsample.xyz = fma(xsample.xyz, vec3(divisor), newc.xyz * (1.0f - divisor));
             xsample.w += newc.w;
 #endif
         }
-
         imageStore(presampled, xyl.xy, vec4(xsample));
     }
 }

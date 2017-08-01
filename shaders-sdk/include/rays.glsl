@@ -52,14 +52,14 @@ layout ( std430, binding = 8 ) restrict buffer CounterBlock {
 void _collect(inout Ray ray) {
     vec4 color = max(ray.final, vec4(0.f));
     float amplitude = mlength(color.xyz);
-    if (amplitude >= 0.00001f) {
+    //if (amplitude >= 0.00001f) {
         int idx = atomicAdd(arcounter.Ct, 1);
         int prev = atomicExchange(texelBuf.nodes[ray.texel].EXT.y, idx);
         ColorChain ch = chBuf.chains[idx];
-        ch.color = ray.final;
+        ch.color = vec4(ray.final.xyz, 1.0f);
         ch.cdata.x = prev;
         chBuf.chains[idx] = ch;
-    }
+    //}
     ray.final.xyzw = vec4(0.0f);
 }
 
@@ -207,7 +207,7 @@ int createRay(inout Ray original, in int idx) {
 }
 
 int createRayIdx(inout Ray original, in int idx, in int rayIndex) {
-    _collect(original);
+    //_collect(original);
 
     bool invalidRay = 
         original.actived < 1 || 
