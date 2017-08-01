@@ -36,13 +36,6 @@ void main() {
     vec4 mn = vec4(INFINITY);
     vec4 mx = vec4(-INFINITY);
 
-    //mat3x4 triverts = transpose(mat4x3(
-    //    gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(t)), 0).wzx, // x component
-    //    gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(t)), 1).wzx, // y component
-    //    gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(t)), 2).wzx, // z component
-    //    gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(t)), 3).wzx  // w component
-    //));
-
     mat3x4 triverts = mat3x4(
         fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(t)), 0), 
         fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(t)), 1), 
