@@ -104,7 +104,7 @@ void main() {
     }
 
     int lc = -1;
-    if (newRay.params.x < 1 && (newRay.params.z > 0 || newRay.params.w > 0 ) && hit.shaded < 1) {
+    if ((newRay.params.z > 0 && newRay.params.x < 1) && hit.shaded < 1) {
         for (int i=0;i<min(RAY_BLOCK materialUniform.lightcount, 16);i++) {
             float md = 1.0f;
             float dt = intersectSphere(newRay.origin.xyz, newRay.direct.xyz, lightCenter(i).xyz, lightUniform.lightNode[i].lightColor.w + GAP);
