@@ -72,7 +72,6 @@ void main()
         const uint ctri = ctriangle * trp + i;
         const uint ptri = uint(GEOMETRY_BLOCK geometryUniform.loadOffset) + ctri;
         const uint vindices = GEOMETRY_BLOCK geometryUniform.unindexed == 1 ? ptri : uint( PICK(vindics, ptri) );
-        const uint stride = GEOMETRY_BLOCK attributeUniform.stride;
 
         vec3 vpos = vec3(0.0f);
         vec4 vtex = vec4(0.0f);
@@ -111,22 +110,6 @@ void main()
 #ifdef INVERT_TX_Y
                 tx.y = 1.0f - tx.y; // invert Y
 #endif
-            }
-            
-            if (GEOMETRY_BLOCK attributeUniform.haveLightcoord > 0) {
-                if (GEOMETRY_BLOCK attributeUniform.iModifiers0.x == 1) {
-                    const uint bits = floatBitsToUint(iverts[(vindices) * stride + GEOMETRY_BLOCK attributeUniform.lightcoordOffset]);
-                    const ivec3 bts = ivec3(
-                        (bits >> 4) & 0xF,
-                        (bits >> 20) & 0xF,
-                        0
-                    );
-                    lt.xy = vec2(bts.x / 15.f, bts.z);
-                } else {
-                    const uint lstride = (GEOMETRY_BLOCK attributeUniform.lightcoordStride) <= 0 ? 2 : (GEOMETRY_BLOCK attributeUniform.lightcoordStride);
-                    lt.x = iverts[(vindices) * lstride + GEOMETRY_BLOCK attributeUniform.lightcoordOffset + 0];
-                    lt.y = iverts[(vindices) * lstride + GEOMETRY_BLOCK attributeUniform.lightcoordOffset + 1];
-                }
             }
             
             vec4 txf = vec4(tx.xy, 0.0f, 1.0f) * GEOMETRY_BLOCK geometryUniform.texmatrix;
