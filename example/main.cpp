@@ -563,8 +563,8 @@ int main(const int argc, const char ** argv)
     //int32_t baseWidth = 800;
     //int32_t baseHeight = 600;
 
-    int32_t baseWidth = 640;
-    int32_t baseHeight = 360;
+    int32_t baseWidth = 1000;
+    int32_t baseHeight = 500;
 
     GLFWwindow* window = glfwCreateWindow(baseWidth, baseHeight, "Simple example", NULL, NULL);
     if (!window) { glfwTerminate(); exit(EXIT_FAILURE); }
