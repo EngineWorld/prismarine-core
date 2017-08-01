@@ -2,7 +2,7 @@
 
 ## OpenGL 4.6 Teaser
 
-<img src="logo/opengl46_2.png" alt="OpenGL46" width="960"/>
+<img src="logo/opengl46_preview.png" alt="OpenGL46" width="640"/>
 
 - [x] Use compatible library with OpenGL 4.6
 - [x] Change shading language version to *460*
@@ -44,12 +44,6 @@ ${ApplicationName}.exe -m sponza.obj -s 1.0
 -m model_name.obj   - loading 3D model to view (planned multiply models and animation support)
 -s 1.0              - scaling of 3D model
 ```
-
-## Screenshots
-
-### glTF PBR (??-07-2017)
-
-Coming soon updates
 
 ## Contributors
 
