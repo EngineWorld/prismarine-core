@@ -205,7 +205,7 @@ Ray reflection(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal, in floa
     newRay.direct.xyz = normalize(mix(reflect(newRay.direct.xyz, normal), randomCosine(normal), clamp(refly * random(), 0.0f, 1.0f)));
     //newRay.direct.xyz = normalize(mix(reflect(newRay.direct.xyz, normal), randomCosine(normal), clamp(refly, 0.0f, 1.0f)));
     newRay.color.xyz *= color;
-    newRay.params.x = SUNLIGHT_CAUSTICS ? 0 : 1;
+    newRay.params.x = (SUNLIGHT_CAUSTICS ? true : newRay.params.z < 1) ? 0 : 1;
     newRay.bounce = min(3, newRay.bounce); // easier mode
     newRay.origin.xyz = fma(faceforward(hit.normal.xyz, newRay.direct.xyz, -hit.normal.xyz), vec3(GAP), newRay.origin.xyz); // padding
     return newRay;
@@ -225,7 +225,7 @@ Ray refraction(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal, in floa
 #else
     
     newRay.direct.xyz = refrDir;
-    if (!refrc) newRay.params.x = SUNLIGHT_CAUSTICS ? 0 : 1; // can be lighted by direct
+    if (!refrc) newRay.params.x = (SUNLIGHT_CAUSTICS ? true : newRay.params.z < 1) ? 0 : 1; // can be lighted by direct
     if (newRay.params.w < 1 || refrc) { 
         newRay.bounce += 1;
     }
