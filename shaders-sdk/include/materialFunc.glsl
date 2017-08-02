@@ -95,7 +95,7 @@ vec4 textureBicubic(in sampler2D sampler, in vec2 texCoords){
 
 vec4 readEnv(in vec3 r) {
     vec3 nr = normalize(r);
-    return textureBicubic(skybox[0], vec2(fma(vec2(atan(nr.z, nr.x), asin(nr.y) * 2.0f) / PI, vec2(0.5), vec2(0.5))));
+    return texture(skybox[0], vec2(fma(vec2(atan(nr.z, nr.x), asin(nr.y) * 2.0f) / PI, vec2(0.5), vec2(0.5))));
 }
 
 
@@ -117,11 +117,11 @@ bool validateTexture(in uint binding){
 }
 
 vec4 fetchPart(in uint binding, in vec2 texcoord){
-    return textureBicubic(samplers[binding], texcoord);
+    return texture(samplers[binding], texcoord);
 }
 
 vec4 fetchPart(in uint binding, in vec2 texcoord, in ivec2 offset){
-    return textureBicubic(samplers[binding], texcoord + vec2(offset) / textureSize(samplers[binding], 0));
+    return texture(samplers[binding], texcoord + vec2(offset) / textureSize(samplers[binding], 0));
 }
 
 vec4 fetchSpecular(in Submat mat, in vec2 texcoord, in vec3 direct, in vec3 normal){
