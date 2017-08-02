@@ -48,12 +48,19 @@ layout ( std430, binding = 8 ) restrict buffer CounterBlock {
 
 
 
+initAtomicIncFunction(arcounter.At, atomicIncAt, int);
+initAtomicIncFunction(arcounter.Rt, atomicIncRt, int);
+initAtomicIncFunction(arcounter.Qt, atomicIncQt, int);
+initAtomicDecFunction(arcounter.Ut, atomicDecUt, int);
+initAtomicIncFunction(arcounter.Ct, atomicIncCt, int);
+
+
 
 void _collect(inout Ray ray) {
     vec4 color = max(ray.final, vec4(0.f));
     float amplitude = mlength(color.xyz);
     //if (amplitude >= 0.00001f) {
-        int idx = atomicIncWarpOrdered(arcounter.Ct, true, int);//atomicAdd(arcounter.Ct, 1);
+        int idx = atomicIncCt(true);//atomicAdd(arcounter.Ct, 1);
         int prev = atomicExchange(texelBuf.nodes[ray.texel].EXT.y, idx);
         ColorChain ch = chBuf.chains[idx];
         ch.color = vec4(ray.final.xyz, 1.0f);
@@ -79,16 +86,12 @@ int addRayToList(in Ray ray){
     int rayIndex = ray.idx;
     int actived = -1;
 
-    // do ordered counting
-    //int act = atomicIncWarpOrdered(arcounter.At, ray.actived == 1, int);
-    //int freed = atomicIncWarpOrdered(arcounter.Qt, ray.actived != 1, int);
-
     // ordered form list
     if (ray.actived == 1) {
-        int act = atomicIncWarpOrdered(arcounter.At, true, int);
+        int act = atomicIncAt(true);
         collBuf.indc[act] = rayIndex; actived = act;
     } else { // if not actived, why need?
-        int freed = atomicIncWarpOrdered(arcounter.Qt, true, int);
+        int freed = atomicIncQt(true);
         freedBuf.indc[freed] = rayIndex;
     }
 
@@ -191,7 +194,7 @@ int createRay(inout Ray original, in int idx) {
         iterations--;
 
         atomicMax(arcounter.Ut, 0); // prevent most decreasing
-        int freed = atomicDecWarpOrdered(arcounter.Ut, true, int)-1;
+        int freed = atomicDecUt(true)-1;
         atomicMax(arcounter.Ut, 0); // prevent most decreasing
 
         if (
@@ -207,7 +210,7 @@ int createRay(inout Ray original, in int idx) {
 
     //if (anyInvocationARB(rayIndex == -1)) {
     if (rayIndex == -1) {
-        rayIndex = atomicIncWarpOrdered(arcounter.Rt, true, int);//atomicAdd(arcounter.Rt, 1);
+        rayIndex = atomicIncRt(true);//atomicAdd(arcounter.Rt, 1);
     }
 
     return createRayStrict(original, idx, rayIndex);

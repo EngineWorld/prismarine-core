@@ -139,23 +139,35 @@ int firstActive(){
 
 #endif
 
-uint makeOrder(in bool value){
-    UVEC_BALLOT_WARP bits = ballot(value);
-    return bitCount64(genLtMask() & bits);
+#define initAtomicIncFunction(mem, fname, T)\
+T fname(in bool value){ \
+    int activeLane = firstActive();\
+    UVEC_BALLOT_WARP bits = ballot(value);\
+    T sumInOrder = T(bitCount64(bits));\
+    T idxInOrder = T(bitCount64(genLtMask() & bits));\
+    return readLane(LANE_IDX == activeLane ? atomicAdd(mem, sumInOrder) : 0, activeLane) + idxInOrder; \
 }
 
-uint countValid(in bool value){
-    UVEC_BALLOT_WARP bits = ballot(value);
-    return bitCount64(bits);
+#define initAtomicDecFunction(mem, fname, T)\
+T fname(in bool value){ \
+    int activeLane = firstActive();\
+    UVEC_BALLOT_WARP bits = ballot(value);\
+    T sumInOrder = T(bitCount64(bits));\
+    T idxInOrder = T(bitCount64(genLtMask() & bits));\
+    return readLane(LANE_IDX == activeLane ? atomicAdd(mem, -sumInOrder) : 0, activeLane) - idxInOrder; \
 }
-
-#define atomicIncWarpOrdered(mem, value, T) (readLane(atomicAdd(mem, mix(0,  T(countValid(value)), LANE_IDX == firstActive())), firstActive()) + T(makeOrder(value)))
-#define atomicDecWarpOrdered(mem, value, T) (readLane(atomicAdd(mem, mix(0, -T(countValid(value)), LANE_IDX == firstActive())), firstActive()) - T(makeOrder(value)))
 
 #else
 
-#define atomicIncWarpOrdered(mem, value, T) atomicAdd(mem,  T(value))
-#define atomicDecWarpOrdered(mem, value, T) atomicAdd(mem, -T(value))
+#define initAtomicIncFunction(mem, fname, T)\
+T fname(in bool value){ \
+    return atomicAdd(mem, T(value)); \
+}
+
+#define initAtomicDecFunction(mem, fname, T)\
+T fname(in bool value){ \
+    return atomicAdd(mem, -T(value)); \
+}
 
 #endif
 

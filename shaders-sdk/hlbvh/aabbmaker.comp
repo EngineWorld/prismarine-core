@@ -29,6 +29,8 @@ uint add(inout uint mem, in uint ops){
     uint tmp = mem; mem += ops; return tmp;
 }
 
+initAtomicIncFunction(counters.aabbCounter[0], atomicIncAABB, int)
+
 void main() {
     const int t = int(gl_GlobalInvocationID.x);
     if (t >= GEOMETRY_BLOCK geometryUniform.triangleCount) return;
@@ -74,7 +76,7 @@ void main() {
         vec4 center = (current.mn + current.mx) * 0.5f;
 
         if (split[i] >= maxSplits) {
-            int to = atomicIncWarpOrdered(counters.aabbCounter[0], true, int);//atomicAdd(counters.aabbCounter[0], 1);
+            int to = atomicIncAABB(true);//atomicAdd(counters.aabbCounter[0], 1);
 
             mortonIdc.MortoncodesIndices[to] = int(to);
             mortonBuf.Mortoncodes[to] = encodeMorton3_64(clamp(
