@@ -50,6 +50,10 @@ blocks_info get_blocks_info(in uint n, in uint wg_idx) {
     return blocks_info(block_count, block_off);
 }
 
+uint btc(in uint vlc){
+    return vlc == 0 ? 0 : bitCount(vlc);
+}
+
 #ifdef EMULATE_BALLOT
 
 shared uint ballotCache[WORK_SIZE];
@@ -70,7 +74,7 @@ uint ballot(in bool val) {
 }
 
 uint bitCount64(in uint a64) {
-    return bitCount(a64);
+    return btc(a64);
 }
 
 uint readLane(in uint val, in uint lane) {
@@ -90,10 +94,7 @@ uvec2 genLtMask(){
 }
 
 uint bitCount64(in uvec2 lh) {
-    int btx = bitCount(lh.x);
-    int bty = bitCount(lh.y);
-    //return uint(btx + bty);
-    return uint(btx);
+    return uint(btc(lh.x) + btc(lh.y));
 }
 
 uint readLane(in uint val, in uint lane){

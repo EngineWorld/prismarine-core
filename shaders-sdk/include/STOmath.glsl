@@ -54,6 +54,9 @@ int modi(in int a, in int b){
     return (a % b + b) % b;
 }
 
+uint btc(in uint vlc){
+    return vlc == 0 ? 0 : bitCount(vlc);
+}
 
 
 // ordered increment
@@ -83,7 +86,7 @@ uint ballot(in bool val) {
 }
 
 uint bitCount64(in uint a64) {
-    return bitCount(a64);
+    return btc(a64);
 }
 
 uint readLane(in uint val, in int lane) {
@@ -115,8 +118,7 @@ uvec2 genLtMask(){
 }
 
 uint bitCount64(in uvec2 lh) {
-    //return bitCount(lh.x) + bitCount(lh.y);
-    return bitCount(lh.x);
+    return btc(lh.x) + btc(lh.y);
 }
 
 uint readLane(in uint val, in int lane){
@@ -133,8 +135,8 @@ uvec2 ballot(in bool val) {
 
 int firstActive(){
     UVEC_BALLOT_WARP bits = ballot(true);
-    int msb = findMSB(bits.x);
-    return modi(msb >= 0 ? msb : findMSB(bits.y), int(gl_SubGroupSizeARB));
+    int lv = findLSB(bits.x);
+    return modi(lv >= 0 ? lv : (32+findLSB(bits.y)), int(gl_SubGroupSizeARB));
 }
 
 #endif
