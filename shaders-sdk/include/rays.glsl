@@ -174,15 +174,14 @@ int createRayStrict(inout Ray original, in int rayIndex) {
 
 
 int createRay(inout Ray original, in int idx) {
-    _collect(original);
-
     bool invalidRay = 
         original.actived < 1 || 
         original.bounce <= 0 || 
         mlength(original.color.xyz) < 0.0001f;
 
+    if (mlength(original.final.xyz) >= 0.0001f) _collect(original);
+
     if (invalidRay) {
-    //if (allInvocationsARB(invalidRay)) {
         return -1; 
     }
 
@@ -217,14 +216,13 @@ int createRay(inout Ray original, in int idx) {
 }
 
 int createRayIdx(inout Ray original, in int idx, in int rayIndex) {
-    //_collect(original);
-
     bool invalidRay = 
         original.actived < 1 || 
         original.bounce <= 0 || 
         mlength(original.color.xyz) < 0.0001f;
 
-    //if (allInvocationsARB(invalidRay)) {
+    if (mlength(original.final.xyz) >= 0.0001f) _collect(original);
+
     if (invalidRay) {
         return -1; 
     }
