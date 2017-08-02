@@ -104,7 +104,7 @@ int readLane(in int val, in int lane) {
 }
 
 int firstActive(){
-    UVEC_BALLOT_WARP bits = ballot(true); return modi(findMSB(bits.x), WARP_SIZE);
+    return findLSB(ballot(true).x);
 }
 
 #else
@@ -136,7 +136,7 @@ uvec2 ballot(in bool val) {
 int firstActive(){
     UVEC_BALLOT_WARP bits = ballot(true);
     int lv = findLSB(bits.x);
-    return modi(lv >= 0 ? lv : (32+findLSB(bits.y)), int(gl_SubGroupSizeARB));
+    return (lv >= 0 ? lv : (32+findLSB(bits.y)));
 }
 
 #endif

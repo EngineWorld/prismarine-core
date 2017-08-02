@@ -224,7 +224,7 @@ namespace Paper {
         geometryUniformData.triangleCount = triangleCount;
 
         //std::vector<GLuint> mortons(triangleCount);
-        //glGetNamedBufferSubData(mortonBufferIndex, 0, strided<GLuint>(mortons.size()), mortons.data());
+        //glGetNamedBufferSubData(mortonBuffer, 0, strided<GLuint>(mortons.size()), mortons.data());
 
         this->syncUniforms();
        // glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, mortonBuffer);

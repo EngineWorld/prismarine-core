@@ -16,12 +16,7 @@
 #define WG_COUNT 8
 #define WG_IDX gl_WorkGroupID.x
 #define LC_IDX gl_LocalInvocationID.y
-
-#ifdef EMULATE_BALLOT
 #define LANE_IDX gl_LocalInvocationID.x
-#else
-#define LANE_IDX gl_SubGroupInvocationARB
-#endif
 
 #define UVEC_WARP uint
 #define BVEC_WARP bool
