@@ -4,7 +4,7 @@ namespace Paper {
 
     inline void Tracer::initShaders() {
 
-        
+        /*
 #ifdef USE_OPTIMIZED_RT
         initShaderCompute("./shaders/render/testmat-rt.comp", matProgram);
 #else
@@ -16,8 +16,8 @@ namespace Paper {
         initShaderCompute("./shaders/render/camera.comp", cameraProgram);
         initShaderCompute("./shaders/render/clear.comp", clearProgram);
         initShaderCompute("./shaders/render/sampler.comp", samplerProgram);
+        */
         
-        /*
 #ifdef USE_OPTIMIZED_RT
         initShaderComputeSPIRV("./shaders-spv/render/testmat-rt.comp.spv", matProgram);
 #else
@@ -29,10 +29,10 @@ namespace Paper {
         initShaderComputeSPIRV("./shaders-spv/render/camera.comp.spv", cameraProgram);
         initShaderComputeSPIRV("./shaders-spv/render/clear.comp.spv", clearProgram);
         initShaderComputeSPIRV("./shaders-spv/render/sampler.comp.spv", samplerProgram);
-        */
+        
 
-        initShaderCompute("./shaders/render/intersection.comp", intersectionProgram);
-        //initShaderComputeSPIRV("./shaders-spv/render/intersection.comp.spv", intersectionProgram);
+        //initShaderCompute("./shaders/render/intersection.comp", intersectionProgram);
+        initShaderComputeSPIRV("./shaders-spv/render/intersection.comp.spv", intersectionProgram);
 
         {
             GLuint vert = glCreateShader(GL_VERTEX_SHADER);
