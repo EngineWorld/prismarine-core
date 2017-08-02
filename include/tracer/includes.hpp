@@ -19,14 +19,14 @@
 #include "glm/gtx/component_wise.hpp"
 #include "glm/gtx/rotate_vector.hpp"
 
-#include <glbinding/Binding.h>
-#include "glbinding/gl46ext/gl.h"
-//#include "GL/glew.h"
+//#include <glbinding/Binding.h>
+//#include "glbinding/gl46ext/gl.h"
+#include "GL/glew.h"
 
 #ifdef USE_FREEIMAGE
 #include "external/include/FreeImage.h"
 #endif
 
 namespace Paper {
-    using namespace gl;
+    //using namespace gl;
 };

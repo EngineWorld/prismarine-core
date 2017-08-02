@@ -384,13 +384,13 @@ namespace PaperExample {
 
         // load meshes
         std::function<void(tinygltf::Node &, glm::dmat4, int)> traverse = [&](tinygltf::Node & node, glm::dmat4 inTransform, int recursive)->void {
-            glm::dmat4 ltransform = glm::dmat4(1.0);
-            ltransform *= (node.matrix.size() >= 16 ? glm::make_mat4(node.matrix.data()) : glm::dmat4(1.0));
-            ltransform *= (node.translation.size() >= 3 ? glm::translate(glm::dmat4(1.0), glm::make_vec3(node.translation.data())) : glm::dmat4(1.0));
-            ltransform *= (node.scale.size() >= 3 ? glm::scale(glm::dmat4(1.0), glm::make_vec3(node.scale.data())) : glm::dmat4(1.0));
-            ltransform *= (node.rotation.size() >= 4 ? glm::mat4_cast(glm::make_quat(node.rotation.data())) : glm::dmat4(1.0));
+            glm::dmat4 localTransform;
+            localTransform *= (node.matrix.size() >= 16 ? glm::make_mat4(node.matrix.data()) : glm::dmat4(1.0));
+            localTransform *= (node.translation.size() >= 3 ? glm::translate(glm::dmat4(1.0), glm::make_vec3(node.translation.data())) : glm::dmat4(1.0));
+            localTransform *= (node.scale.size() >= 3 ? glm::scale(glm::dmat4(1.0), glm::make_vec3(node.scale.data())) : glm::dmat4(1.0));
+            localTransform *= (node.rotation.size() >= 4 ? glm::mat4_cast(glm::make_quat(node.rotation.data())) : glm::dmat4(1.0));
 
-            glm::dmat4 transform = inTransform * ltransform;
+            glm::dmat4 transform = inTransform * localTransform;
             if (node.mesh >= 0) {
                 std::vector<Paper::Mesh *>& mesh = meshVec[node.mesh]; // load mesh object (it just vector of primitives)
                 for (int p = 0; p < mesh.size(); p++) { // load every primitive
@@ -485,17 +485,21 @@ int main(const int argc, const char ** argv)
     // DPI scaling for Windows
 #if (defined MSVC && defined _WIN32)
     dpi = GetDpiForWindow(win);
+    int32_t canvasWidth = baseWidth * ((double)dpi / (double)baseDPI);
+    int32_t canvasHeight = baseHeight * ((double)dpi / (double)baseDPI);
 #else
+    int32_t canvasWidth = baseWidth;
+    int32_t canvasHeight = baseHeight;
     glfwGetFramebufferSize(window, &canvasWidth, &canvasHeight);
     dpi = double(baseDPI) * (double(canvasWidth) / double(baseWidth));
 #endif
 
-    int32_t canvasWidth = baseWidth * ((double)dpi / (double)baseDPI);
-    int32_t canvasHeight = baseHeight * ((double)dpi / (double)baseDPI);
+
 
     glfwMakeContextCurrent(window);
     glfwSwapInterval(0);
-    glbinding::Binding::initialize();
+    //glbinding::Binding::initialize();
+    if (glewInit() != GLEW_OK) {glfwTerminate(); exit(EXIT_FAILURE);}
 
     app = new PaperExample::PathTracerApplication(argc, argv, window);
     app->resizeBuffers(baseWidth * superSampling, baseHeight * superSampling);
@@ -519,8 +523,6 @@ int main(const int argc, const char ** argv)
         dpi = GetDpiForWindow(win);
 #else
         {
-            uint32_t baseWidth = w;
-            uint32_t baseHeight = h;
             glfwGetWindowSize(window, &baseWidth, &baseHeight);
             dpi = double(baseDPI) * (double(canvasWidth) / double(baseWidth));
         }

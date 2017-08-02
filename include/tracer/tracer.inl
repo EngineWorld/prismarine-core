@@ -328,8 +328,8 @@ namespace Paper {
     }
 
     inline void Tracer::camera(const glm::vec3 &eye, const glm::vec3 &view) {
-        const double M_PI = 3.1415926535897932384626422832795028841971;
-        this->camera(eye, view, glm::perspective(float(M_PI) / 3.0f, float(displayWidth) / float(displayHeight), 0.001f, 1000.0f));
+        const double PI = 3.1415926535897932384626422832795028841971;
+        this->camera(eye, view, glm::perspective(float(PI) / 3.0f, float(displayWidth) / float(displayHeight), 0.001f, 1000.0f));
     }
 
     inline void Tracer::clearSampler() {
