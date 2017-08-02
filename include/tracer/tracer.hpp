@@ -49,7 +49,6 @@ namespace Paper {
         GLuint presampled = -1;
         GLuint samples = -1;
         GLuint sampleflags = -1;
-        GLuint cubeTex = -1;
         GLuint vao = -1;
 
         GLuint pivotTexture = -1;
@@ -98,7 +97,6 @@ namespace Paper {
             glDeleteTextures(1, &presampled);
             glDeleteTextures(1, &samples);
             glDeleteTextures(1, &sampleflags);
-            glDeleteTextures(1, &cubeTex);
 
             glDeleteVertexArrays(1, &vao);
 
@@ -133,7 +131,6 @@ namespace Paper {
         glm::vec4 lightOffset[6] = { glm::vec4(0.0f, 0.0f, 0.0f, 0.0f) };
 
         void setLightCount(size_t lightcount);
-        void includeCubemap(GLuint cube);
         void bindUniforms();
         void bind();
         void clearRays();

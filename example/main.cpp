@@ -26,77 +26,10 @@
 #include "tracer/radix.hpp"
 #include <functional>
 
-
-
-
-/*
-std::string cubemap[6] = {
-    "cubemap/petesoasis_ft.tga",
-    "cubemap/petesoasis_bk.tga",
-
-    "cubemap/petesoasis_dn.tga",
-    "cubemap/petesoasis_up.tga",
-
-    "cubemap/petesoasis_rt.tga",
-    "cubemap/petesoasis_lf.tga"
-};
-
-GLuint loadCubemap() {
-    FREE_IMAGE_FORMAT formato = FreeImage_GetFileType(cubemap[0].c_str(), 0);
-    if (formato == FIF_UNKNOWN) {
-        return 0;
-    }
-    FIBITMAP* imagen = FreeImage_Load(formato, cubemap[0].c_str());
-    if (!imagen) {
-        return 0;
-    }
-
-    FIBITMAP* temp = FreeImage_ConvertTo32Bits(imagen);
-    FreeImage_Unload(imagen);
-    imagen = temp;
-
-    uint32_t width = FreeImage_GetWidth(imagen);
-    uint32_t height = FreeImage_GetHeight(imagen);
-
-    GLuint texture = 0;
-    glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &texture);
-    glTextureStorage2D(texture, 1, GL_RGBA8, width, height);
-    glTextureParameteri(texture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTextureParameteri(texture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTextureParameteri(texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-    for (int i = 0; i < 6;i++) {
-        FREE_IMAGE_FORMAT formato = FreeImage_GetFileType(cubemap[i].c_str(), 0);
-        if (formato == FIF_UNKNOWN) {
-            return 0;
-        }
-
-        FIBITMAP* imagen = FreeImage_Load(formato, cubemap[i].c_str());
-        if (!imagen) {
-            return 0;
-        }
-
-        FIBITMAP* temp = FreeImage_ConvertTo32Bits(imagen);
-        FreeImage_Unload(imagen);
-        imagen = temp;
-
-        uint32_t width = FreeImage_GetWidth(imagen);
-        uint32_t height = FreeImage_GetHeight(imagen);
-        uint8_t * pixelsPtr = FreeImage_GetBits(imagen);
-
-        glTextureSubImage3D(texture, 0, 0, 0, i, width, height, 1, GL_BGRA, GL_UNSIGNED_BYTE, pixelsPtr);
-    }
-
-    return texture;
-}
-*/
-
-
-const std::string bgTexName = "background.jpg";
-
 namespace PaperExample {
     using namespace Paper;
+
+    const std::string bgTexName = "background.jpg";
 
     GLuint loadCubemap() {
         FREE_IMAGE_FORMAT formato = FreeImage_GetFileType(bgTexName.c_str(), 0);
@@ -137,21 +70,17 @@ namespace PaperExample {
         void mousePress(const int32_t& button);
         void mouseRelease(const int32_t& button);
         void mouseMove(const double& x, const double& y);
-        void draw();
-        void proccessUI();
+        void process();
         void resize(const int32_t& width, const int32_t& height);
         void resizeBuffers(const int32_t& width, const int32_t& height);
-
-        double dpiscaling = 1.0f;
 
     private:
         
         GLFWwindow * window;
         Tracer * rays;
-        Intersector * object;
-        Mesh * geom;
+        Intersector * intersector;
         Controller * cam;
-        Material * supermat;
+        Material * materialManager;
         
         double time = 0;
         double diff = 0;
@@ -164,20 +93,17 @@ namespace PaperExample {
 
 #ifdef EXPERIMENTAL_GLTF
         tinygltf::Model gltfModel;
-        //std::vector<Mesh *> primitiveVec = std::vector<Mesh *>();
         std::vector<std::vector<Mesh *>> meshVec = std::vector<std::vector<Mesh *>>();
         std::vector<GLuint> glBuffers = std::vector<GLuint>();
         std::vector<uint32_t> rtTextures = std::vector<uint32_t>();
 #endif
 
-        //double absscale = 0.75f;
         struct {
             bool show_test_window = false;
             bool show_another_window = false;
             float f = 0.0f;
         } goptions;
     };
-
 
     uint32_t _byType(int &type) {
         switch (type) {
@@ -200,21 +126,18 @@ namespace PaperExample {
         return 1;
     }
 
-
     int32_t getTextureIndex(std::map<std::string, double> &mapped) {
         return mapped.count("index") > 0 ? mapped["index"] : -1;
     }
 
-
     PathTracerApplication::PathTracerApplication(const int32_t& argc, const char ** argv, GLFWwindow * wind) {
         window = wind;
 
-        if (argc < 1) {
-            std::cerr << "-m (--model) for load obj model, -s (--scale) for resize model" << std::endl;
-        }
+        if (argc < 1) std::cerr << "-m (--model) for load obj model, -s (--scale) for resize model" << std::endl;
         std::string model_input = "";
         std::string directory = ".";
 
+        // read arguments
         for (int i = 1; i < argc; ++i) {
             std::string arg = std::string(argv[i]);
             if ((arg == "-m") || (arg == "--model")) {
@@ -244,22 +167,20 @@ namespace PaperExample {
                             }
                         }
         }
-
         if (model_input == "") {
             std::cerr << "No model found :(" << std::endl;
         }
 
-        GLuint cubeTexture = loadCubemap();
+        // init material system
+        materialManager = new Material();
 
+        // init ray tracer
         rays = new Tracer();
-        rays->setSkybox(cubeTexture);
+        rays->setSkybox(loadCubemap());
         
-
-
+        // camera contoller
         cam = new Controller();
         cam->setRays(rays);
-        supermat = new Material();
-        geom = new Mesh();
 
 #ifdef EXPERIMENTAL_GLTF
         tinygltf::TinyGLTF loader;
@@ -270,13 +191,13 @@ namespace PaperExample {
         for (int i = 0; i < gltfModel.textures.size(); i++) {
             tinygltf::Texture& gltfTexture = gltfModel.textures[i];
             std::string uri = directory + "/" + gltfModel.images[gltfTexture.source].uri;
-            uint32_t rtTexture = supermat->loadTexture(uri);
+            uint32_t rtTexture = materialManager->loadTexture(uri);
             // todo with rtTexture processing
             rtTextures.push_back(rtTexture);
         }
 
         // load materials (include PBR)
-        supermat->clearSubmats();
+        materialManager->clearSubmats();
         for (int i = 0; i < gltfModel.materials.size(); i++) {
             tinygltf::Material & material = gltfModel.materials[i];
             Paper::Material::Submat submat;
@@ -308,10 +229,10 @@ namespace PaperExample {
             submat.bumpPart = texId >= 0 ? rtTextures[texId] : 0;
 
             // load material
-            supermat->addSubmat(submat);
+            materialManager->addSubmat(submat);
         }
 
-        // make raw buffers
+        // make raw mesh buffers
         for (int i = 0; i < gltfModel.buffers.size();i++) {
             GLuint glBuf = -1;
             glCreateBuffers(1, &glBuf);
@@ -319,9 +240,8 @@ namespace PaperExample {
             glBuffers.push_back(glBuf);
         }
 
-        // load meshes (better view objectivity)
+        // load mesh templates (better view objectivity)
         for (int m = 0; m < gltfModel.meshes.size();m++) {
-        //int m = 0; {
             std::vector<Mesh *> primitiveVec = std::vector<Mesh *>();
 
             tinygltf::Mesh &glMesh = gltfModel.meshes[m];
@@ -346,7 +266,6 @@ namespace PaperExample {
                     if (it->first.compare("POSITION") == 0) { // vertices
                         geom->attributeUniformData.vertexOffset = (accessor.byteOffset + bufferView.byteOffset) / 4;
                         geom->attributeUniformData.vertexStride = (bufferView.byteStride / 4);
-                        //geom->attributeUniformData.stride = (bufferView.byteStride <= 4) ? 0 : (bufferView.byteStride / 4);
                         geom->setVertices(glBuffers[bufferView.buffer]);
                     } else
                     
@@ -391,18 +310,16 @@ namespace PaperExample {
         }
 #endif
 
-        glm::mat4 matrix = glm::mat4(1.0f);
-        matrix = glm::scale(matrix, glm::vec3(mscale));
-        geom->setMaterialOffset(0);
-        geom->setTransform(matrix);
+        // create geometry intersector
+        intersector = new Intersector();
+        intersector->allocate(1024 * 1024);
 
-        object = new Intersector();
-        object->allocate(1024 * 1024);
-
-        time = milliseconds();
+        // init timing state
+        time = glfwGetTime() * 1000.f;
         diff = 0;
     }
 
+    // key downs
     void PathTracerApplication::passKeyDown(const int32_t& key) {
         if (key == GLFW_KEY_W) keys[kW] = true;
         if (key == GLFW_KEY_A) keys[kA] = true;
@@ -416,6 +333,7 @@ namespace PaperExample {
         if (key == GLFW_KEY_K) keys[kK] = true;
     }
 
+    // key release
     void PathTracerApplication::passKeyRelease(const int32_t& key) {
         if (key == GLFW_KEY_W) keys[kW] = false;
         if (key == GLFW_KEY_A) keys[kA] = false;
@@ -432,52 +350,39 @@ namespace PaperExample {
         }
     }
 
-    void PathTracerApplication::mousePress(const int32_t& button) {
-        if (button == GLFW_MOUSE_BUTTON_LEFT) lbutton = true;
-    }
+    // mouse moving and pressing
+    void PathTracerApplication::mousePress(const int32_t& button) { if (button == GLFW_MOUSE_BUTTON_LEFT) lbutton = true; }
+    void PathTracerApplication::mouseRelease(const int32_t& button) { if (button == GLFW_MOUSE_BUTTON_LEFT) lbutton = false; }
+    void PathTracerApplication::mouseMove(const double& x, const double& y) { mousepos.x = x, mousepos.y = y; }
 
-    void PathTracerApplication::mouseRelease(const int32_t& button) {
-        if (button == GLFW_MOUSE_BUTTON_LEFT) lbutton = false;
-    }
+    // resize buffers and canvas functions
+    void PathTracerApplication::resizeBuffers(const int32_t& width, const int32_t& height) { rays->resizeBuffers(width, height); }
+    void PathTracerApplication::resize(const int32_t& width, const int32_t& height) { rays->resize(width, height); }
 
-    void PathTracerApplication::mouseMove(const double& x, const double& y) {
-        mousepos.x = x;
-        mousepos.y = y;
-    }
-
-    void PathTracerApplication::resizeBuffers(const int32_t& width, const int32_t& height) {
-        rays->resizeBuffers(width, height);
-    }
-
-    void PathTracerApplication::resize(const int32_t& width, const int32_t& height) {
-        rays->resize(width, height);
-    }
-
-    void PathTracerApplication::proccessUI() {
-
-    }
-
-    void PathTracerApplication::draw() {
-        double t = milliseconds();
+    // processing
+    void PathTracerApplication::process() {
+        double t = glfwGetTime() * 1000.f;
         diff = t - time;
         time = t;
 
-        this->proccessUI();
+        // switch to 360 degree view
+        cam->work(mousepos, diff, lbutton, keys);
         if (switch360key) {
             rays->switchMode();
             switch360key = false;
         }
 
+        // initial transform
         glm::mat4 matrix(1.0f);
         matrix = glm::scale(matrix, glm::vec3(mscale));
 
-        // load meshes to BVH
-        object->clearTribuffer();
-        supermat->loadToVGA();
+        // clear BVH and load materials
+        intersector->clearTribuffer();
+        materialManager->loadToVGA();
 
 #ifdef EXPERIMENTAL_GLTF
 
-        // load tree
+        // load meshes
         std::function<void(tinygltf::Node &, glm::dmat4, int)> traverse = [&](tinygltf::Node & node, glm::dmat4 inTransform, int recursive)->void {
             glm::dmat4 ltransform = glm::dmat4(1.0);
             ltransform *= (node.matrix.size() >= 16 ? glm::make_mat4(node.matrix.data()) : glm::dmat4(1.0));
@@ -486,13 +391,12 @@ namespace PaperExample {
             ltransform *= (node.rotation.size() >= 4 ? glm::mat4_cast(glm::make_quat(node.rotation.data())) : glm::dmat4(1.0));
 
             glm::dmat4 transform = inTransform * ltransform;
-
             if (node.mesh >= 0) {
                 std::vector<Paper::Mesh *>& mesh = meshVec[node.mesh]; // load mesh object (it just vector of primitives)
                 for (int p = 0; p < mesh.size(); p++) { // load every primitive
                     Paper::Mesh * geom = mesh[p];
                     geom->setTransform(transform);
-                    object->loadMesh(geom);
+                    intersector->loadMesh(geom);
                 }
             }
             else
@@ -513,19 +417,18 @@ namespace PaperExample {
         }
 #endif
 
-        object->build(matrix);
+        // build BVH in device
+        intersector->build(matrix);
 
-        cam->work(mousepos, diff, lbutton, keys);
+        // process ray tracing
         rays->camera(cam->eye, cam->view);
-
         for (int32_t j = 0;j < depth;j++) {
             if (rays->getRayCount() <= 0) break;
             rays->resetHits();
-            rays->intersection(object);
-            rays->shade(supermat);
+            rays->intersection(intersector);
+            rays->shade(materialManager);
             rays->reclaim();
         }
-
         rays->sample();
         rays->render();
     }
@@ -561,7 +464,9 @@ int main(const int argc, const char ** argv)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+    const double measureSeconds = 2.0;
     const unsigned superSampling = 2;
+
     int32_t baseWidth = 640;
     int32_t baseHeight = 360;
 
@@ -590,9 +495,6 @@ int main(const int argc, const char ** argv)
 
     glfwMakeContextCurrent(window);
     glfwSwapInterval(0);
-
-    //if (!gladLoadGL()) { glfwTerminate(); exit(EXIT_FAILURE); }
-    //if (glewInit() != GLEW_OK) { glfwTerminate(); exit(EXIT_FAILURE); }
     glbinding::Binding::initialize();
 
     app = new PaperExample::PathTracerApplication(argc, argv, window);
@@ -606,14 +508,10 @@ int main(const int argc, const char ** argv)
 
     double lastTime = glfwGetTime();
     double prevFrameTime = lastTime;
-
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
-        int32_t oldWidth = canvasWidth;
-        int32_t oldHeight = canvasHeight;
-        int32_t oldDPI = dpi;
-
+        int32_t oldWidth = canvasWidth, oldHeight = canvasHeight, oldDPI = dpi;
         glfwGetFramebufferSize(window, &canvasWidth, &canvasHeight);
 
         // DPI scaling for Windows
@@ -646,12 +544,10 @@ int main(const int argc, const char ** argv)
             app->resize(canvasWidth, canvasHeight);
         }
 
-        app->dpiscaling = ratio;
-        app->draw();
+        // do ray tracing
+        app->process();
 
         // Measure speed
-        const double measureSeconds = 2.0;
-        
         double currentTime = glfwGetTime();
         if (currentTime - lastTime >= measureSeconds) {
             std::cout << "FPS: " << 1.f / (currentTime - prevFrameTime) << std::endl;

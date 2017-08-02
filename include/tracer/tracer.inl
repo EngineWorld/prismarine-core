@@ -16,6 +16,7 @@ namespace Paper {
         initShaderCompute("./shaders/render/camera.comp", cameraProgram);
         initShaderCompute("./shaders/render/clear.comp", clearProgram);
         initShaderCompute("./shaders/render/sampler.comp", samplerProgram);
+        initShaderCompute("./shaders/render/intersection.comp", intersectionProgram);
         */
         
 #ifdef USE_OPTIMIZED_RT
@@ -29,9 +30,6 @@ namespace Paper {
         initShaderComputeSPIRV("./shaders-spv/render/camera.comp.spv", cameraProgram);
         initShaderComputeSPIRV("./shaders-spv/render/clear.comp.spv", clearProgram);
         initShaderComputeSPIRV("./shaders-spv/render/sampler.comp.spv", samplerProgram);
-        
-
-        //initShaderCompute("./shaders/render/intersection.comp", intersectionProgram);
         initShaderComputeSPIRV("./shaders-spv/render/intersection.comp.spv", intersectionProgram);
 
         {
@@ -189,20 +187,6 @@ namespace Paper {
         glTextureParameteri(presampled, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTextureParameteri(presampled, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-        /*
-        const float data[] = {
-#include "fit.inl"
-        };
-
-        glCreateTextures(GL_TEXTURE_2D, 1, &pivotTexture);
-        glTextureStorage2D(pivotTexture, 1, GL_RGBA32F, 64, 64);
-        glTextureSubImage2D(pivotTexture, 0, 0, 0, 64, 64, GL_RGBA, GL_FLOAT, data);
-        glTextureParameteri(pivotTexture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTextureParameteri(pivotTexture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTextureParameteri(pivotTexture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTextureParameteri(pivotTexture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        */
-
         clearSampler();
     }
 
@@ -237,10 +221,6 @@ namespace Paper {
 
         clearRays();
         syncUniforms();
-    }
-
-    inline void Tracer::includeCubemap(GLuint cube) { 
-        cubeTex = cube; 
     }
 
     inline void Tracer::syncUniforms() {
