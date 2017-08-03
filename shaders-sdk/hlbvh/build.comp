@@ -3,6 +3,7 @@
 #include "../include/constants.glsl"
 #include "../include/structs.glsl"
 #include "../include/uniforms.glsl"
+#include "../include/STOmath.glsl"
 #include "./includes.glsl"
 
 #define LEAFIDX(i) (Range[0] + i)
@@ -18,7 +19,8 @@ int nlz (in int x) {
     return 31-findMSB(uint(x));
 }
 
-int findSplit( int first, int last)
+// TODO - two lane SIMD threading support
+int findSplit( int first, int last, uint SIMDThread)
 {
     uint firstCode = Mortoncodes[first];
     uint lastCode = Mortoncodes[last];
@@ -48,9 +50,10 @@ int findSplit( int first, int last)
 shared int lRange[2];
 shared int lCounter;
 
+initAtomicIncFunction(lCounter, lCounterInc, int);
+
 void main() {
     if (gl_WorkGroupID.x > 0) return; // not supported
-
     const uint threadID = uint(gl_LocalInvocationID.x);
 
     if (threadID == 0) {
@@ -67,7 +70,75 @@ void main() {
         Nodes[threadID] = node;
         Flags[threadID] = 0;
     }
-    
+
+    int cntstdr = 0;
+    for (int h=0;h<256;h++) { // every level of BVH
+        // begin work on splitting
+        barrier(); memoryBarrier();
+        if (lRange[1] <= lRange[0]) break; // no work, break
+
+        uint workSize = min((lRange[1] <= lRange[0]) ? 0 : (((lRange[1] - lRange[0]) - 1) / (gl_WorkGroupSize.x / 2) + 1), 8192);
+        for (int i=0;i<workSize;i++) {
+            uint prID = lRange[0] + ((gl_WorkGroupSize.x / 2) * i + (threadID / 2));
+            uint chID = threadID % 2;
+
+            if (prID < lRange[1]) {
+                HlbvhNode parentNode = Nodes[prID];
+                if (parentNode.pdata.x != parentNode.pdata.y) {
+
+                    // find split
+                    int split = readLane(findSplit(parentNode.pdata.x, parentNode.pdata.y, chID), int(((threadID % gl_SubGroupSizeARB) >> 1) << 1));
+                    int hid = lCounterInc(true);
+
+                    // init child node
+                    HlbvhNode childNode = Nodes[hid];
+                    childNode.box.mn = (0.0f).xxxx;
+                    childNode.box.mx = (0.0f).xxxx;
+                    childNode.pdata.zw = ivec2(prID, -1);
+
+                    // differentiation between left and right node
+                    childNode.pdata.xy = chID == 0 ? ivec2(parentNode.pdata.x, split+0) : ivec2(split+1, parentNode.pdata.y);
+
+                    if (childNode.pdata.x == childNode.pdata.y) {
+                        uint leafID = MortoncodesIndices[childNode.pdata.x];
+
+                        // make leafs
+                        Leaf ourLeaf = Leafs[leafID];
+                        ourLeaf.pdata.z = int(hid);
+                        Leafs[leafID] = ourLeaf;
+
+                        // load leaf data
+                        childNode.box.mn = ourLeaf.box.mn;
+                        childNode.box.mx = ourLeaf.box.mx;
+                        childNode.pdata.xyw = ourLeaf.pdata.xyw;
+                    }
+
+                    Flags[hid] = 0;
+                    Nodes[hid] = childNode;
+
+                    // if SIMD thread is left, use left lane of parent node, else right lane
+                    if (chID == 0) {
+                        Nodes[prID].pdata.x = hid;
+                    } else {
+                        Nodes[prID].pdata.y = hid;
+                    }
+                }
+            }
+        }
+
+        // synchronize, and make next work view
+        barrier(); memoryBarrier();
+        if (threadID == 0) {
+            lRange[0] = lRange[1];
+            lRange[1] = lCounter;
+        }
+    }
+
+
+
+
+
+    /*
     int cntstdr = 0;
     for (int h=0;h<256;h++) { // every level of BVH
         // begin work on splitting
@@ -139,5 +210,5 @@ void main() {
             lRange[0] = lRange[1];
             lRange[1] = lCounter;
         }
-    }
+    }*/
 }

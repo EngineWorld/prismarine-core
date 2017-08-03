@@ -6,7 +6,7 @@
 #include "../include/vertex.glsl"
 #include "../include/STOmath.glsl"
 
-#define WARP_SIZE 32
+//#define WARP_SIZE 32
 
 layout ( std430, binding = 0 ) restrict buffer MinmaxOutputSSBO {vec4 minmax[];};
 layout ( local_size_x = 512 ) in;
@@ -66,7 +66,7 @@ void main() {
             bbox opbound = sdata[tid + ki];
             sdata[tid] = bboxunion(bound, opbound); 
         }
-        if (ki > WARP_SIZE) {
+        if (ki > gl_SubGroupSizeARB) {
             barrier(); memoryBarrier();
         }
     }
