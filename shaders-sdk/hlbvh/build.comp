@@ -82,6 +82,7 @@ void main() {
         uint workSize = min((aRange[1] <= aRange[0]) ? 0 : (((aRange[1] - aRange[0]) - 1) / (int(gl_WorkGroupSize.x) / 2) + 1), 8192);
         for (int i=0;i<workSize;i++) {
             int trID = aRange[0] + ((int(gl_WorkGroupSize.x) / 2) * i + (int(threadID) / 2));
+
             if (trID < aRange[1]) {
                 int chID = int(threadID) % 2;
                 int wsID = int((int(gl_SubGroupInvocationARB) >> 1) << 1);
@@ -130,8 +131,9 @@ void main() {
                         atomicExchange(Nodes[prID].pdata.y, hid);
                     }
                 }
-
-            } else {
+            }
+            
+            if (allInvocations(trID >= aRange[1])) {
                 break;
             }
         }
