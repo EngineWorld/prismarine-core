@@ -9,8 +9,6 @@ if (COMPILER_ID MATCHES "MSVC")
 endif()
 
 set(SOURCES_LIST 
-    "./example/*.cpp"
-
     #include
     "./include/*.hpp"
     "./include/*.hh"
@@ -94,3 +92,16 @@ foreach(source IN LISTS RSOURCES)
     string(REPLACE "/" "\\" source_path_msvc "${source_path}")
     source_group("${source_path_msvc}" FILES "${source}")
 endforeach()
+
+
+
+
+add_executable(${APPLICATION_NAME}-physics example/physics.cpp ${RSOURCES})
+target_link_libraries(${APPLICATION_NAME}-physics ${LIBS})
+
+foreach(source IN LISTS RSOURCES)
+    get_filename_component(source_path "${source}" PATH)
+    string(REPLACE "/" "\\" source_path_msvc "${source_path}")
+    source_group("${source_path_msvc}" FILES "${source}")
+endforeach()
+
