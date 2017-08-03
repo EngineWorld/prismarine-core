@@ -68,6 +68,7 @@ void main() {
         Flags[threadID] = 0;
     }
     
+    int cntstdr = 0;
     for (int h=0;h<256;h++) { // every level of BVH
         // begin work on splitting
         barrier(); memoryBarrier();
@@ -85,7 +86,7 @@ void main() {
                     const int split = findSplit(parentNode.pdata.x, parentNode.pdata.y);
 
                     // add to list
-                    const int hid = atomicAdd(lCounter, 2);
+                    const int hid = atomicAdd(lCounter, cntstdr = 2); cntstdr = 0;
                     const int lid = hid+0, rid = hid+1;
 
                     HlbvhNode leftNode = Nodes[lid];

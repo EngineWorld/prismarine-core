@@ -118,7 +118,7 @@ uvec2 genLtMask(){
 }
 
 uint bitCount64(in uvec2 lh) {
-    return btc(lh.x) + btc(lh.y);
+    return btc(lh.x); //+ btc(lh.y);
 }
 
 uint readLane(in uint val, in int lane){
@@ -147,7 +147,7 @@ T fname(in bool value){ \
     UVEC_BALLOT_WARP bits = ballot(value);\
     T sumInOrder = T(bitCount64(bits));\
     T idxInOrder = T(bitCount64(genLtMask() & bits));\
-    return readLane(LANE_IDX == activeLane ? atomicAdd(mem, sumInOrder) : 0, activeLane) + idxInOrder; \
+    return readLane(LANE_IDX == activeLane ? atomicAdd(mem,  mix(0, sumInOrder, LANE_IDX == activeLane)) : 0, activeLane) + idxInOrder; \
 }
 
 #define initAtomicDecFunction(mem, fname, T)\
@@ -156,7 +156,7 @@ T fname(in bool value){ \
     UVEC_BALLOT_WARP bits = ballot(value);\
     T sumInOrder = T(bitCount64(bits));\
     T idxInOrder = T(bitCount64(genLtMask() & bits));\
-    return readLane(LANE_IDX == activeLane ? atomicAdd(mem, -sumInOrder) : 0, activeLane) - idxInOrder; \
+    return readLane(LANE_IDX == activeLane ? atomicAdd(mem, -mix(0, sumInOrder, LANE_IDX == activeLane)) : 0, activeLane) - idxInOrder; \
 }
 
 #else
