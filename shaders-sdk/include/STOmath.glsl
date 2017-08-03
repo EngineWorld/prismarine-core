@@ -118,7 +118,7 @@ uvec2 genLtMask(){
 }
 
 uint bitCount64(in uvec2 lh) {
-    return btc(lh.x); //+ btc(lh.y);
+    return btc(lh.x) + btc(lh.y);
 }
 
 uint readLane(in uint val, in int lane){
@@ -130,7 +130,10 @@ int readLane(in int val, in int lane){
 }
 
 uvec2 ballot(in bool val) {
-    return unpackUint2x32(ballotARB(val));
+    return unpackUint2x32(ballotARB(val)) & uvec2(
+        gl_SubGroupSizeARB >= 32 ? 0xFFFFFFFF : ((1 << gl_SubGroupSizeARB)-1), 
+        gl_SubGroupSizeARB >= 64 ? 0xFFFFFFFF : ((1 << (gl_SubGroupSizeARB-32))-1)
+    );
 }
 
 int firstActive(){
