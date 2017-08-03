@@ -59,6 +59,7 @@ void main(){
     }
 
     newc /= float(samplecount);
+
     if (samplecount > 0) {
 #ifndef MOTION_BLUR
         if (imageLoad(sampleflags, xyl.xy).x > 0) {
@@ -74,11 +75,11 @@ void main(){
             float outpage = 1.0f - inpage;
             xsample = fma(imageLoad(presampled, xyl.xy), vec4(outpage), newc * inpage);
 #else
-            float next = xsample.w + newc.w;
+            float next = xsample.w + float(samplecount);
             float prev = xsample.w;
             float divisor = prev / next;
             xsample.xyz = fma(xsample.xyz, vec3(divisor), newc.xyz * (1.0f - divisor));
-            xsample.w += newc.w;
+            xsample.w += float(samplecount);
 #endif
         }
         imageStore(presampled, xyl.xy, vec4(xsample));
