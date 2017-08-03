@@ -23,3 +23,7 @@ layout ( std430, binding = 4 ) restrict buffer NodesBlock {
 layout ( std430, binding = 5 ) restrict buffer FlagsBlock {
     int Flags[];
 };
+
+layout ( std430, binding = 6 ) restrict buffer ActivesBlock {
+    int Actives[];
+};

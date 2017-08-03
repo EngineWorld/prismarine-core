@@ -65,6 +65,7 @@ namespace Paper {
         mortonBuffer = allocateBuffer<uint32_t>(maxt * 1);
         mortonBufferIndex = allocateBuffer<uint32_t>(maxt * 1);
         leafBuffer = allocateBuffer<Leaf>(maxt * 1);
+        activeBuffer = allocateBuffer<uint32_t>(maxt * 2);
 
         clearTribuffer();
     }
@@ -233,6 +234,7 @@ namespace Paper {
         //glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, leafBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, bvhnodesBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, bvhflagsBuffer);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, activeBuffer);
 
         dispatch(buildProgramH, 1);
         dispatch(refitProgramH, tiled(triangleCount, worksize));

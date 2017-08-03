@@ -47,6 +47,7 @@ namespace Paper {
         GLuint mortonBuffer = -1;
         GLuint mortonBufferIndex = -1;
         GLuint bvhflagsBuffer = -1;
+        GLuint activeBuffer = -1;
 
         GLuint lscounterTemp = -1; // zero store
         GLuint minmaxBufRef = -1; // default bound
