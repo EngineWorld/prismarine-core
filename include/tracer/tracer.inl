@@ -16,7 +16,7 @@ namespace Paper {
         initShaderCompute("./shaders/render/clear.comp", clearProgram);
         initShaderCompute("./shaders/render/sampler.comp", samplerProgram);
         initShaderCompute("./shaders/render/intersection.comp", intersectionProgram);
-        
+
         /*
 #ifdef USE_OPTIMIZED_RT
         initShaderComputeSPIRV("./shaders-spv/render/testmat-rt.comp.spv", matProgram);
@@ -30,7 +30,6 @@ namespace Paper {
         initShaderComputeSPIRV("./shaders-spv/render/clear.comp.spv", clearProgram);
         initShaderComputeSPIRV("./shaders-spv/render/sampler.comp.spv", samplerProgram);
         initShaderComputeSPIRV("./shaders-spv/render/intersection.comp.spv", intersectionProgram);
-        //initShaderCompute("./shaders/render/intersection.comp", intersectionProgram);
         */
 
         {
