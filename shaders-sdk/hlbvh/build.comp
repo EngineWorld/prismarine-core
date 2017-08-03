@@ -84,7 +84,7 @@ void main() {
 
             if (prID < lRange[1]) {
                 HlbvhNode parentNode = Nodes[prID];
-                if (parentNode.pdata.x != parentNode.pdata.y) {
+                if (parentNode.pdata.x != parentNode.pdata.y) { // TODO - collection non-children nodes to active list (for getting best performance on between WARP lanes)
 
                     // find split
                     int split = readLane(findSplit(parentNode.pdata.x, parentNode.pdata.y, chID), int((gl_SubGroupInvocationARB >> 1) << 1));
