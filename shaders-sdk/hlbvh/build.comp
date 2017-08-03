@@ -60,10 +60,8 @@ void main() {
 
     if (threadID == 0) {
         lCounter = 1;
-        aCounter = 1;
-        aRange[0] = 0;
-        aRange[1] = 1;
-        Actives[0] = 0;
+        aRange[0] = 0, aRange[1] = 1, aCounter = 1;
+        atomicExchange(Actives[aRange[0]], int(threadID));
 
         HlbvhNode node = Nodes[threadID];
         node.box.mn = (0.0f).xxxx;
@@ -78,65 +76,68 @@ void main() {
     int cntstdr = 0;
     for (int h=0;h<256;h++) { // every level of BVH
         // begin work on splitting
-        barrier(); memoryBarrier();
+        barrier(); memoryBarrier(); groupMemoryBarrier();
         if (aRange[1] <= aRange[0]) break; // no work, break
 
-        uint workSize = min((aRange[1] <= aRange[0]) ? 0 : (((aRange[1] - aRange[0]) - 1) / (gl_WorkGroupSize.x / 2) + 1), 8192);
+        uint workSize = min((aRange[1] <= aRange[0]) ? 0 : (((aRange[1] - aRange[0]) - 1) / (int(gl_WorkGroupSize.x) / 2) + 1), 8192);
         for (int i=0;i<workSize;i++) {
-            uint trID = aRange[0] + ((gl_WorkGroupSize.x / 2) * i + (threadID / 2));
-            uint prID = Actives[trID];
-            uint chID = threadID % 2;
-
+            int trID = aRange[0] + ((int(gl_WorkGroupSize.x) / 2) * i + (int(threadID) / 2));
             if (trID < aRange[1]) {
+                int chID = int(threadID) % 2;
+                int wsID = int((int(gl_SubGroupInvocationARB) >> 1) << 1);
+                int prID = readLane(chID == 0 ? atomicExchange(Actives[trID], -1) : -1, wsID);
                 HlbvhNode parentNode = Nodes[prID];
 
-                // find split
-                int split = readLane(findSplit(parentNode.pdata.x, parentNode.pdata.y, chID), int((gl_SubGroupInvocationARB >> 1) << 1));
-                int hid = lCounterInc(true);
+                if (parentNode.pdata.x != parentNode.pdata.y && prID != -1) {
+                    // find split
+                    int split = readLane(findSplit(parentNode.pdata.x, parentNode.pdata.y, chID), wsID);
+                    int hid = lCounterInc(true);
 
-                // init child node
-                HlbvhNode childNode = Nodes[hid];
-                childNode.box.mn = (0.0f).xxxx;
-                childNode.box.mx = (0.0f).xxxx;
-                childNode.pdata.zw = ivec2(prID, -1);
+                    // init child node
+                    HlbvhNode childNode = Nodes[hid];
+                    childNode.box.mn = (0.0f).xxxx;
+                    childNode.box.mx = (0.0f).xxxx;
+                    childNode.pdata.zw = ivec2(prID, -1);
 
-                // differentiation between left and right node
-                childNode.pdata.xy = chID == 0 ? ivec2(parentNode.pdata.x, split+0) : ivec2(split+1, parentNode.pdata.y);
+                    // differentiation between left and right node
+                    childNode.pdata.xy = chID == 0 ? ivec2(parentNode.pdata.x, split+0) : ivec2(split+1, parentNode.pdata.y);
 
-                // is leaf?
-                if (childNode.pdata.x == childNode.pdata.y) {
-                    uint leafID = MortoncodesIndices[childNode.pdata.x];
+                    // is leaf?
+                    if (childNode.pdata.x == childNode.pdata.y) {
+                        uint leafID = MortoncodesIndices[childNode.pdata.x];
 
-                    // make leafs
-                    Leaf ourLeaf = Leafs[leafID];
-                    ourLeaf.pdata.z = int(hid);
-                    Leafs[leafID] = ourLeaf;
+                        // make leafs
+                        Leaf ourLeaf = Leafs[leafID];
+                        ourLeaf.pdata.z = int(hid);
+                        Leafs[leafID] = ourLeaf;
 
-                    // load leaf data
-                    childNode.box.mn = ourLeaf.box.mn;
-                    childNode.box.mx = ourLeaf.box.mx;
-                    childNode.pdata.xy = ourLeaf.pdata.xy;
-                    childNode.pdata.w  = ourLeaf.pdata.w;
-                } else { // add to next works
-                    atomicExchange(Actives[aCounterInc(true)], hid);
+                        // load leaf data
+                        childNode.box.mn = ourLeaf.box.mn;
+                        childNode.box.mx = ourLeaf.box.mx;
+                        childNode.pdata.xy = ourLeaf.pdata.xy;
+                        childNode.pdata.w  = ourLeaf.pdata.w;
+                    } else { // add to next works
+                        atomicExchange(Actives[aCounterInc(true)], hid);
+                    }
+
+                    Flags[hid] = 0;
+                    Nodes[hid] = childNode;
+
+                    // if SIMD thread is left, use left lane of parent node, else right lane
+                    if (chID == 0) {
+                        atomicExchange(Nodes[prID].pdata.x, hid);
+                    } else {
+                        atomicExchange(Nodes[prID].pdata.y, hid);
+                    }
                 }
 
-                Flags[hid] = 0;
-                Nodes[hid] = childNode;
-
-                // if SIMD thread is left, use left lane of parent node, else right lane
-                if (chID == 0) {
-                    atomicExchange(Nodes[prID].pdata.x, hid);
-                } else {
-                    atomicExchange(Nodes[prID].pdata.y, hid);
-                }
             } else {
                 break;
             }
         }
 
         // synchronize, and make next work view
-        barrier(); memoryBarrier();
+        barrier(); memoryBarrier(); groupMemoryBarrier();
         if (threadID == 0) {
             aRange[0] = aRange[1];
             aRange[1] = aCounter;
