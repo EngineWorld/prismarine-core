@@ -15,6 +15,7 @@
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 #include <tiny_gltf.h>
+#include <tiny_obj_loader.h>
 
 #include "tracer/includes.hpp"
 #include "tracer/utils.hpp"
