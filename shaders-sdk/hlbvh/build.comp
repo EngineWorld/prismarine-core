@@ -87,7 +87,7 @@ void main() {
                 if (parentNode.pdata.x != parentNode.pdata.y) {
 
                     // find split
-                    int split = readLane(findSplit(parentNode.pdata.x, parentNode.pdata.y, chID), int(((threadID % gl_SubGroupSizeARB) >> 1) << 1));
+                    int split = readLane(findSplit(parentNode.pdata.x, parentNode.pdata.y, chID), int((gl_SubGroupInvocationARB >> 1) << 1));
                     int hid = lCounterInc(true);
 
                     // init child node
@@ -99,6 +99,7 @@ void main() {
                     // differentiation between left and right node
                     childNode.pdata.xy = chID == 0 ? ivec2(parentNode.pdata.x, split+0) : ivec2(split+1, parentNode.pdata.y);
 
+                    // is leaf?
                     if (childNode.pdata.x == childNode.pdata.y) {
                         uint leafID = MortoncodesIndices[childNode.pdata.x];
 
@@ -110,7 +111,8 @@ void main() {
                         // load leaf data
                         childNode.box.mn = ourLeaf.box.mn;
                         childNode.box.mx = ourLeaf.box.mx;
-                        childNode.pdata.xyw = ourLeaf.pdata.xyw;
+                        childNode.pdata.xy = ourLeaf.pdata.xy;
+                        childNode.pdata.w  = ourLeaf.pdata.w;
                     }
 
                     Flags[hid] = 0;
@@ -118,11 +120,13 @@ void main() {
 
                     // if SIMD thread is left, use left lane of parent node, else right lane
                     if (chID == 0) {
-                        Nodes[prID].pdata.x = hid;
+                        atomicExchange(Nodes[prID].pdata.x, hid);
                     } else {
-                        Nodes[prID].pdata.y = hid;
+                        atomicExchange(Nodes[prID].pdata.y, hid);
                     }
                 }
+            } else {
+                break;
             }
         }
 
