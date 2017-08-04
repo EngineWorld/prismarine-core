@@ -385,7 +385,7 @@ namespace PaperExample {
                         }
         }
         if (model_input == "") {
-            std::cerr << "No model found :(" << std::endl;
+            std::cerr << "Physics mode enabled..." << std::endl;
         }
 
 
