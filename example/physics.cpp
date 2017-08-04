@@ -286,7 +286,7 @@ namespace PaperExample {
         psb->rigidBody = fallRigidBody;
         psb->materialID = std::uniform_int_distribution<int>(0, 4)(rng);
         psb->creationTime = time;
-        psb->disappearTime = 10000.f;
+        psb->disappearTime = 50000.f;
         objects.push_back(psb);
     }
 
