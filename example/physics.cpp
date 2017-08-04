@@ -174,9 +174,9 @@ namespace PaperExample {
 
     // possible rigid bodies
     std::string rigidMeshTypeList[4] = {
-        "sphere.obj",
+        "teapot.obj",
         "cow.obj", 
-        "box.obj", // rigid body
+        "rbox.obj", // rigid body
         "box.obj" // wall
     };
 
@@ -396,13 +396,19 @@ namespace PaperExample {
 
         // initial transform
 
+
+
+
         glm::dmat4 matrix(1.0);
+        matrix = glm::dmat4(1.0);
+        matrix = glm::scale(matrix, glm::dvec3(1.2f, 1.2f, 1.2f));
+        meshTemplates[0]->transform = matrix;
+
+        matrix = glm::dmat4(1.0);
         matrix = glm::rotate(matrix, glm::half_pi<double>(), glm::dvec3(0.0, 0.0, 1.0));
         matrix = glm::translate(matrix, glm::dvec3(0.0f, 0.25f, 0.0f));
         matrix = glm::scale(matrix, glm::dvec3(0.25f));
         meshTemplates[1]->transform = matrix;
-
-
 
         matrix = glm::dmat4(1.0);
         matrix = glm::scale(matrix, glm::dvec3(0.7f, 0.7f, 0.7f));
