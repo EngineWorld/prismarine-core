@@ -285,7 +285,7 @@ namespace PaperExample {
         }
         else
         if (shapeType == 1) {
-            fallShape = new btCylinderShape(btVector3(0.5, 1.0, 0.5));
+            fallShape = new btCylinderShape(btVector3(0.5, 1.0, 0.8));
         }
         else {
             fallShape = new btBoxShape(btVector3(1.0, 1.0, 1.0));
