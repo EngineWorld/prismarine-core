@@ -17,7 +17,7 @@
 #define COMPATIBLE_PRECISION 8388608.0
 
 // ray tracing options
-#define SUNLIGHT_CAUSTICS true
+#define SUNLIGHT_CAUSTICS false
 #define REFRACTION_SKIP_SUN
 #define DIRECT_LIGHT
 //#define FREEIMAGE_STYLE
