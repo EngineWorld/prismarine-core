@@ -314,7 +314,7 @@ namespace PaperExample {
         PhysicsObject * psb = new PhysicsObject();
         psb->meshTemplate = meshTemplates[shapeType];
         psb->rigidBody = fallRigidBody;
-        psb->materialID = std::uniform_int_distribution<int>(0, 4)(rng);
+        psb->materialID = std::uniform_int_distribution<int>(0, 7)(rng);
         psb->creationTime = time;
         psb->disappearTime = 50000.f;
         objects.push_back(psb);
@@ -428,7 +428,7 @@ namespace PaperExample {
         // yellow plastic
         {
             Paper::Material::Submat submat;
-            submat.diffuse = glm::vec4(1.0f, 1.0f, 0.8f, 1.0f);
+            submat.diffuse = glm::vec4(1.0f, 0.9f, 0.6f, 1.0f);
             submat.specular = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
             submat.emissive = glm::vec4(0.0f);
             materialManager->addSubmat(&submat);
@@ -437,7 +437,7 @@ namespace PaperExample {
         // red platic
         {
             Paper::Material::Submat submat;
-            submat.diffuse = glm::vec4(1.0f, 0.8f, 0.8f, 1.0f);
+            submat.diffuse = glm::vec4(1.0f, 0.6f, 0.6f, 1.0f);
             submat.specular = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
             submat.emissive = glm::vec4(0.0f);
             materialManager->addSubmat(&submat);
@@ -446,7 +446,7 @@ namespace PaperExample {
         // blue (slightly purple) plastic
         {
             Paper::Material::Submat submat;
-            submat.diffuse = glm::vec4(0.85f, 0.8f, 1.0f, 1.0f);
+            submat.diffuse = glm::vec4(0.7f, 0.6f, 1.0f, 1.0f);
             submat.specular = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
             submat.emissive = glm::vec4(0.0f);
             materialManager->addSubmat(&submat);
@@ -455,20 +455,48 @@ namespace PaperExample {
         // green plastic
         {
             Paper::Material::Submat submat;
-            submat.diffuse = glm::vec4(0.8f, 1.0f, 0.8f, 1.0f);
+            submat.diffuse = glm::vec4(0.6f, 1.0f, 0.6f, 1.0f);
             submat.specular = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
             submat.emissive = glm::vec4(0.0f);
             materialManager->addSubmat(&submat);
         }
 
-        // fully metallic
+        // fully metallic (slightly glossy)
         {
             Paper::Material::Submat submat;
             submat.diffuse = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+            submat.specular = glm::vec4(0.0f, 0.1f, 1.0f, 1.0f);
+            submat.emissive = glm::vec4(0.0f);
+            materialManager->addSubmat(&submat);
+        }
+
+        // red metallic
+        {
+            Paper::Material::Submat submat;
+            submat.diffuse = glm::vec4(1.0f, 0.4f, 0.4f, 1.0f);
             submat.specular = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
             submat.emissive = glm::vec4(0.0f);
             materialManager->addSubmat(&submat);
         }
+
+        // blue metallic
+        {
+            Paper::Material::Submat submat;
+            submat.diffuse = glm::vec4(0.4f, 0.4f, 1.0f, 1.0f);
+            submat.specular = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
+            submat.emissive = glm::vec4(0.0f);
+            materialManager->addSubmat(&submat);
+        }
+
+        // gold metallic
+        {
+            Paper::Material::Submat submat;
+            submat.diffuse = glm::vec4(1.0f, 1.0f, 0.4f, 1.0f);
+            submat.specular = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
+            submat.emissive = glm::vec4(0.0f);
+            materialManager->addSubmat(&submat);
+        }
+
 
 
         // init physics
@@ -482,7 +510,7 @@ namespace PaperExample {
 
         // invisible physics plane (planned ray trace)
         btCollisionShape* groundShape = new btStaticPlaneShape(btVector3(0, 1, 0), 1);
-        btDefaultMotionState* groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -20, 0)));
+        btDefaultMotionState* groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -22, 0)));
         btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState, groundShape, btVector3(0, 0, 0));
         btRigidBody* groundRigidBody = new btRigidBody(groundRigidBodyCI);
         dynamicsWorld->addRigidBody(groundRigidBody);
@@ -490,8 +518,9 @@ namespace PaperExample {
 
         addStaticObject(glm::vec3(  0.0, 0.0, -10.0), glm::quat(glm::vec3(0.0, 0.0, 0.0)), 3);
         addStaticObject(glm::vec3( 10.0, 0.0, 0.0), glm::quat(glm::vec3(0.0, 3.14159 * 0.5, 0.0)), 2);
-        addStaticObject(glm::vec3(-10.0, 0.0, 0.0), glm::quat(glm::vec3(0.0, -3.14159 * 0.5, 0.0)), 0);
-        addStaticObject(glm::vec3( 0.0, -10.0, 0.0), glm::quat(glm::vec3(-3.14159 * 0.5, 0.0, 0.0)), 1);
+        addStaticObject(glm::vec3(-10.0, 0.0, 0.0), glm::quat(glm::vec3(0.0, -3.14159 * 0.5, 0.0)), 1);
+        addStaticObject(glm::vec3( 0.0, -10.0, 0.0), glm::quat(glm::vec3(-3.14159 * 0.5, 0.0, 0.0)), 0);
+        addStaticObject(glm::vec3( 0.0, -12.0, 10.0), glm::quat(glm::vec3(0.0, 0.0, 0.0)), 4);
 
         // init timing state
         time = glfwGetTime() * 1000.f;
