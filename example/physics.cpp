@@ -397,13 +397,9 @@ namespace PaperExample {
         // initial transform
 
         glm::dmat4 matrix(1.0);
-        //
-
         matrix = glm::rotate(matrix, glm::half_pi<double>(), glm::dvec3(0.0, 0.0, 1.0));
-        matrix = glm::translate(matrix, glm::dvec3(0.0f, 0.2f, 0.0f));
+        matrix = glm::translate(matrix, glm::dvec3(0.0f, 0.25f, 0.0f));
         matrix = glm::scale(matrix, glm::dvec3(0.25f));
-        
-
         meshTemplates[1]->transform = matrix;
 
 
