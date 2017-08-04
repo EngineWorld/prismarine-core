@@ -121,6 +121,7 @@ namespace Paper {
 
         glCopyNamedBufferSubData(minmaxBufRef, minmaxBuf, 0, 0, strided<bbox>(1));
         glCopyNamedBufferSubData(lscounterTemp, tcounter, 0, 0, strided<uint32_t>(1));
+        geometryUniformData.triangleOffset = 0;
     }
 
     inline void Intersector::configureIntersection(bool clearDepth) {
@@ -135,7 +136,6 @@ namespace Paper {
         geometryUniformData.unindexed = gobject->unindexed;
         geometryUniformData.loadOffset = gobject->offset;
         geometryUniformData.materialID = gobject->materialID;
-        geometryUniformData.triangleOffset = triangleCount;
         geometryUniformData.triangleCount = gobject->nodeCount;
         geometryUniformData.transform = *(Vc4x4 *)glm::value_ptr(glm::transpose(gobject->trans));
         geometryUniformData.transformInv = *(Vc4x4 *)glm::value_ptr(glm::inverse(gobject->trans));
@@ -148,13 +148,12 @@ namespace Paper {
         this->bind();
         this->syncUniforms();
 
+        glCopyNamedBufferSubData(tcounter, geometryBlockUniform, 0, offsetof(GeometryBlockUniform, geometryUniform) + offsetof(GeometryUniformStruct, triangleOffset), sizeof(uint32_t));
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, tcounter);
 
-        dispatch(gobject->index16bit ? geometryLoaderProgramI16 : geometryLoaderProgram2, tiled(gobject->nodeCount, worksize));
+        //dispatch(gobject->index16bit ? geometryLoaderProgramI16 : geometryLoaderProgram2, tiled(gobject->nodeCount, worksize));
+        dispatchIndirect(gobject->index16bit ? geometryLoaderProgramI16 : geometryLoaderProgram2, gobject->indirect_dispatch_buffer);
         markDirty();
-
-        glGetNamedBufferSubData(tcounter, 0, strided<uint32_t>(1), &triangleCount);
-        verticeCount = triangleCount * 3;
 
         glUseProgram(0);
     }
@@ -172,6 +171,9 @@ namespace Paper {
     }
 
     inline void Intersector::build(const glm::dmat4 &optimization) {
+        glGetNamedBufferSubData(tcounter, 0, strided<uint32_t>(1), &this->triangleCount);
+        verticeCount = triangleCount * 3;
+
         if (this->triangleCount <= 0 || !dirty) return;
         this->resolve();
 
@@ -229,10 +231,6 @@ namespace Paper {
         //glGetNamedBufferSubData(mortonBuffer, 0, strided<GLuint>(mortons.size()), mortons.data());
 
         this->syncUniforms();
-       // glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, mortonBuffer);
-        //glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mortonBufferIndex);
-        //glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, aabbCounter);
-        //glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, leafBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, bvhnodesBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, bvhflagsBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, activeBuffer);

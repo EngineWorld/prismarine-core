@@ -3,6 +3,7 @@
 namespace Paper {
 
     inline void Mesh::setNodeCount(size_t tcount) {
+        glNamedBufferSubData(indirect_dispatch_buffer, 0, sizeof(uint32_t), &tcount);
         nodeCount = tcount;
     }
 

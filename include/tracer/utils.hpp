@@ -171,6 +171,14 @@ namespace Paper {
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
     }
 
+    void dispatchIndirect(const GLuint &program, const GLuint& buffer) {
+        glUseProgram(program);
+        glBindBuffer(GL_DISPATCH_INDIRECT_BUFFER, buffer);
+        glDispatchComputeIndirect(0);
+        glMemoryBarrier(GL_ALL_BARRIER_BITS);
+    }
+
+
     const int32_t zero[1] = { 0 };
 
 }

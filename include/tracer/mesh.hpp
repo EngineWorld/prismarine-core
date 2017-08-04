@@ -6,13 +6,18 @@
 namespace Paper {
     class Mesh : public PTObject {
     public:
-        Mesh() {}
+        Mesh() {
+            GLuint dispatchData[3] = {1, 1, 1};
+            glCreateBuffers(1, &indirect_dispatch_buffer);
+            glNamedBufferData(indirect_dispatch_buffer, sizeof(dispatchData), dispatchData, GL_DYNAMIC_DRAW);
+        }
         friend Intersector;
 
     private:
         GLuint vbo_triangle_ssbo = -1;
         GLuint mat_triangle_ssbo = -1;
         GLuint vebo_triangle_ssbo = -1;
+        GLuint indirect_dispatch_buffer = -1;
 
         glm::mat4 texmat = glm::mat4(1.0f);
         glm::mat4 trans = glm::mat4(1.0f);
