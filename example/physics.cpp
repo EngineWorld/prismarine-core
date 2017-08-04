@@ -288,7 +288,7 @@ namespace PaperExample {
             fallShape = new btCylinderShape(btVector3(0.5, 1.0, 1.0));
         }
         else {
-            fallShape = new btBoxShape(btVector3(1.0, 1.0, 1.0));
+            fallShape = new btBoxShape(btVector3(0.7, 0.7, 0.7));
         }
 
 
@@ -402,6 +402,11 @@ namespace PaperExample {
         matrix = glm::scale(matrix, glm::dvec3(0.25f));
         meshTemplates[1]->transform = matrix;
 
+
+
+        matrix = glm::dmat4(1.0);
+        matrix = glm::scale(matrix, glm::dvec3(0.7f, 0.7f, 0.7f));
+        meshTemplates[2]->transform = matrix;
 
         matrix = glm::dmat4(1.0);
         matrix = glm::scale(matrix, glm::dvec3(1.0f, 1.0f, 0.1f) * 10.0);
