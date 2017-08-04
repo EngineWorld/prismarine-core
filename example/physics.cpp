@@ -126,6 +126,7 @@ namespace PaperExample {
 
     class MeshTemplate {
     public:
+
         Paper::Mesh * deviceHandle = nullptr;
         std::vector<float> rawMeshData;
         std::vector<tinyobj::material_t> materials;
@@ -172,9 +173,11 @@ namespace PaperExample {
 
 
     // possible rigid bodies
-    std::string rigidMeshTypeList[2] = {
+    std::string rigidMeshTypeList[4] = {
         "sphere.obj",
-        "cow.obj"
+        "cow.obj", 
+        "box.obj", // rigid body
+        "box.obj" // wall
     };
 
     std::vector<MeshTemplate *> meshTemplates;
@@ -194,6 +197,7 @@ namespace PaperExample {
         void resize(const int32_t& width, const int32_t& height);
         void resizeBuffers(const int32_t& width, const int32_t& height);
         void pushPhysicsObject();
+        void addStaticObject(glm::vec3 position, glm::quat rotation, uint32_t materialID);
 
     private:
         
@@ -264,11 +268,41 @@ namespace PaperExample {
         glm::dvec3 genPos = cam->eye + genDir * 2.0 + glm::dvec3(0, 1, 0);
         genDir *= 200.0;
 
+
+        std::random_device rd;     // only used once to initialise (seed) engine
+        std::mt19937 rng(rd());    // random-number engine used (Mersenne-Twister in this case)
+        uint32_t shapeType = std::uniform_int_distribution<int>(0, 2)(rng);
+
+
+
+
+
         btScalar mass = 1; btVector3 fallInertia(0, 0, 0);
-        btCollisionShape* fallShape = new btSphereShape(1);
+
+        btCollisionShape* fallShape;
+        if (shapeType == 0) {
+            fallShape = new btSphereShape(1);
+        }
+        else
+        if (shapeType == 1) {
+            fallShape = new btBoxShape(btVector3(1.0, 1.0, 0.5));
+        }
+        else {
+            fallShape = new btBoxShape(btVector3(1.0, 1.0, 1.0));
+        }
+
+
         fallShape->calculateLocalInertia(mass, fallInertia);
 
-        btDefaultMotionState* fallMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(genPos.x, genPos.y, genPos.z)));
+
+        auto rotation = btQuaternion(0, 0, 0, 1);
+            rotation.setEuler(
+                std::uniform_real_distribution<float>(0, 3.14159*2.0)(rng),
+                std::uniform_real_distribution<float>(0, 3.14159*2.0)(rng),
+                std::uniform_real_distribution<float>(0, 3.14159*2.0)(rng)
+            );
+
+        btDefaultMotionState* fallMotionState = new btDefaultMotionState(btTransform(rotation, btVector3(genPos.x, genPos.y, genPos.z)));
         btRigidBody::btRigidBodyConstructionInfo fallRigidBodyCI(mass, fallMotionState, fallShape, fallInertia);
         btRigidBody* fallRigidBody = new btRigidBody(fallRigidBodyCI);
         fallRigidBody->applyCentralForce(btVector3(genDir.x, genDir.y, genDir.z));
@@ -277,18 +311,39 @@ namespace PaperExample {
         // init timing state
         double time = glfwGetTime() * 1000.f;
 
-
-        std::random_device rd;     // only used once to initialise (seed) engine
-        std::mt19937 rng(rd());    // random-number engine used (Mersenne-Twister in this case)
-
         PhysicsObject * psb = new PhysicsObject();
-        psb->meshTemplate = meshTemplates[std::uniform_int_distribution<int>(0, 1)(rng)];
+        psb->meshTemplate = meshTemplates[shapeType];
         psb->rigidBody = fallRigidBody;
         psb->materialID = std::uniform_int_distribution<int>(0, 4)(rng);
         psb->creationTime = time;
         psb->disappearTime = 50000.f;
         objects.push_back(psb);
     }
+
+
+    void PathTracerApplication::addStaticObject(glm::vec3 position, glm::quat rotation, uint32_t materialID) {
+        btCollisionShape* groundShape = new btBoxShape(btVector3(10, 10, 1));//new btStaticPlaneShape(btVector3(0, 1, 0), 1);
+        btDefaultMotionState* groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w), btVector3(position.x, position.y, position.z)));
+        btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState, groundShape, btVector3(0, 0, 0));
+        btRigidBody* groundRigidBody = new btRigidBody(groundRigidBodyCI);
+        dynamicsWorld->addRigidBody(groundRigidBody);
+
+        std::random_device rd;     // only used once to initialise (seed) engine
+        std::mt19937 rng(rd());    // random-number engine used (Mersenne-Twister in this case)
+
+        // init timing state
+        double time = glfwGetTime() * 1000.f;
+        PhysicsObject * psb = new PhysicsObject();
+        psb->meshTemplate = meshTemplates[3];
+        psb->rigidBody = groundRigidBody;
+        psb->materialID = materialID;
+        psb->creationTime = time;
+        psb->disappearTime = 0.f;
+        objects.push_back(psb);
+
+    }
+
+
 
 
 
@@ -335,15 +390,21 @@ namespace PaperExample {
 
 
 
-        for (int i = 0; i < 2;i++) {
+        for (int i = 0; i < 4;i++) {
             meshTemplates.push_back((new MeshTemplate())->load(rigidMeshTypeList[i]));
         }
 
         // initial transform
+
         glm::dmat4 matrix(1.0);
-        matrix = glm::scale(matrix, glm::dvec3(0.2f));
+        matrix = glm::translate(matrix, glm::dvec3(0.0f, 0.2f, 0.0f));
+        matrix = glm::scale(matrix, glm::dvec3(0.25f));
         meshTemplates[1]->transform = matrix;
 
+
+        matrix = glm::dmat4(1.0);
+        matrix = glm::scale(matrix, glm::dvec3(1.0f, 1.0f, 0.1f) * 10.0);
+        meshTemplates[3]->transform = matrix;
 
 
         // init material system
@@ -421,10 +482,16 @@ namespace PaperExample {
 
         // invisible physics plane (planned ray trace)
         btCollisionShape* groundShape = new btStaticPlaneShape(btVector3(0, 1, 0), 1);
-        btDefaultMotionState* groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -1, 0)));
+        btDefaultMotionState* groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -20, 0)));
         btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState, groundShape, btVector3(0, 0, 0));
         btRigidBody* groundRigidBody = new btRigidBody(groundRigidBodyCI);
         dynamicsWorld->addRigidBody(groundRigidBody);
+
+
+        addStaticObject(glm::vec3(  0.0, 0.0, -10.0), glm::quat(glm::vec3(0.0, 0.0, 0.0)), 3);
+        addStaticObject(glm::vec3( 10.0, 0.0, 0.0), glm::quat(glm::vec3(0.0, 3.14159 * 0.5, 0.0)), 2);
+        addStaticObject(glm::vec3(-10.0, 0.0, 0.0), glm::quat(glm::vec3(0.0, -3.14159 * 0.5, 0.0)), 0);
+        addStaticObject(glm::vec3( 0.0, -10.0, 0.0), glm::quat(glm::vec3(-3.14159 * 0.5, 0.0, 0.0)), 1);
 
         // init timing state
         time = glfwGetTime() * 1000.f;

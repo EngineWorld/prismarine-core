@@ -18,6 +18,7 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtx/component_wise.hpp"
 #include "glm/gtx/rotate_vector.hpp"
+#include "glm/gtc/quaternion.hpp"
 
 //#include <glbinding/Binding.h>
 //#include "glbinding/gl46ext/gl.h"
