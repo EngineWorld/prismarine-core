@@ -67,15 +67,15 @@ void main()
         }
 
         // apply DOF
-        /*
-         float dofFocusRadius = 1.f;
-         float dofFocalRadius = 1.f / 128.f;
+        
+         float dofFocusRadius = 10.f;
+         float dofFocalRadius = 1.f / 64.f;
         vec4 defEye = RAY_BLOCK cameraUniform.camInv * vec4(0.0f, 0.0f, 0.0f, 1.0f);
         vec4 focus = defEye + dir * dofFocusRadius;//length(orig.xyz - defEye.xyz);
         vec4 offsetEye = RAY_BLOCK cameraUniform.camInv * vec4(randomDirectionInSphere() * dofFocalRadius, 1.0f);
         orig = offsetEye;
         dir = vec4(normalize(focus.xyz - offsetEye.xyz), 0.0f);
-        */
+        
 
         Ray ray;
         ray.texel = idx;
