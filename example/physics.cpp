@@ -15,6 +15,9 @@
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 #include <tiny_gltf.h>
+
+#include <tiny_obj_loader.h>
+#define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
 
 #include "tracer/includes.hpp"
@@ -27,10 +30,13 @@
 #include "tracer/radix.hpp"
 #include <functional>
 
+#include "bullet/btBulletCollisionCommon.h"
+#include "bullet/btBulletDynamicsCommon.h"
+
 namespace PaperExample {
     using namespace Paper;
 
-    const std::string bgTexName = "background.jpg";
+    const std::string bgTexName = "background2.jpg";
 
     GLuint loadCubemap() {
         FREE_IMAGE_FORMAT formato = FreeImage_GetFileType(bgTexName.c_str(), 0);
@@ -63,6 +69,119 @@ namespace PaperExample {
         return texture;
     }
 
+
+
+    bool loadMeshFile(std::string inputfile, std::vector<tinyobj::material_t> &materials, std::vector<tinyobj::shape_t> &shapes, tinyobj::attrib_t &attrib) {
+        std::string err = "";
+        bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &err, inputfile.c_str());
+        if (!err.empty()) { // `err` may contain warning message.
+            std::cerr << err << std::endl;
+        }
+        return ret;
+    }
+
+    void loadMesh(std::vector<tinyobj::shape_t> &shapes, tinyobj::attrib_t &attrib, std::vector<float> &rawmeshdata) {
+        // Loop over shapes
+        for (size_t s = 0; s < shapes.size(); s++) {
+            // Loop over faces(polygon)
+            size_t index_offset = 0;
+            for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
+                int fv = shapes[s].mesh.num_face_vertices[f];
+
+                // Loop over vertices in the face.
+                for (size_t v = 0; v < fv; v++) {
+                    // access to vertex
+                    tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
+                    rawmeshdata.push_back(attrib.vertices[3 * idx.vertex_index + 0]);
+                    rawmeshdata.push_back(attrib.vertices[3 * idx.vertex_index + 1]);
+                    rawmeshdata.push_back(attrib.vertices[3 * idx.vertex_index + 2]);
+
+                    if (attrib.normals.size() > 0) {
+                        rawmeshdata.push_back(attrib.normals[3 * idx.normal_index + 0]);
+                        rawmeshdata.push_back(attrib.normals[3 * idx.normal_index + 1]);
+                        rawmeshdata.push_back(attrib.normals[3 * idx.normal_index + 2]);
+                    }
+                    else {
+                        rawmeshdata.push_back(0);
+                        rawmeshdata.push_back(0);
+                        rawmeshdata.push_back(0);
+                    }
+
+                    if (attrib.texcoords.size() > 0) {
+                        rawmeshdata.push_back(attrib.texcoords[2 * idx.texcoord_index + 0]);
+                        rawmeshdata.push_back(attrib.texcoords[2 * idx.texcoord_index + 1]);
+                    }
+                    else {
+                        rawmeshdata.push_back(0);
+                        rawmeshdata.push_back(0);
+                    }
+                }
+                index_offset += fv;
+
+                // per-face material
+                shapes[s].mesh.material_ids[f];
+            }
+        }
+    }
+
+    class MeshTemplate {
+    public:
+        Paper::Mesh * deviceHandle = nullptr;
+        std::vector<float> rawMeshData;
+        std::vector<tinyobj::material_t> materials;
+        std::vector<tinyobj::shape_t> shapes; 
+        tinyobj::attrib_t attrib;
+        glm::dmat4 transform = glm::dmat4(1.0);
+
+        MeshTemplate * load(std::string inputfile) {
+            if (loadMeshFile(inputfile, materials, shapes, attrib)) {
+                loadMesh(shapes, attrib, rawMeshData);
+
+                GLuint glBuf = -1;
+                glCreateBuffers(1, &glBuf);
+                glNamedBufferData(glBuf, rawMeshData.size() * sizeof(float), rawMeshData.data(), GL_STATIC_DRAW);
+
+                uint32_t stride = 8;
+                deviceHandle = new Paper::Mesh();
+                deviceHandle->attributeUniformData.texcoordOffset = 6;
+                deviceHandle->attributeUniformData.normalOffset = 3;
+                deviceHandle->attributeUniformData.vertexOffset = 0;
+                deviceHandle->attributeUniformData.texcoordStride = stride;
+                deviceHandle->attributeUniformData.normalStride = stride;
+                deviceHandle->attributeUniformData.vertexStride = stride;
+                deviceHandle->attributeUniformData.haveTexcoord = true;
+                deviceHandle->attributeUniformData.haveNormal = true;
+                deviceHandle->setIndexed(false);
+                deviceHandle->setVertices(glBuf);
+                deviceHandle->setNodeCount(rawMeshData.size() / stride / 3);
+                return this;
+            }
+        }
+    };
+
+    class PhysicsObject {
+    public:
+        uint32_t materialID = 0;
+        btRigidBody* rigidBody = nullptr;
+        MeshTemplate* meshTemplate = nullptr;
+        double disappearTime = 0.0;
+
+        double creationTime = 0.0;
+    };
+
+
+
+    // possible rigid bodies
+    std::string rigidMeshTypeList[2] = {
+        "sphere.obj",
+        "cow.obj"
+    };
+
+    std::vector<MeshTemplate *> meshTemplates;
+    std::vector<PhysicsObject *> objects;
+
+
+
     class PathTracerApplication {
     public:
         PathTracerApplication(const int32_t& argc, const char ** argv, GLFWwindow * wind);
@@ -74,9 +193,16 @@ namespace PaperExample {
         void process();
         void resize(const int32_t& width, const int32_t& height);
         void resizeBuffers(const int32_t& width, const int32_t& height);
+        void pushPhysicsObject();
 
     private:
         
+        btBroadphaseInterface* broadphase;
+        btDefaultCollisionConfiguration* collisionConfiguration;
+        btCollisionDispatcher* dispatcher;
+        btSequentialImpulseConstraintSolver* solver;
+        btDiscreteDynamicsWorld* dynamicsWorld;
+
         GLFWwindow * window;
         Tracer * rays;
         Intersector * intersector;
@@ -90,11 +216,11 @@ namespace PaperExample {
         int32_t depth = 16;
         int32_t switch360key = false;
         bool lbutton = false;
-        bool keys[10] = { false , false , false , false , false , false , false, false, false };
+        bool keys[11] = { false , false , false , false , false , false , false, false, false };
 
 #ifdef EXPERIMENTAL_GLTF
         tinygltf::Model gltfModel;
-        std::vector<std::vector<Mesh *>> meshVec = std::vector<std::vector<Mesh *>>();
+        std::vector<PhysicsObject> meshVec = std::vector<PhysicsObject>();
         std::vector<GLuint> glBuffers = std::vector<GLuint>();
         std::vector<uint32_t> rtTextures = std::vector<uint32_t>();
 #endif
@@ -130,6 +256,41 @@ namespace PaperExample {
     int32_t getTextureIndex(std::map<std::string, double> &mapped) {
         return mapped.count("index") > 0 ? mapped["index"] : -1;
     }
+
+
+
+    void PathTracerApplication::pushPhysicsObject() {
+        glm::dvec3 genDir = glm::normalize(cam->view - cam->eye);
+        glm::dvec3 genPos = cam->eye + genDir * 2.0 + glm::dvec3(0, 1, 0);
+        genDir *= 200.0;
+
+        btScalar mass = 1; btVector3 fallInertia(0, 0, 0);
+        btCollisionShape* fallShape = new btSphereShape(1);
+        fallShape->calculateLocalInertia(mass, fallInertia);
+
+        btDefaultMotionState* fallMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(genPos.x, genPos.y, genPos.z)));
+        btRigidBody::btRigidBodyConstructionInfo fallRigidBodyCI(mass, fallMotionState, fallShape, fallInertia);
+        btRigidBody* fallRigidBody = new btRigidBody(fallRigidBodyCI);
+        fallRigidBody->applyCentralForce(btVector3(genDir.x, genDir.y, genDir.z));
+        dynamicsWorld->addRigidBody(fallRigidBody);
+
+        // init timing state
+        double time = glfwGetTime() * 1000.f;
+
+
+        std::random_device rd;     // only used once to initialise (seed) engine
+        std::mt19937 rng(rd());    // random-number engine used (Mersenne-Twister in this case)
+
+        PhysicsObject * psb = new PhysicsObject();
+        psb->meshTemplate = meshTemplates[std::uniform_int_distribution<int>(0, 1)(rng)];
+        psb->rigidBody = fallRigidBody;
+        psb->materialID = std::uniform_int_distribution<int>(0, 4)(rng);
+        psb->creationTime = time;
+        psb->disappearTime = 10000.f;
+        objects.push_back(psb);
+    }
+
+
 
     PathTracerApplication::PathTracerApplication(const int32_t& argc, const char ** argv, GLFWwindow * wind) {
         window = wind;
@@ -172,6 +333,19 @@ namespace PaperExample {
             std::cerr << "No model found :(" << std::endl;
         }
 
+
+
+        for (int i = 0; i < 2;i++) {
+            meshTemplates.push_back((new MeshTemplate())->load(rigidMeshTypeList[i]));
+        }
+
+        // initial transform
+        glm::dmat4 matrix(1.0);
+        matrix = glm::scale(matrix, glm::dvec3(0.2f));
+        meshTemplates[1]->transform = matrix;
+
+
+
         // init material system
         materialManager = new Material();
 
@@ -183,137 +357,74 @@ namespace PaperExample {
         cam = new Controller();
         cam->setRays(rays);
 
-#ifdef EXPERIMENTAL_GLTF
-        tinygltf::TinyGLTF loader;
-        std::string err = "";
-        loader.LoadASCIIFromFile(&gltfModel, &err, directory + "/" + model_input);
-
-        // load textures (TODO - native samplers support in ray tracers)
-        for (int i = 0; i < gltfModel.textures.size(); i++) {
-            tinygltf::Texture& gltfTexture = gltfModel.textures[i];
-            std::string uri = directory + "/" + gltfModel.images[gltfTexture.source].uri;
-            uint32_t rtTexture = materialManager->loadTexture(uri);
-            // todo with rtTexture processing
-            rtTextures.push_back(rtTexture);
-        }
-
-        // load materials (include PBR)
-        materialManager->clearSubmats();
-        for (int i = 0; i < gltfModel.materials.size(); i++) {
-            tinygltf::Material & material = gltfModel.materials[i];
-            Paper::Material::Submat submat;
-
-            // diffuse?
-            int32_t texId = getTextureIndex(material.values["baseColorTexture"].json_double_value);
-            submat.diffusePart = texId >= 0 ? rtTextures[texId] : 0;
-            submat.diffuse = glm::vec4(1.0f);
-
-            // metallic roughness
-            texId = getTextureIndex(material.values["metallicRoughnessTexture"].json_double_value);
-            submat.specularPart = texId >= 0 ? rtTextures[texId] : 0;
-            submat.specular = glm::vec4(0.0f);
-
-            // emission
-            if (material.additionalValues["emissiveFactor"].number_array.size() >= 3) {
-                submat.emissive = glm::vec4(glm::make_vec3(&material.additionalValues["emissiveFactor"].number_array[0]), 1.0f);
-            }
-            else {
-                submat.emissive = glm::vec4(0.0f);
-            }
-            
-            // emissive texture
-            texId = getTextureIndex(material.additionalValues["emissiveTexture"].json_double_value);
-            submat.emissivePart = texId >= 0 ? rtTextures[texId] : 0;
-
-            // normal map
-            texId = getTextureIndex(material.additionalValues["normalTexture"].json_double_value);
-            submat.bumpPart = texId >= 0 ? rtTextures[texId] : 0;
-
-            // load material
-            materialManager->addSubmat(submat);
-        }
-
-        // make raw mesh buffers
-        for (int i = 0; i < gltfModel.buffers.size();i++) {
-            GLuint glBuf = -1;
-            glCreateBuffers(1, &glBuf);
-            glNamedBufferData(glBuf, gltfModel.buffers[i].data.size(), &gltfModel.buffers[i].data.at(0), GL_STATIC_DRAW);
-            glBuffers.push_back(glBuf);
-        }
-
-        // load mesh templates (better view objectivity)
-        for (int m = 0; m < gltfModel.meshes.size();m++) {
-            std::vector<Mesh *> primitiveVec = std::vector<Mesh *>();
-
-            tinygltf::Mesh &glMesh = gltfModel.meshes[m];
-            for (int i = 0; i < glMesh.primitives.size();i++) {
-                tinygltf::Primitive & prim = glMesh.primitives[i];
-                Mesh * geom = new Mesh();
-
-                // make attributes
-                std::map<std::string, int>::const_iterator it(prim.attributes.begin());
-                std::map<std::string, int>::const_iterator itEnd(prim.attributes.end());
-
-                geom->attributeUniformData.haveTexcoord = false;
-                geom->attributeUniformData.haveNormal = false;
-                geom->attributeUniformData.mode = 0;
-                geom->attributeUniformData.stride = 0;
-
-                // load modern mode
-                for (; it != itEnd; it++) {
-                    tinygltf::Accessor &accessor = gltfModel.accessors[it->second];
-                    auto& bufferView = gltfModel.bufferViews[accessor.bufferView];
-
-                    if (it->first.compare("POSITION") == 0) { // vertices
-                        geom->attributeUniformData.vertexOffset = (accessor.byteOffset + bufferView.byteOffset) / 4;
-                        geom->attributeUniformData.vertexStride = (bufferView.byteStride / 4);
-                        geom->setVertices(glBuffers[bufferView.buffer]);
-                    } else
-                    
-                    if (it->first.compare("NORMAL") == 0) {
-                        geom->attributeUniformData.haveNormal = true;
-                        geom->attributeUniformData.normalOffset = (accessor.byteOffset + bufferView.byteOffset) / 4;
-                        geom->attributeUniformData.normalStride = (bufferView.byteStride / 4);
-                    } else
-                    
-                    if (it->first.compare("TEXCOORD_0") == 0) {
-                        geom->attributeUniformData.haveTexcoord = true;
-                        geom->attributeUniformData.texcoordOffset = (accessor.byteOffset + bufferView.byteOffset) / 4;
-                        geom->attributeUniformData.texcoordStride = (bufferView.byteStride / 4);
-                    }
-                }
-
-                // indices
-                if (prim.indices >= 0) {
-                    tinygltf::Accessor &idcAccessor = gltfModel.accessors[prim.indices];
-                    auto& bufferView = gltfModel.bufferViews[idcAccessor.bufferView];
-                    geom->setNodeCount(idcAccessor.count / 3);
-                    geom->setIndices(glBuffers[bufferView.buffer]);
-
-                    bool isInt16 = idcAccessor.componentType == TINYGLTF_COMPONENT_TYPE_SHORT || idcAccessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT;
-                    geom->setLoadingOffset((bufferView.byteOffset + idcAccessor.byteOffset) / (isInt16 ? 2 : 4));
-                    geom->setIndexed(true);
-
-                    // is 16-bit indices?
-                    geom->useIndex16bit(isInt16);
-                }
-
-                // use material
-                geom->setMaterialOffset(prim.material);
-
-                // if triangles, then load mesh
-                if (prim.mode == TINYGLTF_MODE_TRIANGLES) {
-                    primitiveVec.push_back(geom);
-                }
-            }
-
-            meshVec.push_back(primitiveVec);
-        }
-#endif
-
         // create geometry intersector
         intersector = new Intersector();
         intersector->allocate(1024 * 1024);
+        
+
+        // here is 5 basic materials
+
+        // yellow plastic
+        {
+            Paper::Material::Submat submat;
+            submat.diffuse = glm::vec4(1.0f, 1.0f, 0.8f, 1.0f);
+            submat.specular = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+            submat.emissive = glm::vec4(0.0f);
+            materialManager->addSubmat(&submat);
+        }
+
+        // red platic
+        {
+            Paper::Material::Submat submat;
+            submat.diffuse = glm::vec4(1.0f, 0.8f, 0.8f, 1.0f);
+            submat.specular = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+            submat.emissive = glm::vec4(0.0f);
+            materialManager->addSubmat(&submat);
+        }
+
+        // blue (slightly purple) plastic
+        {
+            Paper::Material::Submat submat;
+            submat.diffuse = glm::vec4(0.85f, 0.8f, 1.0f, 1.0f);
+            submat.specular = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+            submat.emissive = glm::vec4(0.0f);
+            materialManager->addSubmat(&submat);
+        }
+
+        // green plastic
+        {
+            Paper::Material::Submat submat;
+            submat.diffuse = glm::vec4(0.8f, 1.0f, 0.8f, 1.0f);
+            submat.specular = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+            submat.emissive = glm::vec4(0.0f);
+            materialManager->addSubmat(&submat);
+        }
+
+        // fully metallic
+        {
+            Paper::Material::Submat submat;
+            submat.diffuse = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+            submat.specular = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
+            submat.emissive = glm::vec4(0.0f);
+            materialManager->addSubmat(&submat);
+        }
+
+
+        // init physics
+        broadphase = new btDbvtBroadphase();
+        collisionConfiguration = new btDefaultCollisionConfiguration();
+        dispatcher = new btCollisionDispatcher(collisionConfiguration);
+        solver = new btSequentialImpulseConstraintSolver;
+        dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
+        dynamicsWorld->setGravity(btVector3(0, -10, 0));
+
+
+        // invisible physics plane (planned ray trace)
+        btCollisionShape* groundShape = new btStaticPlaneShape(btVector3(0, 1, 0), 1);
+        btDefaultMotionState* groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -1, 0)));
+        btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState, groundShape, btVector3(0, 0, 0));
+        btRigidBody* groundRigidBody = new btRigidBody(groundRigidBodyCI);
+        dynamicsWorld->addRigidBody(groundRigidBody);
 
         // init timing state
         time = glfwGetTime() * 1000.f;
@@ -332,6 +443,7 @@ namespace PaperExample {
         if (key == GLFW_KEY_SPACE) keys[kSpc] = true;
         if (key == GLFW_KEY_LEFT_SHIFT) keys[kSft] = true;
         if (key == GLFW_KEY_K) keys[kK] = true;
+        if (key == GLFW_KEY_M) keys[kM] = true;
     }
 
     // key release
@@ -348,6 +460,10 @@ namespace PaperExample {
         if (key == GLFW_KEY_K) {
             if (keys[kK]) switch360key = true;
             keys[kK] = false;
+        }
+        if (key == GLFW_KEY_M) {
+            pushPhysicsObject();
+            keys[kM] = false;
         }
     }
 
@@ -366,6 +482,9 @@ namespace PaperExample {
         diff = t - time;
         time = t;
 
+
+
+
         // switch to 360 degree view
         cam->work(mousepos, diff, lbutton, keys);
         if (switch360key) {
@@ -373,50 +492,34 @@ namespace PaperExample {
             switch360key = false;
         }
 
-        // initial transform
-        glm::mat4 matrix(1.0f);
-        matrix = glm::scale(matrix, glm::vec3(mscale));
-
         // clear BVH and load materials
+        dynamicsWorld->stepSimulation(diff / 1000.f, 10);
         intersector->clearTribuffer();
         materialManager->loadToVGA();
 
-#ifdef EXPERIMENTAL_GLTF
 
-        // load meshes
-        std::function<void(tinygltf::Node &, glm::dmat4, int)> traverse = [&](tinygltf::Node & node, glm::dmat4 inTransform, int recursive)->void {
-            glm::dmat4 localTransform;
-            localTransform *= (node.matrix.size() >= 16 ? glm::make_mat4(node.matrix.data()) : glm::dmat4(1.0));
-            localTransform *= (node.translation.size() >= 3 ? glm::translate(glm::dmat4(1.0), glm::make_vec3(node.translation.data())) : glm::dmat4(1.0));
-            localTransform *= (node.scale.size() >= 3 ? glm::scale(glm::dmat4(1.0), glm::make_vec3(node.scale.data())) : glm::dmat4(1.0));
-            localTransform *= (node.rotation.size() >= 4 ? glm::mat4_cast(glm::make_quat(node.rotation.data())) : glm::dmat4(1.0));
+        // initial transform
+        glm::dmat4 matrix(1.0);
+        matrix = glm::scale(matrix, glm::dvec3(mscale));
 
-            glm::dmat4 transform = inTransform * localTransform;
-            if (node.mesh >= 0) {
-                std::vector<Paper::Mesh *>& mesh = meshVec[node.mesh]; // load mesh object (it just vector of primitives)
-                for (int p = 0; p < mesh.size(); p++) { // load every primitive
-                    Paper::Mesh * geom = mesh[p];
-                    geom->setTransform(transform);
-                    intersector->loadMesh(geom);
-                }
-            }
-            else
-            if (node.children.size() > 0) {
-                for (int n = 0; n < node.children.size(); n++) {
-                    if (recursive >= 0) traverse(gltfModel.nodes[node.children[n]], transform, recursive-1);
-                }
-            }
-        };
+        // reload meshes with parameters
+        for (int i = 0; i < objects.size();i++) {
+            PhysicsObject * obj = objects[i];
 
-        // load scene
-        uint32_t sceneID = 0;
-        if (gltfModel.scenes.size() > 0) {
-            for (int n = 0; n < gltfModel.scenes[sceneID].nodes.size(); n++) {
-                tinygltf::Node & node = gltfModel.nodes[gltfModel.scenes[sceneID].nodes[n]];
-                traverse(node, glm::dmat4(matrix), 2);
+            btTransform trans = obj->rigidBody->getWorldTransform();
+
+            btScalar matr[16];
+            trans.getOpenGLMatrix(matr);
+            obj->meshTemplate->deviceHandle->setTransform(glm::dmat4(glm::make_mat4(matr)) *obj->meshTemplate->transform * matrix);
+            obj->meshTemplate->deviceHandle->setMaterialOffset(obj->materialID);
+
+            intersector->loadMesh(obj->meshTemplate->deviceHandle);
+
+            if ((time - obj->creationTime) >= obj->disappearTime && obj->disappearTime > 0.0) {
+                objects.erase(objects.begin() + i); i--;
+                dynamicsWorld->removeRigidBody(obj->rigidBody);
             }
         }
-#endif
 
         // build BVH in device
         intersector->build(matrix);

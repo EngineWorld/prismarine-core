@@ -59,6 +59,7 @@ namespace Paper {
         glSamplerParameteri(vbo_sampler, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
         mat_triangle_ssbo = allocateBuffer<int32_t>(maxt);
+
         aabbCounter = allocateBuffer<int32_t>(1);
         bvhnodesBuffer = allocateBuffer<HlbvhNode>(maxt * 2);
         bvhflagsBuffer = allocateBuffer<uint32_t>(maxt * 2);

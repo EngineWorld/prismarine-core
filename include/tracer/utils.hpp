@@ -13,6 +13,7 @@ namespace Paper {
     const int32_t kSft = 7;
     const int32_t kC = 8;
     const int32_t kK = 9;
+    const int32_t kM = 10;
 
     class PTObject {};
     class Tracer;

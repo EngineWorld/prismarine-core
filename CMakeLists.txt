@@ -61,6 +61,14 @@ set (LIBS
     FreeImage 
     assimp-vc140-mt
 	glew32
+    LinearMath_RelWithDebugInfo
+    Bullet3Common_RelWithDebugInfo
+    Bullet3Dynamics_RelWithDebugInfo
+    Bullet3Collision_RelWithDebugInfo
+    BulletCollision_RelWithDebugInfo
+    BulletDynamics_RelWithDebugInfo
+    BulletInverseDynamics_RelWithDebugInfo
+    BulletSoftBody_RelWithDebugInfo
 )
 
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -68,7 +76,7 @@ set (CMAKE_CXX_STANDARD 17)
 set (CMAKE_CXX_EXTENSIONS ON)
 
 if(MSVC)
-set (CMAKE_CXX_FLAGS "/EHsc /std:c++latest -DMSVC")
+set (CMAKE_CXX_FLAGS "/EHsc /MD /std:c++latest -DMSVC")
 set (CMAKE_C_FLAGS "/EHsc")
 else()
 set (CMAKE_CXX_FLAGS "-std=c++1z")

@@ -21,7 +21,7 @@
 #define REFRACTION_SKIP_SUN
 #define DIRECT_LIGHT
 //#define FREEIMAGE_STYLE
-//#define MOTION_BLUR
+#define MOTION_BLUR
 //#define INT64_MORTON
 //#define CULLING
 
