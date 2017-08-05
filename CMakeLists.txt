@@ -47,7 +47,7 @@ set (DEFINES
 )
 
 set (DEP_DIR "${PROJECT_SOURCE_DIR}")
-set (LIB_DIR "${DEP_DIR}/external/lib"     "${DEP_DIR}/lib"     "${CMAKE_MODULE_PATH}/lib")
+set (LIB_DIR "${DEP_DIR}/external/lib"     "${DEP_DIR}/lib"     "${CMAKE_MODULE_PATH}/lib"     "${DEP_DIR}/external/lib/bullet")
 set (INC_DIR "${DEP_DIR}/external/include" "${DEP_DIR}/include" "${CMAKE_MODULE_PATH}/include" "${DEP_DIR}/external/include/bullet" "${PROJECT_SOURCE_DIR}")
 
 set (CMAKE_MODULE_PATH 
