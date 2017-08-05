@@ -48,7 +48,7 @@ set (DEFINES
 
 set (DEP_DIR "${PROJECT_SOURCE_DIR}")
 set (LIB_DIR "${DEP_DIR}/external/lib"     "${DEP_DIR}/lib"     "${CMAKE_MODULE_PATH}/lib")
-set (INC_DIR "${DEP_DIR}/external/include" "${DEP_DIR}/include" "${CMAKE_MODULE_PATH}/include" "${PROJECT_SOURCE_DIR}")
+set (INC_DIR "${DEP_DIR}/external/include" "${DEP_DIR}/include" "${CMAKE_MODULE_PATH}/include" "${DEP_DIR}/external/include/bullet" "${PROJECT_SOURCE_DIR}")
 
 set (CMAKE_MODULE_PATH 
     "${DEP_DIR}/modules" 
@@ -62,14 +62,6 @@ set (LIBS
     glfw3 
     FreeImage 
     assimp-vc140-mt
-    LinearMath_RelWithDebugInfo
-    Bullet3Common_RelWithDebugInfo
-    Bullet3Dynamics_RelWithDebugInfo
-    Bullet3Collision_RelWithDebugInfo
-    BulletCollision_RelWithDebugInfo
-    BulletDynamics_RelWithDebugInfo
-    BulletInverseDynamics_RelWithDebugInfo
-    BulletSoftBody_RelWithDebugInfo
 )
 
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -103,6 +95,20 @@ foreach(source IN LISTS RSOURCES)
 endforeach()
 
 
+set (LIBS 
+    ${OPENGL_LIBRARIES}
+    glfw3 
+    FreeImage 
+    assimp-vc140-mt
+    LinearMath_RelWithDebugInfo
+    Bullet3Common_RelWithDebugInfo
+    Bullet3Dynamics_RelWithDebugInfo
+    Bullet3Collision_RelWithDebugInfo
+    BulletCollision_RelWithDebugInfo
+    BulletDynamics_RelWithDebugInfo
+    BulletInverseDynamics_RelWithDebugInfo
+    BulletSoftBody_RelWithDebugInfo
+)
 
 
 add_executable(${APPLICATION_NAME}-physics example/physics.cpp ${RSOURCES})

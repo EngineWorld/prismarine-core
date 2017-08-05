@@ -259,23 +259,23 @@ namespace PaperExample {
                 geom->attributeUniformData.stride = 0;
 
                 // load modern mode
-                for (; it != itEnd; it++) {
-                    tinygltf::Accessor &accessor = gltfModel.accessors[it->second];
+                for(auto const &it : prim.attributes) {
+                    tinygltf::Accessor &accessor = gltfModel.accessors[it.second];
                     auto& bufferView = gltfModel.bufferViews[accessor.bufferView];
 
-                    if (it->first.compare("POSITION") == 0) { // vertices
+                    if (it.first.compare("POSITION") == 0) { // vertices
                         geom->attributeUniformData.vertexOffset = (accessor.byteOffset + bufferView.byteOffset) / 4;
                         geom->attributeUniformData.vertexStride = (bufferView.byteStride / 4);
                         geom->setVertices(glBuffers[bufferView.buffer]);
                     } else
                     
-                    if (it->first.compare("NORMAL") == 0) {
+                    if (it.first.compare("NORMAL") == 0) {
                         geom->attributeUniformData.haveNormal = true;
                         geom->attributeUniformData.normalOffset = (accessor.byteOffset + bufferView.byteOffset) / 4;
                         geom->attributeUniformData.normalStride = (bufferView.byteStride / 4);
                     } else
                     
-                    if (it->first.compare("TEXCOORD_0") == 0) {
+                    if (it.first.compare("TEXCOORD_0") == 0) {
                         geom->attributeUniformData.haveTexcoord = true;
                         geom->attributeUniformData.texcoordOffset = (accessor.byteOffset + bufferView.byteOffset) / 4;
                         geom->attributeUniformData.texcoordStride = (bufferView.byteStride / 4);
