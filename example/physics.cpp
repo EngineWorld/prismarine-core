@@ -462,7 +462,7 @@ namespace PaperExample {
         // blue (slightly purple) plastic
         {
             Paper::Material::Submat submat;
-            submat.diffuse = glm::vec4(0.7f, 0.6f, 1.0f, 1.0f);
+            submat.diffuse = glm::vec4(0.6f, 0.7f, 1.0f, 1.0f);
             submat.specular = glm::vec4(0.0f, 0.0f, 0.05f, 1.0f);
             submat.emissive = glm::vec4(0.0f);
             materialManager->addSubmat(&submat);
