@@ -222,8 +222,8 @@ void main() {
     }
 
     if (!overflow) {
-        //mixed(diffuseRay.color.xyz, reflectionRay.color.xyz, clamp(spic, 0.0f, 1.0f));
-        mixed(diffuseRay.color.xyz, reflectionRay.color.xyz, clamp(float(random() < spic), 0.0f, 1.0f));
+        mixed(diffuseRay.color.xyz, reflectionRay.color.xyz, clamp(spic, 0.0f, 1.0f));
+        //mixed(diffuseRay.color.xyz, reflectionRay.color.xyz, clamp(float(random() < spic), 0.0f, 1.0f));
         emitRay(reflectionRay, hit, normal, 1.0f);
         applyLight(directLight(0, diffuseRay, hit, vec3(1.0f), normal), diffuseRay, surfacenormal); // push shadow
         emitRay(diffuseRay, hit, normal, 1.0f);
