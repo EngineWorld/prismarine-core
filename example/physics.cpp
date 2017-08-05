@@ -537,7 +537,7 @@ namespace PaperExample {
         addStaticObject(glm::vec3( 10.0, 0.0, 0.0), glm::quat(glm::vec3(0.0, 3.14159 * 0.5, 0.0)), 2);
         addStaticObject(glm::vec3(-10.0, 0.0, 0.0), glm::quat(glm::vec3(0.0, -3.14159 * 0.5, 0.0)), 1);
         addStaticObject(glm::vec3( 0.0, -10.0, 0.0), glm::quat(glm::vec3(-3.14159 * 0.5, 0.0, 0.0)), 0);
-        addStaticObject(glm::vec3( 0.0, -12.0, 10.0), glm::quat(glm::vec3(0.0, 0.0, 0.0)), 3);
+        addStaticObject(glm::vec3( 0.0, -12.0, 10.0), glm::quat(glm::vec3(0.0, 0.0, 0.0)), 0);
 
         // init timing state
         time = glfwGetTime() * 1000.f;
