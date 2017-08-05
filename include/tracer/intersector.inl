@@ -52,6 +52,11 @@ namespace Paper {
         vbo_texcoords_textrue = allocateTexture2D<GL_RGBA32F>(3072, 1024);
         vbo_modifiers_textrue = allocateTexture2D<GL_RGBA32F>(3072, 1024);
 
+        vbo_vertex_textrue_upload = allocateTexture2D<GL_RGBA32F>(3072, 1024);
+        vbo_normal_textrue_upload = allocateTexture2D<GL_RGBA32F>(3072, 1024);
+        vbo_texcoords_textrue_upload = allocateTexture2D<GL_RGBA32F>(3072, 1024);
+        vbo_modifiers_textrue_upload = allocateTexture2D<GL_RGBA32F>(3072, 1024);
+
         glCreateSamplers(1, &vbo_sampler);
         glSamplerParameteri(vbo_sampler, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glSamplerParameteri(vbo_sampler, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -59,6 +64,7 @@ namespace Paper {
         glSamplerParameteri(vbo_sampler, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
         mat_triangle_ssbo = allocateBuffer<int32_t>(maxt);
+        mat_triangle_ssbo_upload = allocateBuffer<int32_t>(maxt);
 
         aabbCounter = allocateBuffer<int32_t>(1);
         bvhnodesBuffer = allocateBuffer<HlbvhNode>(maxt * 2);
@@ -89,10 +95,10 @@ namespace Paper {
 
     inline void Intersector::bind() {
         // mosaic buffers for write
-        glBindImageTexture(0, vbo_vertex_textrue, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
-        glBindImageTexture(1, vbo_normal_textrue, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
-        glBindImageTexture(2, vbo_texcoords_textrue, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
-        glBindImageTexture(3, vbo_modifiers_textrue, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+        glBindImageTexture(0, vbo_vertex_textrue_upload, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+        glBindImageTexture(1, vbo_normal_textrue_upload, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+        glBindImageTexture(2, vbo_texcoords_textrue_upload, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+        glBindImageTexture(3, vbo_modifiers_textrue_upload, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 
         // use mosaic sampler
         glBindSampler(0, vbo_sampler);
@@ -150,6 +156,7 @@ namespace Paper {
 
         glCopyNamedBufferSubData(tcounter, geometryBlockUniform, 0, offsetof(GeometryBlockUniform, geometryUniform) + offsetof(GeometryUniformStruct, triangleOffset), sizeof(uint32_t));
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, tcounter);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, mat_triangle_ssbo_upload);
 
         //dispatch(gobject->index16bit ? geometryLoaderProgramI16 : geometryLoaderProgram2, tiled(gobject->nodeCount, worksize));
         dispatchIndirect(gobject->index16bit ? geometryLoaderProgramI16 : geometryLoaderProgram2, gobject->indirect_dispatch_buffer);
@@ -171,7 +178,16 @@ namespace Paper {
     }
 
     inline void Intersector::build(const glm::dmat4 &optimization) {
+        // get triangle count that uploaded
         glGetNamedBufferSubData(tcounter, 0, strided<uint32_t>(1), &this->triangleCount);
+
+        // copy uploading buffers to BVH
+        glCopyImageSubData(vbo_vertex_textrue_upload, GL_TEXTURE_2D, 0, 0, 0, 0, vbo_vertex_textrue, GL_TEXTURE_2D, 0, 0, 0, 0, 3072, (this->triangleCount > 0 ? (this->triangleCount - 1) / 1023 + 1 : 0) + 1, 1);
+        glCopyImageSubData(vbo_normal_textrue_upload, GL_TEXTURE_2D, 0, 0, 0, 0, vbo_normal_textrue, GL_TEXTURE_2D, 0, 0, 0, 0, 3072, (this->triangleCount > 0 ? (this->triangleCount - 1) / 1023 + 1 : 0) + 1, 1);
+        glCopyImageSubData(vbo_texcoords_textrue_upload, GL_TEXTURE_2D, 0, 0, 0, 0, vbo_texcoords_textrue, GL_TEXTURE_2D, 0, 0, 0, 0, 3072, (this->triangleCount > 0 ? (this->triangleCount - 1) / 1023 + 1 : 0) + 1, 1);
+        glCopyImageSubData(vbo_modifiers_textrue_upload, GL_TEXTURE_2D, 0, 0, 0, 0, vbo_modifiers_textrue, GL_TEXTURE_2D, 0, 0, 0, 0, 3072, (this->triangleCount > 0 ? (this->triangleCount - 1) / 1023 + 1 : 0) + 1, 1);
+        glCopyNamedBufferSubData(mat_triangle_ssbo_upload, mat_triangle_ssbo, 0, 0, this->triangleCount * sizeof(uint32_t));
+
         verticeCount = triangleCount * 3;
 
         if (this->triangleCount <= 0 || !dirty) return;
