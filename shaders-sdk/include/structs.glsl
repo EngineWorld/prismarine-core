@@ -137,7 +137,7 @@ struct Hit {
     Vc4 vcolor;
     Vc4 vmods;
     Vc1 dist;
-    iVc1 triangle;
+    iVc1 triangleID;
     iVc1 materialID;
     iVc1 shaded;
 };

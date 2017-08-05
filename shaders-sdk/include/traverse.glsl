@@ -15,7 +15,7 @@ struct SharedVarsData {
 
 struct TResult {
     float dist;
-    int triangle;
+    int triangleID;
     int materialID; // legacy
     float predist;
     vec4 uv;
@@ -72,7 +72,7 @@ TResult choiceFirstBaked(inout SharedVarsData sharedVarsData, inout TResult res)
 
     if (near) {
         res.dist = _d;
-        res.triangle = tri;
+        res.triangleID = tri;
         res.uv.xy = uv.xy;
     }
 
@@ -128,7 +128,7 @@ TResult choiceBaked(inout SharedVarsData sharedVarsData, inout TResult res, in v
 
     if (near) {
         res.dist = _d;
-        res.triangle = tri;
+        res.triangleID = tri;
         res.uv.xy = uv.xy;
     }
     
@@ -139,7 +139,7 @@ TResult testIntersection(inout SharedVarsData sharedVarsData, inout TResult res,
     bool validTriangle = 
         isValid && 
         tri >= 0 && 
-        tri != res.triangle &&
+        tri != res.triangleID &&
         tri != LONGEST;
 
     if (allInvocations(!validTriangle)) return res;
@@ -160,7 +160,7 @@ TResult testIntersection(inout SharedVarsData sharedVarsData, inout TResult res,
     if (near) {
         if ( changed ) {
             res.predist = _d;
-            res.triangle = tri;
+            res.triangleID = tri;
         }
         if ( inbaked ) {
             bakedStack[sharedVarsData.L][sharedVarsData.bakedStackCount++] = tri;
@@ -233,7 +233,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     TResult lastRes;
     lastRes.dist = INFINITY;
     lastRes.predist = INFINITY;
-    lastRes.triangle = LONGEST;
+    lastRes.triangleID = LONGEST;
     lastRes.materialID = LONGEST;
 
     SharedVarsData sharedVarsData;

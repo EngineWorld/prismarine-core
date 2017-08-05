@@ -121,10 +121,7 @@ namespace Paper {
     }
 
     inline void Intersector::clearTribuffer() {
-        triangleCount = 0;
-        verticeCount = 0;
         markDirty();
-
         glCopyNamedBufferSubData(minmaxBufRef, minmaxBuf, 0, 0, strided<bbox>(1));
         glCopyNamedBufferSubData(lscounterTemp, tcounter, 0, 0, strided<uint32_t>(1));
         geometryUniformData.triangleOffset = 0;
@@ -143,8 +140,8 @@ namespace Paper {
         geometryUniformData.loadOffset = gobject->offset;
         geometryUniformData.materialID = gobject->materialID;
         geometryUniformData.triangleCount = gobject->nodeCount;
-        geometryUniformData.transform = *(Vc4x4 *)glm::value_ptr(glm::transpose(gobject->trans));
-        geometryUniformData.transformInv = *(Vc4x4 *)glm::value_ptr(glm::inverse(gobject->trans));
+        geometryUniformData.gTransform = *(Vc4x4 *)glm::value_ptr(glm::transpose(gobject->trans));
+        geometryUniformData.gTransformInv = *(Vc4x4 *)glm::value_ptr(glm::inverse(gobject->trans));
         geometryUniformData.texmatrix = *(Vc4x4 *)glm::value_ptr(gobject->texmat);
         geometryUniformData.colormod = *(Vc4 *)glm::value_ptr(gobject->colormod);
         geometryUniformData.offset = gobject->voffset;
@@ -180,6 +177,7 @@ namespace Paper {
     inline void Intersector::build(const glm::dmat4 &optimization) {
         // get triangle count that uploaded
         glGetNamedBufferSubData(tcounter, 0, strided<uint32_t>(1), &this->triangleCount);
+        geometryUniformData.triangleCount = triangleCount;
 
         // copy uploading buffers to BVH
         glCopyImageSubData(vbo_vertex_textrue_upload, GL_TEXTURE_2D, 0, 0, 0, 0, vbo_vertex_textrue, GL_TEXTURE_2D, 0, 0, 0, 0, 3072, (this->triangleCount > 0 ? (this->triangleCount - 1) / 1023 + 1 : 0) + 1, 1);
@@ -188,8 +186,6 @@ namespace Paper {
         glCopyImageSubData(vbo_modifiers_textrue_upload, GL_TEXTURE_2D, 0, 0, 0, 0, vbo_modifiers_textrue, GL_TEXTURE_2D, 0, 0, 0, 0, 3072, (this->triangleCount > 0 ? (this->triangleCount - 1) / 1023 + 1 : 0) + 1, 1);
         glCopyNamedBufferSubData(mat_triangle_ssbo_upload, mat_triangle_ssbo, 0, 0, this->triangleCount * sizeof(uint32_t));
 
-        verticeCount = triangleCount * 3;
-
         if (this->triangleCount <= 0 || !dirty) return;
         this->resolve();
 
@@ -197,9 +193,6 @@ namespace Paper {
         const double prec = 1000000.0;
         
         glCopyNamedBufferSubData(minmaxBufRef, minmaxBuf, 0, 0, strided<bbox>(1));
-        geometryUniformData.triangleOffset = 0;
-        geometryUniformData.triangleCount = triangleCount;
-
         {
             glm::dmat4 mat(1.0);
             mat *= glm::inverse(optimization);

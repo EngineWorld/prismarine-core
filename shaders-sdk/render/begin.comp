@@ -15,7 +15,7 @@ void main()
     Hit hit = fetchHitDirect(t);
     Ray ray = fetchRayDirect(t);
     hit.dist = INFINITY + PZERO;
-    hit.triangle = LONGEST;
+    hit.triangleID = LONGEST;
     hit.materialID = LONGEST;
     hit.normal = vec4(0.0f);
     hit.tangent = vec4(0.0f);

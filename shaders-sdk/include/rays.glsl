@@ -155,7 +155,7 @@ int createRayStrict(inout Ray original, in int idx, in int rayIndex) {
         hit.normal = vec4(0.0f);
         hit.tangent = vec4(0.0f);
         hit.vmods = vec4(0.0f);
-        hit.triangle = LONGEST;
+        hit.triangleID = LONGEST;
         hit.materialID = LONGEST;
     }
     hit.shaded = 1;

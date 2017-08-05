@@ -44,6 +44,10 @@ struct LightUniformStruct {
 struct GeometryUniformStruct {
     Vc4x4 transform;
     Vc4x4 transformInv;
+
+    Vc4x4 gTransform;
+    Vc4x4 gTransformInv;
+
     Vc4x4 texmatrix;
     Vc4 colormod;
 

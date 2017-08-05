@@ -103,7 +103,6 @@ namespace Paper {
 
         int32_t materialID = 0;
         size_t triangleCount = 0;
-        size_t verticeCount = 0;
         bbox bound;
 
         void syncUniforms();

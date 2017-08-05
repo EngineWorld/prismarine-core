@@ -19,7 +19,7 @@ struct LResult {
     vec4 mods;
 
     float dist;
-    int triangle;
+    int triangleID;
     int materialID;
     float predist; // legacy
     vec4 uv; // legacy
@@ -28,12 +28,12 @@ struct LResult {
 LResult loadInfo(in TResult hitp) {
     LResult res;
     res.dist = hitp.dist;
-    res.triangle = hitp.triangle;
+    res.triangleID = hitp.triangleID;
     res.materialID = -1;
     res.predist = hitp.predist; // legacy
     res.uv = hitp.uv; // legacy
 
-    int tri = hitp.triangle;
+    int tri = hitp.triangleID;
     if (greaterEqualF(hitp.dist, 0.0f) && lessF(hitp.dist, INFINITY) && tri != LONGEST) {
         vec3 trinorms[3];
         vec3 triverts[3];
@@ -108,7 +108,7 @@ void main() {
         newHit.vcolor = res.color;
         newHit.vmods = res.mods;
         newHit.dist = res.dist;
-        newHit.triangle = res.triangle;
+        newHit.triangleID = res.triangleID;
         newHit.materialID = res.materialID;
         newHit.shaded = 0;
 

@@ -175,6 +175,10 @@ namespace Paper {
     struct GeometryUniformStruct {
         Vc4x4 transform = mat4r;
         Vc4x4 transformInv = mat4r;
+
+        Vc4x4 gTransform = mat4r;
+        Vc4x4 gTransformInv = mat4r;
+
         Vc4x4 texmatrix = mat4r;
         Vc4 colormod = vec4r;
 
