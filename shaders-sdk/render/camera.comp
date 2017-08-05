@@ -68,6 +68,7 @@ void main()
 
         // apply DOF
         
+#ifdef EXPERIMENTAL_DOF
          float dofFocusRadius = 10.f;
          float dofFocalRadius = 1.f / 64.f;
         vec4 defEye = RAY_BLOCK cameraUniform.camInv * vec4(0.0f, 0.0f, 0.0f, 1.0f);
@@ -75,7 +76,7 @@ void main()
         vec4 offsetEye = RAY_BLOCK cameraUniform.camInv * vec4(randomDirectionInSphere() * dofFocalRadius, 1.0f);
         orig = offsetEye;
         dir = vec4(normalize(focus.xyz - offsetEye.xyz), 0.0f);
-        
+#endif
 
         Ray ray;
         ray.texel = idx;

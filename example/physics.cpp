@@ -287,8 +287,12 @@ namespace PaperExample {
         if (shapeType == 1) {
             fallShape = new btCylinderShape(btVector3(0.5, 1.0, 1.0));
         }
-        else {
+        else 
+        if (shapeType == 2) {
             fallShape = new btBoxShape(btVector3(0.7, 0.7, 0.7));
+        }
+        else {
+            fallShape = new btSphereShape(1);
         }
 
 
@@ -441,7 +445,7 @@ namespace PaperExample {
         {
             Paper::Material::Submat submat;
             submat.diffuse = glm::vec4(1.0f, 0.9f, 0.6f, 1.0f);
-            submat.specular = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+            submat.specular = glm::vec4(0.0f, 0.0f, 0.05f, 1.0f);
             submat.emissive = glm::vec4(0.0f);
             materialManager->addSubmat(&submat);
         }
@@ -450,7 +454,7 @@ namespace PaperExample {
         {
             Paper::Material::Submat submat;
             submat.diffuse = glm::vec4(1.0f, 0.6f, 0.6f, 1.0f);
-            submat.specular = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+            submat.specular = glm::vec4(0.0f, 0.0f, 0.05f, 1.0f);
             submat.emissive = glm::vec4(0.0f);
             materialManager->addSubmat(&submat);
         }
@@ -459,7 +463,7 @@ namespace PaperExample {
         {
             Paper::Material::Submat submat;
             submat.diffuse = glm::vec4(0.7f, 0.6f, 1.0f, 1.0f);
-            submat.specular = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+            submat.specular = glm::vec4(0.0f, 0.0f, 0.05f, 1.0f);
             submat.emissive = glm::vec4(0.0f);
             materialManager->addSubmat(&submat);
         }
@@ -468,25 +472,25 @@ namespace PaperExample {
         {
             Paper::Material::Submat submat;
             submat.diffuse = glm::vec4(0.6f, 1.0f, 0.6f, 1.0f);
-            submat.specular = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+            submat.specular = glm::vec4(0.0f, 0.0f, 0.05f, 1.0f);
             submat.emissive = glm::vec4(0.0f);
             materialManager->addSubmat(&submat);
         }
 
-        // fully metallic (slightly glossy)
+        // fully metallic
         {
             Paper::Material::Submat submat;
             submat.diffuse = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-            submat.specular = glm::vec4(0.0f, 0.1f, 1.0f, 1.0f);
+            submat.specular = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
             submat.emissive = glm::vec4(0.0f);
             materialManager->addSubmat(&submat);
         }
 
-        // red metallic
+        // copper
         {
             Paper::Material::Submat submat;
-            submat.diffuse = glm::vec4(1.0f, 0.4f, 0.4f, 1.0f);
-            submat.specular = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
+            submat.diffuse = glm::vec4(1.0f, 0.7f, 0.6f, 1.0f);
+            submat.specular = glm::vec4(0.0f, 0.4f, 1.0f, 1.0f);
             submat.emissive = glm::vec4(0.0f);
             materialManager->addSubmat(&submat);
         }
@@ -494,17 +498,17 @@ namespace PaperExample {
         // blue metallic
         {
             Paper::Material::Submat submat;
-            submat.diffuse = glm::vec4(0.4f, 0.4f, 1.0f, 1.0f);
-            submat.specular = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
+            submat.diffuse = glm::vec4(0.6f, 0.6f, 1.0f, 1.0f);
+            submat.specular = glm::vec4(0.0f, 0.05f, 1.0f, 1.0f);
             submat.emissive = glm::vec4(0.0f);
             materialManager->addSubmat(&submat);
         }
 
-        // gold metallic
+        // gold
         {
             Paper::Material::Submat submat;
-            submat.diffuse = glm::vec4(1.0f, 1.0f, 0.4f, 1.0f);
-            submat.specular = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
+            submat.diffuse = glm::vec4(1.0f, 0.95f, 0.6f, 1.0f);
+            submat.specular = glm::vec4(0.0f, 0.4f, 1.0f, 1.0f);
             submat.emissive = glm::vec4(0.0f);
             materialManager->addSubmat(&submat);
         }
@@ -532,7 +536,7 @@ namespace PaperExample {
         addStaticObject(glm::vec3( 10.0, 0.0, 0.0), glm::quat(glm::vec3(0.0, 3.14159 * 0.5, 0.0)), 2);
         addStaticObject(glm::vec3(-10.0, 0.0, 0.0), glm::quat(glm::vec3(0.0, -3.14159 * 0.5, 0.0)), 1);
         addStaticObject(glm::vec3( 0.0, -10.0, 0.0), glm::quat(glm::vec3(-3.14159 * 0.5, 0.0, 0.0)), 0);
-        addStaticObject(glm::vec3( 0.0, -12.0, 10.0), glm::quat(glm::vec3(0.0, 0.0, 0.0)), 4);
+        addStaticObject(glm::vec3( 0.0, -12.0, 10.0), glm::quat(glm::vec3(0.0, 0.0, 0.0)), 3);
 
         // init timing state
         time = glfwGetTime() * 1000.f;
