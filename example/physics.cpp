@@ -174,11 +174,16 @@ namespace PaperExample {
 
     // possible rigid bodies
     std::string rigidMeshTypeList[4] = {
-        "teapot.obj",
+        "sphere.obj",
         "cow.obj", 
-        "rbox.obj", // rigid body
+        "rbox.obj",
         "box.obj" // wall
     };
+
+    uint32_t activeShapes[2] = {
+        0, 2
+    };
+
 
     std::vector<MeshTemplate *> meshTemplates;
     std::vector<PhysicsObject *> objects;
@@ -271,8 +276,8 @@ namespace PaperExample {
 
         std::random_device rd;     // only used once to initialise (seed) engine
         std::mt19937 rng(rd());    // random-number engine used (Mersenne-Twister in this case)
-        uint32_t shapeType = std::uniform_int_distribution<int>(0, 2)(rng);
-
+        uint32_t shapeTypeS = std::uniform_int_distribution<int>(0, 1)(rng);
+        uint32_t shapeType = activeShapes[shapeTypeS];
 
 
 
@@ -281,7 +286,7 @@ namespace PaperExample {
 
         btCollisionShape* fallShape;
         if (shapeType == 0) {
-            fallShape = new btSphereShape(1);
+            fallShape = new btSphereShape(0.8);
         }
         else
         if (shapeType == 1) {
@@ -405,8 +410,9 @@ namespace PaperExample {
 
         glm::dmat4 matrix(1.0);
         matrix = glm::dmat4(1.0);
-        matrix = glm::scale(matrix, glm::dvec3(1.25f, 1.25f, 1.25f));
-        matrix = glm::translate(matrix, glm::dvec3(-0.1f, -0.5f, 0.0f));
+        matrix = glm::scale(matrix, glm::dvec3(0.8f, 0.8f, 0.8f));
+        //matrix = glm::scale(matrix, glm::dvec3(1.25f, 1.25f, 1.25f));
+        //matrix = glm::translate(matrix, glm::dvec3(-0.1f, -0.5f, 0.0f));
         meshTemplates[0]->transform = matrix;
 
         matrix = glm::dmat4(1.0);
