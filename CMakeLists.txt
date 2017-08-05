@@ -14,6 +14,8 @@ set(SOURCES_LIST
     "./include/*.hh"
     "./include/*.h"
     
+    "./external/src/*.c"
+    
     #include
     "./external/include/*/*.hpp"
     "./external/include/*/*.hh"
@@ -60,7 +62,6 @@ set (LIBS
     glfw3 
     FreeImage 
     assimp-vc140-mt
-	glew32
     LinearMath_RelWithDebugInfo
     Bullet3Common_RelWithDebugInfo
     Bullet3Dynamics_RelWithDebugInfo

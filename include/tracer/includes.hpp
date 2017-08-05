@@ -22,7 +22,8 @@
 
 //#include <glbinding/Binding.h>
 //#include "glbinding/gl46ext/gl.h"
-#include "GL/glew.h"
+//#include "GL/glew.h"
+#include "glad/glad.h"
 
 #ifdef USE_FREEIMAGE
 #include "external/include/FreeImage.h"
