@@ -285,7 +285,7 @@ namespace PaperExample {
         }
         else
         if (shapeType == 1) {
-            fallShape = new btCylinderShape(btVector3(0.5, 1.0, 1.0));
+            fallShape = new btCylinderShape(btVector3(0.7, 1.0, 1.0));
         }
         else 
         if (shapeType == 2) {
@@ -405,13 +405,14 @@ namespace PaperExample {
 
         glm::dmat4 matrix(1.0);
         matrix = glm::dmat4(1.0);
-        matrix = glm::scale(matrix, glm::dvec3(1.2f, 1.2f, 1.2f));
+        matrix = glm::scale(matrix, glm::dvec3(1.25f, 1.25f, 1.25f));
+        matrix = glm::translate(matrix, glm::dvec3(-0.1f, -0.5f, 0.0f));
         meshTemplates[0]->transform = matrix;
 
         matrix = glm::dmat4(1.0);
         matrix = glm::rotate(matrix, glm::half_pi<double>(), glm::dvec3(0.0, 0.0, 1.0));
-        matrix = glm::translate(matrix, glm::dvec3(0.0f, 0.25f, 0.0f));
         matrix = glm::scale(matrix, glm::dvec3(0.25f));
+        matrix = glm::translate(matrix, glm::dvec3(0.0f, 0.8f, 0.0f));
         meshTemplates[1]->transform = matrix;
 
         matrix = glm::dmat4(1.0);
