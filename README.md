@@ -13,7 +13,7 @@
 - [ ] Float 16 bit support
 - [ ] Float 64 bit support
 
-## "Master" Update WIP (??.08.2017)
+## "Master" Update (low level API) WIP (??.08.2017)
 
 <img src="logo/paper.png" alt="MasterUpdate" width="1024"/>
 
@@ -24,6 +24,14 @@
 - [ ] Improved support of storing constants
 - [ ] Advanced optimization
 - [ ] Surface shaders
+
+## "Clockwork" Update (improved BVH system) planned (??.??.2017)
+
+<img src="logo/clockwork.png" alt="ClockworkUpdate" width="960"/>
+
+- [ ] Grouping geometry nodes by 32 primitives (expect that it will after morton code sorting stage)
+- [ ] Divide geometry group intersection and BVH traverse stages (for better SIMD coverage)
+- [ ] Consideration of trBVH support
 
 ## Details
 
