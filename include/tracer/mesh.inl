@@ -51,7 +51,6 @@ namespace Paper {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, vebo_triangle_ssbo != -1 ? vebo_triangle_ssbo : 0);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, mat_triangle_ssbo != -1 ? mat_triangle_ssbo : 0);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, meshUniformBuffer != -1 ? meshUniformBuffer : 0);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, meshAccessorsBuffer != -1 ? meshAccessorsBuffer : 0);
     }
 
 }

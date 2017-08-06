@@ -248,6 +248,8 @@ namespace PaperExample {
             for (int i = 0; i < glMesh.primitives.size();i++) {
                 tinygltf::Primitive & prim = glMesh.primitives[i];
                 Mesh * geom = new Mesh();
+                AccessorSet * acs = new AccessorSet();
+                geom->setAccessorSet(acs);
 
                 // make attributes
                 std::map<std::string, int>::const_iterator it(prim.attributes.begin());
@@ -267,19 +269,19 @@ namespace PaperExample {
                     if (it.first.compare("POSITION") == 0) { // vertices
                         vattr.components = 3;
                         geom->setVertices(glBuffers[bufferView.buffer]);
-                        geom->setVertexAccessor(geom->addVirtualAccessor(vattr));
+                        geom->setVertexAccessor(acs->addVirtualAccessor(vattr));
                     } else
                     
                     // normal
                     if (it.first.compare("NORMAL") == 0) {
                         vattr.components = 3;
-                        geom->setNormalAccessor(geom->addVirtualAccessor(vattr));
+                        geom->setNormalAccessor(acs->addVirtualAccessor(vattr));
                     } else
                     
                     // texcoord
                     if (it.first.compare("TEXCOORD_0") == 0) {
                         vattr.components = 2;
-                        geom->setTexcoordAccessor(geom->addVirtualAccessor(vattr));
+                        geom->setTexcoordAccessor(acs->addVirtualAccessor(vattr));
                     }
                 }
 

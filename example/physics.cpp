@@ -153,17 +153,20 @@ namespace PaperExample {
                 uint32_t stride = 8;
                 deviceHandle = new Paper::Mesh();
 
+                AccessorSet * acs = new AccessorSet();
+                deviceHandle->setAccessorSet(acs);
+
                 vattr.offset = 0;
                 vattr.components = 3;
-                deviceHandle->setVertexAccessor(deviceHandle->addVirtualAccessor(vattr));
+                deviceHandle->setVertexAccessor(acs->addVirtualAccessor(vattr));
 
                 vattr.offset = 3;
                 vattr.components = 3;
-                deviceHandle->setNormalAccessor(deviceHandle->addVirtualAccessor(vattr));
+                deviceHandle->setNormalAccessor(acs->addVirtualAccessor(vattr));
 
                 vattr.offset = 6;
                 vattr.components = 2;
-                deviceHandle->setTexcoordAccessor(deviceHandle->addVirtualAccessor(vattr));
+                deviceHandle->setTexcoordAccessor(acs->addVirtualAccessor(vattr));
 
                 deviceHandle->setIndexed(false);
                 deviceHandle->setVertices(glBuf);

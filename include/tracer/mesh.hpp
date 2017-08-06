@@ -4,16 +4,11 @@
 #include "utils.hpp"
 
 namespace Paper {
-    class Mesh : public PTObject {
+
+
+    class AccessorSet : public PTObject {
     public:
-        Mesh() {
-            GLuint dispatchData[3] = { 1, 1, 1 };
-            glCreateBuffers(1, &indirect_dispatch_buffer);
-            glNamedBufferData(indirect_dispatch_buffer, sizeof(dispatchData), dispatchData, GL_DYNAMIC_DRAW);
-
-            glCreateBuffers(1, &meshUniformBuffer);
-            glNamedBufferData(meshUniformBuffer, sizeof(MeshUniformStruct), &meshUniformData, GL_STATIC_DRAW);
-
+        AccessorSet() {
             glCreateBuffers(1, &meshAccessorsBuffer);
         }
         friend Intersector;
@@ -25,6 +20,28 @@ namespace Paper {
             return accessorPtr;
         }
 
+        void bind() {
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, meshAccessorsBuffer != -1 ? meshAccessorsBuffer : 0);
+        }
+
+    private:
+        std::vector<VirtualAccessor> meshAccessors;
+        GLuint meshAccessorsBuffer = -1;
+
+    };
+
+
+    class Mesh : public PTObject {
+    public:
+        Mesh() {
+            GLuint dispatchData[3] = { 1, 1, 1 };
+            glCreateBuffers(1, &indirect_dispatch_buffer);
+            glNamedBufferData(indirect_dispatch_buffer, sizeof(dispatchData), dispatchData, GL_DYNAMIC_DRAW);
+
+            glCreateBuffers(1, &meshUniformBuffer);
+            glNamedBufferData(meshUniformBuffer, sizeof(MeshUniformStruct), &meshUniformData, GL_STATIC_DRAW);
+        }
+        friend Intersector;
 
         size_t getNodeCount();
         void setNodeCount(size_t tcount);
@@ -62,7 +79,9 @@ namespace Paper {
             syncUniform();
         }
 
-
+        void setAccessorSet(AccessorSet * accessorSet) {
+            this->accessorSet = accessorSet;
+        }
 
     private:
         bool index16bit = false;
@@ -72,18 +91,14 @@ namespace Paper {
         GLuint vebo_triangle_ssbo = -1;
         GLuint indirect_dispatch_buffer = -1;
         
+        AccessorSet * accessorSet;
         MeshUniformStruct meshUniformData;
-        std::vector<VirtualAccessor> meshAccessors;
-
         GLuint meshUniformBuffer = -1;
-        GLuint meshAccessorsBuffer = -1;
 
         void syncUniform() {
+            if (accessorSet) accessorSet->bind();
             glNamedBufferData(meshUniformBuffer, sizeof(MeshUniformStruct), &meshUniformData, GL_STATIC_DRAW);
         }
-
-
-
     };
 }
 
