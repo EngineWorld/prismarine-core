@@ -1,6 +1,6 @@
 # OpenGL Ray Tracer (aka. "Paper")
 
-## OpenGL 4.6 Mainly Done
+## "Highway" Update (formelly OpenGL 4.6) Mainly Done
 
 - [x] Use compatible library with OpenGL 4.6
 - [x] Change shading language version to *460*
