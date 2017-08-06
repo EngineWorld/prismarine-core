@@ -3,7 +3,8 @@
 namespace Paper {
 
     inline void Mesh::setNodeCount(size_t tcount) {
-        glNamedBufferSubData(indirect_dispatch_buffer, 0, sizeof(uint32_t), &tcount);
+        uint32_t tiledWork = tiled(tcount, 128);
+        glNamedBufferSubData(indirect_dispatch_buffer, 0, sizeof(uint32_t), &tiledWork);
         nodeCount = tcount;
     }
 
@@ -29,6 +30,9 @@ namespace Paper {
 
     inline void Mesh::setTransform(const glm::mat4 &t) {
         trans = t;
+
+        glm::mat4 matrices[2] = { glm::transpose(trans), glm::inverse(trans) };
+        glNamedBufferData(transformBuffer, sizeof(glm::mat4) * 2, matrices, GL_DYNAMIC_DRAW);
     }
 
     inline void Mesh::setTransformTexcoord(const glm::mat4 &t) {

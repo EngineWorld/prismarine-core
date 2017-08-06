@@ -140,8 +140,6 @@ namespace Paper {
         geometryUniformData.loadOffset = gobject->offset;
         geometryUniformData.materialID = gobject->materialID;
         geometryUniformData.triangleCount = gobject->nodeCount;
-        geometryUniformData.gTransform = *(Vc4x4 *)glm::value_ptr(glm::transpose(gobject->trans));
-        geometryUniformData.gTransformInv = *(Vc4x4 *)glm::value_ptr(glm::inverse(gobject->trans));
         geometryUniformData.texmatrix = *(Vc4x4 *)glm::value_ptr(gobject->texmat);
         geometryUniformData.colormod = *(Vc4 *)glm::value_ptr(gobject->colormod);
         geometryUniformData.offset = gobject->voffset;
@@ -151,6 +149,7 @@ namespace Paper {
         this->bind();
         this->syncUniforms();
 
+        glCopyNamedBufferSubData(gobject->transformBuffer, geometryBlockUniform, 0, offsetof(GeometryBlockUniform, geometryUniform) + offsetof(GeometryUniformStruct, gTransform), sizeof(glm::mat4)*2);
         glCopyNamedBufferSubData(tcounter, geometryBlockUniform, 0, offsetof(GeometryBlockUniform, geometryUniform) + offsetof(GeometryUniformStruct, triangleOffset), sizeof(uint32_t));
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, tcounter);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, mat_triangle_ssbo_upload);

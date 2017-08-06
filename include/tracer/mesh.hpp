@@ -7,9 +7,13 @@ namespace Paper {
     class Mesh : public PTObject {
     public:
         Mesh() {
-            GLuint dispatchData[3] = {1, 1, 1};
+            GLuint dispatchData[3] = { 1, 1, 1 };
             glCreateBuffers(1, &indirect_dispatch_buffer);
             glNamedBufferData(indirect_dispatch_buffer, sizeof(dispatchData), dispatchData, GL_DYNAMIC_DRAW);
+
+            glm::mat4 matrices[2] = { glm::transpose(trans), glm::transpose(glm::inverse(trans)) };
+            glCreateBuffers(1, &transformBuffer);
+            glNamedBufferData(transformBuffer, sizeof(glm::mat4)*2, matrices, GL_DYNAMIC_DRAW);
         }
         friend Intersector;
 
@@ -18,6 +22,10 @@ namespace Paper {
         GLuint mat_triangle_ssbo = -1;
         GLuint vebo_triangle_ssbo = -1;
         GLuint indirect_dispatch_buffer = -1;
+
+
+        GLuint transformBuffer = -1;
+
 
         glm::mat4 texmat = glm::mat4(1.0f);
         glm::mat4 trans = glm::mat4(1.0f);
