@@ -2,6 +2,8 @@
 
 ## "Highway" Update (formelly OpenGL 4.6) Mainly Done
 
+<img src="logo/highway.png" alt="HighwayUpdate" width="960"/>
+
 - [x] Use compatible library with OpenGL 4.6
 - [x] Change shading language version to *460*
 - [x] OpenGL 4.6 group vote in traverse code
