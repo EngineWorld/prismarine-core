@@ -3,6 +3,10 @@
 
 layout ( std430, binding = 9 ) readonly buffer NodesBlock { HlbvhNode Nodes[]; };
 
+// CLOCKWORK 
+//layout ( std430, binding = 16 ) readonly buffer CWFoundGroups { GroupFoundResult FoundGroupsChains[]; };
+//layout ( std430, binding = 17 ) readonly buffer CWFoundOwners { int FoundGroupsOwners[]; };
+
 const int bakedFragments = 8;
 shared int bakedStack[WORK_SIZE][bakedFragments];
 

@@ -158,4 +158,14 @@ struct ColorChain {
     iVc4 cdata;
 };
 
+
+
+
+// CLOCKWORK
+struct GroupFoundResult {
+    int nextResult;
+};
+
+
+
 #endif
