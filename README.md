@@ -6,6 +6,9 @@
 - [x] Change shading language version to *460*
 - [x] OpenGL 4.6 group vote in traverse code
 - [x] Extended SPIR-V support
+- [ ] Memory and semaphores extensions support
+- [ ] Float 16 bit support
+- [ ] Float 64 bit support
 
 ## Master Update Announce
 
