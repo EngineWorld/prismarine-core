@@ -34,7 +34,7 @@
 - Fixed most bugs
 - GPU optimized BVH (HLBVH)
 - Direct light for sun
-- OpenGL 4.5 based
+- Modern OpenGL based
 - Support NVidia GTX 1070 and newer
 - Optimized for performance
 - Open source (at now)
