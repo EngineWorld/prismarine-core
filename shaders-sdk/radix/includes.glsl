@@ -60,7 +60,7 @@ uint genLtMask(){
     return (1 << LANE_IDX)-1;
 }
 
-uint ballot(in bool val) {
+uint ballotHW(in bool val) {
     ballotCache[LC_IDX] = 0;
     // warp can be have barrier, but is not required
     atomicOr(ballotCache[LC_IDX], uint(val) << LANE_IDX);
@@ -96,7 +96,7 @@ uint readLane(in uint val, in uint lane){
     return readInvocationARB(val, lane);
 }
 
-uvec2 ballot(in bool val) {
+uvec2 ballotHW(in bool val) {
     return unpackUint2x32(ballotARB(val)) & uvec2(
         gl_SubGroupSizeARB >= 32 ? 0xFFFFFFFF : ((1 << gl_SubGroupSizeARB)-1), 
         gl_SubGroupSizeARB >= 64 ? 0xFFFFFFFF : ((1 << (gl_SubGroupSizeARB-32))-1)

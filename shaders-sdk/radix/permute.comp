@@ -16,14 +16,10 @@ layout (local_size_x = WARP_SIZE, local_size_y = WORK_SIZE) in;
 // prefix scan for WARP vector
 uint prefix_scan(inout UVEC_WARP v){
     BVEC_WARP btf = (v == 1);
-    UVEC_BALLOT_WARP bits = ballot(btf);
+    UVEC_BALLOT_WARP bits = ballotHW(btf);
     UVEC_WARP sum = bitCount64(bits);
     v = bitCount64(bits & genLtMask());
     return sum;
-    //return sum;
-    //sum[LC_IDX] = 0;
-    //v = atomicAdd(sum[LC_IDX], v);
-    //return sum[LC_IDX];
 }
 
 

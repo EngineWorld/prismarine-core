@@ -77,7 +77,7 @@ uint genLtMask(){
     return (1 << LANE_IDX)-1;
 }
 
-uint ballot(in bool val) {
+uint ballotHW(in bool val) {
     ballotCache[LC_IDX] = 0;
     // warp can be have barrier, but is not required
     atomicOr(ballotCache[LC_IDX], uint(val) << LANE_IDX);
@@ -104,7 +104,7 @@ int readLane(in int val, in int lane) {
 }
 
 int firstActive(){
-    return findLSB(ballot(true).x);
+    return findLSB(ballotHW(true).x);
 }
 
 #else
@@ -129,7 +129,7 @@ int readLane(in int val, in int lane){
     return readInvocationARB(val, lane);
 }
 
-uvec2 ballot(in bool val) {
+uvec2 ballotHW(in bool val) {
     return unpackUint2x32(ballotARB(val)) & uvec2(
         gl_SubGroupSizeARB >= 32 ? 0xFFFFFFFF : ((1 << gl_SubGroupSizeARB)-1), 
         gl_SubGroupSizeARB >= 64 ? 0xFFFFFFFF : ((1 << (gl_SubGroupSizeARB-32))-1)
@@ -137,7 +137,7 @@ uvec2 ballot(in bool val) {
 }
 
 int firstActive(){
-    UVEC_BALLOT_WARP bits = ballot(true);
+    UVEC_BALLOT_WARP bits = ballotHW(true);
     int lv = findLSB(bits.x);
     return (lv >= 0 ? lv : (32+findLSB(bits.y)));
 }
@@ -147,7 +147,7 @@ int firstActive(){
 #define initAtomicIncFunction(mem, fname, T)\
 T fname(in bool value){ \
     int activeLane = firstActive();\
-    UVEC_BALLOT_WARP bits = ballot(value);\
+    UVEC_BALLOT_WARP bits = ballotHW(value);\
     T sumInOrder = T(bitCount64(bits));\
     T idxInOrder = T(bitCount64(genLtMask() & bits));\
     return readLane(LANE_IDX == activeLane ? atomicAdd(mem,  mix(0, sumInOrder, LANE_IDX == activeLane)) : 0, activeLane) + idxInOrder; \
@@ -156,7 +156,7 @@ T fname(in bool value){ \
 #define initAtomicDecFunction(mem, fname, T)\
 T fname(in bool value){ \
     int activeLane = firstActive();\
-    UVEC_BALLOT_WARP bits = ballot(value);\
+    UVEC_BALLOT_WARP bits = ballotHW(value);\
     T sumInOrder = T(bitCount64(bits));\
     T idxInOrder = T(bitCount64(genLtMask() & bits));\
     return readLane(LANE_IDX == activeLane ? atomicAdd(mem, -mix(0, sumInOrder, LANE_IDX == activeLane)) : 0, activeLane) - idxInOrder; \

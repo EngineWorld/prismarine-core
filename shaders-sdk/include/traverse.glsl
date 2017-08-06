@@ -27,10 +27,6 @@ float intersectTriangle(in vec3 orig, in vec3 dir, in mat3 ve, inout vec2 UV, in
 
     vec3 e1 = ve[1] - ve[0];
     vec3 e2 = ve[2] - ve[0];
-
-    valid = valid && !(length(e1) < 0.00001f && length(e2) < 0.00001f);
-    if (allInvocations(!valid)) return INFINITY;
-
     vec3 pvec = cross(dir, e2);
     float det = dot(e1, pvec);
 
@@ -80,7 +76,10 @@ TResult choiceFirstBaked(inout SharedVarsData sharedVarsData, inout TResult res)
 }
 
 void reorderTriangles(inout SharedVarsData sharedVarsData) {
+    // fit hits count
     sharedVarsData.bakedStackCount = min(sharedVarsData.bakedStackCount, bakedFragments);
+
+    // resort z-fighting primitives
     for (int iround = 1; iround < sharedVarsData.bakedStackCount; iround++) {
         for (int index = 0; index < sharedVarsData.bakedStackCount - iround; index++) {
             if (bakedStack[sharedVarsData.L][index] <= bakedStack[sharedVarsData.L][index+1]) {
@@ -89,18 +88,21 @@ void reorderTriangles(inout SharedVarsData sharedVarsData) {
         }
     }
 
-    // clean from dublicates
-    int cleanBakedStack[bakedFragments];
+    // initial clean list
     int cleanBakedStackCount = 0;
-    cleanBakedStack[cleanBakedStackCount++] = bakedStack[sharedVarsData.L][0];
-    for (int iround = 1; iround < sharedVarsData.bakedStackCount; iround++) {
-        if(bakedStack[sharedVarsData.L][iround-1] != bakedStack[sharedVarsData.L][iround]) {
-            cleanBakedStack[cleanBakedStackCount++] = bakedStack[sharedVarsData.L][iround];
+
+    // select only unique triangle ID's
+    for (int iround = 0; iround < sharedVarsData.bakedStackCount-1; iround++) {
+        int next = bakedStack[sharedVarsData.L][iround+1];
+        int prim = bakedStack[sharedVarsData.L][iround];
+        if (next != prim) {
+            bakedStack[sharedVarsData.L][cleanBakedStackCount++] = prim;
         }
     }
 
-    for (int i=0;i<sharedVarsData.bakedStackCount;i++) bakedStack[sharedVarsData.L][i] = cleanBakedStack[i];
-    sharedVarsData.bakedStackCount = cleanBakedStackCount;
+    // copy last primitive
+    bakedStack[sharedVarsData.L][cleanBakedStackCount++] = bakedStack[sharedVarsData.L][sharedVarsData.bakedStackCount-1];
+    sharedVarsData.bakedStackCount = cleanBakedStackCount; // fir count
 }
 
 TResult choiceBaked(inout SharedVarsData sharedVarsData, inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {

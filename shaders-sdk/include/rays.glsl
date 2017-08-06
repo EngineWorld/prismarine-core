@@ -4,26 +4,6 @@
 #include "../include/STOmath.glsl"
 #include "../include/morton.glsl"
 
-/*
-layout ( std430, binding = 0 ) restrict buffer RaysSSBO { Ray nodes[]; } rayBuf;
-layout ( std430, binding = 1 ) restrict buffer HitsSSBO { Hit nodes[]; } hitBuf;
-layout ( std430, binding = 2 ) restrict buffer TexelsSSBO { Texel nodes[]; } texelBuf;
-layout ( std430, binding = 6 ) readonly buffer ActivedIndicesSSBO { int indc[]; } activedBuf;
-layout ( std430, binding = 7 ) restrict buffer CollectedActivesSSBO { int indc[]; } collBuf;
-layout ( std430, binding = 8 ) restrict buffer FreedomIndicesSSBO { int indc[]; } freedBuf;
-layout ( std430, binding = 14 ) readonly buffer AvailablesIndicesSSBO { int indc[]; } availBuf;
-layout ( std430, binding = 20 ) restrict buffer CounterBlock { 
-    int At;
-    int Rt;
-    int Qt;
-    int Ut;
-    int Ct;
-} arcounter;
-layout ( std430, binding = 21 ) restrict buffer ColorChainBlock { ColorChain chains[]; } chBuf;
-*/
-
-
-
 layout ( std430, binding = 0 ) restrict buffer RaysSSBO { Ray nodes[]; } rayBuf;
 layout ( std430, binding = 1 ) restrict buffer HitsSSBO { Hit nodes[]; } hitBuf;
 layout ( std430, binding = 2 ) restrict buffer TexelsSSBO { Texel nodes[]; } texelBuf;
@@ -47,7 +27,6 @@ layout ( std430, binding = 8 ) restrict buffer CounterBlock {
 } arcounter;
 
 
-
 initAtomicIncFunction(arcounter.At, atomicIncAt, int);
 initAtomicIncFunction(arcounter.Rt, atomicIncRt, int);
 initAtomicIncFunction(arcounter.Qt, atomicIncQt, int);
@@ -55,18 +34,15 @@ initAtomicDecFunction(arcounter.Ut, atomicDecUt, int);
 initAtomicIncFunction(arcounter.Ct, atomicIncCt, int);
 
 
-
 void _collect(inout Ray ray) {
     vec4 color = max(ray.final, vec4(0.f));
     float amplitude = mlength(color.xyz);
-    //if (amplitude >= 0.00001f) {
-        int idx = atomicIncCt(true);//atomicAdd(arcounter.Ct, 1);
-        int prev = atomicExchange(texelBuf.nodes[ray.texel].EXT.y, idx);
-        ColorChain ch = chBuf.chains[idx];
-        ch.color = vec4(ray.final.xyz, 1.0f);
-        ch.cdata.x = prev;
-        chBuf.chains[idx] = ch;
-    //}
+    int idx = atomicIncCt(true);
+    int prev = atomicExchange(texelBuf.nodes[ray.texel].EXT.y, idx);
+    ColorChain ch = chBuf.chains[idx];
+    ch.color = vec4(ray.final.xyz, 1.0f);
+    ch.cdata.x = prev;
+    chBuf.chains[idx] = ch;
     ray.final.xyzw = vec4(0.0f);
 }
 
@@ -133,7 +109,6 @@ int createRayStrict(inout Ray original, in int idx, in int rayIndex) {
         original.bounce <= 0 || 
         mlength(original.color.xyz) < 0.0001f;
 
-    //if (allInvocationsARB(invalidRay)) {
     if (invalidRay) {
         return rayIndex; 
     }
@@ -171,8 +146,6 @@ int createRayStrict(inout Ray original, in int rayIndex) {
     return createRayStrict(original, original.texel, rayIndex);
 }
 
-
-
 int createRay(inout Ray original, in int idx) {
     bool invalidRay = 
         original.actived < 1 || 
@@ -193,7 +166,7 @@ int createRay(inout Ray original, in int idx) {
         iterations--;
 
         atomicMax(arcounter.Ut, 0); // prevent most decreasing
-        int freed = atomicDecUt(true)-1;
+        int freed = max(atomicDecUt(true)-1, -1);
         atomicMax(arcounter.Ut, 0); // prevent most decreasing
 
         if (
@@ -207,9 +180,8 @@ int createRay(inout Ray original, in int idx) {
         }
     }
 
-    //if (anyInvocationARB(rayIndex == -1)) {
     if (rayIndex == -1) {
-        rayIndex = atomicIncRt(true);//atomicAdd(arcounter.Rt, 1);
+        rayIndex = atomicIncRt(true);
     }
 
     return createRayStrict(original, idx, rayIndex);
