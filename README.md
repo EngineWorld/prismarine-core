@@ -1,6 +1,6 @@
 # OpenGL Ray Tracer (aka. "Paper")
 
-## "Highway" Update (formelly OpenGL 4.6) Mainly Done
+## "Highway" Update (formelly OpenGL 4.6) Mainly Done (06.08.2017)
 
 <img src="logo/highway.png" alt="HighwayUpdate" width="960"/>
 
