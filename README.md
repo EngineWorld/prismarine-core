@@ -11,7 +11,7 @@
 - [ ] Float 16 bit support
 - [ ] Float 64 bit support
 
-## Master Update Announce
+## "Master" Update Announce
 
 <img src="logo/paper.png" alt="MasterUpdate" width="1024"/>
 
