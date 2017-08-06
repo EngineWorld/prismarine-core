@@ -176,20 +176,9 @@ namespace Paper {
         Vc4x4 transform = mat4r;
         Vc4x4 transformInv = mat4r;
 
-        Vc4x4 gTransform = mat4r;
-        Vc4x4 gTransformInv = mat4r;
-
-        Vc4x4 texmatrix = mat4r;
-        Vc4 colormod = vec4r;
-
-        Vc1 offset = 0.0f;
         iVc1 materialID = 0;
         iVc1 triangleCount = 1;
         iVc1 triangleOffset = 0;
-
-        iVc1 unindexed = 0;
-        iVc1 loadOffset = 0;
-        iVc1 NB_mode;
         iVc1 clearDepth = 0;
     };
 

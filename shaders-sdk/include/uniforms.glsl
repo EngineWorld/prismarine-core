@@ -45,20 +45,9 @@ struct GeometryUniformStruct {
     Vc4x4 transform;
     Vc4x4 transformInv;
 
-    Vc4x4 gTransform;
-    Vc4x4 gTransformInv;
-
-    Vc4x4 texmatrix;
-    Vc4 colormod;
-
-    Vc1 offset;
     iVc1 materialID;
     iVc1 triangleCount;
     iVc1 triangleOffset;
-
-    iVc1 unindexed;
-    iVc1 loadOffset;
-    iVc1 NB_mode;
     iVc1 clearDepth;
 };
 
