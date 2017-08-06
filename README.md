@@ -31,6 +31,7 @@
 
 - [ ] Grouping geometry nodes by 32 primitives (expect that it will after morton code sorting stage)
 - [ ] Divide geometry group intersection and BVH traverse stages (for better SIMD coverage)
+- [ ] Sorting by ranging (for better exclusion of triangle hits)
 - [ ] Consideration of trBVH support
 
 ## Details
