@@ -53,7 +53,7 @@ namespace Paper {
             }
 
             void rotate(double angle, double x, double y, double z) {
-                rotate(angle * M_PI / 180.0, glm::dvec3(x, y, z));
+                rotate(angle * glm::pi<double>() / 180.0, glm::dvec3(x, y, z));
             }
         
             void translate(glm::dvec3 offset){
