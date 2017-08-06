@@ -204,36 +204,7 @@ namespace Paper {
         iVc1 interlaceStage;
     };
 
-    struct AttributeUniformStruct {
-        iVc1 vertexOffset = 0;
-        iVc1 normalOffset = 0;
-        iVc1 texcoordOffset = 0;
-        iVc1 lightcoordOffset = 0;
-
-        iVc1 vertexStride = 3;
-        iVc1 normalStride = 3;
-        iVc1 texcoordStride = 2;
-        iVc1 lightcoordStride = 2;
-
-        iVc1 colorOffset = 0;
-        iVc1 stride = 3;
-        iVc1 mode = 0;
-        iVc1 colorFormat = 0;
-
-        iVc1 haveColor = 0;
-        iVc1 haveNormal = 0;
-        iVc1 haveTexcoord = 0;
-        iVc1 haveLightcoord = 0;
-
-        // for future shaders
-        iVc4 iModifiers0 = ivec4r;
-        iVc4 iModifiers1 = ivec4r;
-        Vc4 fModifiers0 = vec4r;
-        Vc4 fModifiers1 = vec4r;
-    };
-
     struct GeometryBlockUniform {
-        AttributeUniformStruct attributeUniform = AttributeUniformStruct();
         GeometryUniformStruct geometryUniform = GeometryUniformStruct();
     };
 
@@ -242,6 +213,40 @@ namespace Paper {
         CameraUniformStruct cameraUniform = CameraUniformStruct();
         MaterialUniformStruct materialUniform = MaterialUniformStruct();
     };
+
+
+
+
+
+    struct MeshUniformStruct {
+        GLint vertexAccessor = -1;
+        GLint normalAccessor = -1;
+        GLint texcoordAccessor = -1;
+        GLint modifierAccessor = -1;
+
+        glm::mat4 transform;
+        glm::mat4 transformInv;
+
+        GLint materialID = 0;
+        GLint isIndexed = 0;
+        GLint nodeCount = 1;
+        GLint primitiveType = 0;
+
+        GLint loadingOffset = 0;
+        GLint storingOffset = 0;
+        GLint _reserved0 = 1;
+        GLint _reserved1 = 2;
+    };
+
+
+    struct VirtualAccessor {
+        GLint offset = 0;
+        GLint stride = 1;
+        GLint components = 1;
+        GLint type = 0; // 0 is float, 1 is uint, 2 is 16bit uint
+    };
+
+
 
 
 }

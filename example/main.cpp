@@ -252,33 +252,34 @@ namespace PaperExample {
                 // make attributes
                 std::map<std::string, int>::const_iterator it(prim.attributes.begin());
                 std::map<std::string, int>::const_iterator itEnd(prim.attributes.end());
-
-                geom->attributeUniformData.haveTexcoord = false;
-                geom->attributeUniformData.haveNormal = false;
-                geom->attributeUniformData.mode = 0;
-                geom->attributeUniformData.stride = 0;
-
+                
                 // load modern mode
                 for(auto const &it : prim.attributes) {
                     tinygltf::Accessor &accessor = gltfModel.accessors[it.second];
                     auto& bufferView = gltfModel.bufferViews[accessor.bufferView];
 
+                    // virtual accessor template
+                    Paper::VirtualAccessor vattr;
+                    vattr.offset = (accessor.byteOffset + bufferView.byteOffset) / 4;
+                    vattr.stride = (bufferView.byteStride / 4);
+
+                    // vertex
                     if (it.first.compare("POSITION") == 0) { // vertices
-                        geom->attributeUniformData.vertexOffset = (accessor.byteOffset + bufferView.byteOffset) / 4;
-                        geom->attributeUniformData.vertexStride = (bufferView.byteStride / 4);
+                        vattr.components = 3;
                         geom->setVertices(glBuffers[bufferView.buffer]);
+                        geom->setVertexAccessor(geom->addVirtualAccessor(vattr));
                     } else
                     
+                    // normal
                     if (it.first.compare("NORMAL") == 0) {
-                        geom->attributeUniformData.haveNormal = true;
-                        geom->attributeUniformData.normalOffset = (accessor.byteOffset + bufferView.byteOffset) / 4;
-                        geom->attributeUniformData.normalStride = (bufferView.byteStride / 4);
+                        vattr.components = 3;
+                        geom->setNormalAccessor(geom->addVirtualAccessor(vattr));
                     } else
                     
+                    // texcoord
                     if (it.first.compare("TEXCOORD_0") == 0) {
-                        geom->attributeUniformData.haveTexcoord = true;
-                        geom->attributeUniformData.texcoordOffset = (accessor.byteOffset + bufferView.byteOffset) / 4;
-                        geom->attributeUniformData.texcoordStride = (bufferView.byteStride / 4);
+                        vattr.components = 2;
+                        geom->setTexcoordAccessor(geom->addVirtualAccessor(vattr));
                     }
                 }
 
@@ -290,7 +291,9 @@ namespace PaperExample {
                     geom->setIndices(glBuffers[bufferView.buffer]);
 
                     bool isInt16 = idcAccessor.componentType == TINYGLTF_COMPONENT_TYPE_SHORT || idcAccessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT;
-                    geom->setLoadingOffset((bufferView.byteOffset + idcAccessor.byteOffset) / (isInt16 ? 2 : 4));
+
+                    int32_t loadingOffset = (bufferView.byteOffset + idcAccessor.byteOffset) / (isInt16 ? 2 : 4);
+                    geom->setLoadingOffset(loadingOffset);
                     geom->setIndexed(true);
 
                     // is 16-bit indices?

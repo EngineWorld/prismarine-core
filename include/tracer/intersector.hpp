@@ -46,7 +46,6 @@ namespace Paper {
 
         // uniforms
         GeometryUniformStruct geometryUniformData;
-        AttributeUniformStruct attributeUniformData;
 
 
         GLuint aabbCounter = -1;

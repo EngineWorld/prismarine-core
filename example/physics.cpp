@@ -142,16 +142,29 @@ namespace PaperExample {
                 glCreateBuffers(1, &glBuf);
                 glNamedBufferData(glBuf, rawMeshData.size() * sizeof(float), rawMeshData.data(), GL_STATIC_DRAW);
 
+
+                // virtual accessor template
+                Paper::VirtualAccessor vattr;
+                vattr.offset = 0;
+                vattr.stride = 8;
+
+
+
                 uint32_t stride = 8;
                 deviceHandle = new Paper::Mesh();
-                deviceHandle->attributeUniformData.texcoordOffset = 6;
-                deviceHandle->attributeUniformData.normalOffset = 3;
-                deviceHandle->attributeUniformData.vertexOffset = 0;
-                deviceHandle->attributeUniformData.texcoordStride = stride;
-                deviceHandle->attributeUniformData.normalStride = stride;
-                deviceHandle->attributeUniformData.vertexStride = stride;
-                deviceHandle->attributeUniformData.haveTexcoord = true;
-                deviceHandle->attributeUniformData.haveNormal = true;
+
+                vattr.offset = 0;
+                vattr.components = 3;
+                deviceHandle->setVertexAccessor(deviceHandle->addVirtualAccessor(vattr));
+
+                vattr.offset = 3;
+                vattr.components = 3;
+                deviceHandle->setNormalAccessor(deviceHandle->addVirtualAccessor(vattr));
+
+                vattr.offset = 6;
+                vattr.components = 2;
+                deviceHandle->setTexcoordAccessor(deviceHandle->addVirtualAccessor(vattr));
+
                 deviceHandle->setIndexed(false);
                 deviceHandle->setVertices(glBuf);
                 deviceHandle->setNodeCount(rawMeshData.size() / stride / 3);

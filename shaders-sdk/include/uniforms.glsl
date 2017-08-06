@@ -83,34 +83,6 @@ struct CameraUniformStruct {
     iVc1 interlaceStage;
 };
 
-struct AttributeUniformStruct {
-    iVc1 vertexOffset;
-    iVc1 normalOffset;
-    iVc1 texcoordOffset;
-    iVc1 lightcoordOffset;
-
-    iVc1 vertexStride;
-    iVc1 normalStride;
-    iVc1 texcoordStride;
-    iVc1 lightcoordStride;
-
-    iVc1 colorOffset;
-    iVc1 stride;
-    iVc1 mode;
-    iVc1 colorFormat;
-
-    iVc1 haveColor;
-    iVc1 haveNormal;
-    iVc1 haveTexcoord;
-    iVc1 haveLightcoord;
-
-    // for future shaders
-    iVc4 iModifiers0;
-    iVc4 iModifiers1;
-    Vc4 fModifiers0;
-    Vc4 fModifiers1;
-};
-
 layout ( std430, binding = 12 ) readonly buffer LightUniform {
     LightUniformStruct lightNode[];
 } lightUniform;
@@ -122,7 +94,6 @@ layout ( std430, binding = 13 ) readonly buffer RayBlockUniform {
 } rayBlock; 
 
 layout ( std430, binding = 14 ) readonly buffer GeometryBlockUniform {
-    AttributeUniformStruct attributeUniform;
     GeometryUniformStruct geometryUniform;
 } geometryBlock;
 

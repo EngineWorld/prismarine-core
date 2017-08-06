@@ -79,7 +79,6 @@ namespace Paper {
 
     inline void Intersector::syncUniforms() {
         geometryBlockData.geometryUniform = geometryUniformData;
-        geometryBlockData.attributeUniform = attributeUniformData;
         glNamedBufferSubData(geometryBlockUniform, 0, strided<GeometryBlockUniform>(1), &geometryBlockData);
 
         this->bindUniforms();
@@ -134,27 +133,15 @@ namespace Paper {
     }
 
     inline void Intersector::loadMesh(Mesh * gobject) {
-        if (!gobject || gobject->nodeCount  <= 0) return;
+        if (!gobject || gobject->meshUniformData.nodeCount <= 0) return;
 
-        geometryUniformData.unindexed = gobject->unindexed;
-        geometryUniformData.loadOffset = gobject->offset;
-        geometryUniformData.materialID = gobject->materialID;
-        geometryUniformData.triangleCount = gobject->nodeCount;
-        geometryUniformData.texmatrix = *(Vc4x4 *)glm::value_ptr(gobject->texmat);
-        geometryUniformData.colormod = *(Vc4 *)glm::value_ptr(gobject->colormod);
-        geometryUniformData.offset = gobject->voffset;
-        attributeUniformData = gobject->attributeUniformData;
-
-        gobject->bind();
-        this->bind();
-        this->syncUniforms();
-
-        glCopyNamedBufferSubData(gobject->transformBuffer, geometryBlockUniform, 0, offsetof(GeometryBlockUniform, geometryUniform) + offsetof(GeometryUniformStruct, gTransform), sizeof(glm::mat4)*2);
-        glCopyNamedBufferSubData(tcounter, geometryBlockUniform, 0, offsetof(GeometryBlockUniform, geometryUniform) + offsetof(GeometryUniformStruct, triangleOffset), sizeof(uint32_t));
+        glCopyNamedBufferSubData(tcounter, gobject->meshUniformBuffer, 0, offsetof(MeshUniformStruct, storingOffset), sizeof(uint32_t));
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, tcounter);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, mat_triangle_ssbo_upload);
 
-        //dispatch(gobject->index16bit ? geometryLoaderProgramI16 : geometryLoaderProgram2, tiled(gobject->nodeCount, worksize));
+        this->bind();
+        gobject->bind();
+
         dispatchIndirect(gobject->index16bit ? geometryLoaderProgramI16 : geometryLoaderProgram2, gobject->indirect_dispatch_buffer);
         markDirty();
 

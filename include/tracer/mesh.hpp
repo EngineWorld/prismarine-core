@@ -11,45 +11,26 @@ namespace Paper {
             glCreateBuffers(1, &indirect_dispatch_buffer);
             glNamedBufferData(indirect_dispatch_buffer, sizeof(dispatchData), dispatchData, GL_DYNAMIC_DRAW);
 
-            glm::mat4 matrices[2] = { glm::transpose(trans), glm::transpose(glm::inverse(trans)) };
-            glCreateBuffers(1, &transformBuffer);
-            glNamedBufferData(transformBuffer, sizeof(glm::mat4)*2, matrices, GL_DYNAMIC_DRAW);
+            glCreateBuffers(1, &meshUniformBuffer);
+            glNamedBufferData(meshUniformBuffer, sizeof(MeshUniformStruct), &meshUniformData, GL_STATIC_DRAW);
+
+            glCreateBuffers(1, &meshAccessorsBuffer);
         }
         friend Intersector;
 
-    private:
-        GLuint vbo_triangle_ssbo = -1;
-        GLuint mat_triangle_ssbo = -1;
-        GLuint vebo_triangle_ssbo = -1;
-        GLuint indirect_dispatch_buffer = -1;
+        int32_t addVirtualAccessor(VirtualAccessor accessorDesc) {
+            int32_t accessorPtr = meshAccessors.size();
+            meshAccessors.push_back(accessorDesc);
+            glNamedBufferData(meshAccessorsBuffer, meshAccessors.size() * sizeof(VirtualAccessor), meshAccessors.data(), GL_STATIC_DRAW);
+            return accessorPtr;
+        }
 
 
-        GLuint transformBuffer = -1;
-
-
-        glm::mat4 texmat = glm::mat4(1.0f);
-        glm::mat4 trans = glm::mat4(1.0f);
-        glm::vec4 colormod = glm::vec4(1.0f);
-
-        int32_t materialID = 0;
-        int32_t unindexed = 1;
-        int32_t offset = 0;
-        size_t nodeCount = 0;
-        float voffset = 0;
-        bool index16bit = false;
-
-    public:
-        
-        AttributeUniformStruct attributeUniformData;
         size_t getNodeCount();
         void setNodeCount(size_t tcount);
-        void setVerticeOffset(float voff);
-        void setColorModifier(glm::vec4 color);
         void setMaterialOffset(int32_t id);
         void useIndex16bit(bool b16);
-
-        void setTransform(const glm::mat4 &t);
-        void setTransformTexcoord(const glm::mat4 &t);
+        void setTransform(glm::mat4 t);
 
         void setIndexed(const int32_t b);
         void setVertices(const GLuint &buf);
@@ -57,6 +38,52 @@ namespace Paper {
         void setLoadingOffset(const int32_t &off);
 
         void bind();
+
+
+        // setting of accessors
+
+        void setVertexAccessor(int32_t accessorID) {
+            meshUniformData.vertexAccessor = accessorID;
+            syncUniform();
+        }
+
+        void setNormalAccessor(int32_t accessorID) {
+            meshUniformData.normalAccessor = accessorID;
+            syncUniform();
+        }
+
+        void setTexcoordAccessor(int32_t accessorID) {
+            meshUniformData.texcoordAccessor = accessorID;
+            syncUniform();
+        }
+
+        void setModifierAccessor(int32_t accessorID) {
+            meshUniformData.modifierAccessor = accessorID;
+            syncUniform();
+        }
+
+
+
+    private:
+        bool index16bit = false;
+
+        GLuint vbo_triangle_ssbo = -1;
+        GLuint mat_triangle_ssbo = -1;
+        GLuint vebo_triangle_ssbo = -1;
+        GLuint indirect_dispatch_buffer = -1;
+        
+        MeshUniformStruct meshUniformData;
+        std::vector<VirtualAccessor> meshAccessors;
+
+        GLuint meshUniformBuffer = -1;
+        GLuint meshAccessorsBuffer = -1;
+
+        void syncUniform() {
+            glNamedBufferData(meshUniformBuffer, sizeof(MeshUniformStruct), &meshUniformData, GL_STATIC_DRAW);
+        }
+
+
+
     };
 }
 

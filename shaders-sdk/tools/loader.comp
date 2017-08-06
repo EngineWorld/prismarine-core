@@ -2,9 +2,38 @@
 
 #include "../include/constants.glsl"
 #include "../include/structs.glsl"
-#include "../include/uniforms.glsl"
+//#include "../include/uniforms.glsl"
 //#include "../include/vertex.glsl"
 #include "../include/STOmath.glsl"
+
+
+struct MeshUniformStruct {
+    int vertexAccessor;
+    int normalAccessor;
+    int texcoordAccessor;
+    int modifierAccessor;
+
+    mat4 transform;
+    mat4 transformInv;
+
+    int materialID;
+    int isIndexed;
+    int nodeCount;
+    int primitiveType;
+
+    int loadingOffset;
+    int storingOffset;
+    int _reserved0;
+    int _reserved1;
+};
+
+struct VirtualAccessor {
+    int offset;
+    int stride;
+    int components;
+    int type; // 0 is float, 1 is uint, 2 is 16bit uint
+};
+
 
 #if defined(ENABLE_AMD_INSTRUCTION_SET) || defined(ENABLE_NVIDIA_INSTRUCTION_SET)
 #define INDEX16 uint16_t
@@ -33,10 +62,40 @@ layout ( std430, binding = 2 ) readonly buffer InputVertexIndicesSSBO {INDICE_T 
 layout ( std430, binding = 3 ) readonly buffer InputMaterialsSSBO {int imats[];};
 layout ( std430, binding = 4 ) restrict buffer GeomMaterialsSSBO {int mats[];};
 
+layout ( std430, binding = 6 ) readonly buffer IMeshUniform {MeshUniformStruct meshUniform;};
+layout ( std430, binding = 7 ) readonly buffer IMeshAccessors {VirtualAccessor meshAccessors[];};
+
+
 layout ( binding = 0, rgba32f) uniform image2D vertex_texture;
 layout ( binding = 1, rgba32f) uniform image2D normal_texture;
 layout ( binding = 2, rgba32f) uniform image2D texcoords_texture;
 layout ( binding = 3, rgba32f) uniform image2D modifiers_texture;
+
+
+
+
+
+vec4 readByAccessor(in VirtualAccessor accessors, in uint idx){
+    uint stride = accessors.stride > 0 ? accessors.stride : accessors.components;
+    vec4 data = vec4(
+        accessors.components >= 1 ? iverts[idx * stride + accessors.offset + 0] : 0,
+        accessors.components >= 2 ? iverts[idx * stride + accessors.offset + 1] : 0,
+        accessors.components >= 3 ? iverts[idx * stride + accessors.offset + 2] : 0,
+        accessors.components >= 4 ? iverts[idx * stride + accessors.offset + 3] : 0
+    );
+    return data;
+}
+
+
+
+
+
+
+
+
+
+
+
 
 ivec2 gatherMosaic(in ivec2 uniformCoord){
     return ivec2(uniformCoord.x * 3 + uniformCoord.y % 3, uniformCoord.y);
@@ -55,84 +114,60 @@ ivec2 mosaicIdc(in ivec2 mosaicCoord, in int idc){
 
 void main()
 {
-    if (gl_GlobalInvocationID.x >= GEOMETRY_BLOCK geometryUniform.triangleCount) return;
+    if (gl_GlobalInvocationID.x >= meshUniform.nodeCount) return;
 
     const int ctriangle = int(gl_GlobalInvocationID.x);
-    //const int matID = GEOMETRY_BLOCK geometryUniform.materialID;
-    const int matID = imats[ctriangle] + GEOMETRY_BLOCK geometryUniform.materialID;
+    const int matID = imats[ctriangle] + meshUniform.materialID;
     vec3 vertice[4] = {vec3(0.0f), vec3(0.0f), vec3(0.0f), vec3(0.0f)};
     vec3 normal[4] = {vec3(0.0f), vec3(0.0f), vec3(0.0f), vec3(0.0f)};
     vec4 texcoord[4] = {vec4(0.0f), vec4(0.0f), vec4(0.0f), vec4(0.0f)};
     vec4 colors[4] = {vec4(0.0f), vec4(0.0f), vec4(0.0f), vec4(0.0f)};
     vec4 mods[4] = {vec4(0.0f), vec4(0.0f), vec4(0.0f), vec4(0.0f)};
 
-    const int mode = GEOMETRY_BLOCK attributeUniform.mode;
+    const int mode = meshUniform.primitiveType;
+
     const int trp = mode == 1 ? 4 : 3;
     for(int i=0;i<trp;i++){
         const uint ctri = ctriangle * trp + i;
-        const uint ptri = uint(GEOMETRY_BLOCK geometryUniform.loadOffset) + ctri;
-        const uint vindices = GEOMETRY_BLOCK geometryUniform.unindexed == 1 ? ptri : uint( PICK(vindics, ptri) );
+        const uint ptri = uint(meshUniform.loadingOffset) + ctri;
+        const uint vindices = meshUniform.isIndexed == 0 ? ptri : uint( PICK(vindics, ptri) );
 
         vec3 vpos = vec3(0.0f);
         vec4 vtex = vec4(0.0f);
         vec3 vnorm = vec3(0.0f);
+        vec4 modif = vec4(0.0f);
         vec4 color = vec4(1.0f);
-        vec4 modf = vec4(0.0f);
-        vec2 ml = vec2(0.0f);
-        vec2 lt = vec2(0.0f);
-        vec2 tx = vec2(0.0f);
 
-        {
-            const bool is2D = GEOMETRY_BLOCK attributeUniform.iModifiers0.z == 1;
-            const uint vstride = (GEOMETRY_BLOCK attributeUniform.vertexStride) <= 0 ? (is2D ? 2 : 3) : (GEOMETRY_BLOCK attributeUniform.vertexStride);
-            vpos = vec3(
-                iverts[(vindices) * vstride + GEOMETRY_BLOCK attributeUniform.vertexOffset + 0],
-                iverts[(vindices) * vstride + GEOMETRY_BLOCK attributeUniform.vertexOffset + 1],
-
-                // Z-coordinate
-                is2D ? 0.00001f :
-                iverts[(vindices) * vstride + GEOMETRY_BLOCK attributeUniform.vertexOffset + 2]
-            );
-
-            if (GEOMETRY_BLOCK attributeUniform.haveNormal > 0) {
-                const uint nstride = (GEOMETRY_BLOCK attributeUniform.normalStride) <= 0 ? 3 : (GEOMETRY_BLOCK attributeUniform.normalStride);
-                vnorm = vec3(
-                    iverts[(vindices) * nstride + GEOMETRY_BLOCK attributeUniform.normalOffset + 0],
-                    iverts[(vindices) * nstride + GEOMETRY_BLOCK attributeUniform.normalOffset + 1],
-                    iverts[(vindices) * nstride + GEOMETRY_BLOCK attributeUniform.normalOffset + 2]
-                );
-            }
-            
-            if (GEOMETRY_BLOCK attributeUniform.haveTexcoord > 0) {
-                const uint tstride = (GEOMETRY_BLOCK attributeUniform.texcoordStride) <= 0 ? 2 : (GEOMETRY_BLOCK attributeUniform.texcoordStride);
-                tx.x = iverts[(vindices) * tstride + GEOMETRY_BLOCK attributeUniform.texcoordOffset + 0];
-                tx.y = iverts[(vindices) * tstride + GEOMETRY_BLOCK attributeUniform.texcoordOffset + 1];
-#ifdef INVERT_TX_Y
-                tx.y = 1.0f - tx.y; // invert Y
-#endif
-            }
-            
-            vec4 txf = vec4(tx.xy, 0.0f, 1.0f) * GEOMETRY_BLOCK geometryUniform.texmatrix;
-            txf /= txf.w;
-
-            vtex = vec4(txf.xy, lt);
-            modf = vec4(ml, vec2(0.0f));
+        { // vertex accessor are required
+            vpos.xyz = readByAccessor(meshAccessors[meshUniform.vertexAccessor], vindices).xyz;
         }
+        if (meshUniform.normalAccessor != -1) {
+            vnorm.xyz = readByAccessor(meshAccessors[meshUniform.normalAccessor], vindices).xyz;
+        }
+        if (meshUniform.modifierAccessor != -1) {
+            modif = readByAccessor(meshAccessors[meshUniform.modifierAccessor], vindices);
+        }
+        if (meshUniform.texcoordAccessor != -1) {
+            vtex.xy = readByAccessor(meshAccessors[meshUniform.texcoordAccessor], vindices).xy;
+        }
+#ifdef INVERT_TX_Y
+        vtex.y = 1.0f - vtex.y; // invert Y
+#endif
 
-        vec4 normalf  = mult4(vec4(vnorm, 0.0f), GEOMETRY_BLOCK geometryUniform.gTransformInv);
-        vec4 verticef = mult4(vec4(vpos , 1.0f), GEOMETRY_BLOCK geometryUniform.gTransform);
+        vec4 normalf  = mult4(vec4(vnorm, 0.0f), meshUniform.transformInv);
+        vec4 verticef = mult4(vec4(vpos , 1.0f), meshUniform.transform);
         verticef.xyz /= verticef.w;
 
         vertice[i] = verticef.xyz;
         normal[i] = normalf.xyz;
         texcoord[i] = vtex;
         colors[i] = color;
-        mods[i] = modf;
+        mods[i] = modif;
     }
 
     // adapt quads to triangles
     const int istride = mode == 1 ? 2 : 1;
-    int tidc = GEOMETRY_BLOCK geometryUniform.triangleOffset + int(gl_GlobalInvocationID.x) * istride;
+    int tidc = meshUniform.storingOffset + int(gl_GlobalInvocationID.x) * istride;
     atomicAdd(tcounter[0], istride);
 
     vec3 offsetnormal = normalize(cross(vertice[1] - vertice[0], vertice[2] - vertice[0]));
@@ -140,12 +175,12 @@ void main()
         mats[tidc] = matID;
         for (int i=0;i<3;i++) {
             ivec2 mosaicCoord = mosaicIdc(gatherMosaic(getUniformCoord(tidc)), i);
-            if (mlength(abs(normal[i])) >= 0.00001f && GEOMETRY_BLOCK attributeUniform.haveNormal > 0) {
+            if (mlength(abs(normal[i])) >= 0.00001f && meshUniform.normalAccessor != -1) {
                 imageStore(normal_texture, mosaicCoord, vec4(normalize(normal[i]), 1.0f));
             } else {
                 imageStore(normal_texture, mosaicCoord, vec4(normalize(offsetnormal.xyz), 1.0f));
             }
-            imageStore(vertex_texture, mosaicCoord, vec4(vertice[i] + offsetnormal * GEOMETRY_BLOCK geometryUniform.offset, 1.0f));
+            imageStore(vertex_texture, mosaicCoord, vec4(vertice[i], 1.0f));
             imageStore(texcoords_texture, mosaicCoord, vec4(texcoord[i]));
             imageStore(modifiers_texture, mosaicCoord, vec4(mods[i]));
         }
@@ -155,14 +190,14 @@ void main()
         tidc += 1;
         mats[tidc] = matID;
         for (int i=0;i<3;i++) {
-            const int mi = (GEOMETRY_BLOCK attributeUniform.iModifiers0.w > 0 ? ms : m)[i];
+            const int mi = m[i];
             ivec2 mosaicCoord = mosaicIdc(gatherMosaic(getUniformCoord(tidc)), i);
-            if (mlength(abs(normal[mi])) >= 0.00001f && GEOMETRY_BLOCK attributeUniform.haveNormal > 0) {
+            if (mlength(abs(normal[mi])) >= 0.00001f && meshUniform.normalAccessor != -1) {
                 imageStore(normal_texture, mosaicCoord, vec4(normalize(normal[mi]), 1.0f));
             } else {
                 imageStore(normal_texture, mosaicCoord, vec4(normalize(offsetnormal.xyz), 1.0f));
             }
-            imageStore(vertex_texture, mosaicCoord, vec4(vertice[mi] + offsetnormal * GEOMETRY_BLOCK geometryUniform.offset, 1.0f));
+            imageStore(vertex_texture, mosaicCoord, vec4(vertice[mi], 1.0f));
             imageStore(texcoords_texture, mosaicCoord, vec4(texcoord[mi]));
             imageStore(modifiers_texture, mosaicCoord, vec4(mods[mi]));
         }
