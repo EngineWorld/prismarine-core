@@ -299,8 +299,6 @@ namespace Paper {
     }
 
     inline void Tracer::camera(const glm::mat4 &persp, const glm::mat4 &frontSide) {
-        glFlush();
-
         clearRays();
 
         materialUniformData.time = rand();

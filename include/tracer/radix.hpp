@@ -63,8 +63,6 @@ namespace Paper {
                 glCopyNamedBufferSubData(OutKeys, InKeys, 0, 0, strided<uint32_t>(size));
                 glCopyNamedBufferSubData(OutValues, InVals, 0, 0, strided<uint32_t>(size));
             }
-
-            glFlush();
         }
 
     };
