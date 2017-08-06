@@ -3,18 +3,6 @@
 #include "includes.hpp"
 
 namespace Paper {
-    const int32_t kW = 0;
-    const int32_t kA = 1;
-    const int32_t kS = 2;
-    const int32_t kD = 3;
-    const int32_t kQ = 4;
-    const int32_t kE = 5;
-    const int32_t kSpc = 6;
-    const int32_t kSft = 7;
-    const int32_t kC = 8;
-    const int32_t kK = 9;
-    const int32_t kM = 10;
-
     class PTObject {};
     class Tracer;
     class Intersector;
