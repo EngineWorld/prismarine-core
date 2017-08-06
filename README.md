@@ -14,7 +14,7 @@
 - [ ] Support of accessor buffers
 - [ ] Improved support of storing constants
 - [ ] Fully device memory based storing and copying, when loading mesh
-- [?] Advanced optimization
+- [ ] Advanced optimization
 
 ## Details
 
