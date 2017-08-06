@@ -408,7 +408,6 @@ namespace Paper {
         bound.mn = glm::min(obj->bound.mn, bound.mn);
         bound.mx = glm::max(obj->bound.mx, bound.mx);
 
-        obj->configureIntersection(clearDepth);
         obj->bind();
         obj->bindBVH();
         this->bind();

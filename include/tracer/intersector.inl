@@ -127,7 +127,6 @@ namespace Paper {
     }
 
     inline void Intersector::configureIntersection(bool clearDepth) {
-        this->geometryUniformData.triangleCount = this->triangleCount;
         this->geometryUniformData.clearDepth = clearDepth;
         this->syncUniforms();
     }
@@ -233,5 +232,9 @@ namespace Paper {
 
         dispatch(buildProgramH, 1);
         dispatch(refitProgramH, tiled(triangleCount, worksize));
+
+        // set back triangle count
+        this->geometryUniformData.triangleCount = this->triangleCount;
+        this->syncUniforms();
     }
 }
