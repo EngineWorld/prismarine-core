@@ -11,9 +11,9 @@
 
 <img src="logo/paper.png" alt="MasterUpdate" width="1024"/>
 
-- [ ] Support of accessor buffers
+- [x] Support of accessor buffers
+- [x] Fully device memory based storing and copying, when loading mesh
 - [ ] Improved support of storing constants
-- [ ] Fully device memory based storing and copying, when loading mesh
 - [ ] Advanced optimization
 
 ## Details
