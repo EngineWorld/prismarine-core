@@ -1,14 +1,20 @@
 # OpenGL Ray Tracer (aka. "Paper")
 
-## OpenGL 4.6 Teaser
-
-<img src="logo/opengl46_preview.png" alt="OpenGL46" width="640"/>
+## OpenGL 4.6 Mainly Done
 
 - [x] Use compatible library with OpenGL 4.6
 - [x] Change shading language version to *460*
 - [x] OpenGL 4.6 group vote in traverse code
 - [x] Extended SPIR-V support
-- [ ] Memory objects and semaphores extensions
+
+## Master Update Announce
+
+<img src="logo/paper.png" alt="MasterUpdate" width="1024"/>
+
+- [ ] Support of accessor buffers
+- [ ] Improved support of storing constants
+- [ ] Fully device memory based storing and copying, when loading mesh
+- [?] Advanced optimization
 
 ## Details
 
