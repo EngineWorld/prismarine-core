@@ -13,7 +13,7 @@
 - [ ] Float 16 bit support
 - [ ] Float 64 bit support
 
-## "Master" Update (low level API) WIP (??.08.2017)
+## "Master" Update (low level API, bug fixing, tweaks) WIP (??.08.2017)
 
 <img src="logo/paper.png" alt="MasterUpdate" width="1024"/>
 
