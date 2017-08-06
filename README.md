@@ -41,7 +41,7 @@
 
 ## Requirement
 
-- OpenGL 4.5 with extensions :)
+- OpenGL 4.6 with extensions :)
 - Latest CMake
 
 ## Building 
