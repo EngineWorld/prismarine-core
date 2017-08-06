@@ -108,7 +108,7 @@ void main() {
                         uint leafID = MortoncodesIndices[childNode.pdata.x];
 
                         // make leafs
-                        Leaf ourLeaf = Leafs[leafID];
+                        HlbvhNode ourLeaf = Leafs[leafID];
                         ourLeaf.pdata.z = int(hid);
                         Leafs[leafID] = ourLeaf;
 

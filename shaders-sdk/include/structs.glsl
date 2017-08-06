@@ -135,11 +135,6 @@ struct Hit {
     iVc1 shaded;
 };
 
-struct Leaf {
-    bbox box;
-    iVc4 pdata;
-};
-
 struct HlbvhNode {
     bbox box;
 #ifdef USE_WARP_OPTIMIZED

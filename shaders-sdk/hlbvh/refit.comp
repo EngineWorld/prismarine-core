@@ -14,11 +14,11 @@ void main() {
         HlbvhNode nd = Nodes[idx];
         for(int i=0;i<256;i++) {
             idx = nd.pdata.z;
-            if (idx <= 0) break; 
+            if (idx < 0) break; 
 
             nd = Nodes[idx];
             int tmp = atomicCompSwap(Flags[idx], 0, 1);
-            if (tmp == 1) {
+            if (tmp == 1 && nd.pdata.x != nd.pdata.y) {
                 HlbvhNode ln = Nodes[nd.pdata.x];
                 HlbvhNode rn = Nodes[nd.pdata.y];
                 bbox bound = nd.box;
@@ -29,6 +29,8 @@ void main() {
             } else {
                 break;
             }
+
+            if (idx <= 0) break;
         }
     }
 }

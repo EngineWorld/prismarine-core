@@ -71,7 +71,7 @@ namespace Paper {
         bvhflagsBuffer = allocateBuffer<uint32_t>(maxt * 2);
         mortonBuffer = allocateBuffer<uint32_t>(maxt * 1);
         mortonBufferIndex = allocateBuffer<uint32_t>(maxt * 1);
-        leafBuffer = allocateBuffer<Leaf>(maxt * 1);
+        leafBuffer = allocateBuffer<HlbvhNode>(maxt * 1);
         activeBuffer = allocateBuffer<uint32_t>(maxt * 2);
 
         clearTribuffer();

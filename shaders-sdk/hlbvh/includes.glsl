@@ -12,7 +12,7 @@ layout ( std430, binding = 2 ) readonly buffer NumBlock {
 };
 
 layout ( std430, binding = 3 ) restrict buffer LeafBlock {
-    Leaf Leafs[];
+    HlbvhNode Leafs[];
 };
 
 // BVH nodes

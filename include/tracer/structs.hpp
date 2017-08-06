@@ -108,13 +108,7 @@ namespace Paper {
 
     struct Texel {
         Vc4 coord;
-        //Vc4 samplecolor;
         iVc4 EXT;
-    };
-
-    struct Leaf {
-        bbox box;
-        iVc4 pdata;
     };
 
     struct HlbvhNode {
