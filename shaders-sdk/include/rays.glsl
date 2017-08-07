@@ -24,6 +24,10 @@ layout ( std430, binding = 8 ) restrict buffer CounterBlock {
     int Qt; // next available ptr 
     int Ut; // free list counter
     int Ct; // color chain list counter
+
+    // traverser counters
+    int Ft;
+    int Gt; 
 } arcounter;
 
 
@@ -32,7 +36,8 @@ initAtomicIncFunction(arcounter.Rt, atomicIncRt, int);
 initAtomicIncFunction(arcounter.Qt, atomicIncQt, int);
 initAtomicDecFunction(arcounter.Ut, atomicDecUt, int);
 initAtomicIncFunction(arcounter.Ct, atomicIncCt, int);
-
+initAtomicIncFunction(arcounter.Ft, atomicIncFt, int);
+initAtomicIncFunction(arcounter.Gt, atomicIncGt, int);
 
 void _collect(inout Ray ray) {
     vec4 color = max(ray.final, vec4(0.f));
@@ -171,8 +176,8 @@ int createRay(inout Ray original, in int idx) {
 
         if (
             freed >= 0 && 
-            availBuf.indc[freed] != 0xFFFFFFFF && 
             availBuf.indc[freed] != 0 && 
+            availBuf.indc[freed] != LONGEST && 
             availBuf.indc[freed] != -1
         ) {
             rayIndex = availBuf.indc[freed];

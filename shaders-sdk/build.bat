@@ -33,7 +33,8 @@ call glslc %CMPPROF% %INDIR%%RNDR%sampler.comp       %CFLAGS% -o %OUTDIR%%RNDR%s
 call glslc %CMPPROF% %INDIR%%RNDR%testmat.comp       %CFLAGS% -o %OUTDIR%%RNDR%testmat.comp
 call glslc %CMPPROF% %INDIR%%RNDR%testmat-rt.comp    %CFLAGS% -o %OUTDIR%%RNDR%testmat-rt.comp
 call glslc %CMPPROF% %INDIR%%RNDR%quantizer.comp     %CFLAGS% -o %OUTDIR%%RNDR%quantizer.comp
-call glslc %CMPPROF% %INDIR%%RNDR%intersection.comp  %CFLAGS% -o %OUTDIR%%RNDR%intersection.comp
+call glslc %CMPPROF% %INDIR%%RNDR%traverse.comp      %CFLAGS% -o %OUTDIR%%RNDR%traverse.comp
+call glslc %CMPPROF% %INDIR%%RNDR%resolver.comp      %CFLAGS% -o %OUTDIR%%RNDR%resolver.comp
 
 call glslc %CMPPROF% %INDIR%%HLBV%aabbmaker.comp     %CFLAGS% -o %OUTDIR%%HLBV%aabbmaker.comp
 call glslc %CMPPROF% %INDIR%%HLBV%build.comp         %CFLAGS% -o %OUTDIR%%HLBV%build.comp

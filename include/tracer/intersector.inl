@@ -136,10 +136,11 @@ namespace Paper {
 
         glCopyNamedBufferSubData(tcounter, gobject->meshUniformBuffer, 0, offsetof(MeshUniformStruct, storingOffset), sizeof(uint32_t));
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, tcounter);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, mat_triangle_ssbo_upload);
 
         this->bind();
         gobject->bind();
+
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 10, mat_triangle_ssbo_upload);
 
         dispatchIndirect(gobject->index16bit ? geometryLoaderProgramI16 : geometryLoaderProgram2, gobject->indirect_dispatch_buffer);
         markDirty();
@@ -173,6 +174,7 @@ namespace Paper {
         glCopyImageSubData(vbo_texcoords_textrue_upload, GL_TEXTURE_2D, 0, 0, 0, 0, vbo_texcoords_textrue, GL_TEXTURE_2D, 0, 0, 0, 0, 3072, (this->triangleCount > 0 ? (this->triangleCount - 1) / 1023 + 1 : 0) + 1, 1);
         glCopyImageSubData(vbo_modifiers_textrue_upload, GL_TEXTURE_2D, 0, 0, 0, 0, vbo_modifiers_textrue, GL_TEXTURE_2D, 0, 0, 0, 0, 3072, (this->triangleCount > 0 ? (this->triangleCount - 1) / 1023 + 1 : 0) + 1, 1);
         glCopyNamedBufferSubData(mat_triangle_ssbo_upload, mat_triangle_ssbo, 0, 0, this->triangleCount * sizeof(uint32_t));
+
         this->resolve();
 
         size_t triangleCount = this->triangleCount;
@@ -236,5 +238,6 @@ namespace Paper {
         // set back triangle count
         this->geometryUniformData.triangleCount = this->triangleCount;
         this->syncUniforms();
+
     }
 }

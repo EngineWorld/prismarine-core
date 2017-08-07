@@ -164,6 +164,8 @@ struct ColorChain {
 // CLOCKWORK
 struct GroupFoundResult {
     int nextResult;
+    float boxDistance;
+    ivec2 range;
 };
 
 

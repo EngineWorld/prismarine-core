@@ -60,7 +60,7 @@ layout ( std430, binding = 0 ) restrict buffer TCounterSSBO {int tcounter[];};
 layout ( std430, binding = 1 ) readonly buffer InputVertexSSBO {float iverts[];};
 layout ( std430, binding = 2 ) readonly buffer InputVertexIndicesSSBO {INDICE_T vindics[];};
 layout ( std430, binding = 3 ) readonly buffer InputMaterialsSSBO {int imats[];};
-layout ( std430, binding = 4 ) restrict buffer GeomMaterialsSSBO {int mats[];};
+layout ( std430, binding = 10 ) restrict buffer OutGeomMaterialsSSBO {int mats[];};
 
 layout ( std430, binding = 6 ) readonly buffer IMeshUniform {MeshUniformStruct meshUniform;};
 layout ( std430, binding = 7 ) readonly buffer IMeshAccessors {VirtualAccessor meshAccessors[];};
@@ -117,7 +117,7 @@ void main()
     if (gl_GlobalInvocationID.x >= meshUniform.nodeCount) return;
 
     const int ctriangle = int(gl_GlobalInvocationID.x);
-    const int matID = imats[ctriangle] + meshUniform.materialID;
+    const int matID = /*imats[ctriangle] +*/ meshUniform.materialID;
     vec3 vertice[4] = {vec3(0.0f), vec3(0.0f), vec3(0.0f), vec3(0.0f)};
     vec3 normal[4] = {vec3(0.0f), vec3(0.0f), vec3(0.0f), vec3(0.0f)};
     vec4 texcoord[4] = {vec4(0.0f), vec4(0.0f), vec4(0.0f), vec4(0.0f)};

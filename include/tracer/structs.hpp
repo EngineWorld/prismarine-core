@@ -232,4 +232,10 @@ namespace Paper {
 
 
 
+    struct GroupFoundResult {
+        int nextResult = -1;
+        float boxDistance = 100000.f;
+        glm::ivec2 range;
+    };
+
 }

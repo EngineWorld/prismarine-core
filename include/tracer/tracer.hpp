@@ -21,7 +21,8 @@ namespace Paper {
         GLuint cameraProgram = -1;
         GLuint clearProgram = -1;
         GLuint samplerProgram = -1;
-        GLuint intersectionProgram = -1;
+        GLuint traverseProgram = -1;
+        GLuint resolverProgram = -1;
 
         GLuint colorchains = -1;
         GLuint quantized = -1;
@@ -66,6 +67,14 @@ namespace Paper {
 
         bbox bound;
 
+
+
+
+        GLuint resultCounters = -1;
+        GLuint resultFounds = -1;
+        GLuint givenRays = -1;
+
+
     public:
 
         Tracer() { init(); }
@@ -77,7 +86,8 @@ namespace Paper {
             glDeleteProgram(cameraProgram);
             glDeleteProgram(clearProgram);
             glDeleteProgram(samplerProgram);
-            glDeleteProgram(intersectionProgram);
+            glDeleteProgram(traverseProgram);
+            glDeleteProgram(resolverProgram);
 
             glDeleteBuffers(1, &colorchains);
             glDeleteBuffers(1, &quantized);

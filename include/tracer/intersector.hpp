@@ -23,9 +23,8 @@ namespace Paper {
         GLuint resortProgramH = -1;
         GLuint minmaxProgram2 = -1;
 
-        GLuint mat_triangle_ssbo = -1;
-        
         GLuint mat_triangle_ssbo_upload = -1;
+        GLuint mat_triangle_ssbo = -1;
 
         GLuint vbo_vertex_textrue = -1;
         GLuint vbo_normal_textrue = -1;

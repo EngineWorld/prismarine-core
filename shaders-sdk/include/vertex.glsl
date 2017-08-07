@@ -1,7 +1,7 @@
 #ifndef _VERTEX_H
 #define _VERTEX_H
 
-layout ( std430, binding = 10 ) restrict buffer GeomMaterialsSSBO {int mats[];};
+layout ( std430, binding = 10 ) readonly buffer GeomMaterialsSSBO {int mats[];};
 
 layout (binding = 0) uniform sampler2D vertex_texture;
 layout (binding = 1) uniform sampler2D normal_texture;

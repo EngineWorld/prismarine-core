@@ -16,7 +16,8 @@ namespace Paper {
         initShaderCompute("./shaders/render/camera.comp", cameraProgram);
         initShaderCompute("./shaders/render/clear.comp", clearProgram);
         initShaderCompute("./shaders/render/sampler.comp", samplerProgram);
-        initShaderCompute("./shaders/render/intersection.comp", intersectionProgram);
+        initShaderCompute("./shaders/render/traverse.comp", traverseProgram);
+        initShaderCompute("./shaders/render/resolver.comp", resolverProgram);
         */
 
 #ifdef USE_OPTIMIZED_RT
@@ -30,8 +31,8 @@ namespace Paper {
         initShaderComputeSPIRV("./shaders-spv/render/camera.comp.spv", cameraProgram);
         initShaderComputeSPIRV("./shaders-spv/render/clear.comp.spv", clearProgram);
         initShaderComputeSPIRV("./shaders-spv/render/sampler.comp.spv", samplerProgram);
-        //initShaderCompute("./shaders/render/intersection.comp", intersectionProgram);
-        initShaderComputeSPIRV("./shaders-spv/render/intersection.comp.spv", intersectionProgram);
+        initShaderComputeSPIRV("./shaders-spv/render/traverse.comp.spv", traverseProgram);
+        initShaderComputeSPIRV("./shaders-spv/render/resolver.comp.spv", resolverProgram);
 
         {
             GLuint vert = glCreateShader(GL_VERTEX_SHADER);
@@ -116,7 +117,8 @@ namespace Paper {
         bound.mx.z = -100000.f;
         bound.mx.w = -100000.f;
 
-        arcounter = allocateBuffer<int32_t>(5);
+        resultCounters = allocateBuffer<uint32_t>(2);
+        arcounter = allocateBuffer<int32_t>(8);
         arcounterTemp = allocateBuffer<int32_t>(1);
         rayBlockUniform = allocateBuffer<RayBlockUniform>(1);
         lightUniform = allocateBuffer<LightUniformStruct>(6);
@@ -169,6 +171,7 @@ namespace Paper {
         samples = allocateTexture2D<GL_RGBA32F>(displayWidth, displayHeight);
         sampleflags = allocateTexture2D<GL_R32UI>(displayWidth, displayHeight);
         presampled = allocateTexture2D<GL_RGBA32F>(displayWidth, displayHeight);
+        
 
         // set sampler of
         glTextureParameteri(samples, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -208,7 +211,7 @@ namespace Paper {
         const int32_t wrsize = width * height;
         currentRayLimit = std::min(wrsize * 8, 4096 * 4096);
 
-        colorchains = allocateBuffer<ColorChain>(currentRayLimit * 3);
+        colorchains = allocateBuffer<ColorChain>(currentRayLimit * 4);
         rays = allocateBuffer<Ray>(currentRayLimit);
         hits = allocateBuffer<Hit>(currentRayLimit);
         activel = allocateBuffer<int32_t>(currentRayLimit);
@@ -216,6 +219,9 @@ namespace Paper {
         texels = allocateBuffer<Texel>(wrsize);
         freedoms = allocateBuffer<int32_t>(currentRayLimit);
         availables = allocateBuffer<int32_t>(currentRayLimit);
+
+        resultFounds = allocateBuffer<GroupFoundResult>(currentRayLimit * 8);
+        givenRays = allocateBuffer<int32_t>(currentRayLimit);
 
         samplerUniformData.sceneRes = { float(width), float(height) };
         samplerUniformData.currentRayLimit = currentRayLimit;
@@ -408,11 +414,28 @@ namespace Paper {
         bound.mn = glm::min(obj->bound.mn, bound.mn);
         bound.mx = glm::max(obj->bound.mx, bound.mx);
 
-        obj->bind();
+        // reset counters
+        for (int i = 0; i < 2; i++) {
+            glCopyNamedBufferSubData(arcounterTemp, arcounter, 0, sizeof(uint32_t) * (i + 5), sizeof(uint32_t));
+        }
+
+        // bindings
         obj->bindBVH();
         this->bind();
-        dispatch(intersectionProgram, tiled(rsize, worksize));
 
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, givenRays); // bind collection buffer
+        dispatch(traverseProgram, tiled(rsize, worksize)); // run traverse
+
+        // copy given counts
+        glCopyNamedBufferSubData(arcounter, rayBlockUniform, (1 + 5) * sizeof(int32_t), offsetof(RayBlockUniform, samplerUniform) + offsetof(SamplerUniformStruct, rayCount), sizeof(int32_t));
+
+        // bind buffers
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 17, resultFounds);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, givenRays); // change active list
+
+        // run hit resolver
+        obj->bind();
+        dispatch(resolverProgram, tiled(rsize, worksize));
         return 1;
     }
 
