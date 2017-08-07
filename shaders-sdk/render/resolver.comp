@@ -326,9 +326,9 @@ void main() {
     sharedVarsData.L = L;
     sharedVarsData.bakedRangeIntersection = vec4(INFINITY, 0.f, 0.f, 0.f);
 
-    bool valid = foundID != -1 && !overflow;
+    bool valid = foundID != -1 && foundID > 0 && !overflow;
     for (int i=0;i<1024;i++) {
-        valid = valid && (foundID != -1);
+        valid = valid && foundID != -1 && foundID > 0;
         if (!valid) break;
 
         // validate BVH intersection
@@ -401,9 +401,9 @@ void main() {
     sharedVarsData.bakedRangeIntersection = vec4(INFINITY, 0.f, 0.f, 0.f);
 
     int warpShift = int(LANE_IDX);
-    bool valid = foundID != -1 && !overflow;
+    bool valid = foundID != -1 && foundID > 0 && !overflow;
     for (int i=0;i<64;i++) {
-        valid = valid && (foundID != -1);
+        valid = valid && foundID != -1 && foundID > 0;
         if (allInvocations(!valid)) break;
 
         // validate BVH intersection

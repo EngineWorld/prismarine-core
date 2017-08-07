@@ -81,6 +81,7 @@ void intersectCubeApart(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 cu
 TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     const uint L = gl_LocalInvocationID.x;
 
+    int prev = -1;
     int idx = 0, deferredPtr = 0;
     bool validBox = false;
     bool skip = false;
@@ -88,7 +89,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     TResult lastRes;
     lastRes.dist = hit.dist + 0.0001f;
     lastRes.predist = hit.dist + 0.0001f;
-    lastRes.triangleID = hit.triangleID;//LONGEST;
+    lastRes.triangleID = LONGEST;
     lastRes.materialID = LONGEST;
 
     SharedVarsData sharedVarsData;
@@ -122,12 +123,27 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
         // is leaf
         bool isLeaf = node.pdata.x == node.pdata.y && validBox;
         if (isLeaf) {
-            int idx = atomicIncFt(true);
+            
             float near = INFINITY, far = INFINITY;
             float d = intersectCubeSingle(torig, dirproj, node.box.mn, node.box.mx, near, far);
             if (lessF(d, INFINITY) && greaterEqualF(d, 0.f)) {
-                FoundGroupsChains[idx] = GroupFoundResult(exchange(lastRes.triangleID, idx), near * dirlen, ivec2(node.pdata.w));
+                
+                // link chains
+                int idx = atomicIncFt(true);
+                if (prev == -1) {
+                    lastRes.triangleID = idx;
+                } else {
+                    FoundGroupsChains[prev].nextResult = idx;
+                }
+                prev = idx;
+
+                // add new head
+                FoundGroupsChains[idx] = GroupFoundResult(-1, near * dirlen, ivec2(node.pdata.w));
+                
+                // deprecated scheme
+                //FoundGroupsChains[idx] = GroupFoundResult(exchange(lastRes.triangleID, idx), near * dirlen, ivec2(node.pdata.w));
             }
+            
             //testIntersection(sharedVarsData, lastRes, origin, direct, node.pdata.w, isLeaf);
         }
 
