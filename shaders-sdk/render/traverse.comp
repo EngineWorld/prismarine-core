@@ -13,6 +13,7 @@ layout ( std430, binding = 17 ) restrict buffer CWFoundGroups { GroupFoundResult
 const vec3 padding = vec3(0.00001f);
 const int STACK_SIZE = 16;
 shared int deferredStack[WORK_SIZE][STACK_SIZE];
+shared int deferredPtr[WORK_SIZE];
 
 struct TResult {
     float dist;
@@ -75,7 +76,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     const uint L = gl_LocalInvocationID.x;
 
     int prev = -1;
-    int idx = 0, deferredPtr = 0;
+    int idx = 0;
     bool validBox = false;
     bool skip = false;
 
@@ -85,6 +86,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     lastRes.triangleID = LONGEST;
     lastRes.materialID = LONGEST;
 
+    deferredPtr[L] = 0;
     deferredStack[L][0] = -1;
 
     // test constants
@@ -104,7 +106,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
         validBox = lessF(d, INFINITY) && greaterEqualF(d, 0.0f);
     }
 
-    for(int i=0;i<8192;i++) {
+    for (int i=0;i<8192;i++) {
         if (allInvocations(!validBox)) break;
         HlbvhNode node = Nodes[idx];
 
@@ -157,8 +159,8 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
                 leftright = leftOrder ? leftright : leftright.yx;
 
                 if (anyOverlap) {
-                    if (deferredPtr < STACK_SIZE && leftright.y != -1) {
-                        deferredStack[L][deferredPtr++] = leftright.y;
+                    if (deferredPtr[L] < STACK_SIZE && leftright.y != -1) {
+                        deferredStack[L][atomicAdd(deferredPtr[L], 1)] = leftright.y;
                     }
                     idx = leftright.x;
                     skip = true;
@@ -167,9 +169,9 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
         }
 
         if (!skip) {
-            int ptr = --deferredPtr;
+            int ptr = atomicAdd(deferredPtr[L], -1)-1;
             bool valid = ptr >= 0;
-            idx = valid ? exchange(deferredStack[L][ptr], -1) : -1;
+            idx = valid ? atomicExchange(deferredStack[L][ptr], -1) : -1;
             validBox = validBox && valid && idx >= 0;
         } skip = false;
     }
