@@ -344,8 +344,9 @@ void main() {
         // skip not intersectable
         foundID = nearer ? foundID : result.nextResult;
     }
-    choiceBaked(sharedVarsData, lastRes, ray.origin.xyz, ray.direct.xyz, int(floor(1.f + hit.vmods.w)));
 
+    // resolve intersection
+    choiceBaked(sharedVarsData, lastRes, ray.origin.xyz, ray.direct.xyz, int(floor(1.f + hit.vmods.w)));
     LResult res = loadInfo(lastRes);
 
     if (
