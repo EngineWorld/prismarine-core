@@ -76,9 +76,9 @@ float intersectTriangle(in vec3 orig, in vec3 dir, in mat3 ve, inout vec2 UV, in
 }
 
 TResult choiceFirstBaked(inout TResult res) {
-     int tri = atomicExchange(sharedVarsData[L].bakedRange, LONGEST);
+    int tri = sharedVarsData[L].bakedRange;
 
-     bool validTriangle = 
+    bool validTriangle = 
         tri >= 0 && 
         tri != LONGEST;
         
@@ -133,7 +133,7 @@ TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
         reorderTriangles();
     }
 
-    int tri = tpi < atomicExchange(sharedVarsData[L].bakedStackCount, 0) ? bakedStack[L][tpi] : LONGEST;
+    int tri = tpi < sharedVarsData[L].bakedStackCount ? bakedStack[L][tpi] : LONGEST;
 
     bool validTriangle = 
         tri >= 0 && 
@@ -261,12 +261,6 @@ TResult reductiveWarpNearest(in TResult res, in bool usePredist){
         res.uv = uv[nearIdx];
     }
 
-    //int dp = (int(LANE_IDX) >> reductionDepth) << reductionDepth;
-    //res.dist = readLane(res.dist, dp);
-    //res.predist = readLane(res.predist, dp);
-    //res.triangleID = readLane(res.triangleID, dp);
-    //res.uv = readLane(res.uv, dp);
-
     return res;
 }
 
@@ -331,9 +325,6 @@ TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tr
 
 
 void main() {
-    //const int it = int(gl_GlobalInvocationID.x);
-    //L = gl_LocalInvocationID.x;
-
     const int it = int(gl_GlobalInvocationID.x) / laneOccupy;
     L = gl_LocalInvocationID.x / laneOccupy;
 
@@ -360,21 +351,17 @@ void main() {
     sharedVarsData[L].bakedRangeIntersection = vec4(INFINITY, 0.f, 0.f, 0.f);
 
     bool valid = foundID != -1 && !overflow;
-    GroupFoundResult result;
-
     int warpShift = int(LANE_IDX) % laneOccupy;
-    int prevID = -1;
     for (int i=0;i<2048;i++) {
         valid = valid && foundID != -1;
         if (allInvocations(!valid)) break;
 
         // validate BVH intersection
-        result = prevID != foundID ? FoundGroupsChains[foundID] : result;
-        prevID = foundID;
+        GroupFoundResult result = FoundGroupsChains[foundID];
 
         // synchronized intersection (because is heavy operation)
-        bool nearer = lessEqualF(result.boxDistance, lastRes.predist) && lessF(result.boxDistance, INFINITY) && (warpShift--) <= 0;
-        if (allInvocations(nearer || !valid)) {
+        bool nearer = lessEqualF(result.boxDistance, lastRes.predist) && lessF(result.boxDistance, INFINITY) && (warpShift--) <= 0 || !valid;
+        if (allInvocations(nearer)) {
 
             const int groupSize = 1;
             int ln = 0;
@@ -399,8 +386,6 @@ void main() {
 
     // resolve intersection
     choiceBaked(lastRes, ray.origin.xyz, ray.direct.xyz, int(floor(1.f + hit.vmods.w)));
-    //lastRes = reductiveWarpNearest(lastRes, false);
-
     LResult res = loadInfo(lastRes);
 
     if (
