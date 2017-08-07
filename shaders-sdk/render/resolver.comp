@@ -346,7 +346,7 @@ void main() {
 
     Hit hit = fetchHitDirect(t);
     int foundID = hit.triangleID;
-    if (allInvocations(foundID == -1)) return; 
+    if (foundID == -1) return; 
 
     TResult lastRes;
     lastRes.dist = INFINITY;
@@ -366,7 +366,7 @@ void main() {
     int prevID = -1;
     for (int i=0;i<2048;i++) {
         valid = valid && foundID != -1;
-        if (allInvocations(!valid)) break;
+        if (!valid) break;
 
         // validate BVH intersection
         result = prevID != foundID ? FoundGroupsChains[foundID] : result;
@@ -380,7 +380,7 @@ void main() {
             int ln = 0;
             for (int ls=0;ls<groupSize;ls+=1) {
                 bool overtaken = (ls + ln) > (result.range.y-result.range.x);
-                if (allInvocations(overtaken)) break; // in WARP version will bad effect
+                if (overtaken) break; // in WARP version will bad effect
 
                 int morIdx = MortonIndices[result.range.x + (ls + ln)];
                 HlbvhNode leaf = Leafs[morIdx];
