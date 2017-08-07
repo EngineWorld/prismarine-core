@@ -81,8 +81,8 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     bool skip = false;
 
     TResult lastRes;
-    lastRes.dist = hit.dist + 0.0001f;
-    lastRes.predist = hit.dist + 0.0001f;
+    lastRes.dist = INFINITY;
+    lastRes.predist = INFINITY;
     lastRes.triangleID = LONGEST;
     lastRes.materialID = LONGEST;
 
