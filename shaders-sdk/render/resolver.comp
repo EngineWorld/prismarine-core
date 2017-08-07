@@ -364,7 +364,7 @@ void main() {
     bool valid = foundID != -1 && foundID > 0 && !overflow;
     for (int i=0;i<1024;i++) {
         valid = valid && foundID != -1 && foundID > 0;
-        if (!valid) break;
+        if (allInvocations(!valid)) break;
 
         // validate BVH intersection
         GroupFoundResult result = FoundGroupsChains[foundID];
