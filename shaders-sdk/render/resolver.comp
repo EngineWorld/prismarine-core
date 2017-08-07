@@ -261,11 +261,11 @@ TResult reductiveWarpNearest(in TResult res, in bool usePredist){
         res.uv = uv[nearIdx];
     }
 
-    int dp = (int(LANE_IDX) >> reductionDepth) << reductionDepth;
-    res.dist = readLane(res.dist, dp);
-    res.predist = readLane(res.predist, dp);
-    res.triangleID = readLane(res.triangleID, dp);
-    res.uv = readLane(res.uv, dp);
+    //int dp = (int(LANE_IDX) >> reductionDepth) << reductionDepth;
+    //res.dist = readLane(res.dist, dp);
+    //res.predist = readLane(res.predist, dp);
+    //res.triangleID = readLane(res.triangleID, dp);
+    //res.uv = readLane(res.uv, dp);
 
     return res;
 }
@@ -345,10 +345,8 @@ void main() {
     if (allInvocations(ray.actived < 1 || overflow)) return;
 
     Hit hit = fetchHitDirect(t);
-
-    uint foundID = hit.triangleID;
+    int foundID = hit.triangleID;
     if (allInvocations(foundID == -1)) return; 
-    //if (foundID == -1) return;
 
     TResult lastRes;
     lastRes.dist = INFINITY;
@@ -362,12 +360,16 @@ void main() {
     sharedVarsData[L].bakedRangeIntersection = vec4(INFINITY, 0.f, 0.f, 0.f);
 
     bool valid = foundID != -1 && foundID > 0 && !overflow;
-    for (int i=0;i<1024;i++) {
+    GroupFoundResult result;
+
+    int prevID = -1;
+    for (int i=0;i<2048;i++) {
         valid = valid && foundID != -1 && foundID > 0;
         if (allInvocations(!valid)) break;
 
         // validate BVH intersection
-        GroupFoundResult result = FoundGroupsChains[foundID];
+        result = prevID != foundID ? FoundGroupsChains[foundID] : result;
+        prevID = foundID;
 
         // synchronized intersection (because is heavy operation)
         bool nearer = lessEqualF(result.boxDistance, lastRes.predist) && lessF(result.boxDistance, INFINITY);
@@ -385,6 +387,7 @@ void main() {
 
                 testIntersection(lastRes, ray.origin.xyz, ray.direct.xyz, triIdx, nearer && valid && !overtaken);
                 lastRes = reductiveWarpNearest(lastRes, true);
+
                 foundID = result.nextResult;
             }
 
