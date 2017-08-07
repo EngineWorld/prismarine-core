@@ -18,7 +18,7 @@ void main() {
 
             nd = Nodes[idx];
             int tmp = atomicCompSwap(Flags[idx], 0, 1);
-            if (tmp == 1 && nd.pdata.x != nd.pdata.y) {
+            if (tmp == 1 && nd.pdata.y != nd.pdata.x) {
                 HlbvhNode ln = Nodes[nd.pdata.x];
                 HlbvhNode rn = Nodes[nd.pdata.y];
                 bbox bound = nd.box;

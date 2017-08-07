@@ -9,8 +9,11 @@
 #include "../include/STOmath.glsl"
 
 
+layout ( std430, binding = 9 ) readonly buffer NodesBlock { HlbvhNode Leafs[]; };
+layout ( std430, binding = 18 ) readonly buffer MortonIndicesBlock { int MortonIndices[]; };
 
-layout ( std430, binding = 17 ) restrict buffer CWFoundGroups { GroupFoundResult FoundGroupsChains[]; };
+
+layout ( std430, binding = 17 ) readonly buffer CWFoundGroups { GroupFoundResult FoundGroupsChains[]; };
 
 
 
@@ -263,18 +266,21 @@ LResult loadInfo(in TResult hitp) {
 LOCAL_SIZE_LAYOUT;
 
 
+
 /*
+const int shifts[5] = {1, 2, 4, 8, 16};
+
 TResult reductiveWarpNearest(in TResult res, in bool usePredist){
-    uint bitf = 1;
-
     // reductive search minimal intersection
-    for (int i=1;i<WARP_SIZE;i<<=1) {
-        int idx = (int(LANE_IDX) >> bitf) << bitf; bitf++; // regularize lane
+    //for (int i=1;i<WARP_SIZE;i<<=1) {
+    int lidx = int(LANE_IDX);
+    for (int i=1;i<=5;i++) {
+        int shf = shifts[i-1], idx = (lidx >> i) << i;
 
-        float     dist[2] = {readLane(res.dist      , idx), readLane(res.dist      , idx + i)};
-        float  predist[2] = {readLane(res.predist   , idx), readLane(res.predist   , idx + i)};
-        int triangleID[2] = {readLane(res.triangleID, idx), readLane(res.triangleID, idx + i)};
-        vec4        uv[2] = {readLane(res.uv        , idx), readLane(res.uv        , idx + i)};
+        float     dist[2] = {readLane(res.dist      , idx), readLane(res.dist      , idx + shf)};
+        float  predist[2] = {readLane(res.predist   , idx), readLane(res.predist   , idx + shf)};
+        int triangleID[2] = {readLane(res.triangleID, idx), readLane(res.triangleID, idx + shf)};
+        vec4        uv[2] = {readLane(res.uv        , idx), readLane(res.uv        , idx + shf)};
 
         // reducted min
         int nearIdx = (usePredist ? lessEqualF(predist[0], predist[1]) : lessEqualF(dist[0], dist[1])) ? 0 : 1;
@@ -296,9 +302,10 @@ TResult reductiveWarpNearest(in TResult res, in bool usePredist){
 */
 
 
-
 void main() {
     const int it = int(gl_GlobalInvocationID.x);
+    //const int it = int(gl_GlobalInvocationID.x) / WARP_SIZE;
+
     const bool overflow = it >= RAY_BLOCK samplerUniform.rayCount;
     if (allInvocations(overflow)) return;
 
@@ -333,12 +340,25 @@ void main() {
 
         // validate BVH intersection
         GroupFoundResult result = FoundGroupsChains[foundID];
-        bool nearer = lessEqualF(result.boxDistance, lastRes.predist) && lessF(result.boxDistance, INFINITY);
 
         // synchronized intersection (because is heavy operation)
+        bool nearer = lessEqualF(result.boxDistance, lastRes.predist) && lessF(result.boxDistance, INFINITY);
         if (allInvocations(nearer)) {
-            testIntersection(sharedVarsData, lastRes, ray.origin.xyz, ray.direct.xyz, result.range.x, nearer && valid);
-            foundID = result.nextResult;
+
+            //int ln = int(LANE_IDX);
+            for (int ln=0;ln<1;ln++) {
+                bool overtaken = ln > (result.range.y-result.range.x);
+                //if (overtaken) break; // in WARP version will bad effect
+
+                int morIdx = MortonIndices[result.range.x+ln];
+                HlbvhNode leaf = Leafs[morIdx];
+                int triIdx = leaf.pdata.w;
+
+                testIntersection(sharedVarsData, lastRes, ray.origin.xyz, ray.direct.xyz, triIdx, nearer && valid && !overtaken);
+                //lastRes = reductiveWarpNearest(lastRes, true);
+                foundID = result.nextResult;
+            }
+
         }
 
         // skip not intersectable
@@ -347,6 +367,8 @@ void main() {
 
     // resolve intersection
     choiceBaked(sharedVarsData, lastRes, ray.origin.xyz, ray.direct.xyz, int(floor(1.f + hit.vmods.w)));
+    //lastRes = reductiveWarpNearest(lastRes, false);
+
     LResult res = loadInfo(lastRes);
 
     if (

@@ -109,6 +109,7 @@ namespace Paper {
         void bindUniforms();
         void bind();
         void bindBVH();
+        void bindLeafs();
         void clearTribuffer();
         void loadMesh(Mesh * gobject);
         bool isDirty() const;

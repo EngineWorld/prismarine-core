@@ -104,19 +104,32 @@ void main() {
                     childNode.pdata.xy = chID == 0 ? ivec2(parentNode.pdata.x, split+0) : ivec2(split+1, parentNode.pdata.y);
 
                     // is leaf?
-                    if (childNode.pdata.x == childNode.pdata.y) {
-                        uint leafID = MortoncodesIndices[childNode.pdata.x];
-
-                        // make leafs
-                        HlbvhNode ourLeaf = Leafs[leafID];
-                        ourLeaf.pdata.z = int(hid);
-                        Leafs[leafID] = ourLeaf;
+                    //if (childNode.pdata.x == childNode.pdata.y) {
+                    if ((childNode.pdata.y - childNode.pdata.x) < 1) {
 
                         // load leaf data
-                        childNode.box.mn = ourLeaf.box.mn;
-                        childNode.box.mx = ourLeaf.box.mx;
-                        childNode.pdata.xy = ourLeaf.pdata.xy;
-                        childNode.pdata.w  = ourLeaf.pdata.w;
+                        childNode.box.mn = ( 100000.f).xxxx;
+                        childNode.box.mx = (-100000.f).xxxx;
+                        
+                        // ranged child
+                        for (int l=childNode.pdata.x;l<=childNode.pdata.y;l++) {
+                            uint leafID = MortoncodesIndices[l];
+
+                            // make leafs links
+                            atomicExchange(Leafs[leafID].pdata.z, int(hid));
+
+                            // fit bounding box
+                            bbox lbound = Leafs[leafID].box;
+                            bbox bound = childNode.box;
+                            childNode.box.mn = min(bound.mn, lbound.mn);
+                            childNode.box.mx = max(bound.mx, lbound.mx);
+                        }
+
+                        // reform range 
+                        ivec2 range = childNode.pdata.xy;
+                        childNode.pdata.xy = range.yy; // leaf end (for identify that is leaf)
+                        childNode.pdata.w  = range.x;  // leaf index (except morton-code) is primitive
+
                     } else { // add to next works
                         atomicExchange(Actives[aCounterInc(true)], hid);
                     }

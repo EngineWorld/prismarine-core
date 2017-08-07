@@ -115,6 +115,11 @@ namespace Paper {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 10, mat_triangle_ssbo);
     }
 
+    inline void Intersector::bindLeafs() {
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, leafBuffer);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 18, mortonBufferIndex);
+    }
+
     inline void Intersector::bindBVH() {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, bvhnodesBuffer);
     }

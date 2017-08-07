@@ -432,10 +432,15 @@ namespace Paper {
         // bind buffers
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 17, resultFounds);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, givenRays); // change active list
-
+        
         // run hit resolver
+        obj->bindLeafs();
         obj->bind();
-        dispatch(resolverProgram, tiled(rsize, worksize));
+
+        GLuint hcount = 0;
+        glGetNamedBufferSubData(arcounter, (1 + 5) * sizeof(int32_t), sizeof(int32_t), &hcount);
+
+        dispatch(resolverProgram, tiled(hcount, worksize));
         return 1;
     }
 
