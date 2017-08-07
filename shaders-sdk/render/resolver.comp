@@ -13,17 +13,11 @@
 
 const int laneOccupy = 1;
 const int reductionDepth = 0;
-
-
+const int bakedFragments = 8;
 
 layout ( std430, binding = 9 ) readonly buffer NodesBlock { HlbvhNode Leafs[]; };
 layout ( std430, binding = 18 ) readonly buffer MortonIndicesBlock { int MortonIndices[]; };
 layout ( std430, binding = 17 ) readonly buffer CWFoundGroups { GroupFoundResult FoundGroupsChains[]; };
-
-const int bakedFragments = 8;
-shared int bakedStack[WORK_SIZED][bakedFragments];
-
-uint L = 0;
 
 struct SharedVarsData {
     vec4 bakedRangeIntersection;
@@ -40,7 +34,10 @@ struct TResult {
     vec4 uv;
 };
 
+
+uint L = 0;
 shared SharedVarsData sharedVarsData[WORK_SIZED];
+shared int bakedStack[WORK_SIZED][bakedFragments];
 
 
 // WARP optimized triangle intersection
@@ -235,7 +232,6 @@ LResult loadInfo(in TResult hitp) {
 //LOCAL_SIZE_LAYOUT;
 layout ( local_size_x = WORK_SIZED*laneOccupy ) in;
 
-
 const int shifts[5] = {1, 2, 4, 8, 16};
 
 TResult reductiveWarpNearest(in TResult res, in bool usePredist){
@@ -263,13 +259,6 @@ TResult reductiveWarpNearest(in TResult res, in bool usePredist){
 
     return res;
 }
-
-
-
-
-
-
-
 
 TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tri, in bool isValid) {
     bool validTriangle = 
@@ -311,18 +300,6 @@ TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tr
 
     return res;
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 void main() {
     const int it = int(gl_GlobalInvocationID.x) / laneOccupy;
