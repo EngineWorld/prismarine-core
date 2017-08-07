@@ -160,7 +160,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
 
                 if (anyOverlap) {
                     if (deferredPtr[L] < STACK_SIZE && leftright.y != -1) {
-                        deferredStack[L][atomicAdd(deferredPtr[L], 1)] = leftright.y;
+                        atomicExchange(deferredStack[L][atomicAdd(deferredPtr[L], 1)], leftright.y);
                     }
                     idx = leftright.x;
                     skip = true;
