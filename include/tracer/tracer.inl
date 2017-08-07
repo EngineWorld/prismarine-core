@@ -437,10 +437,10 @@ namespace Paper {
         obj->bindLeafs();
         obj->bind();
 
-        GLuint hcount = 0;
-        glGetNamedBufferSubData(arcounter, (1 + 5) * sizeof(int32_t), sizeof(int32_t), &hcount);
+        //GLuint hcount = 0;
+        //glGetNamedBufferSubData(arcounter, (1 + 5) * sizeof(int32_t), sizeof(int32_t), &hcount);
 
-        dispatch(resolverProgram, tiled(hcount, worksize));
+        dispatch(resolverProgram, tiled(rsize, worksize));
         return 1;
     }
 
