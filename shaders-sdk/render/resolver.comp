@@ -333,10 +333,10 @@ void main() {
 
         // validate BVH intersection
         GroupFoundResult result = FoundGroupsChains[foundID];
-        bool nearer = lessEqualF(result.boxDistance, lastRes.predist) && lessF(result.boxDistance, INFINITY) ;
+        bool nearer = lessEqualF(result.boxDistance, lastRes.predist) && lessF(result.boxDistance, INFINITY);
 
         // synchronized intersection (because is heavy operation)
-        if (allInvocations(nearer || !valid)) {
+        if (allInvocations(nearer)) {
             testIntersection(sharedVarsData, lastRes, ray.origin.xyz, ray.direct.xyz, result.range.x, nearer && valid);
             foundID = result.nextResult;
         }
