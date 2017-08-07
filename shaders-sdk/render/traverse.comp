@@ -14,13 +14,6 @@ const vec3 padding = vec3(0.00001f);
 const int STACK_SIZE = 16;
 shared int deferredStack[WORK_SIZE][STACK_SIZE];
 
-struct SharedVarsData {
-    vec4 bakedRangeIntersection;
-    int bakedRange;
-    int bakedStackCount;
-    uint L;
-};
-
 struct TResult {
     float dist;
     int triangleID;
@@ -92,11 +85,6 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     lastRes.triangleID = LONGEST;
     lastRes.materialID = LONGEST;
 
-    SharedVarsData sharedVarsData;
-    sharedVarsData.bakedRange = LONGEST;
-    sharedVarsData.bakedStackCount = 0;
-    sharedVarsData.L = L;
-
     deferredStack[L][0] = -1;
 
     // test constants
@@ -143,8 +131,6 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
                 // deprecated scheme
                 //FoundGroupsChains[idx] = GroupFoundResult(exchange(lastRes.triangleID, idx), near * dirlen, ivec2(node.pdata.w));
             }
-            
-            //testIntersection(sharedVarsData, lastRes, origin, direct, node.pdata.w, isLeaf);
         }
 
         bool notLeaf = node.pdata.x != node.pdata.y && validBox;
@@ -194,7 +180,6 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
         } skip = false;
     }
 
-    //choiceBaked(sharedVarsData, lastRes, origin, direct, bakedStep);
     return lastRes;
 }
 
