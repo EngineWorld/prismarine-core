@@ -8,17 +8,22 @@
 #include "../include/morton.glsl"
 #include "../include/STOmath.glsl"
 
+#define WORK_SIZED WORK_SIZE
+//#define WORK_SIZED 32
+
+const int laneOccupy = 1;
+const int reductionDepth = 0;
+
+
 
 layout ( std430, binding = 9 ) readonly buffer NodesBlock { HlbvhNode Leafs[]; };
 layout ( std430, binding = 18 ) readonly buffer MortonIndicesBlock { int MortonIndices[]; };
-
-
 layout ( std430, binding = 17 ) readonly buffer CWFoundGroups { GroupFoundResult FoundGroupsChains[]; };
 
-
-
 const int bakedFragments = 8;
-shared int bakedStack[WORK_SIZE][bakedFragments];
+shared int bakedStack[WORK_SIZED][bakedFragments];
+
+uint L = 0;
 
 struct SharedVarsData {
     vec4 bakedRangeIntersection;
@@ -34,6 +39,9 @@ struct TResult {
     float predist;
     vec4 uv;
 };
+
+shared SharedVarsData sharedVarsData[WORK_SIZED];
+
 
 // WARP optimized triangle intersection
 float intersectTriangle(in vec3 orig, in vec3 dir, in mat3 ve, inout vec2 UV, in bool valid) {
@@ -67,8 +75,8 @@ float intersectTriangle(in vec3 orig, in vec3 dir, in mat3 ve, inout vec2 UV, in
     return (lessF(uvt.z, 0.0f) || !valid) ? INFINITY : uvt.z;
 }
 
-TResult choiceFirstBaked(inout SharedVarsData sharedVarsData, inout TResult res) {
-     int tri = exchange(sharedVarsData.bakedRange, LONGEST);
+TResult choiceFirstBaked(inout TResult res) {
+     int tri = atomicExchange(sharedVarsData[L].bakedRange, LONGEST);
 
      bool validTriangle = 
         tri >= 0 && 
@@ -76,8 +84,8 @@ TResult choiceFirstBaked(inout SharedVarsData sharedVarsData, inout TResult res)
         
     if (allInvocations(!validTriangle)) return res;
 
-    vec2 uv = sharedVarsData.bakedRangeIntersection.yz;
-    float _d = sharedVarsData.bakedRangeIntersection.x;
+    vec2 uv = sharedVarsData[L].bakedRangeIntersection.yz;
+    float _d = sharedVarsData[L].bakedRangeIntersection.x;
     bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.dist);
 
     if (near) {
@@ -89,15 +97,15 @@ TResult choiceFirstBaked(inout SharedVarsData sharedVarsData, inout TResult res)
     return res;
 }
 
-void reorderTriangles(inout SharedVarsData sharedVarsData) {
+void reorderTriangles() {
     // fit hits count
-    sharedVarsData.bakedStackCount = min(sharedVarsData.bakedStackCount, bakedFragments);
+    sharedVarsData[L].bakedStackCount = min(sharedVarsData[L].bakedStackCount, bakedFragments);
 
     // resort z-fighting primitives
-    for (int iround = 1; iround < sharedVarsData.bakedStackCount; iround++) {
-        for (int index = 0; index < sharedVarsData.bakedStackCount - iround; index++) {
-            if (bakedStack[sharedVarsData.L][index] <= bakedStack[sharedVarsData.L][index+1]) {
-                swap(bakedStack[sharedVarsData.L][index], bakedStack[sharedVarsData.L][index+1]);
+    for (int iround = 1; iround < sharedVarsData[L].bakedStackCount; iround++) {
+        for (int index = 0; index < sharedVarsData[L].bakedStackCount - iround; index++) {
+            if (bakedStack[L][index] <= bakedStack[L][index+1]) {
+                swap(bakedStack[L][index], bakedStack[L][index+1]);
             }
         }
     }
@@ -106,24 +114,26 @@ void reorderTriangles(inout SharedVarsData sharedVarsData) {
     int cleanBakedStackCount = 0;
 
     // select only unique triangle ID's
-    for (int iround = 0; iround < sharedVarsData.bakedStackCount-1; iround++) {
-        int next = bakedStack[sharedVarsData.L][iround+1];
-        int prim = bakedStack[sharedVarsData.L][iround];
+    for (int iround = 0; iround < sharedVarsData[L].bakedStackCount-1; iround++) {
+        int next = bakedStack[L][iround+1];
+        int prim = bakedStack[L][iround];
         if (next != prim) {
-            bakedStack[sharedVarsData.L][cleanBakedStackCount++] = prim;
+            bakedStack[L][cleanBakedStackCount++] = prim;
         }
     }
 
     // copy last primitive
-    bakedStack[sharedVarsData.L][cleanBakedStackCount++] = bakedStack[sharedVarsData.L][sharedVarsData.bakedStackCount-1];
-    sharedVarsData.bakedStackCount = cleanBakedStackCount; // fir count
+    bakedStack[L][cleanBakedStackCount++] = bakedStack[L][sharedVarsData[L].bakedStackCount-1];
+    sharedVarsData[L].bakedStackCount = cleanBakedStackCount; // fir count
 }
 
-TResult choiceBaked(inout SharedVarsData sharedVarsData, inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
-    choiceFirstBaked(sharedVarsData, res);
-    reorderTriangles(sharedVarsData);
+TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
+    choiceFirstBaked(res);
+    if ((LANE_IDX % laneOccupy) == 0) {
+        reorderTriangles();
+    }
 
-    int tri = tpi < exchange(sharedVarsData.bakedStackCount, 0) ? bakedStack[sharedVarsData.L][tpi] : LONGEST;
+    int tri = tpi < atomicExchange(sharedVarsData[L].bakedStackCount, 0) ? bakedStack[L][tpi] : LONGEST;
 
     bool validTriangle = 
         tri >= 0 && 
@@ -150,47 +160,6 @@ TResult choiceBaked(inout SharedVarsData sharedVarsData, inout TResult res, in v
     
     return res;
 }
-
-TResult testIntersection(inout SharedVarsData sharedVarsData, inout TResult res, in vec3 orig, in vec3 dir, in int tri, in bool isValid) {
-    bool validTriangle = 
-        isValid && 
-        tri >= 0 && 
-        tri != res.triangleID &&
-        tri != LONGEST;
-
-    if (allInvocations(!validTriangle)) return res;
-
-    mat3 triverts = mat3(
-        fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri)), 0).xyz, 
-        fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri)), 1).xyz, 
-        fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri)), 2).xyz
-    );
-
-    vec2 uv = vec2(0.0f);
-    float _d = intersectTriangle(orig, dir, triverts, uv, validTriangle);
-    bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.predist) && greaterEqualF(_d, 0.0f);
-    bool inbaked = equalF(_d, 0.0f);
-    bool isbaked = equalF(_d, res.predist);
-    bool changed = !isbaked && !inbaked;
-
-    if (near) {
-        if ( changed ) {
-            res.predist = _d;
-            res.triangleID = tri;
-        }
-        if ( inbaked ) {
-            bakedStack[sharedVarsData.L][sharedVarsData.bakedStackCount++] = tri;
-        } else 
-        if ( sharedVarsData.bakedRange < tri || sharedVarsData.bakedRange == LONGEST || changed ) {
-            sharedVarsData.bakedRange = tri;
-            sharedVarsData.bakedRangeIntersection = vec4(_d, uv, 0.f);
-        }
-    }
-
-    return res;
-}
-
-
 
 struct LResult {
     vec4 normal;
@@ -263,24 +232,26 @@ LResult loadInfo(in TResult hitp) {
     return res;
 }
 
-LOCAL_SIZE_LAYOUT;
+//LOCAL_SIZE_LAYOUT;
+layout ( local_size_x = WORK_SIZED*laneOccupy ) in;
 
 
-
-/*
 const int shifts[5] = {1, 2, 4, 8, 16};
 
 TResult reductiveWarpNearest(in TResult res, in bool usePredist){
     // reductive search minimal intersection
-    //for (int i=1;i<WARP_SIZE;i<<=1) {
-    int lidx = int(LANE_IDX);
-    for (int i=1;i<=5;i++) {
-        int shf = shifts[i-1], idx = (lidx >> i) << i;
+    float     dist[2];
+    float  predist[2];
+    int triangleID[2];
+    vec4        uv[2];
 
-        float     dist[2] = {readLane(res.dist      , idx), readLane(res.dist      , idx + shf)};
-        float  predist[2] = {readLane(res.predist   , idx), readLane(res.predist   , idx + shf)};
-        int triangleID[2] = {readLane(res.triangleID, idx), readLane(res.triangleID, idx + shf)};
-        vec4        uv[2] = {readLane(res.uv        , idx), readLane(res.uv        , idx + shf)};
+    for (int i=1;i<=reductionDepth;i++) {
+        int shf = shifts[i-1], idx = (int(LANE_IDX) >> i) << i;
+
+               dist[0] = readLane(res.dist      , idx),       dist[1] = readLane(res.dist      , idx + shf);
+            predist[0] = readLane(res.predist   , idx),    predist[1] = readLane(res.predist   , idx + shf);
+         triangleID[0] = readLane(res.triangleID, idx), triangleID[1] = readLane(res.triangleID, idx + shf);
+                 uv[0] = readLane(res.uv        , idx),         uv[1] = readLane(res.uv        , idx + shf);
 
         // reducted min
         int nearIdx = (usePredist ? lessEqualF(predist[0], predist[1]) : lessEqualF(dist[0], dist[1])) ? 0 : 1;
@@ -290,21 +261,81 @@ TResult reductiveWarpNearest(in TResult res, in bool usePredist){
         res.uv = uv[nearIdx];
     }
 
-    // unity results on WARP
-    res.dist = readLane(res.dist, 0);
-    res.predist = readLane(res.predist, 0);
-    res.triangleID = readLane(res.triangleID, 0);
-    res.uv = readLane(res.uv, 0);
+    int dp = (int(LANE_IDX) >> reductionDepth) << reductionDepth;
+    res.dist = readLane(res.dist, dp);
+    res.predist = readLane(res.predist, dp);
+    res.triangleID = readLane(res.triangleID, dp);
+    res.uv = readLane(res.uv, dp);
 
-    // return
     return res;
 }
-*/
+
+
+
+
+
+
+
+
+TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tri, in bool isValid) {
+    bool validTriangle = 
+        isValid && 
+        tri >= 0 && 
+        tri != res.triangleID &&
+        tri != LONGEST;
+
+    if (allInvocations(!validTriangle)) {
+        return res;
+    }
+
+    mat3 triverts = mat3(
+        fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri)), 0).xyz, 
+        fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri)), 1).xyz, 
+        fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri)), 2).xyz
+    );
+
+    vec2 uv = vec2(0.0f);
+    float _d = intersectTriangle(orig, dir, triverts, uv, validTriangle);
+    bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.predist) && greaterEqualF(_d, 0.0f);
+    bool inbaked = equalF(_d, 0.0f);
+    bool isbaked = equalF(_d, res.predist);
+    bool changed = !isbaked && !inbaked;
+
+    if (near) {
+        if ( changed ) {
+            res.predist = _d;
+            res.triangleID = tri;
+        }
+        if ( inbaked ) {
+            bakedStack[L][atomicAdd(sharedVarsData[L].bakedStackCount, 1)] = tri;
+        } else 
+        if ( sharedVarsData[L].bakedRange < tri || sharedVarsData[L].bakedRange == LONGEST || changed ) {
+            sharedVarsData[L].bakedRange = tri;
+            sharedVarsData[L].bakedRangeIntersection = vec4(_d, uv, 0.f);
+        }
+    }
+
+    return res;
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 void main() {
-    const int it = int(gl_GlobalInvocationID.x);
-    //const int it = int(gl_GlobalInvocationID.x) / WARP_SIZE;
+    //const int it = int(gl_GlobalInvocationID.x);
+    //L = gl_LocalInvocationID.x;
+
+    const int it = int(gl_GlobalInvocationID.x) / laneOccupy;
+    L = gl_LocalInvocationID.x / laneOccupy;
 
     const bool overflow = it >= RAY_BLOCK samplerUniform.rayCount;
     if (allInvocations(overflow)) return;
@@ -316,9 +347,8 @@ void main() {
     Hit hit = fetchHitDirect(t);
 
     uint foundID = hit.triangleID;
-    if (foundID == -1) return;
-
-    uint L = gl_LocalInvocationID.x;
+    if (allInvocations(foundID == -1)) return; 
+    //if (foundID == -1) return;
 
     TResult lastRes;
     lastRes.dist = INFINITY;
@@ -327,11 +357,9 @@ void main() {
     lastRes.materialID = LONGEST;
     lastRes.uv = vec4(0.f);
 
-    SharedVarsData sharedVarsData;
-    sharedVarsData.bakedRange = LONGEST;
-    sharedVarsData.bakedStackCount = 0;
-    sharedVarsData.L = L;
-    sharedVarsData.bakedRangeIntersection = vec4(INFINITY, 0.f, 0.f, 0.f);
+    sharedVarsData[L].bakedRange = LONGEST;
+    sharedVarsData[L].bakedStackCount = 0;
+    sharedVarsData[L].bakedRangeIntersection = vec4(INFINITY, 0.f, 0.f, 0.f);
 
     bool valid = foundID != -1 && foundID > 0 && !overflow;
     for (int i=0;i<1024;i++) {
@@ -343,19 +371,20 @@ void main() {
 
         // synchronized intersection (because is heavy operation)
         bool nearer = lessEqualF(result.boxDistance, lastRes.predist) && lessF(result.boxDistance, INFINITY);
-        if (allInvocations(nearer)) {
+        if (allInvocations(nearer || !valid)) {
 
-            //int ln = int(LANE_IDX);
-            for (int ln=0;ln<1;ln++) {
-                bool overtaken = ln > (result.range.y-result.range.x);
-                //if (overtaken) break; // in WARP version will bad effect
+            const int groupSize = 1;
+            int ln = int(LANE_IDX) % laneOccupy;
+            for (int ls=0;ls<groupSize;ls+=laneOccupy) {
+                bool overtaken = (ls + ln) > (result.range.y-result.range.x);
+                if (allInvocations(overtaken)) break; // in WARP version will bad effect
 
-                int morIdx = MortonIndices[result.range.x+ln];
+                int morIdx = MortonIndices[result.range.x + (ls + ln)];
                 HlbvhNode leaf = Leafs[morIdx];
                 int triIdx = leaf.pdata.w;
 
-                testIntersection(sharedVarsData, lastRes, ray.origin.xyz, ray.direct.xyz, triIdx, nearer && valid && !overtaken);
-                //lastRes = reductiveWarpNearest(lastRes, true);
+                testIntersection(lastRes, ray.origin.xyz, ray.direct.xyz, triIdx, nearer && valid && !overtaken);
+                lastRes = reductiveWarpNearest(lastRes, true);
                 foundID = result.nextResult;
             }
 
@@ -366,7 +395,7 @@ void main() {
     }
 
     // resolve intersection
-    choiceBaked(sharedVarsData, lastRes, ray.origin.xyz, ray.direct.xyz, int(floor(1.f + hit.vmods.w)));
+    choiceBaked(lastRes, ray.origin.xyz, ray.direct.xyz, int(floor(1.f + hit.vmods.w)));
     //lastRes = reductiveWarpNearest(lastRes, false);
 
     LResult res = loadInfo(lastRes);
@@ -390,7 +419,8 @@ void main() {
         newHit.materialID = res.materialID;
         newHit.shaded = 0;
         newHit.vmods.w = sysmod.w;
-        if (!overflow) storeHit(t, newHit);
+        if (!overflow && (LANE_IDX % laneOccupy) == 0) storeHit(t, newHit);
+        //if (!overflow) storeHit(t, newHit);
     }
 
 /*
@@ -407,7 +437,7 @@ void main() {
     uint foundID = hit.triangleID;
     if (allInvocations(foundID == -1)) return;
 
-    uint L = gl_LocalInvocationID.x;
+    L = gl_LocalInvocationID.x;
 
     TResult lastRes;
     lastRes.dist = INFINITY;
@@ -416,11 +446,10 @@ void main() {
     lastRes.materialID = LONGEST;
     lastRes.uv = vec4(0.f);
 
-    SharedVarsData sharedVarsData;
-    sharedVarsData.bakedRange = LONGEST;
-    sharedVarsData.bakedStackCount = 0;
-    sharedVarsData.L = L;
-    sharedVarsData.bakedRangeIntersection = vec4(INFINITY, 0.f, 0.f, 0.f);
+    sharedVarsData[L].bakedRange = LONGEST;
+    sharedVarsData[L].bakedStackCount = 0;
+    sharedVarsData[L].L = L;
+    sharedVarsData[L].bakedRangeIntersection = vec4(INFINITY, 0.f, 0.f, 0.f);
 
     int warpShift = int(LANE_IDX);
     bool valid = foundID != -1 && foundID > 0 && !overflow;
@@ -434,7 +463,7 @@ void main() {
 
         // synchronized intersection (because is heavy operation)
         if (allInvocations(nearer || !valid)) {
-            testIntersection(sharedVarsData, lastRes, ray.origin.xyz, ray.direct.xyz, result.range.x, nearer && valid);
+            testIntersection(lastRes, ray.origin.xyz, ray.direct.xyz, result.range.x, nearer && valid);
             lastRes = reductiveWarpNearest(lastRes, true);
             foundID = result.nextResult;
         }
@@ -444,7 +473,7 @@ void main() {
     }
 
     // lookup near intersections on every WARP
-    choiceBaked(sharedVarsData, lastRes, ray.origin.xyz, ray.direct.xyz, int(floor(1.f + hit.vmods.w)));
+    choiceBaked(lastRes, ray.origin.xyz, ray.direct.xyz, int(floor(1.f + hit.vmods.w)));
     lastRes = reductiveWarpNearest(lastRes, false);
 
     // load data (TODO - WARP support)
