@@ -111,26 +111,20 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
         // is leaf
         bool isLeaf = node.pdata.x == node.pdata.y && validBox;
         if (isLeaf) {
-            
             float near = INFINITY, far = INFINITY;
-            float d = intersectCubeSingle(torig, dirproj, node.box.mn, node.box.mx, near, far);
-            if (lessF(d, INFINITY) && greaterEqualF(d, 0.f)) {
+            intersectCubeSingle(torig, dirproj, node.box.mn, node.box.mx, near, far);
 
-                // link chains
-                int idx = atomicIncFt(true);
-                if (prev == -1) {
-                    lastRes.triangleID = idx;
-                } else {
-                    FoundGroupsChains[prev].nextResult = idx;
-                }
-                prev = idx;
-
-                // add new head
-                FoundGroupsChains[idx] = GroupFoundResult(-1, near * dirlen, ivec2(node.pdata.w, node.pdata.y));
-                
-                // deprecated scheme
-                //FoundGroupsChains[idx] = GroupFoundResult(exchange(lastRes.triangleID, idx), near * dirlen, ivec2(node.pdata.w));
+            // link chains
+            int idx = atomicIncFt(true);
+            if (prev == -1) {
+                lastRes.triangleID = idx;
+            } else {
+                FoundGroupsChains[prev].nextResult = idx;
             }
+            prev = idx;
+
+            // add new head
+            FoundGroupsChains[idx] = GroupFoundResult(-1, near * dirlen, ivec2(node.pdata.w, node.pdata.y));
         }
 
         bool notLeaf = node.pdata.x != node.pdata.y && validBox;
