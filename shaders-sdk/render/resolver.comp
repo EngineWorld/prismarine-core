@@ -359,12 +359,13 @@ void main() {
     sharedVarsData[L].bakedStackCount = 0;
     sharedVarsData[L].bakedRangeIntersection = vec4(INFINITY, 0.f, 0.f, 0.f);
 
-    bool valid = foundID != -1 && foundID > 0 && !overflow;
+    bool valid = foundID != -1 && !overflow;
     GroupFoundResult result;
 
+    int warpShift = int(LANE_IDX) % laneOccupy;
     int prevID = -1;
     for (int i=0;i<2048;i++) {
-        valid = valid && foundID != -1 && foundID > 0;
+        valid = valid && foundID != -1;
         if (allInvocations(!valid)) break;
 
         // validate BVH intersection
@@ -372,12 +373,12 @@ void main() {
         prevID = foundID;
 
         // synchronized intersection (because is heavy operation)
-        bool nearer = lessEqualF(result.boxDistance, lastRes.predist) && lessF(result.boxDistance, INFINITY);
+        bool nearer = lessEqualF(result.boxDistance, lastRes.predist) && lessF(result.boxDistance, INFINITY) && (warpShift--) <= 0;
         if (allInvocations(nearer || !valid)) {
 
             const int groupSize = 1;
-            int ln = int(LANE_IDX) % laneOccupy;
-            for (int ls=0;ls<groupSize;ls+=laneOccupy) {
+            int ln = 0;
+            for (int ls=0;ls<groupSize;ls+=1) {
                 bool overtaken = (ls + ln) > (result.range.y-result.range.x);
                 if (allInvocations(overtaken)) break; // in WARP version will bad effect
 
@@ -387,10 +388,9 @@ void main() {
 
                 testIntersection(lastRes, ray.origin.xyz, ray.direct.xyz, triIdx, nearer && valid && !overtaken);
                 lastRes = reductiveWarpNearest(lastRes, true);
-
-                foundID = result.nextResult;
             }
 
+            foundID = result.nextResult;
         }
 
         // skip not intersectable
