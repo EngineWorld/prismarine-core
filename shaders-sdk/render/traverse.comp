@@ -1,7 +1,5 @@
 #version 460 core
 
-#define ORDERING_NOT_REQUIRED
-
 #include "../include/constants.glsl"
 #include "../include/structs.glsl"
 #include "../include/uniforms.glsl"
@@ -123,7 +121,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
 
         // is leaf
         bool isLeaf = node.pdata.x == node.pdata.y && validBox;
-        if (anyInvocation(isLeaf) && isLeaf) {
+        if (isLeaf) {
             int idx = atomicIncFt(true);
             float near = INFINITY, far = INFINITY;
             float d = intersectCubeSingle(torig, dirproj, node.box.mn, node.box.mx, near, far);

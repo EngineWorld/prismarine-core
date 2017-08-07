@@ -89,6 +89,14 @@ uint bitCount64(in uint a64) {
     return btc(a64);
 }
 
+
+float readLane(in float val, in int lane) {
+    // warp can be have barrier, but is not required
+    atomicExchange(invocationCache[LC_IDX][LANE_IDX], floatBitsToUint(val));
+    // warp can be have barrier, but is not required
+    return uintBitsToFloat(invocationCache[LC_IDX][lane]);
+}
+
 uint readLane(in uint val, in int lane) {
     // warp can be have barrier, but is not required
     atomicExchange(invocationCache[LC_IDX][LANE_IDX], val);
@@ -119,6 +127,15 @@ uvec2 genLtMask(){
 
 uint bitCount64(in uvec2 lh) {
     return btc(lh.x) + btc(lh.y);
+}
+
+
+vec4 readLane(in vec4 val, in int lane){
+    return readInvocationARB(val, lane);
+}
+
+float readLane(in float val, in int lane){
+    return readInvocationARB(val, lane);
 }
 
 uint readLane(in uint val, in int lane){
