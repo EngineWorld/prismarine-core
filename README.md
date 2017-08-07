@@ -21,6 +21,7 @@
 - [x] Lower level accessor set
 - [x] Fully device memory based storing and copying, when loading mesh
 - [x] Divide uploading and current buffer storing (you can load meshes, while you using in traverse stable buffers)
+- [x] Divide BVH traverse and primitive intersection
 - [ ] Improved support of storing constants
 - [ ] Advanced optimization
 - [ ] Surface shaders
