@@ -30,6 +30,7 @@
 
 <img src="logo/clockwork.png" alt="ClockworkUpdate" width="960"/>
 
+- [x] Initial updates and factoring
 - [ ] Grouping geometry nodes by 32 primitives (expect that it will after morton code sorting stage)
 - [ ] SIMD optimized intersection stage
 - [ ] Sorting by ranging (for better exclusion of triangle hits)
