@@ -7,7 +7,7 @@ vec4 fetchDiffuse(in Submat mat, in vec2 texcoord){
     return result;
 }
 
-void surfaceShade(in Submat material, in Hit hit, in Ray ray, inout SurfaceData surface){
+void surfaceShade(inout SurfaceData surface, in Submat material, in Hit hit, in Ray ray){
     vec4 specular = fetchSpecular(material, hit.texcoord.xy);
     surface.albedo = fetchDiffuse(material, hit.texcoord.xy);
     surface.specular = vec4(1.f);

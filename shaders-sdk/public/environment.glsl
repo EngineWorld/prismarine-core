@@ -34,7 +34,7 @@ vec3 js_getScatter(in vec3 V, in vec3 L, in float lightStrength) {
     return saturate(skyColor,1.3)*vec3(1,1,1.35);
 }
 
-void env(in Hit hit, in Ray ray, inout vec4 color){
+void env(inout vec4 color, in Hit hit, in Ray ray){
     vec3 lcenter = lightCenterSky(0);
     color = readEnv(ray.direct.xyz);
     /*

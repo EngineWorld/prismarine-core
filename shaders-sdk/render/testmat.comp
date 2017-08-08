@@ -73,7 +73,7 @@ void main() {
 
     {
         vec4 color = vec4(0.0f);
-        EnvironmentShader(hit, newRay, color);
+        EnvironmentShader(color, hit, newRay);
 
         if (greaterEqualF(hit.dist, INFINITY) && newRay.params.w < 1 && hit.shaded < 1) {
             newRay.final.xyz = newRay.color.xyz * color.xyz;
@@ -107,7 +107,7 @@ void main() {
     // apply surface shading
 
     SurfaceData surface;
-    SurfaceShader(materialCache, hit, newRay, surface);
+    SurfaceShader(surface, materialCache, hit, newRay);
 
 
 
