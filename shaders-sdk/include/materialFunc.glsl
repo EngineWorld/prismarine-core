@@ -7,6 +7,21 @@
 #define GAP PZERO*1.0f
 
 
+// other parameters TODO
+struct SurfaceData {
+    vec3 normal;
+    float height;
+
+    vec4 emission;
+    vec4 albedo;
+    vec4 specular;
+    
+    float metallic;
+    float roughness;
+
+    int culling;
+};
+
 struct Submat {
     vec4 diffuse;
     vec4 specular;
@@ -30,6 +45,7 @@ struct Submat {
 
     ivec4 iModifiers0;
 };
+
 
 const uint MAX_TEXTURES = 72;
 layout ( binding = 15, std430 ) readonly buffer MaterialsSSBO {Submat submats[];};
