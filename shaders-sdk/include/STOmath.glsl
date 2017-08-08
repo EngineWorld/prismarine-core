@@ -159,6 +159,8 @@ int firstActive(){
     return (lv >= 0 ? lv : (32+findLSB(bits.y)));
 }
 
+
+
 #endif
 
 #define initAtomicIncFunction(mem, fname, T)\
@@ -192,5 +194,26 @@ T fname(in bool value){ \
 }
 
 #endif
+
+
+
+
+
+#if defined(ENABLE_AMD_INSTRUCTION_SET) || defined(ENABLE_NVIDIA_INSTRUCTION_SET)
+#define INDEX16 uint16_t
+#define M16(m, i) (m[i])
+#else
+#define INDEX16 uint
+#define M16(m, i) (bitfieldExtract(m[i/2], int(16*(i%2)), 16))
+#endif
+
+#ifdef ENABLE_INT16_LOADING
+#define INDICE_T INDEX16
+#define PICK(m, i) M16(m, i)
+#else
+#define INDICE_T uint
+#define PICK(m, i) m[i]
+#endif
+
 
 #endif

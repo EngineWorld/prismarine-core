@@ -160,12 +160,51 @@ struct ColorChain {
 
 
 
-
-// CLOCKWORK
 struct GroupFoundResult {
     int nextResult;
     float boxDistance;
     ivec2 range;
+};
+
+struct MeshUniformStruct {
+    int vertexAccessor;
+    int normalAccessor;
+    int texcoordAccessor;
+    int modifierAccessor;
+
+    mat4 transform;
+    mat4 transformInv;
+
+    int materialID;
+    int isIndexed;
+    int nodeCount;
+    int primitiveType;
+
+    int loadingOffset;
+    int storingOffset;
+    int _reserved0;
+    int _reserved1;
+};
+
+struct VirtualAccessor {
+    int offset;
+    int stride;
+    int components;
+    int type; // 0 is float, 1 is uint, 2 is 16bit uint
+};
+
+
+
+// other parameters TODO
+struct SurfaceData {
+    vec3 normal;
+    int culling;
+
+    vec4 emission;
+    vec4 albedo;
+    vec4 specular;
+    float metallic;
+    float roughness;
 };
 
 
