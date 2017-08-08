@@ -2,12 +2,12 @@
 
 #include "includes.hpp"
 #include "utils.hpp"
-#include "mesh.hpp"
+#include "vertexInstance.hpp"
 #include "radix.hpp"
 
-namespace Paper {
+namespace ppr {
 
-    class Intersector : public PTObject {
+    class SceneObject : public BaseClass {
     private:
         RadixSort * sorter = nullptr;
 
@@ -69,8 +69,8 @@ namespace Paper {
 
     public:
 
-        Intersector() { init(); }
-        ~Intersector() {
+        SceneObject() { init(); }
+        ~SceneObject() {
             glDeleteProgram(geometryLoaderProgramI16);
             glDeleteProgram(geometryLoaderProgram2);
             glDeleteProgram(buildProgramH);
@@ -111,7 +111,7 @@ namespace Paper {
         void bindBVH();
         void bindLeafs();
         void clearTribuffer();
-        void loadMesh(Mesh * gobject);
+        void loadMesh(VertexInstance * gobject);
         bool isDirty() const;
         void markDirty();
         void resolve();
@@ -120,4 +120,4 @@ namespace Paper {
     };
 }
 
-#include "./intersector.inl"
+#include "./sceneObject.inl"

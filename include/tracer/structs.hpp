@@ -3,7 +3,7 @@
 #include "includes.hpp"
 #include "utils.hpp"
 
-namespace Paper {
+namespace ppr {
     
     typedef float Vc1;
     typedef int32_t iVc1;
@@ -229,7 +229,29 @@ namespace Paper {
     };
 
 
+    struct Material {
+        glm::vec4 diffuse = glm::vec4(0.0f);
+        glm::vec4 specular = glm::vec4(0.0f);
+        glm::vec4 transmission = glm::vec4(0.0f);
+        glm::vec4 emissive = glm::vec4(0.0f);
 
+        float ior = 1.0f;
+        float roughness = 0.0001f;
+        float alpharef = 0.0f;
+        float unk0f = 0.0f;
+
+        uint32_t diffusePart = 0;
+        uint32_t specularPart = 0;
+        uint32_t bumpPart = 0;
+        uint32_t emissivePart = 0;
+
+        int32_t flags = 0;
+        int32_t alphafunc = 0;
+        int32_t binding = 0;
+        int32_t unk0i = 0;
+
+        glm::ivec4 iModifiers0 = glm::ivec4(0);
+    };
 
     struct GroupFoundResult {
         int nextResult = -1;

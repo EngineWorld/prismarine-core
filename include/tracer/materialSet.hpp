@@ -5,35 +5,8 @@
 #include <map>
 #include <algorithm>
 
-namespace Paper {
-    class Material : public PTObject {
-        friend class Tracer;
-
-    public:
-
-        struct Submat {
-            glm::vec4 diffuse = glm::vec4(0.0f);
-            glm::vec4 specular = glm::vec4(0.0f);
-            glm::vec4 transmission = glm::vec4(0.0f);
-            glm::vec4 emissive = glm::vec4(0.0f);
-
-            float ior = 1.0f;
-            float roughness = 0.0001f;
-            float alpharef = 0.0f;
-            float unk0f = 0.0f;
-
-            uint32_t diffusePart = 0;
-            uint32_t specularPart = 0;
-            uint32_t bumpPart = 0;
-            uint32_t emissivePart = 0;
-
-            int32_t flags = 0;
-            int32_t alphafunc = 0;
-            int32_t binding = 0;
-            int32_t unk0i = 0;
-
-            glm::ivec4 iModifiers0 = glm::ivec4(0);
-        };
+namespace ppr {
+    class MaterialSet : public BaseClass {
 
     private:
         //int32_t materialID = 0;
@@ -44,13 +17,14 @@ namespace Paper {
         void init();
 
     public:
-        std::vector<Submat> submats;
+
+        std::vector<Material> submats;
         std::vector<uint32_t> textures;
         std::vector<uint32_t> freedomTextures;
         std::map<std::string, uint32_t> texnames;
 
-        Material() {
-			submats = std::vector<Submat>(0); // init
+        MaterialSet() {
+			submats = std::vector<Material>(0); // init
             textures = std::vector<uint32_t>(0);
             textures.push_back(-1);
 
@@ -64,17 +38,17 @@ namespace Paper {
             submats.resize(0);
         }
 
-        size_t addSubmat(const Submat * submat) {
+        size_t addSubmat(const Material * submat) {
             size_t idx = submats.size();
             submats.push_back(*submat);
             return idx;
         }
 
-        size_t addSubmat(const Submat &submat) {
+        size_t addSubmat(const Material &submat) {
             return this->addSubmat(&submat);
         }
 
-        void setSumbat(const size_t& i, const Submat &submat) {
+        void setSumbat(const size_t& i, const Material &submat) {
             if (submats.size() <= i) submats.resize(i+1);
             submats[i] = submat;
         }
@@ -95,4 +69,4 @@ namespace Paper {
     };
 }
 
-#include "material.inl"
+#include "materialSet.inl"

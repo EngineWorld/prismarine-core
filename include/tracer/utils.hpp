@@ -2,10 +2,10 @@
 
 #include "includes.hpp"
 
-namespace Paper {
-    class PTObject {};
-    class Tracer;
-    class Intersector;
+namespace ppr {
+    class BaseClass {};
+    class Dispatcher;
+    class SceneObject;
 
     static int32_t tiled(int32_t sz, int32_t gmaxtile) {
         return (int32_t)ceil((double)sz / (double)gmaxtile);

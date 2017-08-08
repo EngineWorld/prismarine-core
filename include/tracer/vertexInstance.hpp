@@ -3,15 +3,17 @@
 #include "includes.hpp"
 #include "utils.hpp"
 
-namespace Paper {
+namespace ppr {
 
+    class VertexInstance;
 
-    class AccessorSet : public PTObject {
+    class AccessorSet : public BaseClass {
     public:
         AccessorSet() {
             glCreateBuffers(1, &meshAccessorsBuffer);
         }
-        friend Intersector;
+        friend SceneObject;
+        friend VertexInstance;
 
         int32_t addVirtualAccessor(VirtualAccessor accessorDesc) {
             int32_t accessorPtr = meshAccessors.size();
@@ -27,13 +29,12 @@ namespace Paper {
     private:
         std::vector<VirtualAccessor> meshAccessors;
         GLuint meshAccessorsBuffer = -1;
-
     };
 
 
-    class Mesh : public PTObject {
+    class VertexInstance : public BaseClass {
     public:
-        Mesh() {
+        VertexInstance() {
             GLuint dispatchData[3] = { 1, 1, 1 };
             glCreateBuffers(1, &indirect_dispatch_buffer);
             glNamedBufferData(indirect_dispatch_buffer, sizeof(dispatchData), dispatchData, GL_DYNAMIC_DRAW);
@@ -41,7 +42,7 @@ namespace Paper {
             glCreateBuffers(1, &meshUniformBuffer);
             glNamedBufferData(meshUniformBuffer, sizeof(MeshUniformStruct), &meshUniformData, GL_STATIC_DRAW);
         }
-        friend Intersector;
+        friend SceneObject;
 
         size_t getNodeCount();
         void setNodeCount(size_t tcount);
@@ -102,4 +103,4 @@ namespace Paper {
     };
 }
 
-#include "./mesh.inl"
+#include "./vertexInstance.inl"

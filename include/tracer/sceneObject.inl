@@ -1,8 +1,8 @@
-#include "intersector.hpp"
+#include "sceneObject.hpp"
 
-namespace Paper {
+namespace ppr {
 
-    inline void Intersector::initShaders() {
+    inline void SceneObject::initShaders() {
         /*
         initShaderCompute("./shaders/hlbvh/refit.comp", refitProgramH);
         initShaderCompute("./shaders/hlbvh/build.comp", buildProgramH);
@@ -20,7 +20,7 @@ namespace Paper {
         initShaderComputeSPIRV("./shaders-spv/tools/loader-int16.comp.spv", geometryLoaderProgramI16);
     }
 
-    inline void Intersector::init() {
+    inline void SceneObject::init() {
         initShaders();
         sorter = new RadixSort();
 
@@ -44,7 +44,7 @@ namespace Paper {
         glNamedBufferSubData(minmaxBufRef, 0, strided<bbox>(1), &bound);
     }
 
-    inline void Intersector::allocate(const size_t &count) {
+    inline void SceneObject::allocate(const size_t &count) {
         maxt = count;
 
         vbo_vertex_textrue = allocateTexture2D<GL_RGBA32F>(3072, 1024);
@@ -77,22 +77,22 @@ namespace Paper {
         clearTribuffer();
     }
 
-    inline void Intersector::syncUniforms() {
+    inline void SceneObject::syncUniforms() {
         geometryBlockData.geometryUniform = geometryUniformData;
         glNamedBufferSubData(geometryBlockUniform, 0, strided<GeometryBlockUniform>(1), &geometryBlockData);
 
         this->bindUniforms();
     }
 
-    inline void Intersector::setMaterialID(int32_t id) {
+    inline void SceneObject::setMaterialID(int32_t id) {
         materialID = id;
     }
 
-    inline void Intersector::bindUniforms() {
+    inline void SceneObject::bindUniforms() {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 14, geometryBlockUniform);
     }
 
-    inline void Intersector::bind() {
+    inline void SceneObject::bind() {
         // mosaic buffers for write
         glBindImageTexture(0, vbo_vertex_textrue_upload, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
         glBindImageTexture(1, vbo_normal_textrue_upload, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
@@ -115,28 +115,28 @@ namespace Paper {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 10, mat_triangle_ssbo);
     }
 
-    inline void Intersector::bindLeafs() {
+    inline void SceneObject::bindLeafs() {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, leafBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 18, mortonBufferIndex);
     }
 
-    inline void Intersector::bindBVH() {
+    inline void SceneObject::bindBVH() {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, bvhnodesBuffer);
     }
 
-    inline void Intersector::clearTribuffer() {
+    inline void SceneObject::clearTribuffer() {
         markDirty();
         glCopyNamedBufferSubData(minmaxBufRef, minmaxBuf, 0, 0, strided<bbox>(1));
         glCopyNamedBufferSubData(lscounterTemp, tcounter, 0, 0, strided<uint32_t>(1));
         geometryUniformData.triangleOffset = 0;
     }
 
-    inline void Intersector::configureIntersection(bool clearDepth) {
+    inline void SceneObject::configureIntersection(bool clearDepth) {
         this->geometryUniformData.clearDepth = clearDepth;
         this->syncUniforms();
     }
 
-    inline void Intersector::loadMesh(Mesh * gobject) {
+    inline void SceneObject::loadMesh(VertexInstance * gobject) {
         if (!gobject || gobject->meshUniformData.nodeCount <= 0) return;
 
         glCopyNamedBufferSubData(tcounter, gobject->meshUniformBuffer, 0, offsetof(MeshUniformStruct, storingOffset), sizeof(uint32_t));
@@ -153,19 +153,19 @@ namespace Paper {
         glUseProgram(0);
     }
 
-    inline bool Intersector::isDirty() const {
+    inline bool SceneObject::isDirty() const {
         return dirty;
     }
 
-    inline void Intersector::markDirty() {
+    inline void SceneObject::markDirty() {
         dirty = true;
     }
 
-    inline void Intersector::resolve() {
+    inline void SceneObject::resolve() {
         dirty = false;
     }
 
-    inline void Intersector::build(const glm::dmat4 &optimization) {
+    inline void SceneObject::build(const glm::dmat4 &optimization) {
         // get triangle count that uploaded
         glGetNamedBufferSubData(tcounter, 0, strided<uint32_t>(1), &this->triangleCount);
         geometryUniformData.triangleCount = triangleCount;

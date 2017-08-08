@@ -3,12 +3,12 @@
 #include "includes.hpp"
 #include "utils.hpp"
 #include "structs.hpp"
-#include "intersector.hpp"
-#include "material.hpp"
+#include "sceneObject.hpp"
+#include "materialSet.hpp"
 
-namespace Paper {
+namespace ppr {
 
-    class Tracer : public PTObject {
+    class Dispatcher : public BaseClass {
     private:
         RadixSort * sorter = nullptr;
 
@@ -77,8 +77,8 @@ namespace Paper {
 
     public:
 
-        Tracer() { init(); }
-        ~Tracer() {
+        Dispatcher() { init(); }
+        ~Dispatcher() {
             glDeleteProgram(renderProgram);
             glDeleteProgram(matProgram);
             glDeleteProgram(beginProgram);
@@ -152,10 +152,10 @@ namespace Paper {
         void clearSampler();
         void reclaim();
         void render();
-        int intersection(Intersector * obj, const int clearDepth = 0);
-        void shade(Material * mat);
+        int intersection(SceneObject * obj, const int clearDepth = 0);
+        void shade(MaterialSet * mat);
         int32_t getRayCount();
     };
 }
 
-#include "./tracer.inl"
+#include "./dispatcher.inl"

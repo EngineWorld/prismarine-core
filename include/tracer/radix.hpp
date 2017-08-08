@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Paper {
+namespace ppr {
 
     class RadixSort {
         GLuint permuteProgram;

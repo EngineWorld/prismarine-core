@@ -18,16 +18,15 @@
 
 #include "tracer/includes.hpp"
 #include "tracer/utils.hpp"
-#include "tracer/controller.hpp"
-#include "tracer/tracer.hpp"
-#include "tracer/intersector.hpp"
-#include "tracer/mesh.hpp"
-#include "tracer/material.hpp"
+#include "tracer/dispatcher.hpp"
+#include "tracer/sceneObject.hpp"
+#include "tracer/vertexInstance.hpp"
+#include "tracer/materialSet.hpp"
 #include "tracer/radix.hpp"
 #include <functional>
 
 namespace PaperExample {
-    using namespace Paper;
+    using namespace ppr;
 
     const int32_t kW = 0;
     const int32_t kA = 1;
@@ -51,7 +50,7 @@ namespace PaperExample {
         glm::dvec3 eye = glm::dvec3(0.0f, 6.0f, 6.0f);
         glm::dvec3 view = glm::dvec3(0.0f, 2.0f, 0.0f);
         glm::dvec2 mposition;
-        Tracer * raysp;
+        ppr::Dispatcher * raysp;
 
         glm::dmat4 project() {
 #ifdef USE_CAD_SYSTEM
@@ -63,7 +62,7 @@ namespace PaperExample {
 #endif
         }
 
-        void setRays(Tracer * r) {
+        void setRays(ppr::Dispatcher * r) {
             raysp = r;
         }
 
@@ -201,10 +200,10 @@ namespace PaperExample {
     private:
         
         GLFWwindow * window;
-        Tracer * rays;
-        Intersector * intersector;
+        ppr::Dispatcher * rays;
+        ppr::SceneObject * intersector;
         Controller * cam;
-        Material * materialManager;
+        ppr::MaterialSet * materialManager;
         
         double time = 0;
         double diff = 0;
@@ -217,7 +216,7 @@ namespace PaperExample {
 
 #ifdef EXPERIMENTAL_GLTF
         tinygltf::Model gltfModel;
-        std::vector<std::vector<Mesh *>> meshVec = std::vector<std::vector<Mesh *>>();
+        std::vector<std::vector<ppr::VertexInstance *>> meshVec = std::vector<std::vector<ppr::VertexInstance *>>();
         std::vector<GLuint> glBuffers = std::vector<GLuint>();
         std::vector<uint32_t> rtTextures = std::vector<uint32_t>();
 #endif
@@ -296,10 +295,10 @@ namespace PaperExample {
         }
 
         // init material system
-        materialManager = new Material();
+        materialManager = new MaterialSet();
 
         // init ray tracer
-        rays = new Tracer();
+        rays = new ppr::Dispatcher();
         rays->setSkybox(loadCubemap());
         
         // camera contoller
@@ -324,7 +323,7 @@ namespace PaperExample {
         materialManager->clearSubmats();
         for (int i = 0; i < gltfModel.materials.size(); i++) {
             tinygltf::Material & material = gltfModel.materials[i];
-            Paper::Material::Submat submat;
+            ppr::Material submat;
 
             // diffuse?
             int32_t texId = getTextureIndex(material.values["baseColorTexture"].json_double_value);
@@ -366,12 +365,12 @@ namespace PaperExample {
 
         // load mesh templates (better view objectivity)
         for (int m = 0; m < gltfModel.meshes.size();m++) {
-            std::vector<Mesh *> primitiveVec = std::vector<Mesh *>();
+            std::vector<ppr::VertexInstance *> primitiveVec = std::vector<ppr::VertexInstance *>();
 
             tinygltf::Mesh &glMesh = gltfModel.meshes[m];
             for (int i = 0; i < glMesh.primitives.size();i++) {
                 tinygltf::Primitive & prim = glMesh.primitives[i];
-                Mesh * geom = new Mesh();
+                ppr::VertexInstance * geom = new ppr::VertexInstance();
                 AccessorSet * acs = new AccessorSet();
                 geom->setAccessorSet(acs);
 
@@ -385,7 +384,7 @@ namespace PaperExample {
                     auto& bufferView = gltfModel.bufferViews[accessor.bufferView];
 
                     // virtual accessor template
-                    Paper::VirtualAccessor vattr;
+                    ppr::VirtualAccessor vattr;
                     vattr.offset = (accessor.byteOffset + bufferView.byteOffset) / 4;
                     vattr.stride = (bufferView.byteStride / 4);
 
@@ -440,7 +439,7 @@ namespace PaperExample {
 #endif
 
         // create geometry intersector
-        intersector = new Intersector();
+        intersector = new ppr::SceneObject();
         intersector->allocate(1024 * 1024);
 
         // init timing state
@@ -521,9 +520,9 @@ namespace PaperExample {
 
             glm::dmat4 transform = inTransform * localTransform;
             if (node.mesh >= 0) {
-                std::vector<Paper::Mesh *>& mesh = meshVec[node.mesh]; // load mesh object (it just vector of primitives)
+                std::vector<ppr::VertexInstance *>& mesh = meshVec[node.mesh]; // load mesh object (it just vector of primitives)
                 for (int p = 0; p < mesh.size(); p++) { // load every primitive
-                    Paper::Mesh * geom = mesh[p];
+                    ppr::VertexInstance * geom = mesh[p];
                     geom->setTransform(transform);
                     intersector->loadMesh(geom);
                 }

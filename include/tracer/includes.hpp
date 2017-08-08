@@ -29,6 +29,6 @@
 #include "external/include/FreeImage.h"
 #endif
 
-namespace Paper {
+namespace ppr {
     //using namespace gl;
 };

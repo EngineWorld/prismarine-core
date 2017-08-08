@@ -2,10 +2,10 @@
 
 #include "includes.hpp"
 #include "utils.hpp"
-#include "tracer.hpp"
+#include "dispatcher.hpp"
 
-namespace Paper {
-    class Transformer : public PTObject {
+namespace ppr {
+    class Transformer : public BaseClass {
         protected:
         std::vector<glm::dmat4> stack;
         glm::dmat4 current;

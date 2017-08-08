@@ -1,52 +1,52 @@
-#include "mesh.hpp"
+#include "vertexInstance.hpp"
 
-namespace Paper {
+namespace ppr {
 
-    inline void Mesh::setNodeCount(size_t tcount) {
+    inline void VertexInstance::setNodeCount(size_t tcount) {
         uint32_t tiledWork = tiled(tcount, 128);
         glNamedBufferSubData(indirect_dispatch_buffer, 0, sizeof(uint32_t), &tiledWork);
         meshUniformData.nodeCount = tcount;
         syncUniform();
     }
 
-    inline size_t Mesh::getNodeCount() {
+    inline size_t VertexInstance::getNodeCount() {
         return meshUniformData.nodeCount;
     }
 
-    inline void Mesh::useIndex16bit(bool b16) {
+    inline void VertexInstance::useIndex16bit(bool b16) {
         index16bit = b16;
     }
 
-    inline void Mesh::setMaterialOffset(int32_t id) {
+    inline void VertexInstance::setMaterialOffset(int32_t id) {
         meshUniformData.materialID = id;
         syncUniform();
     }
 
-    inline void Mesh::setTransform(glm::mat4 t) {
+    inline void VertexInstance::setTransform(glm::mat4 t) {
         meshUniformData.transform = glm::transpose(t);
         meshUniformData.transformInv = glm::inverse(t);
         syncUniform();
     }
 
-    inline void Mesh::setIndexed(const int32_t b) {
+    inline void VertexInstance::setIndexed(const int32_t b) {
         meshUniformData.isIndexed = b;
         syncUniform();
     }
 
-    inline void Mesh::setLoadingOffset(const int32_t &off) {
+    inline void VertexInstance::setLoadingOffset(const int32_t &off) {
         meshUniformData.loadingOffset = off;
         syncUniform();
     }
 
-    inline void Mesh::setVertices(const GLuint &buf) {
+    inline void VertexInstance::setVertices(const GLuint &buf) {
         vbo_triangle_ssbo = buf;
     }
 
-    inline void Mesh::setIndices(const GLuint &buf, const bool &all) {
+    inline void VertexInstance::setIndices(const GLuint &buf, const bool &all) {
         vebo_triangle_ssbo = buf;
     }
 
-    inline void Mesh::bind() {
+    inline void VertexInstance::bind() {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, vbo_triangle_ssbo != -1 ? vbo_triangle_ssbo : 0);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, vebo_triangle_ssbo != -1 ? vebo_triangle_ssbo : 0);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, mat_triangle_ssbo != -1 ? mat_triangle_ssbo : 0);

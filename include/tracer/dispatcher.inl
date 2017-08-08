@@ -1,8 +1,8 @@
-#include "tracer.hpp"
+#include "dispatcher.hpp"
 
-namespace Paper {
+namespace ppr {
 
-    inline void Tracer::initShaders() {
+    inline void Dispatcher::initShaders() {
         
         /*
         initShaderCompute("./shaders/render/testmat.comp", matProgram);
@@ -86,7 +86,7 @@ namespace Paper {
         }
     }
 
-    inline void Tracer::init() {
+    inline void Dispatcher::init() {
         initShaders();
         lightUniformData = new LightUniformStruct[6];
         sorter = new RadixSort();
@@ -140,17 +140,17 @@ namespace Paper {
     }
 
 
-    inline void Tracer::setLightCount(size_t lightcount) {
+    inline void Dispatcher::setLightCount(size_t lightcount) {
         materialUniformData.lightcount = lightcount;
     }
 
-    inline void Tracer::switchMode() {
+    inline void Dispatcher::switchMode() {
         clearRays();
         clearSampler();
         cameraUniformData.enable360 = cameraUniformData.enable360 == 1 ? 0 : 1;
     }
 
-    inline void Tracer::resize(const uint32_t & w, const uint32_t & h) {
+    inline void Dispatcher::resize(const uint32_t & w, const uint32_t & h) {
         displayWidth = w;
         displayHeight = h;
 
@@ -184,7 +184,7 @@ namespace Paper {
         clearSampler();
     }
 
-    inline void Tracer::resizeBuffers(const uint32_t & w, const uint32_t & h) {
+    inline void Dispatcher::resizeBuffers(const uint32_t & w, const uint32_t & h) {
         width = w;
         height = h;
 
@@ -220,7 +220,7 @@ namespace Paper {
         syncUniforms();
     }
 
-    inline void Tracer::syncUniforms() {
+    inline void Dispatcher::syncUniforms() {
         for (int i = 0; i < materialUniformData.lightcount; i++) {
             lightUniformData[i].lightColor = *(Vc4 *)glm::value_ptr(lightColor[i]);
             lightUniformData[i].lightVector = *(Vc4 *)glm::value_ptr(lightVector[i]);
@@ -237,12 +237,12 @@ namespace Paper {
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
     }
 
-    inline void Tracer::bindUniforms() {
+    inline void Dispatcher::bindUniforms() {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 12, lightUniform);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 13, rayBlockUniform);
     }
 
-    inline void Tracer::bind() {
+    inline void Dispatcher::bind() {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, rays);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, hits);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, texels);
@@ -261,7 +261,7 @@ namespace Paper {
         bindUniforms();
     }
 
-    inline void Tracer::clearRays() {
+    inline void Dispatcher::clearRays() {
         bound.mn.x = 100000.f;
         bound.mn.y = 100000.f;
         bound.mn.z = 100000.f;
@@ -275,7 +275,7 @@ namespace Paper {
         }
     }
 
-    inline void Tracer::resetHits() {
+    inline void Dispatcher::resetHits() {
         int32_t rsize = getRayCount();
         if (rsize <= 0) return;
 
@@ -283,7 +283,7 @@ namespace Paper {
         dispatch(beginProgram, tiled(rsize, worksize));
     }
 
-    inline void Tracer::sample() {
+    inline void Dispatcher::sample() {
         glBindImageTexture(0, presampled, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
         glBindImageTexture(1, sampleflags, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
 
@@ -294,7 +294,7 @@ namespace Paper {
         samplerUniformData.currentSample = currentSample;
     }
 
-    inline void Tracer::camera(const glm::mat4 &persp, const glm::mat4 &frontSide) {
+    inline void Dispatcher::camera(const glm::mat4 &persp, const glm::mat4 &frontSide) {
         clearRays();
 
         materialUniformData.time = rand();
@@ -309,7 +309,7 @@ namespace Paper {
         reloadQueuedRays(true);
     }
 
-    inline void Tracer::camera(const glm::vec3 &eye, const glm::vec3 &view, const glm::mat4 &persp) {
+    inline void Dispatcher::camera(const glm::vec3 &eye, const glm::vec3 &view, const glm::mat4 &persp) {
 #ifdef USE_CAD_SYSTEM
         glm::mat4 sidemat = glm::lookAt(eye, view, glm::vec3(0.0f, 0.0f, 1.0f));
 #elif USE_180_SYSTEM
@@ -321,11 +321,11 @@ namespace Paper {
         this->camera(persp, sidemat);
     }
 
-    inline void Tracer::camera(const glm::vec3 &eye, const glm::vec3 &view) {
+    inline void Dispatcher::camera(const glm::vec3 &eye, const glm::vec3 &view) {
         this->camera(eye, view, glm::perspective(glm::pi<float>() / 3.0f, float(displayWidth) / float(displayHeight), 0.001f, 1000.0f));
     }
 
-    inline void Tracer::clearSampler() {
+    inline void Dispatcher::clearSampler() {
         samplerUniformData.samplecount = displayWidth * displayHeight;
         samplerUniformData.currentSample = 0;
         samplerUniformData.maxSamples = maxSamples;
@@ -335,7 +335,7 @@ namespace Paper {
         dispatch(clearProgram, tiled(displayWidth * displayHeight, worksize));
     }
 
-    inline void Tracer::reloadQueuedRays(bool doSort, bool sortMortons) {
+    inline void Dispatcher::reloadQueuedRays(bool doSort, bool sortMortons) {
         glGetNamedBufferSubData(arcounter, 0 * sizeof(uint32_t), sizeof(uint32_t), &raycountCache);
         samplerUniformData.rayCount = raycountCache;
         syncUniforms();
@@ -372,7 +372,7 @@ namespace Paper {
         }
     }
 
-    inline void Tracer::reclaim() {
+    inline void Dispatcher::reclaim() {
         int32_t rsize = getRayCount();
         if (rsize <= 0) return;
 
@@ -382,7 +382,7 @@ namespace Paper {
         reloadQueuedRays(true);
     }
 
-    inline void Tracer::render() {
+    inline void Dispatcher::render() {
         this->bind();
         glEnable(GL_TEXTURE_2D);
         glBindTextureUnit(5, presampled);
@@ -395,7 +395,7 @@ namespace Paper {
         glBindVertexArray(0);
     }
 
-    inline int Tracer::intersection(Intersector * obj, const int clearDepth) {
+    inline int Dispatcher::intersection(SceneObject * obj, const int clearDepth) {
         if (!obj || obj->triangleCount <= 0) return 0;
 
         int32_t rsize = getRayCount();
@@ -434,7 +434,7 @@ namespace Paper {
         return 1;
     }
 
-    inline void Tracer::shade(Material * mat) {
+    inline void Dispatcher::shade(MaterialSet * mat) {
         int32_t rsize = getRayCount();
         if (rsize <= 0) return;
 
@@ -449,7 +449,7 @@ namespace Paper {
         dispatch(matProgram, tiled(rsize, worksize));
     }
 
-    inline int32_t Tracer::getRayCount() {
+    inline int32_t Dispatcher::getRayCount() {
         return raycountCache >= 32 ? raycountCache : 0;
     }
 }
