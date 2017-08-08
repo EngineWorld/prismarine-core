@@ -38,7 +38,6 @@ call glslc %CFLAGS% %CMPPROF% %INDIR%%RNDR%clear.comp         -o %OUTDIR%%RNDR%c
 call glslc %CFLAGS% %CMPPROF% %INDIR%%RNDR%reclaim.comp       -o %OUTDIR%%RNDR%reclaim.comp.spv
 call glslc %CFLAGS% %CMPPROF% %INDIR%%RNDR%sampler.comp       -o %OUTDIR%%RNDR%sampler.comp.spv
 call glslc %CFLAGS% %CMPPROF% %INDIR%%RNDR%testmat.comp       -o %OUTDIR%%RNDR%testmat.comp.spv
-call glslc %CFLAGS% %CMPPROF% %INDIR%%RNDR%testmat-rt.comp    -o %OUTDIR%%RNDR%testmat-rt.comp.spv
 call glslc %CFLAGS% %CMPPROF% %INDIR%%RNDR%quantizer.comp     -o %OUTDIR%%RNDR%quantizer.comp.spv
 call glslc %CFLAGS% %CMPPROF% %INDIR%%RNDR%traverse.comp      -o %OUTDIR%%RNDR%traverse.comp.spv
 call glslc %CFLAGS% %CMPPROF% %INDIR%%RNDR%resolver.comp      -o %OUTDIR%%RNDR%resolver.comp.spv
