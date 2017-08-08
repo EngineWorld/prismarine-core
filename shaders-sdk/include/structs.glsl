@@ -142,7 +142,7 @@ struct HlbvhNode {
 #else
     iVc4 pdata;
 #endif
-    iVc4 leading;
+    //iVc4 leading;
 };
 
 struct VboDataStride {

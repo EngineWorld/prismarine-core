@@ -238,7 +238,7 @@ namespace Paper {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, activeBuffer);
 
         dispatch(buildProgramH, 1);
-        dispatch(refitProgramH, tiled(triangleCount, worksize));
+        dispatch(refitProgramH, 1);
 
         // set back triangle count
         this->geometryUniformData.triangleCount = this->triangleCount;

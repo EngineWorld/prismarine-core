@@ -114,7 +114,6 @@ namespace Paper {
     struct HlbvhNode {
         bbox box;
         iVc4 pdata;
-        iVc4 leading;
     };
 
     struct VboDataStride {

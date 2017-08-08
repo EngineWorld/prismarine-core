@@ -340,7 +340,7 @@ void main() {
         bool nearer = lessEqualF(result.boxDistance, lastRes.predist) && lessF(result.boxDistance, INFINITY) && (warpShift--) <= 0 || !valid;
         if (allInvocations(nearer)) {
 
-            const int groupSize = 1;
+            const int groupSize = 8;
             int ln = 0;
             for (int ls=0;ls<groupSize;ls+=1) {
                 bool overtaken = (ls + ln) > (result.range.y-result.range.x);

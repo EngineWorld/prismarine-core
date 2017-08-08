@@ -89,6 +89,7 @@ void main() {
                 int prID = readLane(chID == 0 ? atomicExchange(Actives[trID], -1) : -1, wsID);
                 HlbvhNode parentNode = Nodes[prID];
 
+
                 if (parentNode.pdata.x != parentNode.pdata.y && prID != -1) {
                     // find split
                     int split = readLane(findSplit(parentNode.pdata.x, parentNode.pdata.y, chID), wsID);
@@ -105,7 +106,8 @@ void main() {
 
                     // is leaf?
                     //if (childNode.pdata.x == childNode.pdata.y) {
-                    if ((childNode.pdata.y - childNode.pdata.x) < 1) {
+                    bool isLeaf = (childNode.pdata.y - childNode.pdata.x) < 8;
+                    if (isLeaf) {
 
                         // load leaf data
                         childNode.box.mn = ( 100000.f).xxxx;
@@ -125,7 +127,7 @@ void main() {
                             childNode.box.mx = max(bound.mx, lbound.mx);
                         }
 
-                        // reform range 
+                        // reform range
                         ivec2 range = childNode.pdata.xy;
                         childNode.pdata.xy = range.yy; // leaf end (for identify that is leaf)
                         childNode.pdata.w  = range.x;  // leaf index (except morton-code) is primitive
