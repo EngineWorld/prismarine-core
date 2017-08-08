@@ -22,7 +22,7 @@ struct SurfaceData {
     int culling;
 };
 
-struct Submat {
+struct Material {
     vec4 diffuse;
     vec4 specular;
     vec4 transmission;
@@ -48,7 +48,7 @@ struct Submat {
 
 
 const uint MAX_TEXTURES = 72;
-layout ( binding = 15, std430 ) readonly buffer MaterialsSSBO {Submat submats[];};
+layout ( binding = 15, std430 ) readonly buffer MaterialsSSBO {Material submats[];};
 
 
 //layout ( binding = 5 ) uniform samplerCube skybox[1];
@@ -107,20 +107,12 @@ vec4 textureBicubic(in sampler2D sampler, in vec2 texCoords){
     , sy);
 }
 
-
-
 vec4 readEnv(in vec3 r) {
     vec3 nr = normalize(r);
     return texture(skybox[0], vec2(fma(vec2(atan(nr.z, nr.x), asin(nr.y) * 2.0f) / PI, vec2(0.5), vec2(0.5))));
 }
 
-
-
-
-
-
-
-bool haveProp(in Submat material, in int prop) {
+bool haveProp(in Material material, in int prop) {
     return (material.flags & prop) > 0;
 }
 
@@ -132,64 +124,12 @@ bool validateTexture(in uint binding){
     return binding != 0 && binding != LONGEST && binding < MAX_TEXTURES && textureSize(samplers[binding], 0).x > 0;
 }
 
-vec4 fetchPart(in uint binding, in vec2 texcoord){
+vec4 fetchTexture(in uint binding, in vec2 texcoord){
     return texture(samplers[binding], texcoord);
 }
 
-vec4 fetchPart(in uint binding, in vec2 texcoord, in ivec2 offset){
+vec4 fetchTexture(in uint binding, in vec2 texcoord, in ivec2 offset){
     return texture(samplers[binding], texcoord + vec2(offset) / textureSize(samplers[binding], 0));
-}
-
-vec4 fetchSpecular(in Submat mat, in vec2 texcoord){
-    vec4 specular = mat.specular;
-    if (validateTexture(mat.specularPart)) {
-        specular = fetchPart(mat.specularPart, texcoord);
-    }
-    return specular;
-}
-
-vec4 fetchEmissive(in Submat mat, in vec2 texcoord){
-    vec4 emission = vec4(0.0f);
-    if (validateTexture(mat.emissivePart)) {
-        emission = fetchPart(mat.emissivePart, texcoord);
-    }
-    return emission;
-}
-
-vec4 fetchTransmission(in Submat mat, in vec2 texcoord){
-    return mat.transmission;
-}
-
-vec4 fetchNormal(in Submat mat, in vec2 texcoord){
-    vec4 nmap = vec4(0.5f, 0.5f, 1.0f, 1.0f);
-    if (validateTexture(mat.bumpPart)) {
-        nmap = fetchPart(mat.bumpPart, vec2(texcoord.x, texcoord.y));
-    }
-    return nmap;
-}
-
-vec4 fetchNormal(in Submat mat, in vec2 texcoord, in ivec2 offset){
-    vec4 nmap = vec4(0.5f, 0.5f, 1.0f, 1.0f);
-    if (validateTexture(mat.bumpPart)) {
-        nmap = fetchPart(mat.bumpPart, vec2(texcoord.x, texcoord.y), offset);
-    }
-    return nmap;
-}
-
-vec3 getNormalMapping(in Submat mat, vec2 texcoordi) {
-    vec3 tc = fetchNormal(mat, texcoordi).xyz;
-    if(equalF(tc.x, tc.y) && equalF(tc.x, tc.z)){
-        const ivec3 off = ivec3(0,0,1);
-        const float size = 1.0f;
-        const float pike = 2.0f;
-        vec3 p00 = vec3(0.0f, 0.0f, fetchNormal(mat, texcoordi, off.yy).x * pike);
-        vec3 p01 = vec3(size, 0.0f, fetchNormal(mat, texcoordi, off.zy).x * pike);
-        vec3 p10 = vec3(0.0f, size, fetchNormal(mat, texcoordi, off.yz).x * pike);
-        return normalize(cross(p10 - p00, p01 - p00));
-    } else {
-        return normalize(mix(vec3(0.0f, 0.0f, 1.0f), fma(tc, vec3(2.0f), vec3(-1.0f)), vec3(1.0f)));
-    }
-    return vec3(0.0, 0.0, 1.0);
 }
 
 float computeFresnel(in vec3 normal, in vec3 indc, in float n1, in float n2){
@@ -202,65 +142,6 @@ float computeFresnel(in vec3 normal, in vec3 indc, in float n1, in float n2){
 
 vec3 glossy(in vec3 dir, in vec3 normal, in float refli) {
     return normalize(mix(normalize(dir), randomCosine(normal), clamp(sqrt(random()) * refli, 0.0f, 1.0f)));
-}
-
-void generateLightPolygon(in vec3 center, in float radius, inout vec3 polygon[4]){
-    polygon[0] = center + vec3( 1.0f, 0.0f,  1.0f) * radius;
-    polygon[1] = center + vec3(-1.0f, 0.0f,  1.0f) * radius;
-    polygon[2] = center + vec3( 1.0f, 0.0f, -1.0f) * radius;
-    polygon[3] = center + vec3(-1.0f, 0.0f, -1.0f) * radius;
-}
-
-// for polygonal light intersection
-float intersectTriangle(in vec3 orig, in vec3 dir, in vec3 ve[3], inout vec2 UV, in bool valid) {
-    if (!valid) return INFINITY;
-
-     vec3 e1 = ve[1] - ve[0];
-     vec3 e2 = ve[2] - ve[0];
-
-    valid = valid && !(length(e1) < 0.00001f && length(e2) < 0.00001f);
-    if (!valid) return INFINITY;
-
-     vec3 pvec = cross(dir, e2);
-     float det = dot(e1, pvec);
-
-#ifndef CULLING
-    if (abs(det) <= 0.0f) valid = false;
-#else
-    if (det <= 0.0f) valid = false;
-#endif
-    if (!valid) return INFINITY;
-
-     vec3 tvec = orig - ve[0];
-     float u = dot(tvec, pvec);
-     vec3 qvec = cross(tvec, e1);
-     float v = dot(dir, qvec);
-     vec3 uvt = vec3(u, v, dot(e2, qvec)) / det;
-
-    if (
-        any(lessThan(uvt.xy, vec2(0.f))) || 
-        any(greaterThan(vec2(uvt.x) + vec2(0.f, uvt.y), vec2(1.f))) 
-    ) valid = false;
-    if (!valid) return INFINITY;
-
-    UV.xy = uvt.xy;
-    return (lessF(uvt.z, 0.0f) || !valid) ? INFINITY : uvt.z;
-}
-
-
-
-float intersectQuad(in vec3 orig, in vec3 dir, in vec3 ve[4], inout vec2 UV, inout int halfp){
-    // test first half
-    halfp = 0;
-    vec3 vcs[3] = {ve[0], ve[1], ve[2]};
-    float first = intersectTriangle(orig, dir, vcs, UV, true);
-    if (first < INFINITY) return first;
-
-    // if half of quad failure, intersect with another
-    halfp = 1;
-    vcs[0] = ve[3], vcs[1] = ve[0];
-    float second = intersectTriangle(orig, dir, vcs, UV, true);
-    return second;
 }
 
 Ray reflection(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal, in float refly){
@@ -300,10 +181,9 @@ Ray refraction(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal, in floa
     return newRay;
 }
 
-
 vec3 lightCenter(in int i){
-     vec3 playerCenter = vec3(0.0f);
-     vec3 lvec = normalize(lightUniform.lightNode[i].lightVector.xyz) * (lightUniform.lightNode[i].lightVector.y < 0.0f ? -1.0f : 1.0f);
+    vec3 playerCenter = vec3(0.0f);
+    vec3 lvec = normalize(lightUniform.lightNode[i].lightVector.xyz) * (lightUniform.lightNode[i].lightVector.y < 0.0f ? -1.0f : 1.0f);
     return fma(lvec, vec3(lightUniform.lightNode[i].lightVector.w), (lightUniform.lightNode[i].lightOffset.xyz + playerCenter.xyz));
 }
 
@@ -390,12 +270,6 @@ int emitRay(in Ray directRay, in Hit hit, in vec3 normal, in float coef){
     directRay.color.xyz *= coef;
     directRay.final.xyz *= coef;
     return createRay(directRay);
-}
-
-vec3 lightCenterSky(in int i) {
-     vec3 playerCenter = vec3(0.0f);
-     vec3 lvec = normalize(lightUniform.lightNode[i].lightVector.xyz) * 1000.0f;
-    return lightUniform.lightNode[i].lightOffset.xyz + lvec + playerCenter.xyz;
 }
 
 bool doesCubeIntersectSphere(in vec3 C1, in vec3 C2, in vec3 S, in float R)

@@ -99,7 +99,7 @@ void main() {
 
     // get material data
 
-    Submat materialCache = submats[hit.materialID];
+    Material materialCache = submats[hit.materialID];
 
 
     // apply surface shading

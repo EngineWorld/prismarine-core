@@ -34,6 +34,12 @@ vec3 js_getScatter(in vec3 V, in vec3 L, in float lightStrength) {
     return saturate(skyColor,1.3)*vec3(1,1,1.35);
 }
 
+vec3 lightCenterSky(in int i) {
+    vec3 playerCenter = vec3(0.0f);
+    vec3 lvec = normalize(lightUniform.lightNode[i].lightVector.xyz) * 1000.0f;
+    return lightUniform.lightNode[i].lightOffset.xyz + lvec + playerCenter.xyz;
+}
+
 void env(inout vec4 color, in Hit hit, in Ray ray){
     vec3 lcenter = lightCenterSky(0);
     color = readEnv(ray.direct.xyz);
