@@ -5,12 +5,7 @@ namespace Paper {
     inline void Tracer::initShaders() {
         
         /*
-#ifdef USE_OPTIMIZED_RT
-        initShaderCompute("./shaders/render/testmat-rt.comp", matProgram);
-#else
         initShaderCompute("./shaders/render/testmat.comp", matProgram);
-#endif
-
         initShaderCompute("./shaders/render/begin.comp", beginProgram);
         initShaderCompute("./shaders/render/reclaim.comp", reclaimProgram);
         initShaderCompute("./shaders/render/camera.comp", cameraProgram);
@@ -20,12 +15,7 @@ namespace Paper {
         initShaderCompute("./shaders/render/resolver.comp", resolverProgram);
         */
 
-#ifdef USE_OPTIMIZED_RT
-        initShaderComputeSPIRV("./shaders-spv/render/testmat-rt.comp.spv", matProgram);
-#else
         initShaderComputeSPIRV("./shaders-spv/render/testmat.comp.spv", matProgram);
-#endif
-
         initShaderComputeSPIRV("./shaders-spv/render/begin.comp.spv", beginProgram);
         initShaderComputeSPIRV("./shaders-spv/render/reclaim.comp.spv", reclaimProgram);
         initShaderComputeSPIRV("./shaders-spv/render/camera.comp.spv", cameraProgram);
