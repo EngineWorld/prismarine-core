@@ -198,13 +198,16 @@ struct VirtualAccessor {
 // other parameters TODO
 struct SurfaceData {
     vec3 normal;
-    int culling;
+    float height;
 
     vec4 emission;
     vec4 albedo;
     vec4 specular;
+    
     float metallic;
     float roughness;
+
+    int culling;
 };
 
 
