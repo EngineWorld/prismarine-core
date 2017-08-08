@@ -11,12 +11,13 @@
 
 - [x] Use compatible library with OpenGL 4.6
 - [x] Change shading language version to *460*
-- [x] OpenGL 4.6 group vote in traverse code
-- [x] Extended SPIR-V support
-- [x] Indirect mesh loading
-- [ ] Memory and semaphores extensions support
-- [ ] Float 16 bit support
-- [ ] Float 64 bit support
+- [x] OpenGL 4.6 subgroup vote support
+- [x] SPIR-V support
+- [x] Indirect dispatch buffer in vertex instance objects
+- [ ] Memory and semaphores extensions support (alike Vulkan API)
+- [ ] Float 16 bit support (AMD)
+- [ ] Float 64 bit support (Nvidia)
+- [ ] Full AMD extensions support
 </details>
 
 <details>
@@ -26,13 +27,16 @@
 
 <img src="logo/paper.png" alt="MasterUpdate" width="1024"/>
 
-- [x] Support of accessor buffers
-- [x] Lower level accessor set
-- [x] Fully device memory based storing and copying, when loading mesh
-- [x] Divide uploading and current buffer storing (you can load meshes, while you using in traverse stable buffers)
-- [x] Divide BVH traverse and primitive intersection stages
-- [x] Surface and environment shaders
-- [ ] Improved support of storing constants
+- [x] (Beta) Fully device memory based storing and copying, when loading mesh (less overhead instancing)
+- [x] (Beta) Divide uploading and current scene state (you can load meshes, while you using in traverse stable state)
+- [x] (Alpha) Lower level accessor set and virtual accessor
+- [x] (Alpha) Divide BVH traverse and primitive intersection stages
+- [x] (Alpha) Surface and environment shaders 
+- [ ] (WIP) Class refactoring
+- [ ] (WIP) Structural refactoring
+- [ ] (WIP) Shaders refactoring
+- [ ] Support of external constant and data buffers
+- [ ] Support of user defined vertex attributes (at now support only accessors)
 - [ ] Advanced optimization
 </details>
 
@@ -43,10 +47,8 @@
 
 <img src="logo/clockwork.png" alt="ClockworkUpdate" width="960"/>
 
-- [x] Initial updates and factoring
-- [ ] Grouping geometry nodes by 32 primitives (expect that it will after morton code sorting stage)
-- [ ] SIMD optimized intersection stage
-- [ ] Sorting by ranging (for better exclusion of triangle hits)
+- [ ] SIMT optimized intersection and traverse stage
+- [ ] Sorting hit chains by range (for better exclusion of triangle hits)
 - [ ] Consideration of trBVH support
 </details>
 
