@@ -1,9 +1,0 @@
-﻿  Building Custom Rule C:/Users/capitalknew/Documents/GitHub/paper-render-2/CMakeLists.txt
-  CMake is re-running because C:/Users/capitalknew/Documents/GitHub/paper-render-2/build/CMakeFiles/generate.stamp dependency file is missing.
-  -- Configuring done
-  -- Generating done
-  -- Build files have been written to: C:/Users/capitalknew/Documents/GitHub/paper-render-2/build
-  main.cpp
-  glad.c
-  paper-render.vcxproj -> C:\Users\capitalknew\Documents\GitHub\paper-render-2\build\RelWithDebInfo\paper-render.exe
-  paper-render.vcxproj -> C:/Users/capitalknew/Documents/GitHub/paper-render-2/build/RelWithDebInfo/paper-render.pdb (Full PDB)
