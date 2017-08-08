@@ -1,6 +1,11 @@
 # OpenGL Ray Tracer (aka. "Paper")
 
-## "Highway" Update (formelly OpenGL 4.6) Mainly Done (06.08.2017)
+## Updates
+
+<details>
+<summary>Highway Update (beta)</summary>
+
+### "Highway" Update (formelly OpenGL 4.6) Mainly Done (06.08.2017)
 
 <img src="logo/highway.png" alt="HighwayUpdate" width="960"/>
 
@@ -12,8 +17,12 @@
 - [ ] Memory and semaphores extensions support
 - [ ] Float 16 bit support
 - [ ] Float 64 bit support
+</details>
 
-## "Master" Update (low level API, tweaks) WIP (??.08.2017)
+<details>
+<summary>Master Update (on development)</summary>
+
+### "Master" Update (low level API, tweaks) WIP (??.08.2017)
 
 <img src="logo/paper.png" alt="MasterUpdate" width="1024"/>
 
@@ -25,8 +34,12 @@
 - [x] Surface and environment shaders
 - [ ] Improved support of storing constants
 - [ ] Advanced optimization
+</details>
 
-## "Clockwork" Update (improved BVH system) planned (??.??.2017)
+<details>
+<summary>Clockwork Update (on development)</summary>
+
+### "Clockwork" Update (improved BVH system) planned (??.??.2017)
 
 <img src="logo/clockwork.png" alt="ClockworkUpdate" width="960"/>
 
@@ -35,6 +48,7 @@
 - [ ] SIMD optimized intersection stage
 - [ ] Sorting by ranging (for better exclusion of triangle hits)
 - [ ] Consideration of trBVH support
+</details>
 
 ## Details
 
