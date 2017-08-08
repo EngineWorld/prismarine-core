@@ -232,7 +232,7 @@ LResult loadInfo(in TResult hitp) {
 //LOCAL_SIZE_LAYOUT;
 layout ( local_size_x = WORK_SIZED*laneOccupy ) in;
 
-const int shifts[5] = {1, 2, 4, 8, 16};
+const int shifts[6] = {0, 1, 2, 4, 8, 16};
 
 TResult reductiveWarpNearest(in TResult res, in bool usePredist){
     // reductive search minimal intersection
@@ -242,7 +242,7 @@ TResult reductiveWarpNearest(in TResult res, in bool usePredist){
     vec4        uv[2];
 
     for (int i=1;i<=reductionDepth;i++) {
-        int shf = shifts[i-1], idx = (int(LANE_IDX) >> i) << i;
+        int shf = shifts[i], idx = (int(LANE_IDX) >> i) << i;
 
                dist[0] = readLane(res.dist      , idx),       dist[1] = readLane(res.dist      , idx + shf);
             predist[0] = readLane(res.predist   , idx),    predist[1] = readLane(res.predist   , idx + shf);
@@ -251,12 +251,11 @@ TResult reductiveWarpNearest(in TResult res, in bool usePredist){
 
         // reducted min
         int nearIdx = (usePredist ? lessEqualF(predist[0], predist[1]) : lessEqualF(dist[0], dist[1])) ? 0 : 1;
-        res.dist = dist[nearIdx];
-        res.predist = predist[nearIdx];
-        res.triangleID = triangleID[nearIdx];
-        res.uv = uv[nearIdx];
+        res.dist = readLane(dist[nearIdx], idx);
+        res.predist = readLane(predist[nearIdx], idx);
+        res.triangleID = readLane(triangleID[nearIdx], idx);
+        res.uv = readLane(uv[nearIdx], idx);
     }
-
     return res;
 }
 
@@ -328,7 +327,7 @@ void main() {
     sharedVarsData[L].bakedRangeIntersection = vec4(INFINITY, 0.f, 0.f, 0.f);
 
     bool valid = foundID != -1 && !overflow;
-    int warpShift = int(LANE_IDX) % laneOccupy;
+    int warpShift = 0;//int(LANE_IDX) % laneOccupy;
     for (int i=0;i<2048;i++) {
         valid = valid && foundID != -1;
         if (allInvocations(!valid)) break;
@@ -341,19 +340,20 @@ void main() {
         if (allInvocations(nearer)) {
 
             const int groupSize = 4;
-            int ln = 0;
-            for (int ls=0;ls<groupSize;ls+=1) {
-                bool overtaken = (ls + ln) > (result.range.y-result.range.x);
-                if (allInvocations(overtaken)) break; // in WARP version will bad effect
+            int ln = int(LANE_IDX) % laneOccupy;
+            for (int ls=0;ls<groupSize;ls+=laneOccupy)
+            {
+                int lidx = (ls + ln);
+                bool overtaken = lidx > (result.range.y-result.range.x);
+                if (allInvocations(ls > (result.range.y-result.range.x))) break; // in WARP version will bad effect
 
-                int morIdx = MortonIndices[result.range.x + (ls + ln)];
+                int morIdx = MortonIndices[result.range.x + lidx];
                 HlbvhNode leaf = Leafs[morIdx];
                 int triIdx = leaf.pdata.w;
 
                 testIntersection(lastRes, ray.origin.xyz, ray.direct.xyz, triIdx, nearer && valid && !overtaken);
                 lastRes = reductiveWarpNearest(lastRes, true);
             }
-
             foundID = result.nextResult;
         }
 
@@ -385,7 +385,6 @@ void main() {
         newHit.shaded = 0;
         newHit.vmods.w = sysmod.w;
         if (!overflow && (LANE_IDX % laneOccupy) == 0) storeHit(t, newHit);
-        //if (!overflow) storeHit(t, newHit);
     }
 
 }
