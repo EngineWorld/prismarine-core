@@ -345,7 +345,7 @@ void main() {
             {
                 int lidx = (ls + ln);
                 bool overtaken = lidx > (result.range.y-result.range.x);
-                if (allInvocations(ls > (result.range.y-result.range.x))) break; // in WARP version will bad effect
+                if (allInvocations(overtaken)) break; // in WARP version will bad effect
 
                 int morIdx = MortonIndices[result.range.x + lidx];
                 HlbvhNode leaf = Leafs[morIdx];
