@@ -58,11 +58,6 @@ void storeHit(in int hitIndex, inout Hit hit) {
     hitBuf.nodes[hitIndex] = hit;
 }
 
-void storeHit(inout Ray ray, inout Hit hit) {
-    storeHit(ray.idx, hit);
-}
-
-
 int addRayToList(in Ray ray){
     int rayIndex = ray.idx;
     int actived = -1;
@@ -88,7 +83,6 @@ int addRayToList(in Ray ray, in int act){
     return actived;
 }
 
-
 void storeRay(in int rayIndex, inout Ray ray) {
     if (rayIndex == -1 || rayIndex == LONGEST || rayIndex >= RAY_BLOCK samplerUniform.currentRayLimit) {
         ray.actived = 0;
@@ -98,10 +92,6 @@ void storeRay(in int rayIndex, inout Ray ray) {
 
     ray.idx = rayIndex;
     rayBuf.nodes[rayIndex] = ray;
-}
-
-void storeRay(inout Ray ray) {
-    storeRay(ray.idx, ray);
 }
 
 int createRayStrict(inout Ray original, in int idx, in int rayIndex) {
@@ -209,7 +199,13 @@ int createRayIdx(inout Ray original, in int idx, in int rayIndex) {
 }
 
 
+void storeHit(inout Ray ray, inout Hit hit) {
+    storeHit(ray.idx, hit);
+}
 
+void storeRay(inout Ray ray) {
+    storeRay(ray.idx, ray);
+}
 
 int createRay(in Ray original) {
     return createRay(original, original.texel);
@@ -231,14 +227,5 @@ Hit fetchHitDirect(in int texel) {
 Hit fetchHit(in Ray ray){
     return hitBuf.nodes[ray.idx];
 }
-
-
-
-uvec3 _roundly(in vec3 o){
-    return clamp(
-        uvec3(floor(clamp(o, vec3(0.00001f), vec3(0.99999f)) * 1024.0f)), 
-        uvec3(0), uvec3(1023));
-}
-
 
 #endif

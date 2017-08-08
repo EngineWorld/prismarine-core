@@ -97,18 +97,15 @@ void main() {
     }
 
 
-
     // get material data
 
     Submat materialCache = submats[hit.materialID];
-
 
 
     // apply surface shading
 
     SurfaceData surface;
     SurfaceShader(surface, materialCache, hit, newRay);
-
 
 
     // transmutate normals
@@ -121,14 +118,6 @@ void main() {
     mat3 tbn = mat3(tan, normalize(cross(normal, tan)), normal);
     normal = normalize(tbn * normalize(surface.normal));
     normal = faceforward(normal, dir, normal);
-
-
-    // construct orthonormal basis around N
-
-    vec3 T1, T2;
-    T1 = normalize(dir - normal*dot(dir, normal));
-    T2 = normalize(cross(normal, T1));
-    tbn_light = transpose(mat3(T1, T2, normal)), dirl = dir;
 
 
     // get surface data

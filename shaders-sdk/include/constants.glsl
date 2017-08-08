@@ -1,10 +1,10 @@
 #ifndef _CONSTANTS_H
 #define _CONSTANTS_H
 
-//#define EMULATE_BALLOT
 
 // hardware or driver options
 #define USE_INT64
+//#define EMULATE_BALLOT
 //#define USE_ARB_CLOCK
 //#define USE_ARB_PRECISION
 //#define ENABLE_NVIDIA_INSTRUCTION_SET
@@ -12,20 +12,16 @@
 //#define ENABLE_INT16_LOADING // such as Neverball with GLushort
 //#define ENABLE_UNSUPPOTED_FUNCTIONS
 
-// system constants
-#define PZERO 0.00021f
-#define COMPATIBLE_PRECISION 8388608.0
 
 // ray tracing options
 //#define EXPERIMENTAL_DOF
 #define SUNLIGHT_CAUSTICS false
 #define REFRACTION_SKIP_SUN
 #define DIRECT_LIGHT
-//#define FREEIMAGE_STYLE
 #define MOTION_BLUR
-//#define INT64_MORTON
-//#define CULLING
 
+
+// enable required OpenGL extensions
 #ifdef ENABLE_AMD_INSTRUCTION_SET
 #extension GL_AMD_gcn_shader : require
 #extension GL_AMD_gpu_shader_half_float : require
@@ -51,13 +47,18 @@
 #extension GL_ARB_shader_precision : require
 #endif
 
-// compute shaders
+#ifndef EMULATE_BALLOT
+#extension GL_ARB_shader_ballot : require
+#endif
+
+
+// System Constants
+#define PZERO 0.00021f
+#define COMPATIBLE_PRECISION 8388608.0
+
+// Compute Shaders Definitions
 #define WORK_SIZE 128
 #define LOCAL_SIZE_LAYOUT layout ( local_size_x = WORK_SIZE ) in
-
-// variable compute
-//#extension GL_ARB_compute_variable_group_size : require
-//#define LOCAL_SIZE_LAYOUT layout ( local_size_variable ) in;
 
 // Math Constants
 #define PHI 1.6180339887498948482
@@ -67,24 +68,5 @@
 #define TWO_PI 6.2831853071795864769252867665590057683943
 #define SQRT_OF_ONE_THIRD 0.5773502691896257645091487805019574556476
 #define E 2.7182818284590452353602874713526624977572
-
-//#define EXPERIMENTAL_PURE_PT
-
-// redefinition to true
-#ifdef EXPERIMENTAL_PURE_PT
-#undef SUNLIGHT_CAUSTICS
-#undef REFRACTION_SKIP_SUN
-#undef DIRECT_LIGHT
-#define SUNLIGHT_CAUSTICS true
-#endif
-
-#ifndef EMULATE_BALLOT
-#extension GL_ARB_shader_ballot : require
-#endif
-
-
-//#extension GL_ARB_shader_group_vote : require
-
-//#define USE_BINDLESS
 
 #endif

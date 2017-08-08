@@ -306,77 +306,22 @@ int applyLight(in Ray directRay, inout Ray newRay, in vec3 normal){
 #endif
 }
 
-
-float DRo = 1.f;
-const uint u_SamplesPerPass = 16;
-mat3 tbn_light = mat3(1.0f);
-vec3 dirl = vec3(0.0f);
-
 float intersectSphere(in vec3 origin, in vec3 ray, in vec3 sphereCenter, in float sphereRadius) {
-     vec3 toSphere = origin - sphereCenter;
-     float a = dot(ray, ray);
-     float b = 2.0f * dot(toSphere, ray);
-     float c = dot(toSphere, toSphere) - sphereRadius*sphereRadius;
-     float discriminant = fma(b,b,-4.0f*a*c);
+    vec3 toSphere = origin - sphereCenter;
+    float a = dot(ray, ray);
+    float b = 2.0f * dot(toSphere, ray);
+    float c = dot(toSphere, toSphere) - sphereRadius*sphereRadius;
+    float discriminant = fma(b,b,-4.0f*a*c);
     if(discriminant > 0.0f) {
-         float da = 0.5f / a;
-         float t1 = (-b - sqrt(discriminant)) * da;
-         float t2 = (-b + sqrt(discriminant)) * da;
-         float mn = min(t1, t2);
-         float mx = max(t1, t2);
+        float da = 0.5f / a;
+        float t1 = (-b - sqrt(discriminant)) * da;
+        float t2 = (-b + sqrt(discriminant)) * da;
+        float mn = min(t1, t2);
+        float mx = max(t1, t2);
         if (mn >= 0.0f) return mn; else
         if (mx >= 0.0f) return mx;
     }
     return INFINITY;
-}
-
-bool intersectSphereFast(in vec3 origin, in vec3 ray, in vec3 sphereCenter, in float sphereRadius) {
-    vec3 toSphere = origin - sphereCenter;
-    float a = dot(ray, ray);
-    float b = 2.f * dot(toSphere, ray);
-    float c = dot(toSphere, toSphere) - sphereRadius*sphereRadius;
-    float discriminant = fma(b,b,(-4.f)*a*c);
-    if(discriminant > 0.f) {
-        float da = .5f / a;
-        float t1 = (-b - sqrt(discriminant)) * da;
-        float t2 = (-b + sqrt(discriminant)) * da;
-        return (max(t1, t2) >= 0.f);
-    }
-    return false;
-}
-
-
-
-Ray directLightRoughness(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 normal){
-    if (directRay.params.w == 1) return directRay;
-    directRay.bounce = min(1, directRay.bounce);
-    directRay.actived = 1;
-    directRay.params.w = 1;
-    directRay.params.x = 0;
-    directRay.params.y = i;
-
-    float AO = 0.f;
-    for (uint k=0;k<u_SamplesPerPass;k++) {
-        vec3 direct = normalize(mix(reflect(dirl, normal), randomCosine(normal), clamp(DRo * random(), 0.0f, 1.0f)));
-        bool vsampl = intersectSphereFast(directRay.origin.xyz, direct, lightCenter(i).xyz, lightUniform.lightNode[i].lightColor.w + GAP);
-        AO += float(vsampl ? 1.f : 0.f);
-    }
-    AO /= float(u_SamplesPerPass);
-
-    vec3 ltr = lightCenter(i).xyz-directRay.origin.xyz;
-    vec3 ldirect = normalize(sLight(i) - directRay.origin.xyz);
-    float diffuseWeight = clamp(dot(ldirect, normal), 0.0f, 1.0f);
-
-    directRay.direct.xyz = ldirect;
-    directRay.color.xyz *= color * AO;
-    return directRay;
-}
-
-Ray directLight(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 normal, in float roughness){
-    DRo = clamp(roughness, 0.0001f, 1.0f);
-    Ray drtRay = directLightRoughness(i, directRay, hit, color, normal);
-    DRo = 1.f;
-    return drtRay;
 }
 
 Ray directLight(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 normal){
@@ -394,33 +339,8 @@ Ray directLight(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 n
 
     directRay.direct.xyz = ldirect;
     directRay.color.xyz *= color * diffuseWeight * ((1.0f - cos_a_max) * 2.0f);
-    if (DRo < 0.9999f) directRay.color.xyz *= vec3(0.0f);
     return directRay;
 }
-
-Ray directLightWhitted(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 normal){
-    if (directRay.params.w == 1) return directRay;
-    directRay.bounce = min(1, directRay.bounce);
-    directRay.actived = 1;
-    directRay.params.w = 1;
-    directRay.params.x = 0;
-    directRay.params.y = i;
-    directRay.actived = 1;
-
-    vec3 ldirect = normalize(sLight(i) - directRay.origin.xyz);
-    float diffuseWeight = clamp(dot(ldirect, normal), 0.0f, 1.0f);
-
-    directRay.direct.xyz = ldirect;
-    directRay.color.xyz = directRay.final.xyz * color * diffuseWeight;
-    directRay.final.xyz *= 0.f;
-    if (DRo < 0.9999f) directRay.color.xyz *= vec3(0.0f);
-    return directRay;
-}
-
-
-
-
-
 
 Ray diffuse(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal){
     if (newRay.params.w == 1) return newRay;
