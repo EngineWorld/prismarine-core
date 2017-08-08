@@ -106,7 +106,7 @@ void main() {
 
                     // is leaf?
                     //if (childNode.pdata.x == childNode.pdata.y) {
-                    bool isLeaf = (childNode.pdata.y - childNode.pdata.x) < 8;
+                    bool isLeaf = (childNode.pdata.y - childNode.pdata.x) < 4;
                     if (isLeaf) {
 
                         // load leaf data
