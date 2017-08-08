@@ -3,88 +3,108 @@
 #include "../include/constants.glsl"
 #include "../include/structs.glsl"
 #include "../include/uniforms.glsl"
+#include "../include/STOmath.glsl"
 #include "./includes.glsl"
 
-//LOCAL_SIZE_LAYOUT;
-
 const int work_size = 1024;
+shared int aCounter;
+shared int aRange[2];
 
 layout ( local_size_x = work_size ) in;
+
+initAtomicIncFunction(aCounter, aCounterInc, int);
 
 void main() {
     if (gl_WorkGroupID.x > 0) return; // not supported
     const int localID = int(gl_LocalInvocationID.x);
-    int n = GEOMETRY_BLOCK geometryUniform.triangleCount;
-    int wcount = n > 0 ? (n - 1) / work_size + 1 : 0;
 
-    for (int w=0;w<=wcount;w++) {
-        int globalID = w * work_size + localID;
-        bool inactive = globalID >= n;
+    // init counter
+    if (localID == 0) {
+        aCounter = 0;
+        aRange[0] = 0;
+        aRange[1] = 0;
+    }
+    barrier(); memoryBarrier(); groupMemoryBarrier();
 
-        // upverse top
-        int idx = Leafs[globalID].pdata.z;
-        HlbvhNode nd = Nodes[idx];
-
-        // from lower to upper
-        for(int l=0;l<256;l++) {
-            // get parent node
-            idx = nd.pdata.z;
-            nd = Nodes[idx];
-
-            // get nodes
-            HlbvhNode ln = Nodes[nd.pdata.x];
-            HlbvhNode rn = Nodes[nd.pdata.y];
-
-            // unify bounding box
-            bbox bound = nd.box;
-            bound.mn = min(ln.box.mn, rn.box.mn) - 0.00001f;
-            bound.mx = max(ln.box.mx, rn.box.mx) + 0.00001f;
-            nd.box = bound;
-
-            // give own initiative
-            if (atomicCompSwap(Flags[idx], 0, 1) == 1 && idx >= 0 && !inactive) {
-                Nodes[idx] = nd;
-            } else {
-                inactive = true;
+    { // initial nodes
+        int n = GEOMETRY_BLOCK geometryUniform.triangleCount;
+        int wcount = n > 0 ? (n - 1) / work_size + 1 : 0;
+        for (int w=0;w<=wcount;w++) {
+            int globalID = w * work_size + localID;
+            HlbvhNode nd = Leafs[globalID];
+            if (nd.pdata.z >= 0 && atomicExchange(Flags[nd.pdata.z], 1) == 0) {
+                atomicExchange(Actives[aCounterInc(true)], nd.pdata.z);
             }
-
-            // sync threads for avoid conflicts
-            barrier(); memoryBarrier(); groupMemoryBarrier();
-
-            // for next work stages
-            atomicExchange(Flags[idx], 0);
-
-            // break by voting?
-            if (allInvocations(inactive)) break;
         }
     }
 
-/*
-    const int globalID = int(gl_GlobalInvocationID.x);
-    if (globalID < GEOMETRY_BLOCK geometryUniform.triangleCount) {
-        int idx = Leafs[globalID].pdata.z;
-        HlbvhNode nd = Nodes[idx];
-        for(int i=0;i<256;i++) {
-            idx = nd.pdata.z;
-            if (idx < 0) break;
+    // from lower to upper
+    for (int l=0;l<256;l++) {
+        // synchronize, and make next work view
+        barrier(); memoryBarrier(); groupMemoryBarrier();
 
-            nd = Nodes[idx];
-            int tmp = atomicAdd(Flags[idx], 1);
-            if (tmp == 0) {
+        // copy counts
+        if (localID == 0) {
+            aRange[0] = aRange[1];
+            aRange[1] = aCounter;
+        }
+
+        // sync count
+        barrier(); memoryBarrier(); groupMemoryBarrier();
+        if (aRange[1] <= aRange[0]) break; // no work, break
+
+        // form work
+        int n = aRange[1] - aRange[0];
+        int wcount = n > 0 ? (n - 1) / work_size + 1 : 0;
+
+        // unify bounding boxes on level
+        for (int w=0;w<=wcount;w++) {
+            int globalID = w * work_size + localID;
+            if (allInvocations(globalID >= n)) { break; }
+
+            // get current level node
+            int idx = Actives[aRange[0]+globalID];
+            HlbvhNode nd = Nodes[idx];
+
+            // if parent node is not occupy
+            bool validParent = nd.pdata.z >= 0 && globalID < n;
+            validParent = validParent ? atomicExchange(Flags[nd.pdata.z], 1) == 0 : false;
+
+            // defer parent nodes
+            if (validParent) atomicExchange(Actives[aCounterInc( validParent )], nd.pdata.z);
+
+            // process unifying boxes
+            if (idx >= 0 && globalID <= n && nd.pdata.x != nd.pdata.y) {
+                // get nodes
                 HlbvhNode ln = Nodes[nd.pdata.x];
                 HlbvhNode rn = Nodes[nd.pdata.y];
-                memoryBarrier(); groupMemoryBarrier();
+
+                // unify bounding box
                 bbox bound = nd.box;
                 bound.mn = min(ln.box.mn, rn.box.mn) - 0.00001f;
                 bound.mx = max(ln.box.mx, rn.box.mx) + 0.00001f;
                 nd.box = bound;
-                Nodes[idx] = nd;
-            } else {
-                break;
-            }
 
-            if (idx <= 0) break;
+                // store if valid
+                Nodes[idx] = nd;
+            }
+        }
+
+        // sync work
+        barrier(); memoryBarrier(); groupMemoryBarrier();
+
+        // reset initiativity
+        for (int w=0;w<=wcount;w++) {
+            int globalID = w * work_size + localID;
+            if (allInvocations(globalID >= n)) { break; }
+
+            // get current level node
+            int idx = Actives[aRange[0]+globalID];
+            HlbvhNode nd = Nodes[idx];
+
+            if (nd.pdata.z >= 0 && globalID < n) {
+                atomicExchange(Flags[nd.pdata.z], 0);
+            }
         }
     }
-*/
 }
