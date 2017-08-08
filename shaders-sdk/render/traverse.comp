@@ -23,10 +23,6 @@ struct TResult {
     vec4 uv;
 };
 
-
-
-
-
 vec3 projectVoxels(in vec3 orig) {
     vec4 nps = mult4(vec4(orig, 1.0f), GEOMETRY_BLOCK geometryUniform.transform);
     return nps.xyz / nps.w;
@@ -56,7 +52,6 @@ float intersectCubeSingle(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 
     return isCube ? (lessF(tNear, 0.0f) ? tFar : tNear) : INFINITY;
 }
 
-
 void intersectCubeApart(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 cubeMax, inout float near, inout float far) {
     vec3 dr = 1.0f / ray;
     vec3 tMin = (cubeMin.xyz - origin) * dr;
@@ -72,13 +67,12 @@ void intersectCubeApart(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 cu
 #endif
 }
 
+
+
+#define SGN(v) v = idx
+
 TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     const uint L = gl_LocalInvocationID.x;
-
-    int prev = -1;
-    int idx = 0;
-    bool validBox = false;
-    bool skip = false;
 
     TResult lastRes;
     lastRes.dist = INFINITY;
@@ -86,6 +80,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     lastRes.triangleID = LONGEST;
     lastRes.materialID = LONGEST;
 
+    // deferred stack
     deferredPtr[L] = 0;
     deferredStack[L][0] = -1;
 
@@ -101,49 +96,46 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     float d = intersectCubeSingle(torig, dirproj, vec4(vec3(0.0f), 1.0f), vec4(1.0f), near, far);
     lastRes.predist = far * dirlen;
 
-    // init state
-    {
-        validBox = lessF(d, INFINITY) && greaterEqualF(d, 0.0f);
-    }
+    // node indexing
+    int prevLeaf = -1, idx = 0;
 
+    // init state
+    HlbvhNode node = Nodes[idx];
+    bool validBox = lessF(d, INFINITY) && greaterEqualF(d, 0.0f), skip = false;
     for (int i=0;i<8192;i++) {
-        if (allInvocations(!validBox)) break;
-        HlbvhNode node = Nodes[idx];
+        if (allInvocations(!validBox)) {
+        //if (!validBox) {
+            break;
+        }
 
         // is leaf
-        bool isLeaf = node.pdata.x == node.pdata.y && validBox;
-        if (isLeaf) {
+        if (node.pdata.x == node.pdata.y && validBox) {
             float near = INFINITY, far = INFINITY;
             intersectCubeSingle(torig, dirproj, node.box.mn, node.box.mx, near, far);
 
             // link chains
             int idx = atomicIncFt(true);
-            if (prev == -1) {
-                lastRes.triangleID = idx;
-            } else {
-                FoundGroupsChains[prev].nextResult = idx;
-            }
-            prev = idx;
+            if (prevLeaf == -1) { SGN(lastRes.triangleID); } else { SGN(FoundGroupsChains[prevLeaf].nextResult); }
+            prevLeaf = idx;
 
             // add new head
             FoundGroupsChains[idx] = GroupFoundResult(-1, near * dirlen, ivec2(node.pdata.w, node.pdata.y));
         }
 
+        // choice near box
         bool notLeaf = node.pdata.x != node.pdata.y && validBox;
+        //if (allInvocations(notLeaf || !validBox || !skip)) { // synchronize SIMD
         if (anyInvocation(notLeaf)) {
+        //if (notLeaf) {
             HlbvhNode lnode = Nodes[node.pdata.x];
             HlbvhNode rnode = Nodes[node.pdata.y];
 
-            vec2 inf2 = vec2(INFINITY);
-            vec2 nearsLR = inf2;
-            vec2 farsLR = inf2;
+            vec2 inf2 = vec2(INFINITY), nearsLR = inf2, farsLR = inf2;
             intersectCubeApart(torig, dirproj, lnode.box.mn, lnode.box.mx, nearsLR.x, farsLR.x);
             intersectCubeApart(torig, dirproj, rnode.box.mn, rnode.box.mx, nearsLR.y, farsLR.y);
 
             bvec2 isCube = and2(greaterThanEqual(farsLR, nearsLR), greaterThanEqual(farsLR, vec2(0.0f)));
-            vec2 nears = mix(inf2, nearsLR, isCube);
-            vec2  fars = mix(inf2, farsLR, isCube);
-            vec2  hits = mix(nears, fars, lessThan(nears, vec2(0.0f)));
+            vec2 nears = mix(inf2, nearsLR, isCube), fars = mix(inf2, farsLR, isCube), hits = mix(nears, fars, lessThan(nears, vec2(0.0f)));
 
             bvec2 overlaps = 
                 and2(bvec2(notLeaf), 
@@ -154,10 +146,8 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
             bool anyOverlap = any(overlaps);
             if (anyInvocation(anyOverlap)) {
                 bool leftOrder = all(overlaps) ? lessEqualF(hits.x, hits.y) : overlaps.x;
-
                 ivec2 leftright = mix(ivec2(-1), node.pdata.xy, overlaps);
                 leftright = leftOrder ? leftright : leftright.yx;
-
                 if (anyOverlap) {
                     if (deferredPtr[L] < STACK_SIZE && leftright.y != -1) {
                         atomicExchange(deferredStack[L][atomicAdd(deferredPtr[L], 1)], leftright.y);
@@ -166,13 +156,18 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
                     skip = true;
                 }
             }
+
+            if (idx >= 0) node = Nodes[idx];
         }
 
+        // go to parent 
+        //if (allInvocations(!skip || !validBox)) { // synchronize SIMD
         if (!skip) {
             int ptr = atomicAdd(deferredPtr[L], -1)-1;
             bool valid = ptr >= 0;
             idx = valid ? atomicExchange(deferredStack[L][ptr], -1) : -1;
             validBox = validBox && valid && idx >= 0;
+            if (idx >= 0) node = Nodes[idx];
         } skip = false;
     }
 
