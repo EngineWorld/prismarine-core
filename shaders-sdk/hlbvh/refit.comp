@@ -31,8 +31,10 @@ void main() {
         int wcount = n > 0 ? (n - 1) / work_size + 1 : 0;
         for (int w=0;w<=wcount;w++) {
             int globalID = w * work_size + localID;
+            if (allInvocations(globalID >= n)) { break; }
+
             HlbvhNode nd = Leafs[globalID];
-            if (nd.pdata.z >= 0 && atomicExchange(Flags[nd.pdata.z], 1) == 0) {
+            if (nd.pdata.z >= 0 && atomicExchange(Flags[nd.pdata.z], 1) == 0 && globalID < n) {
                 atomicExchange(Actives[aCounterInc(true)], nd.pdata.z);
             }
         }
