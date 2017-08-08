@@ -327,7 +327,6 @@ void main() {
     sharedVarsData[L].bakedRangeIntersection = vec4(INFINITY, 0.f, 0.f, 0.f);
 
     bool valid = foundID != -1 && !overflow;
-    int warpShift = 0;//int(LANE_IDX) % laneOccupy;
     for (int i=0;i<2048;i++) {
         valid = valid && foundID != -1;
         if (allInvocations(!valid)) break;
@@ -336,7 +335,7 @@ void main() {
         GroupFoundResult result = FoundGroupsChains[foundID];
 
         // synchronized intersection (because is heavy operation)
-        bool nearer = lessEqualF(result.boxDistance, lastRes.predist) && lessF(result.boxDistance, INFINITY) && (warpShift--) <= 0 || !valid;
+        bool nearer = lessEqualF(result.boxDistance, lastRes.predist) && lessF(result.boxDistance, INFINITY) || !valid;
         if (allInvocations(nearer)) {
 
             const int groupSize = 4;
@@ -354,6 +353,7 @@ void main() {
                 testIntersection(lastRes, ray.origin.xyz, ray.direct.xyz, triIdx, nearer && valid && !overtaken);
                 lastRes = reductiveWarpNearest(lastRes, true);
             }
+
             foundID = result.nextResult;
         }
 
