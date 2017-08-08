@@ -4,12 +4,12 @@
 shared uint local_sort[WG_COUNT];
 uint prefix_sum(uint data, inout uint total_sum) {
     local_sort[LC_IDX] = data;
-    barrier(); memoryBarrier();
+    barrier(); memoryBarrier(); groupMemoryBarrier();
     for (uint i = 1; i < WG_COUNT; i <<= 1) {
         uint tmp = local_sort[LC_IDX - i] * uint(LC_IDX >= i);
-        barrier(); memoryBarrier();
+        barrier(); memoryBarrier(); groupMemoryBarrier();
         local_sort[LC_IDX] += tmp;
-        barrier(); memoryBarrier();
+        barrier(); memoryBarrier(); groupMemoryBarrier();
     }
     total_sum = local_sort[WG_COUNT - 1];
     return local_sort[LC_IDX - 1] * uint(LC_IDX > 0);
@@ -20,7 +20,7 @@ layout (local_size_x = 1, local_size_y = WG_COUNT) in; // no warp version
 shared uint seed;
 void main() {
     if (LC_IDX == WG_COUNT - 1) seed = 0;
-    barrier(); memoryBarrier();
+    barrier(); memoryBarrier(); groupMemoryBarrier();
     for(uint d=0;d<RADICES;d++){
         uint val = 0;
         uint idx = d * WG_COUNT + LC_IDX;
@@ -29,6 +29,6 @@ void main() {
         uint res = prefix_sum(val, total);
         if (LC_IDX < WG_COUNT) Histogram[idx] = res + seed;
         if (LC_IDX == WG_COUNT - 1) seed += res + val;
-        barrier(); memoryBarrier();
+        barrier(); memoryBarrier(); groupMemoryBarrier();
     }
 }
