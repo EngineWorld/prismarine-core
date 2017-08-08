@@ -335,9 +335,9 @@ void main() {
         GroupFoundResult result = FoundGroupsChains[foundID];
 
         // synchronized intersection (because is heavy operation)
-        bool nearer = lessEqualF(result.boxDistance, lastRes.predist) && lessF(result.boxDistance, INFINITY) || !valid;
-        if (allInvocations(nearer)) {
-
+        bool nearer = lessEqualF(result.boxDistance, lastRes.predist) && valid;
+        if (allInvocations(nearer || !valid)) {
+        //if (nearer) {
             const int groupSize = 4;
             int ln = int(LANE_IDX) % laneOccupy;
             for (int ls=0;ls<groupSize;ls+=laneOccupy)
@@ -350,7 +350,7 @@ void main() {
                 HlbvhNode leaf = Leafs[morIdx];
                 int triIdx = leaf.pdata.w;
 
-                testIntersection(lastRes, ray.origin.xyz, ray.direct.xyz, triIdx, nearer && valid && !overtaken);
+                testIntersection(lastRes, ray.origin.xyz, ray.direct.xyz, triIdx, nearer && !overtaken);
                 lastRes = reductiveWarpNearest(lastRes, true);
             }
 
