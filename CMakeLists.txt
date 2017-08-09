@@ -14,8 +14,6 @@ set(SOURCES_LIST
     "./include/*.hh"
     "./include/*.h"
     
-    "./external/src/*.c"
-    
     #include
     "./external/include/*/*.hpp"
     "./external/include/*/*.hh"
@@ -61,7 +59,7 @@ set (LIBS
     ${OPENGL_LIBRARIES}
     glfw3 
     FreeImage 
-    assimp-vc140-mt
+    glbinding
 )
 
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -99,7 +97,7 @@ set (LIBS
     ${OPENGL_LIBRARIES}
     glfw3 
     FreeImage 
-    assimp-vc140-mt
+    glbinding
     LinearMath_RelWithDebugInfo
     Bullet3Common_RelWithDebugInfo
     Bullet3Dynamics_RelWithDebugInfo

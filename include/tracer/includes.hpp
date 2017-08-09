@@ -20,15 +20,15 @@
 #include "glm/gtx/rotate_vector.hpp"
 #include "glm/gtc/quaternion.hpp"
 
-//#include <glbinding/Binding.h>
-//#include "glbinding/gl46ext/gl.h"
+#include <glbinding/Binding.h>
+#include "glbinding/gl46ext/gl.h"
 //#include "GL/glew.h"
-#include "glad/glad.h"
+//#include "glad/glad.h"
 
 #ifdef USE_FREEIMAGE
 #include "external/include/FreeImage.h"
 #endif
 
 namespace ppr {
-    //using namespace gl;
+    using namespace gl;
 };
