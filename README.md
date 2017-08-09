@@ -48,7 +48,6 @@
 
 <img src="logo/clockwork.png" alt="ClockworkUpdate" width="960"/>
 
-- [x] (Alpha) Small grouping on leafs, and study comparative intersection of triangles
 - [x] (Alpha) Support of 64-bit morton code check-sums
 - [ ] SIMT optimized intersection and traverse stage
 - [ ] Sorting hit chains by range (for better exclusion of triangle hits)

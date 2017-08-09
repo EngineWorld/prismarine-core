@@ -495,21 +495,25 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
         // is leaf
         bool isLeaf = node.pdata.x == node.pdata.y && validBox;
         if (isLeaf) {
-            const int groupSize = 4;
-            for (int ls=0;ls<groupSize;ls+=4) 
+            const int groupSize = 1;
+            //for (int ls=0;ls<groupSize;ls+=4) 
+            for (int ls=0;ls<groupSize;ls+=1) 
             {
-                ivec4 lidx4 = ivec4(ls + 0, ls + 1, ls + 2, ls + 3);
-                bvec4 overtaken = greaterThan(lidx4, ivec4(node.pdata.y-node.pdata.w));
-                if (all(overtaken)) break;
+                //ivec4 lidx4 = ivec4(ls + 0, ls + 1, ls + 2, ls + 3);
+                //bvec4 overtaken = greaterThan(lidx4, ivec4(node.pdata.y-node.pdata.w));
+                //if (all(overtaken)) break;
+                //ivec4 triIdx4 = mix(ivec4(
+                //    Leafs[MortonIndices[node.pdata.w + lidx4.x]].pdata.w,
+                //    Leafs[MortonIndices[node.pdata.w + lidx4.y]].pdata.w,
+                //    Leafs[MortonIndices[node.pdata.w + lidx4.z]].pdata.w,
+                //    Leafs[MortonIndices[node.pdata.w + lidx4.w]].pdata.w
+                //), ivec4(LONGEST), overtaken);
+                //testIntersection4(lastRes, origin.xyz, direct.xyz, triIdx4, isLeaf);
 
-                ivec4 triIdx4 = mix(ivec4(
-                    Leafs[MortonIndices[node.pdata.w + lidx4.x]].pdata.w,
-                    Leafs[MortonIndices[node.pdata.w + lidx4.y]].pdata.w,
-                    Leafs[MortonIndices[node.pdata.w + lidx4.z]].pdata.w,
-                    Leafs[MortonIndices[node.pdata.w + lidx4.w]].pdata.w
-                ), ivec4(LONGEST), overtaken);
-
-                testIntersection4(lastRes, origin.xyz, direct.xyz, triIdx4, isLeaf);
+                bool overtaken = ls > node.pdata.y-node.pdata.w;
+                if (overtaken) break;
+                int triIdx = !overtaken ? Leafs[MortonIndices[node.pdata.w + ls]].pdata.w : LONGEST;
+                testIntersection(lastRes, origin.xyz, direct.xyz, triIdx, isLeaf);
             }
         }
 

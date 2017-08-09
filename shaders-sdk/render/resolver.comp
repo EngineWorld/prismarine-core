@@ -501,23 +501,26 @@ void main() {
         bool synced = nearer || !valid;
         if (allInvocations(synced)) { // all ready?
         //if (nearer || !valid) {
-            const int groupSize = 4;
-            for (int ls=0;ls<groupSize;ls+=4) 
+            const int groupSize = 1;
+            //for (int ls=0;ls<groupSize;ls+=4) 
+            for (int ls=0;ls<groupSize;ls+=1) 
             {
-                ivec4 lidx4 = ivec4(ls + 0, ls + 1, ls + 2, ls + 3);
-                bvec4 overtaken = greaterThan(lidx4, ivec4(result.range.y-result.range.x));
+                //ivec4 lidx4 = ivec4(ls + 0, ls + 1, ls + 2, ls + 3);
+                //bvec4 overtaken = greaterThan(lidx4, ivec4(result.range.y-result.range.x));
                 //if (allInvocations(all(overtaken))) break; // in WARP version will bad effect
-                if (all(overtaken)) break;
+                //if (all(overtaken)) break;
+                //ivec4 triIdx4 = mix(ivec4(
+                //    Leafs[MortonIndices[result.range.x + lidx4.x]].pdata.w,
+                //    Leafs[MortonIndices[result.range.x + lidx4.y]].pdata.w,
+                //    Leafs[MortonIndices[result.range.x + lidx4.z]].pdata.w,
+                //    Leafs[MortonIndices[result.range.x + lidx4.w]].pdata.w
+                //), ivec4(LONGEST), overtaken);
+                //testIntersection4(lastRes, ray.origin.xyz, ray.direct.xyz, triIdx4, nearer);
 
-                ivec4 triIdx4 = mix(ivec4(
-                    Leafs[MortonIndices[result.range.x + lidx4.x]].pdata.w,
-                    Leafs[MortonIndices[result.range.x + lidx4.y]].pdata.w,
-                    Leafs[MortonIndices[result.range.x + lidx4.z]].pdata.w,
-                    Leafs[MortonIndices[result.range.x + lidx4.w]].pdata.w
-                ), ivec4(LONGEST), overtaken);
-
-                testIntersection4(lastRes, ray.origin.xyz, ray.direct.xyz, triIdx4, nearer);
-                lastRes = reductiveWarpNearest(lastRes, true);
+                bool overtaken = ls > result.range.y-result.range.x;
+                if (overtaken) break;
+                int triIdx = !overtaken ? Leafs[MortonIndices[result.range.x + ls]].pdata.w : LONGEST;
+                testIntersection(lastRes, ray.origin.xyz, ray.direct.xyz, triIdx, nearer);
             }
             foundID = result.nextResult;
             if (foundID != -1) {
