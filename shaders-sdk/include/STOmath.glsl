@@ -84,6 +84,57 @@ uint btc(in uint vlc){
 }
 
 
+
+
+
+float intersectCubeSingle(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 cubeMax, inout float near, inout float far) {
+    vec3 dr = 1.0f / ray;
+    vec3 tMin = (cubeMin.xyz - origin) * dr;
+    vec3 tMax = (cubeMax.xyz - origin) * dr;
+    vec3 t1 = min(tMin, tMax);
+    vec3 t2 = max(tMin, tMax);
+#ifdef ENABLE_AMD_INSTRUCTION_SET
+    float tNear = max3(t1.x, t1.y, t1.z);
+    float tFar  = min3(t2.x, t2.y, t2.z);
+#else
+    float tNear = max(max(t1.x, t1.y), t1.z);
+    float tFar  = min(min(t2.x, t2.y), t2.z);
+#endif
+    bool isCube = tFar >= tNear && greaterEqualF(tFar, 0.0f);
+    near = isCube ? tNear : INFINITY;
+    far  = isCube ? tFar  : INFINITY;
+    return isCube ? (lessF(tNear, 0.0f) ? tFar : tNear) : INFINITY;
+}
+
+void intersectCubeApart(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 cubeMax, inout float near, inout float far) {
+    vec3 dr = 1.0f / ray;
+    vec3 tMin = (cubeMin.xyz - origin) * dr;
+    vec3 tMax = (cubeMax.xyz - origin) * dr;
+    vec3 t1 = min(tMin, tMax);
+    vec3 t2 = max(tMin, tMax);
+#ifdef ENABLE_AMD_INSTRUCTION_SET
+    near = max3(t1.x, t1.y, t1.z);
+    far  = min3(t2.x, t2.y, t2.z);
+#else
+    near = max(max(t1.x, t1.y), t1.z);
+    far  = min(min(t2.x, t2.y), t2.z);
+#endif
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // ordered increment
 #if (!defined(FRAGMENT_SHADER) && !defined(ORDERING_NOT_REQUIRED))
 
@@ -183,8 +234,6 @@ int firstActive(){
     int lv = findLSB(bits.x);
     return (lv >= 0 ? lv : (32+findLSB(bits.y)));
 }
-
-
 
 #endif
 
