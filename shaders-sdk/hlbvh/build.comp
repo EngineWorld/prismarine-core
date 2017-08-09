@@ -52,8 +52,8 @@ int nlz (in int x) {
 // TODO - two lane SIMD threading support
 int findSplit( int first, int last, uint SIMDThread)
 {
-    uint64_t firstCode = Mortoncodes[first];
-    uint64_t lastCode = Mortoncodes[last];
+    MORTONTYPE firstCode = Mortoncodes[first];
+    MORTONTYPE lastCode = Mortoncodes[last];
     if (firstCode == lastCode) {
         return (first + last) >> 1;
     }
@@ -65,7 +65,7 @@ int findSplit( int first, int last, uint SIMDThread)
         step = (step + 1) >> 1;
         int newSplit = split + step;
         if (newSplit < last) {
-            uint64_t splitCode = Mortoncodes[newSplit];
+            MORTONTYPE splitCode = Mortoncodes[newSplit];
             int splitPrefix = nlz(firstCode ^ splitCode);
             if (splitPrefix > commonPrefix) {
                 split = newSplit;

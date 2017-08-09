@@ -14,6 +14,12 @@
 //#define ENABLE_UNSUPPOTED_FUNCTIONS
 
 
+#ifdef INT64_MORTON
+#define MORTONTYPE uint64_t
+#else
+#define MORTONTYPE uint
+#endif
+
 // ray tracing options
 //#define EXPERIMENTAL_DOF
 #define SUNLIGHT_CAUSTICS false

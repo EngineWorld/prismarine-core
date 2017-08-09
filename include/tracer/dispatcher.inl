@@ -212,8 +212,8 @@ namespace ppr {
         freedoms = allocateBuffer<int32_t>(currentRayLimit);
         availables = allocateBuffer<int32_t>(currentRayLimit);
 
-        //resultFounds = allocateBuffer<GroupFoundResult>(currentRayLimit * 8);
-        //givenRays = allocateBuffer<int32_t>(currentRayLimit);
+        resultFounds = allocateBuffer<GroupFoundResult>(currentRayLimit * 8);
+        givenRays = allocateBuffer<int32_t>(currentRayLimit);
 
         samplerUniformData.sceneRes = { float(width), float(height) };
         samplerUniformData.currentRayLimit = currentRayLimit;
@@ -411,11 +411,11 @@ namespace ppr {
             glCopyNamedBufferSubData(arcounterTemp, arcounter, 0, sizeof(uint32_t) * (i + 5), sizeof(uint32_t));
         }
 
-        /*
-        // bindings
-        obj->bindBVH();
+        // bind ray tracer buffers
         this->bind();
-
+        
+        // traverse accelerators
+        obj->bindBVH();
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 17, resultFounds);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, givenRays); // bind collection buffer
         dispatch(traverseProgram, tiled(rsize, worksize)); // run traverse
@@ -428,18 +428,15 @@ namespace ppr {
         obj->bind();
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, resultFounds);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, givenRays); // change active list
-
-        //GLuint hcount = 0;
-        //glGetNamedBufferSubData(arcounter, (1 + 5) * sizeof(int32_t), sizeof(int32_t), &hcount);
-
         dispatch(resolverProgram, tiled(rsize, worksize));
-        */
-
+        
+        /*
         this->bind();
         obj->bindBVH();
         obj->bindLeafs();
         obj->bind();
         dispatch(traverseDirectProgram, tiled(rsize, worksize));
+        */
 
         return 1;
     }

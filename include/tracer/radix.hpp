@@ -63,13 +63,14 @@ namespace ppr {
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 24, VarBuffer);
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 25, HistogramBuffer);
 
-            //for (GLuint i = 0; i < 8;i++) {
-            for (GLuint i = 0; i < 16; i++) {
+            //for (GLuint i = 0; i < 8;i++) { // 32-bit uint
+            for (GLuint i = 0; i < 16; i++) { // 64-bit uint
                 glNamedBufferSubData(VarBuffer, 0, strided<Consts>(1), &consts[i]);
                 dispatch(histogramProgram, WG_COUNT);
                 dispatch(prefixScanProgram, 1);
                 dispatch(permuteProgram, WG_COUNT);
                 glCopyNamedBufferSubData(OutKeys, InKeys, 0, 0, strided<uint64_t>(size));
+                //glCopyNamedBufferSubData(OutKeys, InKeys, 0, 0, strided<uint32_t>(size));
                 glCopyNamedBufferSubData(OutValues, InVals, 0, 0, strided<uint32_t>(size));
             }
         }

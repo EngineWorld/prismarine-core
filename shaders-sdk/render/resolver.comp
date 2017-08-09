@@ -498,7 +498,8 @@ void main() {
         bool nearer = lessEqualF(result.boxDistance, lastRes.predist) && valid; //&& (LANE_SKIP--) <= 0;
 
         // synchronized intersection (because is heavy operation)
-        if (allInvocations(nearer || !valid)) { // all ready?
+        bool synced = nearer || !valid;
+        if (allInvocations(synced)) { // all ready?
         //if (nearer || !valid) {
             const int groupSize = 4;
             for (int ls=0;ls<groupSize;ls+=4) 
@@ -523,7 +524,7 @@ void main() {
                 result = FoundGroupsChains[foundID];
             }
         } else 
-        if (!nearer) { // if not ready, move next
+        if (!synced) { // if not ready, move next
             foundID = valid ? result.nextResult : -1;
             if (foundID != -1) {
                 result = FoundGroupsChains[foundID];
