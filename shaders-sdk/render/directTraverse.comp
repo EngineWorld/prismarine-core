@@ -402,8 +402,9 @@ TResult testIntersection4(inout TResult res, in vec3 orig, in vec3 dir, in ivec4
 
 const vec3 padding = vec3(0.00001f);
 const int STACK_SIZE = 16;
+int deferredPtr = 0;
 shared int deferredStack[WORK_SIZE][STACK_SIZE];
-shared int deferredPtr[WORK_SIZE];
+//shared int deferredPtr[WORK_SIZE];
 
 vec3 projectVoxels(in vec3 orig) {
     vec4 nps = mult4(vec4(orig, 1.0f), GEOMETRY_BLOCK geometryUniform.transform);
@@ -461,7 +462,8 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     lastRes.materialID = LONGEST;
 
     // deferred stack
-    deferredPtr[L] = 0;
+    //deferredPtr[L] = 0;
+    deferredPtr = 0;
     deferredStack[L][0] = -1;
 
     sharedVarsData.bakedRange = LONGEST;
@@ -536,8 +538,8 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
                 ivec2 leftright = mix(ivec2(-1), node.pdata.xy, overlaps);
                 leftright = leftOrder ? leftright : leftright.yx;
                 if (anyOverlap) {
-                    if (deferredPtr[L] < STACK_SIZE && leftright.y != -1) {
-                        atomicExchange(deferredStack[L][add(deferredPtr[L], 1)], leftright.y);
+                    if (deferredPtr < STACK_SIZE && leftright.y != -1) {
+                        atomicExchange(deferredStack[L][add(deferredPtr, 1)], leftright.y);
                     }
                     idx = leftright.x;
                     skip = true;
@@ -549,7 +551,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
 
         // go to parent 
         if (!skip) {
-            int ptr = add(deferredPtr[L], -1)-1;
+            int ptr = add(deferredPtr, -1)-1;
             bool valid = ptr >= 0;
             idx = valid ? atomicExchange(deferredStack[L][ptr], -1) : -1;
             validBox = validBox && valid && idx >= 0;
