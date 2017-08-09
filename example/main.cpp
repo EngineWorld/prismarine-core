@@ -501,8 +501,8 @@ namespace PaperExample {
         }
 
         // initial transform
-        glm::mat4 matrix(1.0f);
-        matrix = glm::scale(matrix, glm::vec3(mscale));
+        glm::dmat4 matrix(1.0);
+        matrix *= glm::scale(glm::dvec3(mscale));
 
         // clear BVH and load materials
         intersector->clearTribuffer();
@@ -512,10 +512,10 @@ namespace PaperExample {
 
         // load meshes
         std::function<void(tinygltf::Node &, glm::dmat4, int)> traverse = [&](tinygltf::Node & node, glm::dmat4 inTransform, int recursive)->void {
-            glm::dmat4 localTransform;
+            glm::dmat4 localTransform(1.0);
             localTransform *= (node.matrix.size() >= 16 ? glm::make_mat4(node.matrix.data()) : glm::dmat4(1.0));
-            localTransform *= (node.translation.size() >= 3 ? glm::translate(glm::dmat4(1.0), glm::make_vec3(node.translation.data())) : glm::dmat4(1.0));
-            localTransform *= (node.scale.size() >= 3 ? glm::scale(glm::dmat4(1.0), glm::make_vec3(node.scale.data())) : glm::dmat4(1.0));
+            localTransform *= (node.translation.size() >= 3 ? glm::translate(glm::make_vec3(node.translation.data())) : glm::dmat4(1.0));
+            localTransform *= (node.scale.size() >= 3 ? glm::scale(glm::make_vec3(node.scale.data())) : glm::dmat4(1.0));
             localTransform *= (node.rotation.size() >= 4 ? glm::mat4_cast(glm::make_quat(node.rotation.data())) : glm::dmat4(1.0));
 
             glm::dmat4 transform = inTransform * localTransform;

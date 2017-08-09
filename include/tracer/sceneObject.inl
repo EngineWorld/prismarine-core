@@ -205,8 +205,8 @@ namespace ppr {
 
         {
             glm::dmat4 mat(1.0);
-            mat = glm::scale(mat, 1.0 / glm::dvec3(scale));
-            mat = glm::translate(mat, -glm::dvec3(offset));
+            mat *= glm::scale(1.0 / glm::dvec3(scale));
+            mat *= glm::translate(-glm::dvec3(offset));
             mat *= glm::inverse(glm::dmat4(optimization));
 
             geometryUniformData.transform = *(Vc4x4 *)glm::value_ptr(glm::transpose(glm::mat4(mat)));

@@ -49,6 +49,9 @@ namespace ppr {
         void setMaterialOffset(int32_t id);
         void useIndex16bit(bool b16);
         void setTransform(glm::mat4 t);
+        void setTransform(glm::dmat4 t) {
+            this->setTransform(glm::mat4(t));
+        }
 
         void setIndexed(const int32_t b);
         void setVertices(const GLuint &buf);
