@@ -42,7 +42,6 @@ TResult choiceFirstBaked(inout TResult res) {
     int tri = sharedVarsData[L].bakedRange;
 
     bool validTriangle = tri >= 0 && tri != LONGEST;
-    //if (allInvocations(!validTriangle)) return res;
     if (!validTriangle) return res;
 
     vec2 uv = sharedVarsData[L].bakedRangeIntersection.yz;
@@ -94,7 +93,6 @@ TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
 
     int tri = tpi < sharedVarsData[L].bakedStackCount ? bakedStack[L][tpi] : LONGEST;
     bool validTriangle = tri >= 0 && tri != LONGEST;
-    //if (allInvocations(!validTriangle)) return res;
     if (!validTriangle) return res;
 
     vec2 uv = vec2(0.0f);
@@ -191,7 +189,6 @@ TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tr
         tri != res.triangleID &&
         tri != LONGEST;
 
-    //if (allInvocations(!validTriangle)) {
     if (!validTriangle) {
         return res;
     }
@@ -222,8 +219,6 @@ TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tr
 
 TResult testIntersection4(inout TResult res, in vec3 orig, in vec3 dir, in ivec4 tri, in bool isValid) {
     bool validTriangle = isValid;
-
-    //if (allInvocations(!validTriangle || all(equal(tri, ivec4(LONGEST))))) {
     if (!validTriangle || all(equal(tri, ivec4(LONGEST)))) {
         return res;
     }
@@ -261,18 +256,15 @@ void main() {
     L = gl_LocalInvocationID.x;
 
     const bool overflow = it >= RAY_BLOCK samplerUniform.rayCount;
-    //if (allInvocations(overflow)) return;
     if (overflow) return;
 
     const int t = activedBuf.indc[it];
     Ray ray = fetchRayDirect(t);
-    //if (allInvocations(ray.actived < 1 || overflow)) return;
     if (ray.actived < 1 || overflow) return;
 
     Hit hit = fetchHitDirect(t);
     int foundID = hit.triangleID;
     if (foundID == -1) return;
-    //if (allInvocations(foundID == -1)) return; 
 
     TResult lastRes;
     lastRes.dist = INFINITY;
@@ -290,7 +282,6 @@ void main() {
     for (int i=0;i<2048;i++) {
         valid = valid && foundID != -1;
         if (!valid) break;
-        //if (allInvocations(!valid)) break;
 
         // validate BVH intersection
         bool nearer = lessEqualF(result.boxDistance, lastRes.predist) && valid; //&& (LANE_SKIP--) <= 0;
@@ -298,23 +289,9 @@ void main() {
         // synchronized intersection (because is heavy operation)
         bool synced = nearer || !valid;
         if (allInvocations(synced)) { // all ready?
-        //if (nearer || !valid) {
             const int groupSize = 1;
-            //for (int ls=0;ls<groupSize;ls+=4) 
             for (int ls=0;ls<groupSize;ls+=1) 
             {
-                //ivec4 lidx4 = ivec4(ls + 0, ls + 1, ls + 2, ls + 3);
-                //bvec4 overtaken = greaterThan(lidx4, ivec4(result.range.y-result.range.x));
-                //if (allInvocations(all(overtaken))) break; // in WARP version will bad effect
-                //if (all(overtaken)) break;
-                //ivec4 triIdx4 = mix(ivec4(
-                //    Leafs[MortonIndices[result.range.x + lidx4.x]].pdata.w,
-                //    Leafs[MortonIndices[result.range.x + lidx4.y]].pdata.w,
-                //    Leafs[MortonIndices[result.range.x + lidx4.z]].pdata.w,
-                //    Leafs[MortonIndices[result.range.x + lidx4.w]].pdata.w
-                //), ivec4(LONGEST), overtaken);
-                //testIntersection4(lastRes, ray.origin.xyz, ray.direct.xyz, triIdx4, nearer);
-
                 bool overtaken = ls > result.range.y-result.range.x;
                 if (overtaken) break;
                 int triIdx = !overtaken ? Leafs[MortonIndices[result.range.x + ls]].pdata.w : LONGEST;

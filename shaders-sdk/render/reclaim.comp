@@ -16,7 +16,7 @@ void main()
     const int it = int(gl_GlobalInvocationID.x);
     const bool overflow = it >= RAY_BLOCK samplerUniform.rayCount;
 
-    if (overflow) return; // danger allInvocationsARB
+    if (overflow) return;
     const int t = activedBuf.indc[it];
     
     Ray ray = fetchRayDirect(t);
