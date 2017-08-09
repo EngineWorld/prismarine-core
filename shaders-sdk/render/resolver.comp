@@ -485,6 +485,7 @@ void main() {
     sharedVarsData[L].bakedStackCount = 0;
     sharedVarsData[L].bakedRangeIntersection = vec4(INFINITY, 0.f, 0.f, 0.f);
 
+    int LANE_SKIP = int(LANE_IDX) % laneOccupy;
     bool valid = foundID != -1 && !overflow;
     GroupFoundResult result = FoundGroupsChains[foundID];
     for (int i=0;i<2048;i++) {
@@ -492,11 +493,10 @@ void main() {
         if (allInvocations(!valid)) break;
 
         // validate BVH intersection
-        bool nearer = lessEqualF(result.boxDistance, lastRes.predist) && valid;
+        bool nearer = lessEqualF(result.boxDistance, lastRes.predist) && valid && (LANE_SKIP--) <= 0;
 
         // synchronized intersection (because is heavy operation)
-        bool nearerSync = nearer || !valid;
-        if (allInvocations(nearerSync)) {
+        if (allInvocations(nearer || !valid)) { // all ready?
             const int groupSize = 4;
             for (int ls=0;ls<groupSize;ls+=4) 
             {
@@ -519,8 +519,8 @@ void main() {
                 result = FoundGroupsChains[foundID];
             }
         } else 
-        if (!nearerSync) {
-            foundID = result.nextResult;
+        if (!nearer) { // if not ready, move next
+            foundID = valid ? result.nextResult : -1;
             if (foundID != -1) {
                 result = FoundGroupsChains[foundID];
             }
