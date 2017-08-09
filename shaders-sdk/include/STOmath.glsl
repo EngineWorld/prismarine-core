@@ -34,6 +34,31 @@ bvec2 not2(in bvec2 a) { return bvec2(!a.x, !a.y); }
 bvec2 and2(in bvec2 a, in bvec2 b) { return bvec2(a.x && b.x, a.y && b.y); }
 bvec2 or2(in bvec2 a, in bvec2 b) { return bvec2(a.x || b.x, a.y || b.y); }
 
+// logical functions (bvec4)
+bvec4 or(in bvec4 a, in bvec4 b){
+    return bvec4(
+        a.x || b.x,
+        a.y || b.y,
+        a.z || b.z,
+        a.w || b.w
+    );
+}
+
+bvec4 and(in bvec4 a, in bvec4 b){
+    return bvec4(
+        a.x && b.x,
+        a.y && b.y,
+        a.z && b.z,
+        a.w && b.w
+    );
+}
+
+bvec4 not(in bvec4 a){
+    return bvec4(!a.x, !a.y, !a.z, !a.w);
+}
+
+
+
 
 // mixing functions
 void mixed(inout vec3 src, inout vec3 dst, in float coef){ dst *= coef; src *= 1.0f - coef; }
