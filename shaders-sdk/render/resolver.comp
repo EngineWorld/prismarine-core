@@ -498,8 +498,8 @@ void main() {
         bool nearer = lessEqualF(result.boxDistance, lastRes.predist) && valid; //&& (LANE_SKIP--) <= 0;
 
         // synchronized intersection (because is heavy operation)
-        //if (allInvocations(nearer || !valid)) { // all ready?
-        if (nearer || !valid) {
+        if (allInvocations(nearer || !valid)) { // all ready?
+        //if (nearer || !valid) {
             const int groupSize = 4;
             for (int ls=0;ls<groupSize;ls+=4) 
             {
