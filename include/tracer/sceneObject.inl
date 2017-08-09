@@ -69,7 +69,7 @@ namespace ppr {
         aabbCounter = allocateBuffer<int32_t>(1);
         bvhnodesBuffer = allocateBuffer<HlbvhNode>(maxt * 2);
         bvhflagsBuffer = allocateBuffer<uint32_t>(maxt * 2);
-        mortonBuffer = allocateBuffer<uint32_t>(maxt * 1);
+        mortonBuffer = allocateBuffer<uint64_t>(maxt * 1);
         mortonBufferIndex = allocateBuffer<uint32_t>(maxt * 1);
         leafBuffer = allocateBuffer<HlbvhNode>(maxt * 1);
         activeBuffer = allocateBuffer<uint32_t>(maxt * 2);
@@ -229,8 +229,8 @@ namespace ppr {
         sorter->sort(mortonBuffer, mortonBufferIndex, triangleCount); // early serial tests
         geometryUniformData.triangleCount = triangleCount;
 
-        //std::vector<GLuint> mortons(triangleCount);
-        //glGetNamedBufferSubData(mortonBuffer, 0, strided<GLuint>(mortons.size()), mortons.data());
+        //std::vector<GLuint64> mortons(triangleCount);
+        //glGetNamedBufferSubData(mortonBuffer, 0, strided<GLuint64>(mortons.size()), mortons.data());
 
         this->syncUniforms();
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, bvhnodesBuffer);

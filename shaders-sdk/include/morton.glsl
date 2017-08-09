@@ -4,14 +4,17 @@
 #if (defined(INT64_MORTON) && defined(USE_INT64))
 
 uint64_t part1By2_64(in uint a){
-    uint64_t x = uint64_t(a);
-    x &= 0x1fffffl;
-    x = (x | (x << 32)) & 0x1f00000000ffffl;
-    x = (x | (x << 16)) & 0x1f0000ff0000ffl;
-    x = (x | (x << 8 )) & 0x100f00f00f00f00fl;
-    x = (x | (x << 4 )) & 0x10c30c30c30c30c3l;
-    x = (x | (x << 2 )) & 0x1249249249249249l;
+    uint64_t x = a & 0x1ffffful; // we only look at the first 21 bits
+    x = (x | x << 32) & 0x1f00000000fffful;  // shift left 32 bits, OR with self, and 00011111000000000000000000000000000000001111111111111111
+    x = (x | x << 16) & 0x1f0000ff0000fful;  // shift left 32 bits, OR with self, and 00011111000000000000000011111111000000000000000011111111
+    x = (x | x << 8) & 0x100f00f00f00f00ful; // shift left 32 bits, OR with self, and 0001000000001111000000001111000000001111000000001111000000000000
+    x = (x | x << 4) & 0x10c30c30c30c30c3ul; // shift left 32 bits, OR with self, and 0001000011000011000011000011000011000011000011000011000100000000
+    x = (x | x << 2) & 0x1249249249249249ul;
     return x;
+
+    //uint64_t answer = 0;
+    //for (uint64_t i = 0; i < 21; ++i) { answer |= ((uint64_t(a) & (1ul << i)) << 2*i); }
+    //return answer;
 }
 
 uint64_t encodeMorton3_64(in uvec3 a)

@@ -15,8 +15,8 @@ void main(){
         if (i >= blocks.count) break;
 
         BVEC_WARP validAddress = addr < NumKeys;
-        UVEC_WARP data = KeyIn[addr];
-        UVEC_WARP k = bitfieldExtract(data, int(Shift), BITS_PER_PASS);
+        UVEC64_WARP data = UVEC64_WARP(KeyIn[addr]);
+        UVEC_WARP k = UVEC_WARP(BFE(data, int(Shift), BITS_PER_PASS));
         UVEC_WARP key = k;
 
         // smaller version (generalized)

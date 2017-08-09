@@ -34,6 +34,13 @@
 
 layout ( local_size_x = 1024 ) in;
 
+int nlz (in uint64_t x) {
+    //return 63-findMSB(x);
+    int msbFar = findMSB(uint(x >> 32));
+    int msbFinal = (msbFar == -1) ? findMSB(uint(x)) : msbFar + 32;
+    return 63-msbFinal;
+}
+
 int nlz (in uint x) {
     return 31-findMSB(x);
 }
@@ -45,8 +52,8 @@ int nlz (in int x) {
 // TODO - two lane SIMD threading support
 int findSplit( int first, int last, uint SIMDThread)
 {
-    uint firstCode = Mortoncodes[first];
-    uint lastCode = Mortoncodes[last];
+    uint64_t firstCode = Mortoncodes[first];
+    uint64_t lastCode = Mortoncodes[last];
     if (firstCode == lastCode) {
         return (first + last) >> 1;
     }
@@ -58,8 +65,8 @@ int findSplit( int first, int last, uint SIMDThread)
         step = (step + 1) >> 1;
         int newSplit = split + step;
         if (newSplit < last) {
-             uint splitCode = Mortoncodes[newSplit];
-             int splitPrefix = nlz(firstCode ^ splitCode);
+            uint64_t splitCode = Mortoncodes[newSplit];
+            int splitPrefix = nlz(firstCode ^ splitCode);
             if (splitPrefix > commonPrefix) {
                 split = newSplit;
             }

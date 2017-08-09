@@ -21,13 +21,16 @@
 #define UVEC_WARP uint
 #define BVEC_WARP bool
 #define UVEC64_WARP uint64_t
+#define KEYTYPE UVEC64_WARP
 
 //#define READ_LANE(V, I) ((I >= 0 && I < WARP_SIZE) ? readLane(V, I) : 0)
 #define READ_LANE(V, I) (uint(I >= 0 && I < WARP_SIZE) * readLane(V, I))
 
-layout (std430, binding = 20) restrict buffer KeyInBlock {uint KeyIn[];};
+#define BFE(a,o,n) ((a >> o) & ((1 << n)-1))
+
+layout (std430, binding = 20) restrict buffer KeyInBlock {KEYTYPE KeyIn[];};
 layout (std430, binding = 21) restrict buffer ValueInBlock {uint ValueIn[];};
-layout (std430, binding = 22) restrict buffer KeyOutBlock {uint KeyOut[];};
+layout (std430, binding = 22) restrict buffer KeyOutBlock {KEYTYPE KeyOut[];};
 layout (std430, binding = 23) restrict buffer ValueOutBlock {uint ValueOut[];};
 layout (std430, binding = 24) restrict buffer VarsBlock {
     uint NumKeys;

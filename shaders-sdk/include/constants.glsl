@@ -4,6 +4,7 @@
 
 // hardware or driver options
 #define USE_INT64
+#define INT64_MORTON
 //#define EMULATE_BALLOT
 //#define USE_ARB_CLOCK
 //#define USE_ARB_PRECISION
