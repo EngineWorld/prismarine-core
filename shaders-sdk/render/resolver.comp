@@ -40,6 +40,139 @@ shared SharedVarsData sharedVarsData[WORK_SIZED];
 shared int bakedStack[WORK_SIZED][bakedFragments];
 
 
+
+
+bvec4 or(in bvec4 a, in bvec4 b){
+    return bvec4(
+        a.x || b.x,
+        a.y || b.y,
+        a.z || b.z,
+        a.w || b.w
+    );
+}
+
+bvec4 and(in bvec4 a, in bvec4 b){
+    return bvec4(
+        a.x && b.x,
+        a.y && b.y,
+        a.z && b.z,
+        a.w && b.w
+    );
+}
+
+bvec4 not(in bvec4 a){
+    return bvec4(!a.x, !a.y, !a.z, !a.w);
+}
+
+
+
+float intersectTriangle4(in vec3 orig, in vec3 dir, in ivec4 tri, inout vec2 UV, inout int triID) {
+    UV = vec2(0.f);
+    triID = LONGEST;
+    float t = INFINITY;
+
+    // check valid triangles
+    bvec4 valid = bvec4(notEqual(tri, ivec4(LONGEST)));
+
+    // x components
+    mat4x3 tri4x = mat4x3(
+        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.x)), 0).wzx, // triangle 0, verts 0, 1, 2
+        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.y)), 0).wzx, // triangle 1
+        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.z)), 0).wzx, // triangle 2
+        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.w)), 0).wzx  // triangle 3
+    );
+    
+    // y components
+    mat4x3 tri4y = mat4x3(
+        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.x)), 1).wzx,
+        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.y)), 1).wzx,
+        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.z)), 1).wzx,
+        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.w)), 1).wzx
+    );
+    
+    // z components
+    mat4x3 tri4z = mat4x3(
+        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.x)), 2).wzx,
+        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.y)), 2).wzx,
+        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.z)), 2).wzx,
+        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.w)), 2).wzx
+    );
+
+    // storing triangles in vector components
+    mat3x4 v012x = transpose(tri4x);
+    mat3x4 v012y = transpose(tri4y);
+    mat3x4 v012z = transpose(tri4z);
+
+    // gather e1, e2
+    vec4 e1x = v012x[1] - v012x[0];
+    vec4 e1y = v012y[1] - v012y[0];
+    vec4 e1z = v012z[1] - v012z[0];
+    vec4 e2x = v012x[2] - v012x[0];
+    vec4 e2y = v012y[2] - v012y[0];
+    vec4 e2z = v012z[2] - v012z[0];
+
+    // get ray dir
+    vec4 dir4x = dir.xxxx;
+    vec4 dir4y = dir.yyyy;
+    vec4 dir4z = dir.zzzz;
+
+    // division (det)
+    vec4 pvecx = dir4y*e2z - dir4z*e2y;
+    vec4 pvecy = dir4z*e2x - dir4x*e2z;
+    vec4 pvecz = dir4x*e2y - dir4y*e2x;
+    vec4 divisor = pvecx*e1x + pvecy*e1y + pvecz*e1z;
+    valid = and(valid, greaterThan(abs(divisor), vec4(0.f)));
+    if (all(not(valid))) return t;
+    vec4 invDivisor = vec4(1) / divisor;
+
+    // get ray orig
+    vec4 orig4x = orig.xxxx;
+    vec4 orig4y = orig.yyyy;
+    vec4 orig4z = orig.zzzz;
+
+    // U
+    vec4 tvecx = orig4x - v012x[0];
+    vec4 tvecy = orig4y - v012y[0];
+    vec4 tvecz = orig4z - v012z[0];
+    vec4 u4;
+    u4 = tvecx*pvecx + tvecy*pvecy + tvecz*pvecz;
+    u4 = u4 * invDivisor;
+    valid = and(valid, and(greaterThanEqual(u4, vec4(0.f)), lessThan(u4, vec4(1.f))));
+    if (all(not(valid))) return t;
+
+    // V
+    vec4 qvecx = tvecy*e1z - tvecz*e1y;
+    vec4 qvecy = tvecz*e1x - tvecx*e1z;
+    vec4 qvecz = tvecx*e1y - tvecy*e1x;
+    vec4 v4;
+    v4 = dir4x*qvecx + dir4y*qvecy + dir4z*qvecz;
+    v4 = v4 * invDivisor;
+    valid = and(valid, and(greaterThanEqual(v4, vec4(0.f)), lessThan(u4+v4, vec4(1.f))));
+    if (all(not(valid))) return t;
+
+    // distance
+    vec4 t4;
+    t4 = e2x*qvecx + e2y*qvecy + e2z*qvecz;
+    t4 = t4 * invDivisor;
+    valid = and(valid, lessThan(t4, vec4(INFINITY - PZERO)));
+    if (all(not(valid))) return t;
+
+    // ordered resulting
+    if ((equalF(t4.x, t) ? tri.x < triID : lessEqualF(t4.x, t)) && greaterEqualF(t4.x, 0))
+    if (valid.x) { t = t4.x; triID = tri.x; UV.xy = vec2(u4.x, v4.x); }
+
+    if ((equalF(t4.y, t) ? tri.y < triID : lessEqualF(t4.y, t)) && greaterEqualF(t4.y, 0))
+    if (valid.y) { t = t4.y; triID = tri.y; UV.xy = vec2(u4.y, v4.y); }
+
+    if ((equalF(t4.z, t) ? tri.z < triID : lessEqualF(t4.z, t)) && greaterEqualF(t4.z, 0))
+    if (valid.z) { t = t4.z; triID = tri.z; UV.xy = vec2(u4.z, v4.z); }
+
+    if ((equalF(t4.w, t) ? tri.w < triID : lessEqualF(t4.w, t)) && greaterEqualF(t4.w, 0))
+    if (valid.w) { t = t4.w; triID = tri.w; UV.xy = vec2(u4.w, v4.w); }
+
+    return t;
+}
+
 // WARP optimized triangle intersection
 float intersectTriangle(in vec3 orig, in vec3 dir, in int tri, inout vec2 UV, in bool valid) {
     if (allInvocations(!valid)) return INFINITY;
@@ -287,6 +420,45 @@ TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tr
     return res;
 }
 
+
+
+
+
+TResult testIntersection4(inout TResult res, in vec3 orig, in vec3 dir, in ivec4 tri, in bool isValid) {
+    bool validTriangle = isValid;
+
+    if (allInvocations(!validTriangle || all(equal(tri, ivec4(LONGEST))))) {
+        return res;
+    }
+
+    int outTri = LONGEST;
+    vec2 uv = vec2(0.0f);
+    float _d = intersectTriangle4(orig, dir, tri, uv, outTri);
+    bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.predist) && greaterEqualF(_d, 0.0f);
+    bool inbaked = equalF(_d, 0.0f);
+    bool isbaked = equalF(_d, res.predist);
+    bool changed = !isbaked && !inbaked;
+
+    if (near) {
+        if ( changed ) {
+            res.predist = _d;
+            res.triangleID = outTri;
+        }
+        if ( inbaked ) {
+            bakedStack[L][atomicAdd(sharedVarsData[L].bakedStackCount, 1)] = outTri;
+        } else 
+        if ( sharedVarsData[L].bakedRange < outTri || sharedVarsData[L].bakedRange == LONGEST || changed ) {
+            sharedVarsData[L].bakedRange = outTri;
+            sharedVarsData[L].bakedRangeIntersection = vec4(_d, uv, 0.f);
+        }
+    }
+
+    return res;
+}
+
+
+
+
 void main() {
     const int it = int(gl_GlobalInvocationID.x) / laneOccupy;
     L = gl_LocalInvocationID.x / laneOccupy;
@@ -326,18 +498,20 @@ void main() {
         bool nearerSync = nearer || !valid;
         if (allInvocations(nearerSync)) {
             const int groupSize = 4;
-            int ln = int(LANE_IDX) % laneOccupy;
-            for (int ls=0;ls<groupSize;ls+=laneOccupy)
+            for (int ls=0;ls<groupSize;ls+=4) 
             {
-                int lidx = (ls + ln);
-                bool overtaken = lidx > (result.range.y-result.range.x);
-                if (allInvocations(overtaken)) break; // in WARP version will bad effect
+                ivec4 lidx4 = ivec4(ls + 0, ls + 1, ls + 2, ls + 3);
+                bvec4 overtaken = greaterThan(lidx4, ivec4(result.range.y-result.range.x));
+                if (allInvocations(all(overtaken))) break; // in WARP version will bad effect
 
-                int morIdx = MortonIndices[result.range.x + lidx];
-                HlbvhNode leaf = Leafs[morIdx];
-                int triIdx = leaf.pdata.w;
+                ivec4 triIdx4 = mix(ivec4(
+                    Leafs[MortonIndices[result.range.x + lidx4.x]].pdata.w,
+                    Leafs[MortonIndices[result.range.x + lidx4.y]].pdata.w,
+                    Leafs[MortonIndices[result.range.x + lidx4.z]].pdata.w,
+                    Leafs[MortonIndices[result.range.x + lidx4.w]].pdata.w
+                ), ivec4(LONGEST), overtaken);
 
-                testIntersection(lastRes, ray.origin.xyz, ray.direct.xyz, triIdx, nearer && !overtaken);
+                testIntersection4(lastRes, ray.origin.xyz, ray.direct.xyz, triIdx4, nearer);
                 lastRes = reductiveWarpNearest(lastRes, true);
             }
             foundID = result.nextResult;
