@@ -15,9 +15,9 @@ const int laneOccupy = 1;
 const int reductionDepth = 0;
 const int bakedFragments = 8;
 
-layout ( std430, binding = 9 ) readonly buffer NodesBlock { HlbvhNode Leafs[]; };
+layout ( std430, binding = 17 ) readonly buffer NodesBlock { HlbvhNode Leafs[]; };
 layout ( std430, binding = 18 ) readonly buffer MortonIndicesBlock { int MortonIndices[]; };
-layout ( std430, binding = 17 ) readonly buffer CWFoundGroups { GroupFoundResult FoundGroupsChains[]; };
+layout ( std430, binding = 9 ) readonly buffer CWFoundGroups { GroupFoundResult FoundGroupsChains[]; };
 
 struct SharedVarsData {
     vec4 bakedRangeIntersection;

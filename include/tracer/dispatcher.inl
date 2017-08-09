@@ -416,19 +416,18 @@ namespace ppr {
         obj->bindBVH();
         this->bind();
 
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 17, resultFounds);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, givenRays); // bind collection buffer
         dispatch(traverseProgram, tiled(rsize, worksize)); // run traverse
 
         // copy given counts
         glCopyNamedBufferSubData(arcounter, rayBlockUniform, (1 + 5) * sizeof(int32_t), offsetof(RayBlockUniform, samplerUniform) + offsetof(SamplerUniformStruct, rayCount), sizeof(int32_t));
-
-        // bind buffers
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 17, resultFounds);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, givenRays); // change active list
         
         // run hit resolver
         obj->bindLeafs();
         obj->bind();
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, resultFounds);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, givenRays); // change active list
 
         //GLuint hcount = 0;
         //glGetNamedBufferSubData(arcounter, (1 + 5) * sizeof(int32_t), sizeof(int32_t), &hcount);
@@ -441,7 +440,6 @@ namespace ppr {
         obj->bindLeafs();
         obj->bind();
         dispatch(traverseDirectProgram, tiled(rsize, worksize));
-
 
         return 1;
     }
