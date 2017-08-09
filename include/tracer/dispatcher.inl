@@ -13,6 +13,7 @@ namespace ppr {
         initShaderCompute("./shaders/render/sampler.comp", samplerProgram);
         initShaderCompute("./shaders/render/traverse.comp", traverseProgram);
         initShaderCompute("./shaders/render/resolver.comp", resolverProgram);
+        initShaderCompute("./shaders/render/directTraverse.comp", traverseDirectProgram);
         */
 
         initShaderComputeSPIRV("./shaders-spv/render/testmat.comp.spv", matProgram);
@@ -23,6 +24,7 @@ namespace ppr {
         initShaderComputeSPIRV("./shaders-spv/render/sampler.comp.spv", samplerProgram);
         initShaderComputeSPIRV("./shaders-spv/render/traverse.comp.spv", traverseProgram);
         initShaderComputeSPIRV("./shaders-spv/render/resolver.comp.spv", resolverProgram);
+        initShaderComputeSPIRV("./shaders-spv/render/directTraverse.comp.spv", traverseDirectProgram);
 
         {
             GLuint vert = glCreateShader(GL_VERTEX_SHADER);
@@ -409,6 +411,7 @@ namespace ppr {
             glCopyNamedBufferSubData(arcounterTemp, arcounter, 0, sizeof(uint32_t) * (i + 5), sizeof(uint32_t));
         }
 
+        /*
         // bindings
         obj->bindBVH();
         this->bind();
@@ -431,6 +434,15 @@ namespace ppr {
         //glGetNamedBufferSubData(arcounter, (1 + 5) * sizeof(int32_t), sizeof(int32_t), &hcount);
 
         dispatch(resolverProgram, tiled(rsize, worksize));
+        */
+
+        this->bind();
+        obj->bindBVH();
+        obj->bindLeafs();
+        obj->bind();
+        dispatch(traverseDirectProgram, tiled(rsize, worksize));
+
+
         return 1;
     }
 

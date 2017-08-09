@@ -27,7 +27,7 @@ bool iseq16(float a, float cmp){ return abs(fma(a, 65535.f, -cmp)) < 0.00001f; }
 void swap(inout int a, inout int b){ int t = a; a = b; b = t; }
 uint exchange(inout uint mem, in uint v){ uint tmp = mem; mem = v; return tmp; }
 int exchange(inout int mem, in int v){ int tmp = mem; mem = v; return tmp; }
-
+int add(inout int mem, in int v){ int tmp = mem; mem += v; return tmp; }
 
 // logical functions
 bvec2 not2(in bvec2 a) { return bvec2(!a.x, !a.y); }

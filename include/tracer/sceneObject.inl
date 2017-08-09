@@ -116,7 +116,8 @@ namespace ppr {
     }
 
     inline void SceneObject::bindLeafs() {
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, leafBuffer);
+        //glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, leafBuffer);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 17, leafBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 18, mortonBufferIndex);
     }
 

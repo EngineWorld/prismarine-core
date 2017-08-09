@@ -1,0 +1,603 @@
+#version 460 core
+
+#include "../include/constants.glsl"
+#include "../include/structs.glsl"
+#include "../include/uniforms.glsl"
+#include "../include/rays.glsl"
+#include "../include/morton.glsl"
+#include "../include/STOmath.glsl"
+#include "../include/vertex.glsl"
+
+layout ( std430, binding = 9 ) readonly buffer NodesBlock { HlbvhNode Nodes[]; };
+layout ( std430, binding = 17 ) readonly buffer LeafBlock { HlbvhNode Leafs[]; };
+layout ( std430, binding = 18 ) readonly buffer MortonIndicesBlock { int MortonIndices[]; };
+
+struct SharedVarsData {
+    vec4 bakedRangeIntersection;
+    int bakedRange;
+    int bakedStackCount;
+    uint L;
+};
+
+struct TResult {
+    float dist;
+    int triangleID;
+    int materialID; // legacy
+    float predist;
+    vec4 uv;
+};
+
+struct LResult {
+    vec4 normal;
+    vec4 tangent;
+    vec4 texcoord;
+    vec4 color;
+    vec4 mods;
+
+    float dist;
+    int triangleID;
+    int materialID;
+    float predist; // legacy
+    vec4 uv; // legacy
+};
+
+uint L = 0;
+SharedVarsData sharedVarsData;
+
+const int bakedFragments = 8;
+shared int bakedStack[WORK_SIZE][bakedFragments];
+
+bvec4 or(in bvec4 a, in bvec4 b){
+    return bvec4(
+        a.x || b.x,
+        a.y || b.y,
+        a.z || b.z,
+        a.w || b.w
+    );
+}
+
+bvec4 and(in bvec4 a, in bvec4 b){
+    return bvec4(
+        a.x && b.x,
+        a.y && b.y,
+        a.z && b.z,
+        a.w && b.w
+    );
+}
+
+bvec4 not(in bvec4 a){
+    return bvec4(!a.x, !a.y, !a.z, !a.w);
+}
+
+float intersectTriangle4(in vec3 orig, in vec3 dir, in ivec4 tri, inout vec2 UV, inout int triID) {
+    UV = vec2(0.f);
+    triID = LONGEST;
+    float t = INFINITY;
+
+    // check valid triangles
+    bvec4 valid = bvec4(notEqual(tri, ivec4(LONGEST)));
+
+    // storing triangles in vector components
+    mat3x4 v012x = transpose(mat4x3(
+        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.x)), 0).wzx, // triangle 0, verts 0, 1, 2
+        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.y)), 0).wzx, // triangle 1
+        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.z)), 0).wzx, // triangle 2
+        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.w)), 0).wzx  // triangle 3
+    ));
+    mat3x4 v012y = transpose(mat4x3(
+        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.x)), 1).wzx,
+        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.y)), 1).wzx,
+        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.z)), 1).wzx,
+        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.w)), 1).wzx
+    ));
+    mat3x4 v012z = transpose(mat4x3(
+        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.x)), 2).wzx,
+        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.y)), 2).wzx,
+        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.z)), 2).wzx,
+        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.w)), 2).wzx
+    ));
+
+    // gather e1, e2
+    vec4 e1x = v012x[1] - v012x[0];
+    vec4 e1y = v012y[1] - v012y[0];
+    vec4 e1z = v012z[1] - v012z[0];
+    vec4 e2x = v012x[2] - v012x[0];
+    vec4 e2y = v012y[2] - v012y[0];
+    vec4 e2z = v012z[2] - v012z[0];
+
+    // get ray dir
+    vec4 dir4x = dir.xxxx;
+    vec4 dir4y = dir.yyyy;
+    vec4 dir4z = dir.zzzz;
+
+    // division (det)
+    vec4 pvecx = fma(dir4y, e2z, -dir4z*e2y);
+    vec4 pvecy = fma(dir4z, e2x, -dir4x*e2z);
+    vec4 pvecz = fma(dir4x, e2y, -dir4y*e2x);
+    vec4 divisor = fma(pvecx, e1x, fma(pvecy, e1y, pvecz*e1z));
+    valid = and(valid, greaterThan(abs(divisor), vec4(0.f)));
+    if (all(not(valid))) return t;
+    vec4 invDivisor = vec4(1) / divisor;
+
+    // get ray orig
+    vec4 orig4x = orig.xxxx;
+    vec4 orig4y = orig.yyyy;
+    vec4 orig4z = orig.zzzz;
+
+    // U
+    vec4 tvecx = orig4x - v012x[0];
+    vec4 tvecy = orig4y - v012y[0];
+    vec4 tvecz = orig4z - v012z[0];
+    vec4 u4;
+    u4 = fma(tvecx, pvecx, fma(tvecy, pvecy, tvecz*pvecz));
+    u4 = u4 * invDivisor;
+    valid = and(valid, and(greaterThanEqual(u4, vec4(0.f)), lessThan(u4, vec4(1.f))));
+    if (all(not(valid))) return t;
+
+    // V
+    vec4 qvecx = fma(tvecy, e1z, -tvecz*e1y);
+    vec4 qvecy = fma(tvecz, e1x, -tvecx*e1z);
+    vec4 qvecz = fma(tvecx, e1y, -tvecy*e1x);
+    vec4 v4;
+    v4 = fma(dir4x, qvecx, fma(dir4y, qvecy, dir4z*qvecz));
+    v4 = v4 * invDivisor;
+    valid = and(valid, and(greaterThanEqual(v4, vec4(0.f)), lessThan(u4+v4, vec4(1.f))));
+    if (all(not(valid))) return t;
+
+    // distance
+    vec4 t4;
+    t4 = fma(e2x, qvecx, fma(e2y, qvecy, e2z*qvecz));
+    t4 = t4 * invDivisor;
+    valid = and(valid, lessThan(t4, vec4(INFINITY - PZERO)));
+    if (all(not(valid))) return t;
+
+    // ordered resulting
+    if ((equalF(t4.x, t) ? tri.x < triID : lessEqualF(t4.x, t)) && greaterEqualF(t4.x, 0))
+    if (valid.x) { t = t4.x; triID = tri.x; UV.xy = vec2(u4.x, v4.x); }
+
+    if ((equalF(t4.y, t) ? tri.y < triID : lessEqualF(t4.y, t)) && greaterEqualF(t4.y, 0))
+    if (valid.y) { t = t4.y; triID = tri.y; UV.xy = vec2(u4.y, v4.y); }
+
+    if ((equalF(t4.z, t) ? tri.z < triID : lessEqualF(t4.z, t)) && greaterEqualF(t4.z, 0))
+    if (valid.z) { t = t4.z; triID = tri.z; UV.xy = vec2(u4.z, v4.z); }
+
+    if ((equalF(t4.w, t) ? tri.w < triID : lessEqualF(t4.w, t)) && greaterEqualF(t4.w, 0))
+    if (valid.w) { t = t4.w; triID = tri.w; UV.xy = vec2(u4.w, v4.w); }
+
+    return t;
+}
+
+// WARP optimized triangle intersection
+float intersectTriangle(in vec3 orig, in vec3 dir, in int tri, inout vec2 UV, in bool valid) {
+    //if (allInvocations(!valid)) return INFINITY;
+    if (!valid) return INFINITY;
+
+    // fetch directly
+    mat3 ve = mat3(
+        fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri)), 0).xyz, 
+        fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri)), 1).xyz, 
+        fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri)), 2).xyz
+    );
+
+    vec3 e1 = ve[1] - ve[0];
+    vec3 e2 = ve[2] - ve[0];
+    vec3 pvec = cross(dir, e2);
+    float det = dot(e1, pvec);
+
+#ifndef CULLING
+    if (abs(det) <= 0.0f) valid = false;
+#else
+    if (det <= 0.0f) valid = false;
+#endif
+    //if (allInvocations(!valid)) return INFINITY;
+    if (!valid) return INFINITY;
+
+    vec3 tvec = orig - ve[0];
+    float u = dot(tvec, pvec);
+    vec3 qvec = cross(tvec, e1);
+    float v = dot(dir, qvec);
+    vec3 uvt = vec3(u, v, dot(e2, qvec)) / det;
+
+    if (
+        any(lessThan(uvt.xy, vec2(0.f))) || 
+        any(greaterThan(vec2(uvt.x) + vec2(0.f, uvt.y), vec2(1.f))) 
+    ) valid = false;
+    //if (allInvocations(!valid)) return INFINITY;
+    if (!valid) return INFINITY;
+
+    UV.xy = uvt.xy;
+    return (lessF(uvt.z, 0.0f) || !valid) ? INFINITY : uvt.z;
+}
+
+TResult choiceFirstBaked(inout TResult res) {
+    int tri = sharedVarsData.bakedRange;
+
+    bool validTriangle = tri >= 0 && tri != LONGEST;
+    if (!validTriangle) return res;
+
+    vec2 uv = sharedVarsData.bakedRangeIntersection.yz;
+    float _d = sharedVarsData.bakedRangeIntersection.x;
+    bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.dist);
+
+    if (near) {
+        res.dist = _d;
+        res.triangleID = tri;
+        res.uv.xy = uv.xy;
+    }
+
+    return res;
+}
+
+void reorderTriangles() {
+    // fit hits count
+    sharedVarsData.bakedStackCount = min(sharedVarsData.bakedStackCount, bakedFragments);
+
+    // resort z-fighting primitives
+    for (int iround = 1; iround < sharedVarsData.bakedStackCount; iround++) {
+        for (int index = 0; index < sharedVarsData.bakedStackCount - iround; index++) {
+            if (bakedStack[L][index] <= bakedStack[L][index+1]) {
+                swap(bakedStack[L][index], bakedStack[L][index+1]);
+            }
+        }
+    }
+
+    // initial clean list
+    int cleanBakedStackCount = 0;
+
+    // select only unique triangle ID's
+    for (int iround = 0; iround < sharedVarsData.bakedStackCount-1; iround++) {
+        int next = bakedStack[L][iround+1];
+        int prim = bakedStack[L][iround];
+        if (next != prim) {
+            bakedStack[L][cleanBakedStackCount++] = prim;
+        }
+    }
+
+    // copy last primitive
+    bakedStack[L][cleanBakedStackCount++] = bakedStack[L][sharedVarsData.bakedStackCount-1];
+    sharedVarsData.bakedStackCount = cleanBakedStackCount; // fir count
+}
+
+TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
+    choiceFirstBaked(res);
+    reorderTriangles();
+
+    int tri = tpi < sharedVarsData.bakedStackCount ? bakedStack[L][tpi] : LONGEST;
+    bool validTriangle = tri >= 0 && tri != LONGEST;
+    if (!validTriangle) return res;
+
+    vec2 uv = vec2(0.0f);
+    float _d = intersectTriangle(orig, dir, tri, uv, validTriangle);
+    bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.dist);
+
+    if (near) {
+        res.dist = _d;
+        res.triangleID = tri;
+        res.uv.xy = uv.xy;
+    }
+    
+    return res;
+}
+
+LResult interpolateMeshData(in TResult hitp) {
+    LResult res;
+    res.dist = INFINITY;
+    res.triangleID = hitp.triangleID;
+    res.materialID = LONGEST;
+    res.predist = hitp.predist; // legacy
+    res.uv = hitp.uv; // legacy
+
+    int tri = hitp.triangleID;
+    if (greaterEqualF(hitp.dist, 0.0f) && lessF(hitp.dist, INFINITY) && tri != LONGEST &&  mats[tri] != LONGEST) {
+        vec3 trinorms[3];
+        vec3 triverts[3];
+        vec4 texcoords[3];
+        vec4 colors[3];
+        vec4 mods[3];
+
+        for (int x=0;x<3;x++) {
+            ivec2 mos = gatherMosaic(getUniformCoord(tri));
+            triverts[x] = fetchMosaic(vertex_texture, mos, x).xyz;
+            trinorms[x] = fetchMosaic(normal_texture, mos, x).xyz;
+            texcoords[x] = fetchMosaic(texcoords_texture, mos, x);
+            colors[x] = vec4(1.0f);
+            mods[x] = fetchMosaic(modifiers_texture, mos, x);
+        }
+
+        vec3 deltaPos1 = triverts[1] - triverts[0];
+        vec3 deltaPos2 = triverts[2] - triverts[0];
+        vec2 uv = hitp.uv.xy;
+        vec3 nor = normalize(cross(deltaPos1, deltaPos2));
+        vec3 normal = fma(trinorms[0], vec3(1.0f - uv.x - uv.y), fma(trinorms[1], vec3(uv.x), trinorms[2] * vec3(uv.y)));
+        normal = lessF(length(normal), 0.f) ? nor : normalize(normal);
+        normal = normal * sign(dot(normal, nor));
+
+        bool delta = all(equal(texcoords[0].xy, texcoords[1].xy)) && all(equal(texcoords[0].xy, texcoords[2].xy));
+        vec2 deltaUV1 = delta ? vec2(1.0f, 0.0f) : texcoords[1].xy - texcoords[0].xy;
+        vec2 deltaUV2 = delta ? vec2(0.0f, 1.0f) : texcoords[2].xy - texcoords[0].xy;
+
+        float f = 1.0f / fma(deltaUV1.x, deltaUV2.y, -deltaUV1.y * deltaUV2.x);
+        vec3 tan = fma(deltaPos1, vec3(deltaUV2.y), -deltaPos2 * deltaUV1.y) * f;
+
+        res.dist = hitp.dist;
+        res.triangleID = hitp.triangleID;
+        res.materialID = LONGEST;
+        res.predist = hitp.predist; // legacy
+        res.uv = hitp.uv; // legacy
+        
+        res.normal = vec4(normal, 0.0f);
+        res.tangent = vec4(normalize(tan - normal * sign(dot(tan, nor))), 0.0f);
+        res.texcoord = fma(texcoords[0], vec4(1.0f - uv.x - uv.y), fma(texcoords[1], vec4(uv.x), texcoords[2] * vec4(uv.y)));
+        res.color = fma(colors[0], vec4(1.0f - uv.x - uv.y), fma(colors[1], vec4(uv.x), colors[2] * vec4(uv.y)));
+        res.mods = fma(mods[0], vec4(1.0f - uv.x - uv.y), fma(mods[1], vec4(uv.x), mods[2] * vec4(uv.y)));
+        res.materialID = mats[tri];
+    }
+
+    return res;
+}
+
+TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tri, in bool isValid) {
+    bool validTriangle = 
+        isValid && 
+        tri >= 0 && 
+        tri != res.triangleID &&
+        tri != LONGEST;
+
+    if (!validTriangle) {
+        return res;
+    }
+
+    vec2 uv = vec2(0.0f);
+    float _d = intersectTriangle(orig, dir, tri, uv, validTriangle);
+    bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.predist) && greaterEqualF(_d, 0.0f);
+    bool inbaked = equalF(_d, 0.0f);
+    bool isbaked = equalF(_d, res.predist);
+    bool changed = !isbaked && !inbaked;
+
+    if (near) {
+        if ( changed ) {
+            res.predist = _d;
+            res.triangleID = tri;
+        }
+        if ( inbaked ) {
+            bakedStack[L][add(sharedVarsData.bakedStackCount, 1)] = tri;
+        } else 
+        if ( sharedVarsData.bakedRange < tri || sharedVarsData.bakedRange == LONGEST || changed ) {
+            sharedVarsData.bakedRange = tri;
+            sharedVarsData.bakedRangeIntersection = vec4(_d, uv, 0.f);
+        }
+    }
+
+    return res;
+}
+
+TResult testIntersection4(inout TResult res, in vec3 orig, in vec3 dir, in ivec4 tri, in bool isValid) {
+    bool validTriangle = isValid;
+
+    if (!validTriangle || all(equal(tri, ivec4(LONGEST)))) {
+        return res;
+    }
+
+    int outTri = LONGEST;
+    vec2 uv = vec2(0.0f);
+    float _d = intersectTriangle4(orig, dir, tri, uv, outTri);
+    bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.predist) && greaterEqualF(_d, 0.0f);
+    bool inbaked = equalF(_d, 0.0f);
+    bool isbaked = equalF(_d, res.predist);
+    bool changed = !isbaked && !inbaked;
+
+    if (near) {
+        if ( changed ) {
+            res.predist = _d;
+            res.triangleID = outTri;
+        }
+        if ( inbaked ) {
+            bakedStack[L][add(sharedVarsData.bakedStackCount, 1)] = outTri;
+        } else 
+        if ( sharedVarsData.bakedRange < outTri || sharedVarsData.bakedRange == LONGEST || changed ) {
+            sharedVarsData.bakedRange = outTri;
+            sharedVarsData.bakedRangeIntersection = vec4(_d, uv, 0.f);
+        }
+    }
+
+    return res;
+}
+
+const vec3 padding = vec3(0.00001f);
+const int STACK_SIZE = 16;
+shared int deferredStack[WORK_SIZE][STACK_SIZE];
+shared int deferredPtr[WORK_SIZE];
+
+vec3 projectVoxels(in vec3 orig) {
+    vec4 nps = mult4(vec4(orig, 1.0f), GEOMETRY_BLOCK geometryUniform.transform);
+    return nps.xyz / nps.w;
+}
+
+vec3 unprojectVoxels(in vec3 orig) {
+    vec4 nps = mult4(vec4(orig, 1.0f), GEOMETRY_BLOCK geometryUniform.transformInv);
+    return nps.xyz / nps.w;
+}
+
+float intersectCubeSingle(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 cubeMax, inout float near, inout float far) {
+    vec3 dr = 1.0f / ray;
+    vec3 tMin = (cubeMin.xyz - origin) * dr;
+    vec3 tMax = (cubeMax.xyz - origin) * dr;
+    vec3 t1 = min(tMin, tMax);
+    vec3 t2 = max(tMin, tMax);
+#ifdef ENABLE_AMD_INSTRUCTION_SET
+    float tNear = max3(t1.x, t1.y, t1.z);
+    float tFar  = min3(t2.x, t2.y, t2.z);
+#else
+    float tNear = max(max(t1.x, t1.y), t1.z);
+    float tFar  = min(min(t2.x, t2.y), t2.z);
+#endif
+    bool isCube = tFar >= tNear && greaterEqualF(tFar, 0.0f);
+    near = isCube ? tNear : INFINITY;
+    far  = isCube ? tFar  : INFINITY;
+    return isCube ? (lessF(tNear, 0.0f) ? tFar : tNear) : INFINITY;
+}
+
+void intersectCubeApart(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 cubeMax, inout float near, inout float far) {
+    vec3 dr = 1.0f / ray;
+    vec3 tMin = (cubeMin.xyz - origin) * dr;
+    vec3 tMax = (cubeMax.xyz - origin) * dr;
+    vec3 t1 = min(tMin, tMax);
+    vec3 t2 = max(tMin, tMax);
+#ifdef ENABLE_AMD_INSTRUCTION_SET
+    near = max3(t1.x, t1.y, t1.z);
+    far  = min3(t2.x, t2.y, t2.z);
+#else
+    near = max(max(t1.x, t1.y), t1.z);
+    far  = min(min(t2.x, t2.y), t2.z);
+#endif
+}
+
+#define SGN(v) v = idx
+
+TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
+    L = gl_LocalInvocationID.x;
+
+    TResult lastRes;
+    lastRes.dist = INFINITY;
+    lastRes.predist = INFINITY;
+    lastRes.triangleID = LONGEST;
+    lastRes.materialID = LONGEST;
+
+    // deferred stack
+    deferredPtr[L] = 0;
+    deferredStack[L][0] = -1;
+
+    sharedVarsData.bakedRange = LONGEST;
+    sharedVarsData.bakedStackCount = 0;
+    sharedVarsData.bakedRangeIntersection = vec4(INFINITY, 0.f, 0.f, 0.f);
+
+
+    // test constants
+    int bakedStep = int(floor(1.f + hit.vmods.w));
+    vec3 torig = projectVoxels(origin);
+    vec3 tdirproj = mult4(vec4(direct, 0.0), GEOMETRY_BLOCK geometryUniform.transform).xyz;
+    float dirlen = 1.0f / length(tdirproj);
+    vec3 dirproj = normalize(tdirproj);
+
+    // test with root node
+    float near = INFINITY, far = INFINITY;
+    float d = intersectCubeSingle(torig, dirproj, vec4(vec3(0.0f), 1.0f), vec4(1.0f), near, far);
+    lastRes.predist = far * dirlen;
+
+    // node indexing
+    int prevLeaf = -1, idx = 0;
+
+    // init state
+    HlbvhNode node = Nodes[idx];
+    bool validBox = lessF(d, INFINITY) && greaterEqualF(d, 0.0f), skip = false;
+    for (int i=0;i<8192;i++) {
+        if (!validBox) { break; }
+
+        // is leaf
+        bool isLeaf = node.pdata.x == node.pdata.y && validBox;
+        if (isLeaf) {
+            const int groupSize = 4;
+            for (int ls=0;ls<groupSize;ls+=4) 
+            {
+                ivec4 lidx4 = ivec4(ls + 0, ls + 1, ls + 2, ls + 3);
+                bvec4 overtaken = greaterThan(lidx4, ivec4(node.pdata.y-node.pdata.w));
+                if (all(overtaken)) break;
+
+                ivec4 triIdx4 = mix(ivec4(
+                    Leafs[MortonIndices[node.pdata.w + lidx4.x]].pdata.w,
+                    Leafs[MortonIndices[node.pdata.w + lidx4.y]].pdata.w,
+                    Leafs[MortonIndices[node.pdata.w + lidx4.z]].pdata.w,
+                    Leafs[MortonIndices[node.pdata.w + lidx4.w]].pdata.w
+                ), ivec4(LONGEST), overtaken);
+
+                testIntersection4(lastRes, origin.xyz, direct.xyz, triIdx4, isLeaf);
+            }
+        }
+
+        // choice near box
+        bool notLeaf = node.pdata.x != node.pdata.y && validBox;
+        if (notLeaf) {
+            HlbvhNode lnode = Nodes[node.pdata.x];
+            HlbvhNode rnode = Nodes[node.pdata.y];
+
+            vec2 inf2 = vec2(INFINITY), nearsLR = inf2, farsLR = inf2;
+            intersectCubeApart(torig, dirproj, lnode.box.mn, lnode.box.mx, nearsLR.x, farsLR.x);
+            intersectCubeApart(torig, dirproj, rnode.box.mn, rnode.box.mx, nearsLR.y, farsLR.y);
+
+            bvec2 isCube = and2(greaterThanEqual(farsLR, nearsLR), greaterThanEqual(farsLR, vec2(0.0f)));
+            vec2 nears = mix(inf2, nearsLR, isCube), fars = mix(inf2, farsLR, isCube), hits = mix(nears, fars, lessThan(nears, vec2(0.0f)));
+
+            bvec2 overlaps = 
+                and2(bvec2(notLeaf), 
+                and2(lessThanEqual(hits, vec2(INFINITY-PZERO)),
+                and2(greaterThan(hits, -vec2(PZERO)),
+                greaterThan(vec2(lastRes.predist), nears * dirlen - PZERO))));
+            
+            bool anyOverlap = any(overlaps);
+            if (anyOverlap) { 
+                bool leftOrder = all(overlaps) ? lessEqualF(hits.x, hits.y) : overlaps.x;
+                ivec2 leftright = mix(ivec2(-1), node.pdata.xy, overlaps);
+                leftright = leftOrder ? leftright : leftright.yx;
+                if (anyOverlap) {
+                    if (deferredPtr[L] < STACK_SIZE && leftright.y != -1) {
+                        atomicExchange(deferredStack[L][add(deferredPtr[L], 1)], leftright.y);
+                    }
+                    idx = leftright.x;
+                    skip = true;
+                }
+            }
+
+            if (idx >= 0) node = Nodes[idx];
+        }
+
+        // go to parent 
+        if (!skip) {
+            int ptr = add(deferredPtr[L], -1)-1;
+            bool valid = ptr >= 0;
+            idx = valid ? atomicExchange(deferredStack[L][ptr], -1) : -1;
+            validBox = validBox && valid && idx >= 0;
+            if (idx >= 0) node = Nodes[idx];
+        } skip = false;
+    }
+
+    choiceBaked(lastRes, origin.xyz, direct.xyz, int(floor(1.f + hit.vmods.w)));
+    return lastRes;
+}
+
+LOCAL_SIZE_LAYOUT;
+
+void main() {
+    const int it = int(gl_GlobalInvocationID.x);
+    const bool overflow = it >= RAY_BLOCK samplerUniform.rayCount;
+    if (overflow) return;
+
+    const int t = activedBuf.indc[it];
+    Ray ray = fetchRayDirect(t);
+    if (ray.actived < 1 || overflow) return;
+
+    Hit hit = fetchHitDirect(t);
+    LResult res = interpolateMeshData(traverse(hit.dist, ray.origin.xyz, ray.direct.xyz, hit));
+
+    // resolve intersection
+    if (
+        greaterEqualF(res.dist, 0.0f) &&
+        lessF(res.dist, INFINITY) &&
+        (lessEqualF(res.dist, hit.dist) || GEOMETRY_BLOCK geometryUniform.clearDepth > 0) &&
+        res.materialID >= 0 &&
+        res.materialID != LONGEST
+    ) {
+        Hit newHit = hit;
+        vec4 sysmod = newHit.vmods;
+        newHit.normal = res.normal;
+        newHit.tangent = res.tangent;
+        newHit.texcoord = res.texcoord;
+        newHit.vcolor = res.color;
+        newHit.vmods = res.mods;
+        newHit.dist = res.dist;
+        newHit.triangleID = res.triangleID;
+        newHit.materialID = res.materialID;
+        newHit.shaded = 0;
+        newHit.vmods.w = sysmod.w;
+        if (!overflow) storeHit(t, newHit);
+    }
+}

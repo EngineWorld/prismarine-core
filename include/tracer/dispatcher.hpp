@@ -23,6 +23,7 @@ namespace ppr {
         GLuint samplerProgram = -1;
         GLuint traverseProgram = -1;
         GLuint resolverProgram = -1;
+        GLuint traverseDirectProgram = -1;
 
         GLuint colorchains = -1;
         GLuint quantized = -1;
