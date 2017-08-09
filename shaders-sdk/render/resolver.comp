@@ -10,8 +10,6 @@
 
 #define WORK_SIZED WORK_SIZE
 
-const int bakedFragments = 8;
-
 layout ( std430, binding = 17 ) readonly buffer NodesBlock { HlbvhNode Leafs[]; };
 layout ( std430, binding = 18 ) readonly buffer MortonIndicesBlock { int MortonIndices[]; };
 layout ( std430, binding = 9 ) readonly buffer CWFoundGroups { GroupFoundResult FoundGroupsChains[]; };
@@ -33,19 +31,21 @@ struct TResult {
 
 
 uint L = 0;
-shared SharedVarsData sharedVarsData[WORK_SIZED];
+SharedVarsData sharedVarsData;
+
+const int bakedFragments = 8;
 shared int bakedStack[WORK_SIZED][bakedFragments];
 
 
 
 TResult choiceFirstBaked(inout TResult res) {
-    int tri = sharedVarsData[L].bakedRange;
+    int tri = sharedVarsData.bakedRange;
 
     bool validTriangle = tri >= 0 && tri != LONGEST;
     if (!validTriangle) return res;
 
-    vec2 uv = sharedVarsData[L].bakedRangeIntersection.yz;
-    float _d = sharedVarsData[L].bakedRangeIntersection.x;
+    vec2 uv = sharedVarsData.bakedRangeIntersection.yz;
+    float _d = sharedVarsData.bakedRangeIntersection.x;
     bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.dist);
 
     if (near) {
@@ -59,11 +59,11 @@ TResult choiceFirstBaked(inout TResult res) {
 
 void reorderTriangles() {
     // fit hits count
-    sharedVarsData[L].bakedStackCount = min(sharedVarsData[L].bakedStackCount, bakedFragments);
+    sharedVarsData.bakedStackCount = min(sharedVarsData.bakedStackCount, bakedFragments);
 
     // resort z-fighting primitives
-    for (int iround = 1; iround < sharedVarsData[L].bakedStackCount; iround++) {
-        for (int index = 0; index < sharedVarsData[L].bakedStackCount - iround; index++) {
+    for (int iround = 1; iround < sharedVarsData.bakedStackCount; iround++) {
+        for (int index = 0; index < sharedVarsData.bakedStackCount - iround; index++) {
             if (bakedStack[L][index] <= bakedStack[L][index+1]) {
                 swap(bakedStack[L][index], bakedStack[L][index+1]);
             }
@@ -74,7 +74,7 @@ void reorderTriangles() {
     int cleanBakedStackCount = 0;
 
     // select only unique triangle ID's
-    for (int iround = 0; iround < sharedVarsData[L].bakedStackCount-1; iround++) {
+    for (int iround = 0; iround < sharedVarsData.bakedStackCount-1; iround++) {
         int next = bakedStack[L][iround+1];
         int prim = bakedStack[L][iround];
         if (next != prim) {
@@ -83,15 +83,15 @@ void reorderTriangles() {
     }
 
     // copy last primitive
-    bakedStack[L][cleanBakedStackCount++] = bakedStack[L][sharedVarsData[L].bakedStackCount-1];
-    sharedVarsData[L].bakedStackCount = cleanBakedStackCount; // fir count
+    bakedStack[L][cleanBakedStackCount++] = bakedStack[L][sharedVarsData.bakedStackCount-1];
+    sharedVarsData.bakedStackCount = cleanBakedStackCount; // fir count
 }
 
 TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
     choiceFirstBaked(res);
     reorderTriangles();
 
-    int tri = tpi < sharedVarsData[L].bakedStackCount ? bakedStack[L][tpi] : LONGEST;
+    int tri = tpi < sharedVarsData.bakedStackCount ? bakedStack[L][tpi] : LONGEST;
     bool validTriangle = tri >= 0 && tri != LONGEST;
     if (!validTriangle) return res;
 
@@ -206,11 +206,11 @@ TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tr
             res.triangleID = tri;
         }
         if ( inbaked ) {
-            bakedStack[L][atomicAdd(sharedVarsData[L].bakedStackCount, 1)] = tri;
+            bakedStack[L][add(sharedVarsData.bakedStackCount, 1)] = tri;
         } else 
-        if ( sharedVarsData[L].bakedRange < tri || sharedVarsData[L].bakedRange == LONGEST || changed ) {
-            sharedVarsData[L].bakedRange = tri;
-            sharedVarsData[L].bakedRangeIntersection = vec4(_d, uv, 0.f);
+        if ( sharedVarsData.bakedRange < tri || sharedVarsData.bakedRange == LONGEST || changed ) {
+            sharedVarsData.bakedRange = tri;
+            sharedVarsData.bakedRangeIntersection = vec4(_d, uv, 0.f);
         }
     }
 
@@ -237,11 +237,11 @@ TResult testIntersection4(inout TResult res, in vec3 orig, in vec3 dir, in ivec4
             res.triangleID = outTri;
         }
         if ( inbaked ) {
-            bakedStack[L][atomicAdd(sharedVarsData[L].bakedStackCount, 1)] = outTri;
+            bakedStack[L][add(sharedVarsData.bakedStackCount, 1)] = outTri;
         } else 
-        if ( sharedVarsData[L].bakedRange < outTri || sharedVarsData[L].bakedRange == LONGEST || changed ) {
-            sharedVarsData[L].bakedRange = outTri;
-            sharedVarsData[L].bakedRangeIntersection = vec4(_d, uv, 0.f);
+        if ( sharedVarsData.bakedRange < outTri || sharedVarsData.bakedRange == LONGEST || changed ) {
+            sharedVarsData.bakedRange = outTri;
+            sharedVarsData.bakedRangeIntersection = vec4(_d, uv, 0.f);
         }
     }
 
@@ -273,9 +273,9 @@ void main() {
     lastRes.materialID = LONGEST;
     lastRes.uv = vec4(0.f);
 
-    sharedVarsData[L].bakedRange = LONGEST;
-    sharedVarsData[L].bakedStackCount = 0;
-    sharedVarsData[L].bakedRangeIntersection = vec4(INFINITY, 0.f, 0.f, 0.f);
+    sharedVarsData.bakedRange = LONGEST;
+    sharedVarsData.bakedStackCount = 0;
+    sharedVarsData.bakedRangeIntersection = vec4(INFINITY, 0.f, 0.f, 0.f);
 
     bool valid = foundID != -1 && !overflow;
     GroupFoundResult result = FoundGroupsChains[foundID];
