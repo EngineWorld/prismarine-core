@@ -169,7 +169,6 @@ float intersectTriangle4(in vec3 orig, in vec3 dir, in ivec4 tri, inout vec2 UV,
 
 // WARP optimized triangle intersection
 float intersectTriangle(in vec3 orig, in vec3 dir, in int tri, inout vec2 UV, in bool valid) {
-    //if (allInvocations(!valid)) return INFINITY;
     if (!valid) return INFINITY;
 
     // fetch directly
@@ -189,7 +188,6 @@ float intersectTriangle(in vec3 orig, in vec3 dir, in int tri, inout vec2 UV, in
 #else
     if (det <= 0.0f) valid = false;
 #endif
-    //if (allInvocations(!valid)) return INFINITY;
     if (!valid) return INFINITY;
 
     vec3 tvec = orig - ve[0];
@@ -202,7 +200,6 @@ float intersectTriangle(in vec3 orig, in vec3 dir, in int tri, inout vec2 UV, in
         any(lessThan(uvt.xy, vec2(0.f))) || 
         any(greaterThan(vec2(uvt.x) + vec2(0.f, uvt.y), vec2(1.f))) 
     ) valid = false;
-    //if (allInvocations(!valid)) return INFINITY;
     if (!valid) return INFINITY;
 
     UV.xy = uvt.xy;
