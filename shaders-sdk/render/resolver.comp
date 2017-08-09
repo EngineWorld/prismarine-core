@@ -74,34 +74,25 @@ float intersectTriangle4(in vec3 orig, in vec3 dir, in ivec4 tri, inout vec2 UV,
     // check valid triangles
     bvec4 valid = bvec4(notEqual(tri, ivec4(LONGEST)));
 
-    // x components
-    mat4x3 tri4x = mat4x3(
+    // storing triangles in vector components
+    mat3x4 v012x = transpose(mat4x3(
         gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.x)), 0).wzx, // triangle 0, verts 0, 1, 2
         gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.y)), 0).wzx, // triangle 1
         gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.z)), 0).wzx, // triangle 2
         gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.w)), 0).wzx  // triangle 3
-    );
-    
-    // y components
-    mat4x3 tri4y = mat4x3(
+    ));
+    mat3x4 v012y = transpose(mat4x3(
         gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.x)), 1).wzx,
         gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.y)), 1).wzx,
         gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.z)), 1).wzx,
         gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.w)), 1).wzx
-    );
-    
-    // z components
-    mat4x3 tri4z = mat4x3(
+    ));
+    mat3x4 v012z = transpose(mat4x3(
         gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.x)), 2).wzx,
         gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.y)), 2).wzx,
         gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.z)), 2).wzx,
         gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.w)), 2).wzx
-    );
-
-    // storing triangles in vector components
-    mat3x4 v012x = transpose(tri4x);
-    mat3x4 v012y = transpose(tri4y);
-    mat3x4 v012z = transpose(tri4z);
+    ));
 
     // gather e1, e2
     vec4 e1x = v012x[1] - v012x[0];
