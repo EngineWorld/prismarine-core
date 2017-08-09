@@ -314,18 +314,18 @@ void main() {
     sharedVarsData[L].bakedRangeIntersection = vec4(INFINITY, 0.f, 0.f, 0.f);
 
     bool valid = foundID != -1 && !overflow;
+    GroupFoundResult result = FoundGroupsChains[foundID];
     for (int i=0;i<2048;i++) {
         valid = valid && foundID != -1;
         if (allInvocations(!valid)) break;
 
         // validate BVH intersection
-        GroupFoundResult result = FoundGroupsChains[foundID];
+        bool nearer = lessEqualF(result.boxDistance, lastRes.predist) && valid;
 
         // synchronized intersection (because is heavy operation)
-        bool nearer = lessEqualF(result.boxDistance, lastRes.predist) && valid;
-        if (allInvocations(nearer || !valid)) {
-        //if (nearer) {
-            const int groupSize = 4;
+        bool nearerSync = nearer || !valid;
+        if (allInvocations(nearerSync)) {
+            const int groupSize = 1;
             int ln = int(LANE_IDX) % laneOccupy;
             for (int ls=0;ls<groupSize;ls+=laneOccupy)
             {
@@ -340,12 +340,17 @@ void main() {
                 testIntersection(lastRes, ray.origin.xyz, ray.direct.xyz, triIdx, nearer && !overtaken);
                 lastRes = reductiveWarpNearest(lastRes, true);
             }
-
             foundID = result.nextResult;
+            if (foundID != -1) {
+                result = FoundGroupsChains[foundID];
+            }
+        } else 
+        if (!nearerSync) {
+            foundID = result.nextResult;
+            if (foundID != -1) {
+                result = FoundGroupsChains[foundID];
+            }
         }
-
-        // skip not intersectable
-        foundID = nearer ? foundID : result.nextResult;
     }
 
     // resolve intersection
