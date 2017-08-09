@@ -142,8 +142,9 @@ float intersectTriangle4(in vec3 orig, in vec3 dir, in ivec4 tri, inout vec2 UV,
 
 // WARP optimized triangle intersection
 float intersectTriangle(in vec3 orig, in vec3 dir, in int tri, inout vec2 UV, in bool valid) {
-    //if (allInvocations(!valid)) return INFINITY;
-    if (!valid) return INFINITY;
+    // pre-invalidate
+    if (tri == LONGEST) valid = false;
+    if (allInvocations(!valid)) return INFINITY;
 
     // fetch directly
     mat3 ve = mat3(
@@ -152,34 +153,32 @@ float intersectTriangle(in vec3 orig, in vec3 dir, in int tri, inout vec2 UV, in
         fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri)), 2).xyz
     );
 
+    // init vars
     vec3 e1 = ve[1] - ve[0];
     vec3 e2 = ve[2] - ve[0];
     vec3 pvec = cross(dir, e2);
     float det = dot(e1, pvec);
 
-#ifndef CULLING
+    // invalidate culling
     if (abs(det) <= 0.0f) valid = false;
-#else
-    if (det <= 0.0f) valid = false;
-#endif
-    //if (allInvocations(!valid)) return INFINITY;
-    if (!valid) return INFINITY;
+    if (allInvocations(!valid)) return INFINITY;
 
+    // invalidate U
     vec3 tvec = orig - ve[0];
-    float u = dot(tvec, pvec);
+    float u = dot(tvec, pvec) / det;
+    if (u < 0.f || u > 1.0f) valid = false;
+    if (allInvocations(!valid)) return INFINITY;
+
+    // invalidate V
     vec3 qvec = cross(tvec, e1);
-    float v = dot(dir, qvec);
-    vec3 uvt = vec3(u, v, dot(e2, qvec)) / det;
+    float v = dot(dir, qvec) / det;
+    if (v < 0.f || (u+v) > 1.0f) valid = false;
+    if (allInvocations(!valid)) return INFINITY;
 
-    if (
-        any(lessThan(uvt.xy, vec2(0.f))) || 
-        any(greaterThan(vec2(uvt.x) + vec2(0.f, uvt.y), vec2(1.f))) 
-    ) valid = false;
-    //if (allInvocations(!valid)) return INFINITY;
-    if (!valid) return INFINITY;
-
-    UV.xy = uvt.xy;
-    return (lessF(uvt.z, 0.0f) || !valid) ? INFINITY : uvt.z;
+    // resolve T
+    float t = dot(e2, qvec) / det;
+    UV.xy = vec2(u, v);
+    return (lessF(t, 0.0f) || !valid) ? INFINITY : t;
 }
 
 
