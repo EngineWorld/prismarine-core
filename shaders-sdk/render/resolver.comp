@@ -325,7 +325,7 @@ void main() {
         // synchronized intersection (because is heavy operation)
         bool nearerSync = nearer || !valid;
         if (allInvocations(nearerSync)) {
-            const int groupSize = 1;
+            const int groupSize = 4;
             int ln = int(LANE_IDX) % laneOccupy;
             for (int ls=0;ls<groupSize;ls+=laneOccupy)
             {
