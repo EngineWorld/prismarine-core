@@ -67,7 +67,6 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     HlbvhNode node = Nodes[idx];
     bool validBox = lessF(d, INFINITY) && greaterEqualF(d, 0.0f), skip = false;
     for (int i=0;i<8192;i++) {
-        //if (allInvocations(!validBox)) {
         if (!validBox) {
             break;
         }
@@ -88,8 +87,6 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
 
         // choice near box
         bool notLeaf = node.pdata.x != node.pdata.y && validBox;
-        //if (allInvocations(notLeaf || !validBox || !skip)) { // synchronize SIMD
-        //if (anyInvocation(notLeaf)) {
         if (notLeaf) {
             HlbvhNode lnode = Nodes[node.pdata.x];
             HlbvhNode rnode = Nodes[node.pdata.y];
@@ -108,7 +105,6 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
                 greaterThan(vec2(lastRes.predist), nears * dirlen - PZERO))));
             
             bool anyOverlap = any(overlaps);
-            //if (anyInvocation(anyOverlap)) {
             if (anyOverlap) { 
                 bool leftOrder = all(overlaps) ? lessEqualF(hits.x, hits.y) : overlaps.x;
                 ivec2 leftright = mix(ivec2(-1), node.pdata.xy, overlaps);
@@ -126,7 +122,6 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
         }
 
         // go to parent 
-        //if (allInvocations(!skip || !validBox)) { // synchronize SIMD
         if (!skip) {
             int ptr = atomicAdd(deferredPtr[L], -1)-1;
             bool valid = ptr >= 0;
@@ -144,13 +139,11 @@ LOCAL_SIZE_LAYOUT;
 void main() {
     const int it = int(gl_GlobalInvocationID.x);
     const bool overflow = it >= RAY_BLOCK samplerUniform.rayCount;
-    //if (allInvocations(overflow)) return;
     if (overflow) return;
 
     const int t = activedBuf.indc[it];
     Ray ray = fetchRayDirect(t);
     if (ray.actived < 1 || overflow) return;
-    //if (allInvocations(ray.actived < 1 || overflow)) return;
 
     Hit hit = fetchHitDirect(t);
     TResult res = traverse(hit.dist, ray.origin.xyz, ray.direct.xyz, hit);
