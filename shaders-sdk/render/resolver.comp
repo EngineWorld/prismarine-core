@@ -117,10 +117,10 @@ float intersectTriangle4(in vec3 orig, in vec3 dir, in ivec4 tri, inout vec2 UV,
     vec4 dir4z = dir.zzzz;
 
     // division (det)
-    vec4 pvecx = dir4y*e2z - dir4z*e2y;
-    vec4 pvecy = dir4z*e2x - dir4x*e2z;
-    vec4 pvecz = dir4x*e2y - dir4y*e2x;
-    vec4 divisor = pvecx*e1x + pvecy*e1y + pvecz*e1z;
+    vec4 pvecx = fma(dir4y, e2z, -dir4z*e2y);
+    vec4 pvecy = fma(dir4z, e2x, -dir4x*e2z);
+    vec4 pvecz = fma(dir4x, e2y, -dir4y*e2x);
+    vec4 divisor = fma(pvecx, e1x, fma(pvecy, e1y, pvecz*e1z));
     valid = and(valid, greaterThan(abs(divisor), vec4(0.f)));
     if (all(not(valid))) return t;
     vec4 invDivisor = vec4(1) / divisor;
@@ -135,24 +135,24 @@ float intersectTriangle4(in vec3 orig, in vec3 dir, in ivec4 tri, inout vec2 UV,
     vec4 tvecy = orig4y - v012y[0];
     vec4 tvecz = orig4z - v012z[0];
     vec4 u4;
-    u4 = tvecx*pvecx + tvecy*pvecy + tvecz*pvecz;
+    u4 = fma(tvecx, pvecx, fma(tvecy, pvecy, tvecz*pvecz));
     u4 = u4 * invDivisor;
     valid = and(valid, and(greaterThanEqual(u4, vec4(0.f)), lessThan(u4, vec4(1.f))));
     if (all(not(valid))) return t;
 
     // V
-    vec4 qvecx = tvecy*e1z - tvecz*e1y;
-    vec4 qvecy = tvecz*e1x - tvecx*e1z;
-    vec4 qvecz = tvecx*e1y - tvecy*e1x;
+    vec4 qvecx = fma(tvecy, e1z, -tvecz*e1y);
+    vec4 qvecy = fma(tvecz, e1x, -tvecx*e1z);
+    vec4 qvecz = fma(tvecx, e1y, -tvecy*e1x);
     vec4 v4;
-    v4 = dir4x*qvecx + dir4y*qvecy + dir4z*qvecz;
+    v4 = fma(dir4x, qvecx, fma(dir4y, qvecy, dir4z*qvecz));
     v4 = v4 * invDivisor;
     valid = and(valid, and(greaterThanEqual(v4, vec4(0.f)), lessThan(u4+v4, vec4(1.f))));
     if (all(not(valid))) return t;
 
     // distance
     vec4 t4;
-    t4 = e2x*qvecx + e2y*qvecy + e2z*qvecz;
+    t4 = fma(e2x, qvecx, fma(e2y, qvecy, e2z*qvecz));
     t4 = t4 * invDivisor;
     valid = and(valid, lessThan(t4, vec4(INFINITY - PZERO)));
     if (all(not(valid))) return t;
