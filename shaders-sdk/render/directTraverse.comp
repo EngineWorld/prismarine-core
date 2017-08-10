@@ -246,13 +246,11 @@ TResult testIntersection4(inout TResult res, in vec3 orig, in vec3 dir, in ivec4
 }
 
 vec3 projectVoxels(in vec3 orig) {
-    vec4 nps = mult4(vec4(orig, 1.0f), GEOMETRY_BLOCK geometryUniform.transform);
-    return nps.xyz / nps.w;
+    return mult4(vec4(orig, 1.0f), GEOMETRY_BLOCK geometryUniform.transform).xyz;
 }
 
 vec3 unprojectVoxels(in vec3 orig) {
-    vec4 nps = mult4(vec4(orig, 1.0f), GEOMETRY_BLOCK geometryUniform.transformInv);
-    return nps.xyz / nps.w;
+    return mult4(vec4(orig, 1.0f), GEOMETRY_BLOCK geometryUniform.transformInv).xyz;
 }
 
 #define SGN(v) v = idx
@@ -271,8 +269,6 @@ void includeLeaf(in vec3 origin, in vec3 direct, in bool validBox, in HlbvhNode 
 }
 
 TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
-    L = gl_LocalInvocationID.x;
-
     TResult lastRes;
     lastRes.dist = INFINITY;
     lastRes.predist = INFINITY;
@@ -365,11 +361,13 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
 LOCAL_SIZE_LAYOUT;
 
 void main() {
-    const int it = int(gl_GlobalInvocationID.x);
-    const bool overflow = it >= RAY_BLOCK samplerUniform.rayCount;
+    L = gl_LocalInvocationID.x;
+
+    int it = int(gl_GlobalInvocationID.x);
+    bool overflow = it >= RAY_BLOCK samplerUniform.rayCount;
     if (allInvocations(overflow)) return;
 
-    const int t = activedBuf.indc[it];
+    int t = activedBuf.indc[it];
     Ray ray = fetchRayDirect(t);
     if (allInvocations(ray.actived < 1 || overflow)) return;
 

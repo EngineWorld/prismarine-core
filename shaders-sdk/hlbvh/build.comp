@@ -59,7 +59,7 @@ initAtomicIncFunction(aCounter, aCounterInc, int);
 
 void main() {
     if (gl_WorkGroupID.x > 0) return; // not supported
-    const uint threadID = uint(gl_LocalInvocationID.x);
+    uint threadID = uint(gl_LocalInvocationID.x);
 
     if (threadID == 0) {
         lCounter = 1;

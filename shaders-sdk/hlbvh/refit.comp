@@ -16,7 +16,7 @@ initAtomicIncFunction(aCounter, aCounterInc, int);
 
 void main() {
     if (gl_WorkGroupID.x > 0) return; // not supported
-    const int localID = int(gl_LocalInvocationID.x);
+    int localID = int(gl_LocalInvocationID.x);
 
     // init counter
     if (localID == 0) {

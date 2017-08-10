@@ -13,11 +13,11 @@ LOCAL_SIZE_LAYOUT;
 
 void main()
 {
-    const int it = int(gl_GlobalInvocationID.x);
-    const bool overflow = it >= RAY_BLOCK samplerUniform.rayCount;
+    int it = int(gl_GlobalInvocationID.x);
+    bool overflow = it >= RAY_BLOCK samplerUniform.rayCount;
 
     if (overflow) return;
-    const int t = activedBuf.indc[it];
+    int t = activedBuf.indc[it];
     
     Ray ray = fetchRayDirect(t);
     Hit hit = fetchHitDirect(t);

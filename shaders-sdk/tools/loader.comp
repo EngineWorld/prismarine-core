@@ -44,21 +44,20 @@ void main()
 {
     if (gl_GlobalInvocationID.x >= meshUniform.nodeCount) return;
 
-    const int ctriangle = int(gl_GlobalInvocationID.x);
-    const int matID = /*imats[ctriangle] +*/ meshUniform.materialID;
+    int ctriangle = int(gl_GlobalInvocationID.x);
+    int matID = /*imats[ctriangle] +*/ meshUniform.materialID;
     vec3 vertice[4] = {vec3(0.0f), vec3(0.0f), vec3(0.0f), vec3(0.0f)};
     vec3 normal[4] = {vec3(0.0f), vec3(0.0f), vec3(0.0f), vec3(0.0f)};
     vec4 texcoord[4] = {vec4(0.0f), vec4(0.0f), vec4(0.0f), vec4(0.0f)};
     vec4 colors[4] = {vec4(0.0f), vec4(0.0f), vec4(0.0f), vec4(0.0f)};
     vec4 mods[4] = {vec4(0.0f), vec4(0.0f), vec4(0.0f), vec4(0.0f)};
 
-    const int mode = meshUniform.primitiveType;
-
-    const int trp = mode == 1 ? 4 : 3;
+    int mode = meshUniform.primitiveType;
+    int trp = mode == 1 ? 4 : 3;
     for(int i=0;i<trp;i++){
-        const uint ctri = ctriangle * trp + i;
-        const uint ptri = uint(meshUniform.loadingOffset) + ctri;
-        const uint vindices = meshUniform.isIndexed == 0 ? ptri : uint( PICK(vindics, ptri) );
+        uint ctri = ctriangle * trp + i;
+        uint ptri = uint(meshUniform.loadingOffset) + ctri;
+        uint vindices = meshUniform.isIndexed == 0 ? ptri : uint( PICK(vindics, ptri) );
 
         vec3 vpos = vec3(0.0f);
         vec4 vtex = vec4(0.0f);
@@ -94,7 +93,7 @@ void main()
     }
 
     // adapt quads to triangles
-    const int istride = mode == 1 ? 2 : 1;
+    int istride = mode == 1 ? 2 : 1;
     int tidc = meshUniform.storingOffset + int(gl_GlobalInvocationID.x) * istride;
     atomicAdd(tcounter[0], istride);
 
@@ -118,7 +117,7 @@ void main()
         tidc += 1;
         mats[tidc] = matID;
         for (int i=0;i<3;i++) {
-            const int mi = m[i];
+            int mi = m[i];
             ivec2 mosaicCoord = mosaicIdc(gatherMosaic(getUniformCoord(tidc)), i);
             if (mlength(abs(normal[mi])) >= 0.00001f && meshUniform.normalAccessor != -1) {
                 imageStore(normal_texture_out, mosaicCoord, vec4(normalize(normal[mi]), 1.0f));

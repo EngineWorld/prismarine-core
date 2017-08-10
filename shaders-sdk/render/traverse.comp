@@ -139,13 +139,13 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
 LOCAL_SIZE_LAYOUT;
 
 void main() {
-    const int it = int(gl_GlobalInvocationID.x);
+    int it = int(gl_GlobalInvocationID.x);
     L = gl_LocalInvocationID.x;
 
-    const bool overflow = it >= RAY_BLOCK samplerUniform.rayCount;
+    bool overflow = it >= RAY_BLOCK samplerUniform.rayCount;
     if (allInvocations(overflow)) return;
 
-    const int t = activedBuf.indc[it];
+    int t = activedBuf.indc[it];
     Ray ray = fetchRayDirect(t);
     if (allInvocations(ray.actived < 1 || overflow)) return;
 

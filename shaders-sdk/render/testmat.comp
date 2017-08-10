@@ -25,7 +25,7 @@
 LOCAL_SIZE_LAYOUT;
 
 void main() {
-    const int it = int(gl_GlobalInvocationID.x);
+    int it = int(gl_GlobalInvocationID.x);
     bool overflow = it >= RAY_BLOCK samplerUniform.rayCount;
     int t = activedBuf.indc[it];
     globalInvocationSMP = it;

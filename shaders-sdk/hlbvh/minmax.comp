@@ -14,7 +14,7 @@ layout ( local_size_x = 512 ) in;
 shared bbox sdata[ 512 ];
 
 bbox getMinMaxPrimitive(in uint idx){
-    const uint tri = clamp(idx, 0u, uint(GEOMETRY_BLOCK geometryUniform.triangleCount-1));
+    uint tri = clamp(idx, 0u, uint(GEOMETRY_BLOCK geometryUniform.triangleCount-1));
 
     mat3x4 triverts = mat3x4(
         fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri)), 0), 
@@ -47,9 +47,9 @@ bbox bboxunion(in bbox b1, in bbox b2) {
 }
 
 void main() {
-    const uint tid = gl_LocalInvocationID.x;
-    const uint gridSize = (gl_WorkGroupSize.x*2) * gl_NumWorkGroups.x;
-    const uint tcount = min(GEOMETRY_BLOCK geometryUniform.triangleCount, 16777216);
+    uint tid = gl_LocalInvocationID.x;
+    uint gridSize = (gl_WorkGroupSize.x*2) * gl_NumWorkGroups.x;
+    uint tcount = min(GEOMETRY_BLOCK geometryUniform.triangleCount, 16777216);
     uint i = gl_WorkGroupID.x * (gl_WorkGroupSize.x*2) + tid;
 
     sdata[tid] = bbox(vec4( 100000.f), vec4(-100000.f));

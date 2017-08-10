@@ -3,7 +3,7 @@
 
 #if (defined(INT64_MORTON) && defined(USE_INT64))
 
-uint64_t MortonToHilbert3D( const uint64_t morton, const uint64_t bits ) {
+uint64_t MortonToHilbert3D( in uint64_t morton, in uint64_t bits ) {
     uint64_t hilbert = morton;
     if ( bits > 1 ) {
         uint64_t block = ( ( bits * 3 ) - 3 );
@@ -47,7 +47,7 @@ uint64_t encodeMorton3_64(in uvec3 a)
 
 #else
 
-uint MortonToHilbert3D( const uint morton, const uint bits ) {
+uint MortonToHilbert3D( in uint morton, in uint bits ) {
     uint hilbert = morton;
     if ( bits > 1 ) {
         uint block = ( ( bits * 3 ) - 3 );

@@ -11,13 +11,13 @@ LOCAL_SIZE_LAYOUT;
 
 void main()
 {
-    const int enable360 = RAY_BLOCK cameraUniform.enable360;
-    const ivec2 wh = ivec2(RAY_BLOCK samplerUniform.sceneRes.xy);
-    const int idx = int(gl_GlobalInvocationID.x);
+    int enable360 = RAY_BLOCK cameraUniform.enable360;
+    ivec2 wh = ivec2(RAY_BLOCK samplerUniform.sceneRes.xy);
+    int idx = int(gl_GlobalInvocationID.x);
     globalInvocationSMP = idx;
 
-    const ivec2 xy = ivec2(idx % wh.x, idx / wh.x);
-    const vec2 sceneResInv = 1.0f / vec2(RAY_BLOCK samplerUniform.sceneRes.xy);
+    ivec2 xy = ivec2(idx % wh.x, idx / wh.x);
+    vec2 sceneResInv = 1.0f / vec2(RAY_BLOCK samplerUniform.sceneRes.xy);
     if (xy.x < wh.x && xy.y < wh.y) {
 #ifdef RT_OPTIMIZED
         vec2 coord = (vec2(xy) + clamp(vec2(0.5f), vec2(0.00001f), vec2(0.99999f))) * sceneResInv;

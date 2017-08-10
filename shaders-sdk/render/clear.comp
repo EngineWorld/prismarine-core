@@ -11,8 +11,8 @@ LOCAL_SIZE_LAYOUT;
 
 void main()
 {
-    const int t = int(gl_GlobalInvocationID.x);
+    int t = int(gl_GlobalInvocationID.x);
     if (t >= RAY_BLOCK samplerUniform.samplecount) return;
-    const ivec2 wh = ivec2(imageSize(sampleflags).xy);
+    ivec2 wh = ivec2(imageSize(sampleflags).xy);
     imageStore(sampleflags, ivec2(t % wh.x, t / wh.x), uvec4(1));
 }

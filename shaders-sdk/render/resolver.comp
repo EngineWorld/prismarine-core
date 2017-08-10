@@ -33,6 +33,7 @@ struct TResult {
 uint L = 0;
 SharedVarsData sharedVarsData;
 
+const int groupSize = 1;
 const int foundLimit = 8192 * 8192;
 const int bakedFragments = 8;
 shared int bakedStack[WORK_SIZED][bakedFragments];
@@ -247,17 +248,14 @@ TResult testIntersection4(inout TResult res, in vec3 orig, in vec3 dir, in ivec4
     return res;
 }
 
-
-const int groupSize = 1;
-
 void main() {
-    const int it = int(gl_GlobalInvocationID.x);
+    int it = int(gl_GlobalInvocationID.x);
     L = gl_LocalInvocationID.x;
 
-    const bool overflow = it >= RAY_BLOCK samplerUniform.rayCount;
+    bool overflow = it >= RAY_BLOCK samplerUniform.rayCount;
     if (allInvocations(overflow)) return;
 
-    const int t = activedBuf.indc[it];
+    int t = activedBuf.indc[it];
     Ray ray = fetchRayDirect(t);
     if (allInvocations(ray.actived < 1 || overflow)) return;
 

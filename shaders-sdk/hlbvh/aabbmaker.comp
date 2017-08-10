@@ -43,8 +43,10 @@ bbox calcTriBox(in mat3x4 triverts){
     return result;
 }
 
+const uint maxSplits = 0;
+
 void main() {
-    const int t = int(gl_GlobalInvocationID.x);
+    int t = int(gl_GlobalInvocationID.x);
     if (t >= GEOMETRY_BLOCK geometryUniform.triangleCount) return;
 
     vec4 mn = vec4(INFINITY);
@@ -63,7 +65,6 @@ void main() {
     vec4 tcenter = (triverts[0] + triverts[1] + triverts[2]) * 0.33333333333333f;
     if (length(abs(triverts[0] - tcenter).xyz + abs(triverts[1] - tcenter).xyz + abs(triverts[2] - tcenter).xyz) < 1.e-5) return;
 
-    const uint maxSplits = 0;
     uint countBox = 1;
 
     mat3x4 current = triverts;
