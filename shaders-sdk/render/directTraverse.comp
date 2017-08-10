@@ -259,9 +259,9 @@ vec3 unprojectVoxels(in vec3 orig) {
 
 void includeLeaf(in vec3 origin, in vec3 direct, in bool validBox, in HlbvhNode node, inout TResult lastRes){
     bool isLeaf = node.pdata.x == node.pdata.y && validBox;
-    if (isLeaf) {
+    if (anyInvocation(isLeaf)) {
         for (int ls=0;ls<groupSize;ls+=1) {
-            bool overtaken = ls > node.pdata.y-node.pdata.w;
+            bool overtaken = ls > node.pdata.y-node.pdata.w || !isLeaf;
             if (!overtaken) {
                 int triIdx = !overtaken ? Leafs[MortonIndices[node.pdata.w + ls]].pdata.w : LONGEST;
                 testIntersection(lastRes, origin.xyz, direct.xyz, triIdx, isLeaf);

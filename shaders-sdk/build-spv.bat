@@ -51,7 +51,21 @@ call glslc %CFLAGS% %CMPPROF% %INDIR%%RDXI%histogram.comp     -o %OUTDIR%%RDXI%h
 call glslc %CFLAGS% %CMPPROF% %INDIR%%RDXI%permute.comp       -o %OUTDIR%%RDXI%permute.comp.spv
 call glslc %CFLAGS% %CMPPROF% %INDIR%%RDXI%prefix-scan.comp   -o %OUTDIR%%RDXI%prefix-scan.comp.spv
 
-set OPTFLAGS= --eliminate-dead-const --unify-const --flatten-decorations --convert-local-access-chains --eliminate-dead-branches --eliminate-common-uniform --fold-spec-const-op-composite --merge-blocks --inline-entry-points-exhaustive --eliminate-dead-code-aggressive 
+set OPTFLAGS= ^
+--unify-const ^
+--flatten-decorations ^
+--convert-local-access-chains ^
+--fold-spec-const-op-composite ^
+--merge-blocks ^
+--inline-entry-points-exhaustive ^
+--eliminate-dead-code-aggressive ^
+--eliminate-insert-extract ^
+--eliminate-common-uniform ^
+--eliminate-dead-branches ^
+--eliminate-dead-const ^
+--eliminate-local-single-block ^
+--eliminate-local-single-store ^
+--eliminate-local-multi-store
 
 call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%directTraverse.comp.spv -o %OUTDIR%%RNDR%directTraverse.comp.spv
 call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%resolver.comp.spv       -o %OUTDIR%%RNDR%resolver.comp.spv
@@ -59,5 +73,13 @@ call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%traverse.comp.spv       -o %OUTDIR%%RNDR
 call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%reclaim.comp.spv        -o %OUTDIR%%RNDR%reclaim.comp.spv
 call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%begin.comp.spv          -o %OUTDIR%%RNDR%begin.comp.spv
 
+call spirv-opt %OPTFLAGS% %OUTDIR%%HLBV%aabbmaker.comp.spv      -o %OUTDIR%%HLBV%aabbmaker.comp.spv
+call spirv-opt %OPTFLAGS% %OUTDIR%%HLBV%build.comp.spv          -o %OUTDIR%%HLBV%build.comp.spv
+call spirv-opt %OPTFLAGS% %OUTDIR%%HLBV%minmax.comp.spv         -o %OUTDIR%%HLBV%minmax.comp.spv
+call spirv-opt %OPTFLAGS% %OUTDIR%%HLBV%refit.comp.spv          -o %OUTDIR%%HLBV%refit.comp.spv
+
+call spirv-opt %OPTFLAGS% %OUTDIR%%RDXI%histogram.comp.spv      -o %OUTDIR%%RDXI%histogram.comp.spv
+call spirv-opt %OPTFLAGS% %OUTDIR%%RDXI%permute.comp.spv        -o %OUTDIR%%RDXI%permute.comp.spv
+call spirv-opt %OPTFLAGS% %OUTDIR%%RDXI%prefix-scan.comp.spv    -o %OUTDIR%%RDXI%prefix-scan.comp.spv
 
 pause

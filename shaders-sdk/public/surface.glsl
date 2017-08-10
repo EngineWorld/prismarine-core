@@ -65,7 +65,7 @@ void surfaceShade(inout SurfaceData surface, in Material material, in Hit hit, i
     surface.albedo = fetchDiffuse(material, hit.texcoord.xy);
     surface.specular = vec4(1.f);
     surface.normal = getNormalMapping(material, hit.texcoord.xy);
-    surface.emission = fetchEmissive(material, hit.texcoord.xy);
+    surface.emission = fetchEmissive(material, hit.texcoord.xy) * 2.f;
     surface.roughness = specular.y;
     surface.metallic = specular.z;
     surface.culling = 0; // not culling
