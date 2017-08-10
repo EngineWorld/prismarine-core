@@ -320,7 +320,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
                 and2(bvec2(notLeaf), 
                 and2(lessThanEqual(hits, vec2(INFINITY-PZERO)),
                 and2(greaterThan(hits, -vec2(PZERO)),
-                greaterThan(vec2(lastRes.predist), nears * dirlen - PZERO))));
+                greaterThanEqual(vec2(lastRes.predist), nears * dirlen - PZERO))));
 
             bvec2 overlaps = and2(overlapsGeneral, bvec2(lnode.pdata.x != lnode.pdata.y, rnode.pdata.x != rnode.pdata.y));
             bool anyOverlap = any(overlaps);
@@ -340,8 +340,8 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
             // because traverse stack is limited, we does not including leafs to this stack
             bool leafOrder = lessEqualF(hits.x, hits.y);
             overlapsGeneral = leafOrder ? overlapsGeneral : overlapsGeneral.yx;
-            includeLeaf(origin, direct, validBox && overlapsGeneral.x, leafOrder ? lnode : rnode, lastRes);
-            includeLeaf(origin, direct, validBox && overlapsGeneral.y, leafOrder ? rnode : lnode, lastRes);
+            includeLeaf(origin, direct, validBox && overlapsGeneral.x && lessEqualF(leafOrder ? nears.x : nears.y, lastRes.predist), leafOrder ? lnode : rnode, lastRes);
+            includeLeaf(origin, direct, validBox && overlapsGeneral.y && lessEqualF(leafOrder ? nears.y : nears.x, lastRes.predist), leafOrder ? rnode : lnode, lastRes);
         }
 
         // go to parent 
