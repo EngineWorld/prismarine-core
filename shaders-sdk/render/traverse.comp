@@ -122,13 +122,10 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
             if (idx >= 0) node = Nodes[idx];
 
             // because traverse stack is limited, we does not including leafs to this stack
-            HlbvhNode leNodes[2] = {lnode, rnode};
-            if (!lessEqualF(hits.x, hits.y)) {
-                overlapsGeneral = overlapsGeneral.yx;
-                leNodes[0] = rnode, leNodes[1] = lnode;
-            }
-            includeLeaf(torig, dirproj, dirlen, validBox && overlapsGeneral.x, leNodes[0], lastRes, prevLeaf);
-            includeLeaf(torig, dirproj, dirlen, validBox && overlapsGeneral.y, leNodes[1], lastRes, prevLeaf);
+            bool leafOrder = lessEqualF(hits.x, hits.y);
+            overlapsGeneral = leafOrder ? overlapsGeneral : overlapsGeneral.yx;
+            includeLeaf(torig, dirproj, dirlen, validBox && overlapsGeneral.x, leafOrder ? lnode : rnode, lastRes, prevLeaf);
+            includeLeaf(torig, dirproj, dirlen, validBox && overlapsGeneral.y, leafOrder ? rnode : lnode, lastRes, prevLeaf);
         }
 
         // go to parent 

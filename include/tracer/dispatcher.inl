@@ -201,7 +201,7 @@ namespace ppr {
         if (quantized   != -1) glDeleteBuffers(1, &quantized);
 
         const int32_t wrsize = width * height;
-        currentRayLimit = std::min(wrsize * 8, 8192 * 8192);
+        currentRayLimit = std::min(wrsize * 8, 4096 * 4096);
 
         colorchains = allocateBuffer<ColorChain>(currentRayLimit * 4);
         rays = allocateBuffer<Ray>(currentRayLimit);
@@ -212,7 +212,7 @@ namespace ppr {
         freedoms = allocateBuffer<int32_t>(currentRayLimit);
         availables = allocateBuffer<int32_t>(currentRayLimit);
 
-        resultFounds = allocateBuffer<GroupFoundResult>(4096 * 4096);
+        resultFounds = allocateBuffer<GroupFoundResult>(8192 * 8192);
         givenRays = allocateBuffer<int32_t>(currentRayLimit);
 
         samplerUniformData.sceneRes = { float(width), float(height) };
