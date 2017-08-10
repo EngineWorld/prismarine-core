@@ -250,7 +250,7 @@ TResult testIntersection4(inout TResult res, in vec3 orig, in vec3 dir, in ivec4
 }
 
 
-
+const int groupSize = 1;
 
 void main() {
     const int it = int(gl_GlobalInvocationID.x);
@@ -295,14 +295,13 @@ void main() {
         // synchronized intersection (because is heavy operation)
         bool synced = nearer || !valid;
         if (allInvocations(synced)) { // all ready?
-            const int groupSize = 1;
             for (int ls=0;ls<groupSize;ls+=1) 
             {
                 bool overtaken = ls > (result.range.y-result.range.x);
-                if (overtaken) break;
-
-                int triIdx = overtaken ? LONGEST : Leafs[MortonIndices[result.range.x + ls]].pdata.w;
-                lastRes = testIntersection(lastRes, ray.origin.xyz, ray.direct.xyz, triIdx, nearer && !overtaken);
+                if (!overtaken) {
+                    int triIdx = overtaken ? LONGEST : Leafs[MortonIndices[result.range.x + ls]].pdata.w;
+                    lastRes = testIntersection(lastRes, ray.origin.xyz, ray.direct.xyz, triIdx, nearer && !overtaken);
+                }
             }
             foundID = result.nextResult;
         } else 
