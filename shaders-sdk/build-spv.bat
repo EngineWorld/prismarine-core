@@ -67,12 +67,19 @@ set OPTFLAGS= ^
 --eliminate-local-single-store ^
 --eliminate-local-multi-store
 
+
+call spirv-opt %OPTFLAGS% %OUTDIR%%VXL2%loader.comp.spv         -o %OUTDIR%%VXL2%loader.comp.spv
+call spirv-opt %OPTFLAGS% %OUTDIR%%VXL2%loader-int16.comp.spv   -o %OUTDIR%%VXL2%loader-int16.comp.spv
+
 call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%directTraverse.comp.spv -o %OUTDIR%%RNDR%directTraverse.comp.spv
 call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%resolver.comp.spv       -o %OUTDIR%%RNDR%resolver.comp.spv
 call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%traverse.comp.spv       -o %OUTDIR%%RNDR%traverse.comp.spv
 call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%reclaim.comp.spv        -o %OUTDIR%%RNDR%reclaim.comp.spv
 call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%begin.comp.spv          -o %OUTDIR%%RNDR%begin.comp.spv
 call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%testmat.comp.spv        -o %OUTDIR%%RNDR%testmat.comp.spv
+call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%camera.comp.spv         -o %OUTDIR%%RNDR%camera.comp.spv
+call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%sampler.comp.spv        -o %OUTDIR%%RNDR%sampler.comp.spv
+call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%clear.comp.spv          -o %OUTDIR%%RNDR%clear.comp.spv
 
 call spirv-opt %OPTFLAGS% %OUTDIR%%HLBV%aabbmaker.comp.spv      -o %OUTDIR%%HLBV%aabbmaker.comp.spv
 call spirv-opt %OPTFLAGS% %OUTDIR%%HLBV%build.comp.spv          -o %OUTDIR%%HLBV%build.comp.spv
@@ -82,5 +89,8 @@ call spirv-opt %OPTFLAGS% %OUTDIR%%HLBV%refit.comp.spv          -o %OUTDIR%%HLBV
 call spirv-opt %OPTFLAGS% %OUTDIR%%RDXI%histogram.comp.spv      -o %OUTDIR%%RDXI%histogram.comp.spv
 call spirv-opt %OPTFLAGS% %OUTDIR%%RDXI%permute.comp.spv        -o %OUTDIR%%RDXI%permute.comp.spv
 call spirv-opt %OPTFLAGS% %OUTDIR%%RDXI%prefix-scan.comp.spv    -o %OUTDIR%%RDXI%prefix-scan.comp.spv
+
+
+
 
 pause

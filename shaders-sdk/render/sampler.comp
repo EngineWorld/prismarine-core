@@ -11,7 +11,8 @@ layout ( binding = 0, rgba32f ) uniform image2D presampled;
 layout ( binding = 1, r32ui ) uniform uimage2D sampleflags;
 LOCAL_SIZE_LAYOUT;
 
-vec4 collectSamples(in Texel txiho){
+vec4 collectSamples(in uint ts){
+    Texel txiho = texelBuf.nodes[ts];
     vec4 sampled = vec4(0.0f);
     int sid = txiho.EXT.y;
     for (int i=0;i<64;i++) {
@@ -51,7 +52,7 @@ void main(){
                     diff.y >= 0.0f && diff.y < 1.0f
                 ) {
                     samplecount++;
-                    newc += collectSamples(texelBuf.nodes[ts]);
+                    newc += collectSamples(ts);
                 }
             }
             

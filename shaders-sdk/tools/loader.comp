@@ -25,7 +25,8 @@ layout ( binding = 3, rgba32f) uniform image2D modifiers_texture_out;
 layout ( std430, binding = 0 ) restrict buffer TCounterSSBO {int tcounter[];};
 
 // tools
-vec4 readByAccessor(in VirtualAccessor accessors, in uint idx){
+vec4 readByAccessor(in uint accessorID, in uint idx){
+    VirtualAccessor accessors = meshAccessors[accessorID];
     uint stride = accessors.stride > 0 ? accessors.stride : accessors.components;
     vec4 data = vec4(
         accessors.components >= 1 ? iverts[idx * stride + accessors.offset + 0] : 0,
@@ -66,16 +67,16 @@ void main()
         vec4 color = vec4(1.0f);
 
         { // vertex accessor are required
-            vpos.xyz = readByAccessor(meshAccessors[meshUniform.vertexAccessor], vindices).xyz;
+            vpos.xyz = readByAccessor(meshUniform.vertexAccessor, vindices).xyz;
         }
         if (meshUniform.normalAccessor != -1) {
-            vnorm.xyz = readByAccessor(meshAccessors[meshUniform.normalAccessor], vindices).xyz;
+            vnorm.xyz = readByAccessor(meshUniform.normalAccessor, vindices).xyz;
         }
         if (meshUniform.modifierAccessor != -1) {
-            modif = readByAccessor(meshAccessors[meshUniform.modifierAccessor], vindices);
+            modif = readByAccessor(meshUniform.modifierAccessor, vindices);
         }
         if (meshUniform.texcoordAccessor != -1) {
-            vtex.xy = readByAccessor(meshAccessors[meshUniform.texcoordAccessor], vindices).xy;
+            vtex.xy = readByAccessor(meshUniform.texcoordAccessor, vindices).xy;
         }
 #ifdef INVERT_TX_Y
         vtex.y = 1.0f - vtex.y; // invert Y
