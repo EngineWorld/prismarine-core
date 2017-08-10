@@ -391,6 +391,7 @@ namespace PaperExample {
                     // vertex
                     if (it.first.compare("POSITION") == 0) { // vertices
                         vattr.components = 3;
+                        if (vattr.stride == 0) vattr.stride = 3;
                         geom->setVertices(glBuffers[bufferView.buffer]);
                         geom->setVertexAccessor(acs->addVirtualAccessor(vattr));
                     } else
@@ -398,12 +399,14 @@ namespace PaperExample {
                     // normal
                     if (it.first.compare("NORMAL") == 0) {
                         vattr.components = 3;
+                        if (vattr.stride == 0) vattr.stride = 3;
                         geom->setNormalAccessor(acs->addVirtualAccessor(vattr));
                     } else
                     
                     // texcoord
                     if (it.first.compare("TEXCOORD_0") == 0) {
                         vattr.components = 2;
+                        if (vattr.stride == 0) vattr.stride = 2;
                         geom->setTexcoordAccessor(acs->addVirtualAccessor(vattr));
                     }
                 }

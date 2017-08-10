@@ -10,10 +10,10 @@
 layout ( std430, binding = 9 ) readonly buffer NodesBlock { HlbvhNode Nodes[]; };
 layout ( std430, binding = 17 ) restrict buffer CWFoundGroups { GroupFoundResult FoundGroupsChains[]; };
 
-const vec3 padding = vec3(0.00001f);
 const int STACK_SIZE = 16;
 shared int deferredStack[WORK_SIZE][STACK_SIZE];
-shared int deferredPtr[WORK_SIZE];
+int deferredPtr = 0;
+uint L = 0;
 
 struct TResult {
     float dist;
@@ -51,8 +51,6 @@ void includeLeaf(in vec3 torig, in vec3 dirproj, in float dirlen, in bool validB
 }
 
 TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
-    const uint L = gl_LocalInvocationID.x;
-
     TResult lastRes;
     lastRes.dist = INFINITY;
     lastRes.predist = INFINITY;
@@ -60,7 +58,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     lastRes.materialID = LONGEST;
 
     // deferred stack
-    deferredPtr[L] = 0;
+    deferredPtr = 0;
     deferredStack[L][0] = -1;
 
     // test constants
@@ -82,9 +80,8 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     HlbvhNode node = Nodes[idx];
     bool validBox = lessF(d, INFINITY) && greaterEqualF(d, 0.0f), skip = false;
     for (int i=0;i<8192;i++) {
-        if (!validBox) {
-            break;
-        }
+        if (allInvocations(!validBox)) break;
+        if (idx >= 0) node = Nodes[idx];
 
         // choice near box
         bool notLeaf = node.pdata.x != node.pdata.y && validBox;
@@ -107,19 +104,18 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
 
             bvec2 overlaps = and2(overlapsGeneral, bvec2(lnode.pdata.x != lnode.pdata.y, rnode.pdata.x != rnode.pdata.y));
             bool anyOverlap = any(overlaps);
-            if (anyOverlap) {
+            if (anyInvocation(anyOverlap)) {
                 bool leftOrder = all(overlaps) ? lessEqualF(hits.x, hits.y) : overlaps.x;
                 ivec2 leftright = mix(ivec2(-1), node.pdata.xy, overlaps);
                 leftright = leftOrder ? leftright : leftright.yx;
                 if (anyOverlap) {
-                    if (deferredPtr[L] < STACK_SIZE && leftright.y != -1) {
-                        atomicExchange(deferredStack[L][atomicAdd(deferredPtr[L], 1)], leftright.y);
+                    if (deferredPtr < STACK_SIZE && leftright.y != -1) {
+                        deferredStack[L][deferredPtr++] = leftright.y;
                     }
                     idx = leftright.x;
                     skip = true;
                 }
             }
-            if (idx >= 0) node = Nodes[idx];
 
             // because traverse stack is limited, we does not including leafs to this stack
             bool leafOrder = lessEqualF(hits.x, hits.y);
@@ -130,11 +126,10 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
 
         // go to parent 
         if (!skip) {
-            int ptr = atomicAdd(deferredPtr[L], -1)-1;
+            int ptr = --deferredPtr;
             bool valid = ptr >= 0;
             idx = valid ? atomicExchange(deferredStack[L][ptr], -1) : -1;
             validBox = validBox && valid && idx >= 0;
-            if (idx >= 0) node = Nodes[idx];
         } skip = false;
     }
 
@@ -145,12 +140,14 @@ LOCAL_SIZE_LAYOUT;
 
 void main() {
     const int it = int(gl_GlobalInvocationID.x);
+    L = gl_LocalInvocationID.x;
+
     const bool overflow = it >= RAY_BLOCK samplerUniform.rayCount;
-    if (overflow) return;
+    if (allInvocations(overflow)) return;
 
     const int t = activedBuf.indc[it];
     Ray ray = fetchRayDirect(t);
-    if (ray.actived < 1 || overflow) return;
+    if (allInvocations(ray.actived < 1 || overflow)) return;
 
     Hit hit = fetchHitDirect(t);
     TResult res = traverse(hit.dist, ray.origin.xyz, ray.direct.xyz, hit);

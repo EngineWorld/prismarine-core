@@ -25,6 +25,7 @@ namespace ppr {
         initShaderComputeSPIRV("./shaders-spv/render/traverse.comp.spv", traverseProgram);
         initShaderComputeSPIRV("./shaders-spv/render/resolver.comp.spv", resolverProgram);
         initShaderComputeSPIRV("./shaders-spv/render/directTraverse.comp.spv", traverseDirectProgram);
+        //initShaderCompute("./shaders/render/directTraverse.comp", traverseDirectProgram);
 
         {
             GLuint vert = glCreateShader(GL_VERTEX_SHADER);
@@ -94,7 +95,7 @@ namespace ppr {
         sorter = new RadixSort();
 
         for (int i = 0; i < 6;i++) {
-            lightColor[i] = glm::vec4((glm::vec3(255.f, 250.f, 244.f) / 255.f) * 150.f, 40.0f);
+            lightColor[i] = glm::vec4((glm::vec3(255.f, 250.f, 244.f) / 255.f) * 100.f, 40.0f);
             lightAmbient[i] = glm::vec4(0.0f);
             lightVector[i] = glm::vec4(0.4f, 1.0f, 0.1f, 400.0f);
             lightOffset[i] = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
@@ -411,6 +412,7 @@ namespace ppr {
             glCopyNamedBufferSubData(arcounterTemp, arcounter, 0, sizeof(uint32_t) * (i + 5), sizeof(uint32_t));
         }
 
+        /*
         // bind ray tracer buffers
         this->bind();
         
@@ -422,10 +424,7 @@ namespace ppr {
 
         // copy given counts
         glCopyNamedBufferSubData(arcounter, rayBlockUniform, (1 + 5) * sizeof(int32_t), offsetof(RayBlockUniform, samplerUniform) + offsetof(SamplerUniformStruct, rayCount), sizeof(int32_t));
-        
-        // get counter value
-        GLuint tcount = 0;
-        glGetNamedBufferSubData(arcounter, (1 + 5) * sizeof(int32_t), sizeof(int32_t), &tcount);
+        GLuint tcount = 0; glGetNamedBufferSubData(arcounter, (1 + 5) * sizeof(int32_t), sizeof(int32_t), &tcount);
 
         // run hit resolver
         obj->bindLeafs();
@@ -433,15 +432,16 @@ namespace ppr {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, resultFounds);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, givenRays); // change active list
         dispatch(resolverProgram, tiled(tcount, worksize));
+        */
+
         
-        /*
         this->bind();
         obj->bindBVH();
         obj->bindLeafs();
         obj->bind();
         dispatch(traverseDirectProgram, tiled(rsize, worksize));
-        */
-
+        
+        
         return 1;
     }
 

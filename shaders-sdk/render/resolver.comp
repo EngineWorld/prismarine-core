@@ -1,7 +1,5 @@
 #version 460 core
 
-#define ORDERING_NOT_REQUIRED
-
 #include "../include/constants.glsl"
 #include "../include/structs.glsl"
 #include "../include/uniforms.glsl"
@@ -45,7 +43,7 @@ TResult choiceFirstBaked(inout TResult res) {
     int tri = sharedVarsData.bakedRange;
 
     bool validTriangle = tri >= 0 && tri != LONGEST;
-    if (!validTriangle) return res;
+    if (allInvocations(!validTriangle)) return res;
 
     vec2 uv = sharedVarsData.bakedRangeIntersection.yz;
     float _d = sharedVarsData.bakedRangeIntersection.x;
@@ -101,7 +99,7 @@ TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
 
     int tri = tpi < sharedVarsData.bakedStackCount ? bakedStack[L][tpi] : LONGEST;
     bool validTriangle = tri >= 0 && tri != LONGEST;
-    if (!validTriangle) return res;
+    if (allInvocations(!validTriangle)) return res;
 
     vec2 uv = vec2(0.0f);
     float _d = intersectTriangle(orig, dir, tri, uv, validTriangle);
@@ -192,7 +190,7 @@ layout ( local_size_x = WORK_SIZED ) in;
 
 TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tri, in bool isValid) {
     bool validTriangle = isValid && tri >= 0 && tri != LONGEST;
-    if (!validTriangle) { return res; }
+    if (allInvocations(!validTriangle)) { return res; }
 
     vec2 uv = vec2(0.0f);
     float _d = intersectTriangle(orig, dir, tri, uv, validTriangle);
@@ -220,7 +218,7 @@ TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tr
 
 TResult testIntersection4(inout TResult res, in vec3 orig, in vec3 dir, in ivec4 tri, in bool isValid) {
     bool validTriangle = isValid;
-    if (!validTriangle || all(equal(tri, ivec4(LONGEST)))) {
+    if (allInvocations(!validTriangle || all(equal(tri, ivec4(LONGEST))))) {
         return res;
     }
 
@@ -257,16 +255,16 @@ void main() {
     L = gl_LocalInvocationID.x;
 
     const bool overflow = it >= RAY_BLOCK samplerUniform.rayCount;
-    if (overflow) return;
+    if (allInvocations(overflow)) return;
 
     const int t = activedBuf.indc[it];
     Ray ray = fetchRayDirect(t);
-    if (ray.actived < 1 || overflow) return;
+    if (allInvocations(ray.actived < 1 || overflow)) return;
 
     Hit hit = fetchHitDirect(t);
     int foundID = hit.triangleID;
     bool valid = foundID != -1 && foundID < foundLimit && !overflow;
-    if (!valid) return;
+    if (allInvocations(!valid)) return;
 
     TResult lastRes;
     lastRes.dist = INFINITY;
@@ -286,7 +284,7 @@ void main() {
     GroupFoundResult result = FoundGroupsChains[foundID];
     for (int i=0;i<2048;i++) {
         valid = valid && foundID != -1 && foundID < foundLimit;
-        if (!valid) break;
+        if (allInvocations(!valid)) break;
         result = FoundGroupsChains[foundID]; // put here for avoid bug
 
         // validate BVH intersection

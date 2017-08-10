@@ -42,16 +42,21 @@ struct LResult {
 };
 
 uint L = 0;
+int deferredPtr = 0;
 SharedVarsData sharedVarsData;
 
+const int STACK_SIZE = 16;
+const int groupSize = 1;
 const int bakedFragments = 8;
+
+shared int deferredStack[WORK_SIZE][STACK_SIZE];
 shared int bakedStack[WORK_SIZE][bakedFragments];
 
 TResult choiceFirstBaked(inout TResult res) {
     int tri = sharedVarsData.bakedRange;
 
     bool validTriangle = tri >= 0 && tri != LONGEST;
-    if (!validTriangle) return res;
+    if (allInvocations(!validTriangle)) return res;
 
     vec2 uv = sharedVarsData.bakedRangeIntersection.yz;
     float _d = sharedVarsData.bakedRangeIntersection.x;
@@ -102,7 +107,7 @@ TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
 
     int tri = tpi < sharedVarsData.bakedStackCount ? bakedStack[L][tpi] : LONGEST;
     bool validTriangle = tri >= 0 && tri != LONGEST;
-    if (!validTriangle) return res;
+    if (allInvocations(!validTriangle)) return res;
 
     vec2 uv = vec2(0.0f);
     float _d = intersectTriangle(orig, dir, tri, uv, validTriangle);
@@ -178,10 +183,9 @@ TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tr
     bool validTriangle = 
         isValid && 
         tri >= 0 && 
-        tri != res.triangleID &&
         tri != LONGEST;
 
-    if (!validTriangle) {
+    if (allInvocations(!validTriangle)) {
         return res;
     }
 
@@ -212,7 +216,7 @@ TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tr
 TResult testIntersection4(inout TResult res, in vec3 orig, in vec3 dir, in ivec4 tri, in bool isValid) {
     bool validTriangle = isValid;
 
-    if (!validTriangle || all(equal(tri, ivec4(LONGEST)))) {
+    if (allInvocations(!validTriangle || all(equal(tri, ivec4(LONGEST))))) {
         return res;
     }
 
@@ -241,12 +245,6 @@ TResult testIntersection4(inout TResult res, in vec3 orig, in vec3 dir, in ivec4
     return res;
 }
 
-const vec3 padding = vec3(0.00001f);
-const int STACK_SIZE = 16;
-int deferredPtr = 0;
-shared int deferredStack[WORK_SIZE][STACK_SIZE];
-//shared int deferredPtr[WORK_SIZE];
-
 vec3 projectVoxels(in vec3 orig) {
     vec4 nps = mult4(vec4(orig, 1.0f), GEOMETRY_BLOCK geometryUniform.transform);
     return nps.xyz / nps.w;
@@ -259,6 +257,19 @@ vec3 unprojectVoxels(in vec3 orig) {
 
 #define SGN(v) v = idx
 
+void includeLeaf(in vec3 origin, in vec3 direct, in bool validBox, in HlbvhNode node, inout TResult lastRes){
+    bool isLeaf = node.pdata.x == node.pdata.y && validBox;
+    if (anyInvocation(isLeaf)) {
+        for (int ls=0;ls<groupSize;ls+=1) {
+            bool overtaken = ls > node.pdata.y-node.pdata.w;
+            if (!overtaken) {
+                int triIdx = !overtaken ? Leafs[MortonIndices[node.pdata.w + ls]].pdata.w : LONGEST;
+                testIntersection(lastRes, origin.xyz, direct.xyz, triIdx, isLeaf);
+            }
+        }
+    }
+}
+
 TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     L = gl_LocalInvocationID.x;
 
@@ -269,14 +280,12 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     lastRes.materialID = LONGEST;
 
     // deferred stack
-    //deferredPtr[L] = 0;
     deferredPtr = 0;
     deferredStack[L][0] = -1;
 
     sharedVarsData.bakedRange = LONGEST;
     sharedVarsData.bakedStackCount = 0;
     sharedVarsData.bakedRangeIntersection = vec4(INFINITY, 0.f, 0.f, 0.f);
-
 
     // test constants
     int bakedStep = int(floor(1.f + hit.vmods.w));
@@ -296,37 +305,13 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     // init state
     HlbvhNode node = Nodes[idx];
     bool validBox = lessF(d, INFINITY) && greaterEqualF(d, 0.0f), skip = false;
-    for (int i=0;i<8192;i++) {
-        if (!validBox) { break; }
-
-        // is leaf
-        bool isLeaf = node.pdata.x == node.pdata.y && validBox;
-        if (isLeaf) {
-            const int groupSize = 1;
-            //for (int ls=0;ls<groupSize;ls+=4) 
-            for (int ls=0;ls<groupSize;ls+=1) 
-            {
-                //ivec4 lidx4 = ivec4(ls + 0, ls + 1, ls + 2, ls + 3);
-                //bvec4 overtaken = greaterThan(lidx4, ivec4(node.pdata.y-node.pdata.w));
-                //if (all(overtaken)) break;
-                //ivec4 triIdx4 = mix(ivec4(
-                //    Leafs[MortonIndices[node.pdata.w + lidx4.x]].pdata.w,
-                //    Leafs[MortonIndices[node.pdata.w + lidx4.y]].pdata.w,
-                //    Leafs[MortonIndices[node.pdata.w + lidx4.z]].pdata.w,
-                //    Leafs[MortonIndices[node.pdata.w + lidx4.w]].pdata.w
-                //), ivec4(LONGEST), overtaken);
-                //testIntersection4(lastRes, origin.xyz, direct.xyz, triIdx4, isLeaf);
-
-                bool overtaken = ls > node.pdata.y-node.pdata.w;
-                if (overtaken) break;
-                int triIdx = !overtaken ? Leafs[MortonIndices[node.pdata.w + ls]].pdata.w : LONGEST;
-                testIntersection(lastRes, origin.xyz, direct.xyz, triIdx, isLeaf);
-            }
-        }
+    for (int i=0;i<4096;i++) {
+        if (allInvocations(!validBox)) break;
+        if (idx >= 0) node = Nodes[idx];
 
         // choice near box
         bool notLeaf = node.pdata.x != node.pdata.y && validBox;
-        if (notLeaf) {
+        if (anyInvocation(notLeaf)) {
             HlbvhNode lnode = Nodes[node.pdata.x];
             HlbvhNode rnode = Nodes[node.pdata.y];
 
@@ -337,36 +322,39 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
             bvec2 isCube = and2(greaterThanEqual(farsLR, nearsLR), greaterThanEqual(farsLR, vec2(0.0f)));
             vec2 nears = mix(inf2, nearsLR, isCube), fars = mix(inf2, farsLR, isCube), hits = mix(nears, fars, lessThan(nears, vec2(0.0f)));
 
-            bvec2 overlaps = 
+            bvec2 overlapsGeneral = 
                 and2(bvec2(notLeaf), 
                 and2(lessThanEqual(hits, vec2(INFINITY-PZERO)),
                 and2(greaterThan(hits, -vec2(PZERO)),
                 greaterThan(vec2(lastRes.predist), nears * dirlen - PZERO))));
-            
+
+            bvec2 overlaps = and2(overlapsGeneral, bvec2(lnode.pdata.x != lnode.pdata.y, rnode.pdata.x != rnode.pdata.y));
             bool anyOverlap = any(overlaps);
-            if (anyOverlap) { 
+            if (anyInvocation(anyOverlap)) {
                 bool leftOrder = all(overlaps) ? lessEqualF(hits.x, hits.y) : overlaps.x;
                 ivec2 leftright = mix(ivec2(-1), node.pdata.xy, overlaps);
                 leftright = leftOrder ? leftright : leftright.yx;
                 if (anyOverlap) {
                     if (deferredPtr < STACK_SIZE && leftright.y != -1) {
-                        atomicExchange(deferredStack[L][add(deferredPtr, 1)], leftright.y);
+                        deferredStack[L][deferredPtr++] = leftright.y;
                     }
                     idx = leftright.x;
                     skip = true;
                 }
             }
 
-            if (idx >= 0) node = Nodes[idx];
+            // because traverse stack is limited, we does not including leafs to this stack
+            bool leafOrder = lessEqualF(hits.x, hits.y);
+            overlapsGeneral = leafOrder ? overlapsGeneral : overlapsGeneral.yx;
+            includeLeaf(origin, direct, validBox && overlapsGeneral.x, leafOrder ? lnode : rnode, lastRes);
+            includeLeaf(origin, direct, validBox && overlapsGeneral.y, leafOrder ? rnode : lnode, lastRes);
         }
 
         // go to parent 
         if (!skip) {
-            int ptr = add(deferredPtr, -1)-1;
-            bool valid = ptr >= 0;
-            idx = valid ? atomicExchange(deferredStack[L][ptr], -1) : -1;
+            int ptr = --deferredPtr;
+            bool valid = ptr >= 0; idx = valid ? atomicExchange(deferredStack[L][ptr], -1) : -1;
             validBox = validBox && valid && idx >= 0;
-            if (idx >= 0) node = Nodes[idx];
         } skip = false;
     }
 
@@ -379,11 +367,11 @@ LOCAL_SIZE_LAYOUT;
 void main() {
     const int it = int(gl_GlobalInvocationID.x);
     const bool overflow = it >= RAY_BLOCK samplerUniform.rayCount;
-    if (overflow) return;
+    if (allInvocations(overflow)) return;
 
     const int t = activedBuf.indc[it];
     Ray ray = fetchRayDirect(t);
-    if (ray.actived < 1 || overflow) return;
+    if (allInvocations(ray.actived < 1 || overflow)) return;
 
     Hit hit = fetchHitDirect(t);
     LResult res = interpolateMeshData(traverse(hit.dist, ray.origin.xyz, ray.direct.xyz, hit));
