@@ -102,9 +102,7 @@ vec4 textureBicubic(in sampler2D sampler, in vec2 texCoords){
     float sx = s.x / (s.x + s.y);
     float sy = s.z / (s.z + s.w);
 
-    return mix(
-       mix(sample3, sample2, sx), mix(sample1, sample0, sx)
-    , sy);
+    return mix(mix(sample3, sample2, sx), mix(sample1, sample0, sx), sy);
 }
 
 vec4 readEnv(in vec3 r) {
@@ -145,13 +143,12 @@ vec3 glossy(in vec3 dir, in vec3 normal, in float refli) {
 }
 
 Ray reflection(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal, in float refly){
-    if (newRay.params.w == 1) return newRay;
     newRay.direct.xyz = normalize(mix(reflect(newRay.direct.xyz, normal), randomCosine(normal), clamp(refly * random(), 0.0f, 1.0f)));
-    //newRay.direct.xyz = normalize(mix(reflect(newRay.direct.xyz, normal), randomCosine(normal), clamp(refly, 0.0f, 1.0f)));
     newRay.color.xyz *= color;
     newRay.params.x = (SUNLIGHT_CAUSTICS ? true : newRay.params.z < 1) ? 0 : 1;
     newRay.bounce = min(3, newRay.bounce);
     newRay.origin.xyz = fma(faceforward(hit.normal.xyz, newRay.direct.xyz, -hit.normal.xyz), vec3(GAP), newRay.origin.xyz); // padding
+    newRay.actived = newRay.params.w == 1 ? 0 : newRay.actived;
     return newRay;
 }
 
@@ -193,8 +190,8 @@ vec3 sLight(in int i){
 
 int applyLight(in Ray directRay, inout Ray newRay, in vec3 normal){
 #ifdef DIRECT_LIGHT
-    if (newRay.params.w == 1) return -1; // don't accept from shadow originals
-    if (dot(normal, directRay.direct.xyz) < 0.f) return -1; // don't accept regret shadows
+    directRay.actived = newRay.params.w == 1 ? 0 : directRay.actived;
+    directRay.actived = dot(normal, directRay.direct.xyz) < 0.f ? 0 : directRay.actived;
     newRay.params.x = 1;
     return createRay(directRay);
 #else 
@@ -208,38 +205,35 @@ float intersectSphere(in vec3 origin, in vec3 ray, in vec3 sphereCenter, in floa
     float b = 2.0f * dot(toSphere, ray);
     float c = dot(toSphere, toSphere) - sphereRadius*sphereRadius;
     float discriminant = fma(b,b,-4.0f*a*c);
+    float t = INFINITY;
     if(discriminant > 0.0f) {
         float da = 0.5f / a;
         float t1 = (-b - sqrt(discriminant)) * da;
         float t2 = (-b + sqrt(discriminant)) * da;
         float mn = min(t1, t2);
         float mx = max(t1, t2);
-        if (mn >= 0.0f) return mn; else
-        if (mx >= 0.0f) return mx;
+        t = mx >= 0.0f ? (mn >= 0.0f ? mn : mx) : t;
     }
-    return INFINITY;
+    return t;
 }
 
 Ray directLight(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 normal){
-    if (directRay.params.w == 1) return directRay;
     directRay.bounce = min(1, directRay.bounce);
-    directRay.actived = 1;
+    directRay.actived = directRay.params.w == 1 ? 0 : directRay.actived;
     directRay.params.w = 1;
     directRay.params.x = 0;
     directRay.params.y = i;
-
     vec3 ltr = lightCenter(i).xyz-directRay.origin.xyz;
     vec3 ldirect = normalize(sLight(i) - directRay.origin.xyz);
     float cos_a_max = sqrt(1.f - clamp(lightUniform.lightNode[i].lightColor.w * lightUniform.lightNode[i].lightColor.w / sqlen(ltr), 0.0f, 1.0f));
     float diffuseWeight = clamp(dot(ldirect, normal), 0.0f, 1.0f);
-
     directRay.direct.xyz = ldirect;
     directRay.color.xyz *= color * diffuseWeight * ((1.0f - cos_a_max) * 2.0f);
     return directRay;
 }
 
 Ray diffuse(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal){
-    if (newRay.params.w == 1) return newRay;
+    newRay.actived = newRay.params.w == 1 ? 0 : newRay.actived;
     newRay.color.xyz *= color;
     newRay.direct.xyz = normalize(randomCosine(normal));
     newRay.bounce = min(2, newRay.bounce);
@@ -255,9 +249,8 @@ Ray promised(in Ray newRay, in Hit hit, in vec3 normal){
 }
 
 Ray emissive(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal){
-    if (newRay.params.w == 1) return newRay;
     newRay.final.xyz = max(newRay.color.xyz * color, vec3(0.0f));
-    newRay.final = max(newRay.final, vec4(0.0f));
+    newRay.final = newRay.params.w == 1 ? vec4(0.0f) : max(newRay.final, vec4(0.0f));
     newRay.color.xyz *= 0.0f;
     newRay.direct.xyz = normalize(randomCosine(normal));
     newRay.actived = 0;

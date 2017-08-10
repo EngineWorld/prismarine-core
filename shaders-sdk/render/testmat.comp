@@ -27,13 +27,10 @@ LOCAL_SIZE_LAYOUT;
 void main() {
     const int it = int(gl_GlobalInvocationID.x);
     const bool overflow = it >= RAY_BLOCK samplerUniform.rayCount;
-    if (overflow) return;
-
     const int t = activedBuf.indc[it];
     globalInvocationSMP = it;
 
     Ray newRay = fetchRayDirect(t);
-    if (overflow) newRay.actived = 0; // bad ray, inacceptable
     Hit hit = fetchHitDirect(t);
 
 
@@ -182,7 +179,6 @@ void main() {
         emissiveRay.color.xyz *= 0.0f;
         diffuseRay.color.xyz *= 0.0f;
     }
-
 
     // emit rays
 

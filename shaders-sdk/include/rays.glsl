@@ -52,10 +52,9 @@ void _collect(inout Ray ray) {
 }
 
 void storeHit(in int hitIndex, inout Hit hit) {
-    if (hitIndex == -1 || hitIndex == LONGEST || hitIndex >= RAY_BLOCK samplerUniform.currentRayLimit) {
-        return;
+    if (!(hitIndex == -1 || hitIndex == LONGEST || hitIndex >= RAY_BLOCK samplerUniform.currentRayLimit)) {
+        hitBuf.nodes[hitIndex] = hit;
     }
-    hitBuf.nodes[hitIndex] = hit;
 }
 
 int addRayToList(in Ray ray){
@@ -86,54 +85,52 @@ int addRayToList(in Ray ray, in int act){
 void storeRay(in int rayIndex, inout Ray ray) {
     if (rayIndex == -1 || rayIndex == LONGEST || rayIndex >= RAY_BLOCK samplerUniform.currentRayLimit) {
         ray.actived = 0;
-        return;
+    } else {
+        _collect(ray);
+        ray.idx = rayIndex;
+        rayBuf.nodes[rayIndex] = ray;
     }
-    _collect(ray);
-
-    ray.idx = rayIndex;
-    rayBuf.nodes[rayIndex] = ray;
 }
 
 int createRayStrict(inout Ray original, in int idx, in int rayIndex) {
-    if (rayIndex == -1 || rayIndex == LONGEST || rayIndex >= RAY_BLOCK samplerUniform.currentRayLimit) {
-        return rayIndex;
-    }
-
     bool invalidRay = 
+        rayIndex == -1 || 
+        rayIndex == LONGEST || 
+        rayIndex >= RAY_BLOCK samplerUniform.currentRayLimit || 
+
         original.actived < 1 || 
         original.bounce <= 0 || 
         mlength(original.color.xyz) < 0.0001f;
 
-    if (invalidRay) {
-        return rayIndex; 
+    if (!invalidRay) {
+        Ray ray = original;
+        ray.bounce -= 1;
+        ray.idx = rayIndex;
+        ray.texel = idx;
+
+        // mark as unusual
+        if (invalidRay) {
+            ray.actived = 0;
+        }
+
+        Hit hit;
+        if (original.idx != LONGEST) {
+            hit = hitBuf.nodes[original.idx];
+        } else {
+            hit.normal = vec4(0.0f);
+            hit.tangent = vec4(0.0f);
+            hit.vmods = vec4(0.0f);
+            hit.triangleID = LONGEST;
+            hit.materialID = LONGEST;
+        }
+        hit.shaded = 1;
+
+        hitBuf.nodes[rayIndex] = hit;
+        rayBuf.nodes[rayIndex] = ray;
+
+        addRayToList(ray);
     }
 
-    Ray ray = original;
-    ray.bounce -= 1;
-    ray.idx = rayIndex;
-    ray.texel = idx;
-
-    // mark as unusual
-    if (invalidRay) {
-        ray.actived = 0;
-    }
-
-    Hit hit;
-    if (original.idx != LONGEST) {
-        hit = hitBuf.nodes[original.idx];
-    } else {
-        hit.normal = vec4(0.0f);
-        hit.tangent = vec4(0.0f);
-        hit.vmods = vec4(0.0f);
-        hit.triangleID = LONGEST;
-        hit.materialID = LONGEST;
-    }
-    hit.shaded = 1;
-
-    hitBuf.nodes[rayIndex] = hit;
-    rayBuf.nodes[rayIndex] = ray;
-
-    addRayToList(ray);
     return rayIndex;
 }
 
@@ -149,36 +146,33 @@ int createRay(inout Ray original, in int idx) {
 
     if (mlength(original.final.xyz) >= 0.0001f) _collect(original);
 
-    if (invalidRay) {
-        return -1; 
-    }
-
     int rayIndex = -1;
-    int iterations = 1;
-    int freed = 0;
-    
-    while (freed >= 0 && iterations >= 0) {
-        iterations--;
+    if (!invalidRay) {
+        int iterations = 1;
+        int freed = 0;
+        
+        while (freed >= 0 && iterations >= 0) {
+            iterations--;
 
-        atomicMax(arcounter.Ut, 0); // prevent most decreasing
-        int freed = max(atomicDecUt(true)-1, -1);
-        atomicMax(arcounter.Ut, 0); // prevent most decreasing
+            atomicMax(arcounter.Ut, 0); // prevent most decreasing
+            int freed = max(atomicDecUt(true)-1, -1);
+            atomicMax(arcounter.Ut, 0); // prevent most decreasing
 
-        if (
-            freed >= 0 && 
-            availBuf.indc[freed] != 0 && 
-            availBuf.indc[freed] != LONGEST && 
-            availBuf.indc[freed] != -1
-        ) {
-            rayIndex = availBuf.indc[freed];
-            break;
+            if (
+                freed >= 0 && 
+                availBuf.indc[freed] != 0 && 
+                availBuf.indc[freed] != LONGEST && 
+                availBuf.indc[freed] != -1
+            ) {
+                rayIndex = availBuf.indc[freed];
+                break;
+            }
+        }
+
+        if (rayIndex == -1) {
+            rayIndex = atomicIncRt(true);
         }
     }
-
-    if (rayIndex == -1) {
-        rayIndex = atomicIncRt(true);
-    }
-
     return createRayStrict(original, idx, rayIndex);
 }
 
@@ -188,13 +182,16 @@ int createRayIdx(inout Ray original, in int idx, in int rayIndex) {
         original.bounce <= 0 || 
         mlength(original.color.xyz) < 0.0001f;
 
-    if (mlength(original.final.xyz) >= 0.0001f) _collect(original);
+    if (mlength(original.final.xyz) >= 0.0001f) {
+        _collect(original);
+    }
 
     if (invalidRay) {
-        return -1; 
+        rayIndex = -1;
+    } else {
+        atomicMax(arcounter.Rt, rayIndex+1);
     }
-    
-    atomicMax(arcounter.Rt, rayIndex+1);
+
     return createRayStrict(original, idx, rayIndex);
 }
 

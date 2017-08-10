@@ -412,6 +412,7 @@ namespace ppr {
             glCopyNamedBufferSubData(arcounterTemp, arcounter, 0, sizeof(uint32_t) * (i + 5), sizeof(uint32_t));
         }
 
+        
         /*
         // bind ray tracer buffers
         this->bind();
@@ -434,7 +435,6 @@ namespace ppr {
         dispatch(resolverProgram, tiled(tcount, worksize));
         */
 
-        
         this->bind();
         obj->bindBVH();
         obj->bindLeafs();

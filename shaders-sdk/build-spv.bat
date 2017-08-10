@@ -51,12 +51,11 @@ call glslc %CFLAGS% %CMPPROF% %INDIR%%RDXI%histogram.comp     -o %OUTDIR%%RDXI%h
 call glslc %CFLAGS% %CMPPROF% %INDIR%%RDXI%permute.comp       -o %OUTDIR%%RDXI%permute.comp.spv
 call glslc %CFLAGS% %CMPPROF% %INDIR%%RDXI%prefix-scan.comp   -o %OUTDIR%%RDXI%prefix-scan.comp.spv
 
-set OPTFLAGS= --eliminate-dead-const --unify-const --flatten-decorations --convert-local-access-chains --eliminate-dead-branches --eliminate-common-uniform --fold-spec-const-op-composite --merge-blocks --inline-entry-points-exhaustive 
+set OPTFLAGS= --eliminate-dead-const --unify-const --flatten-decorations --convert-local-access-chains --eliminate-dead-branches --eliminate-common-uniform --fold-spec-const-op-composite --merge-blocks --inline-entry-points-exhaustive --eliminate-dead-code-aggressive 
 
 call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%directTraverse.comp.spv -o %OUTDIR%%RNDR%directTraverse.comp.spv
 call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%resolver.comp.spv       -o %OUTDIR%%RNDR%resolver.comp.spv
 call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%traverse.comp.spv       -o %OUTDIR%%RNDR%traverse.comp.spv
-call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%testmat.comp.spv        -o %OUTDIR%%RNDR%testmat.comp.spv
 call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%reclaim.comp.spv        -o %OUTDIR%%RNDR%reclaim.comp.spv
 call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%begin.comp.spv          -o %OUTDIR%%RNDR%begin.comp.spv
 
