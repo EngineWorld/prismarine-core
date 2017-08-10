@@ -302,7 +302,7 @@ void main() {
                 if (overtaken) break;
 
                 int triIdx = overtaken ? LONGEST : Leafs[MortonIndices[result.range.x + ls]].pdata.w;
-                lastRes = testIntersection(lastRes, ray.origin.xyz, ray.direct.xyz, triIdx, nearer && valid && !overtaken);
+                lastRes = testIntersection(lastRes, ray.origin.xyz, ray.direct.xyz, triIdx, nearer && !overtaken);
             }
             foundID = result.nextResult;
         } else 
