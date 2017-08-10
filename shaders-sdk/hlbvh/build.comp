@@ -6,32 +6,6 @@
 #include "../include/STOmath.glsl"
 #include "./includes.glsl"
 
-#define LEAFIDX(i) (Range[0] + i)
-#define NODEIDX(i) (clamp(i, 1, Range[0]-1))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 layout ( local_size_x = 1024 ) in;
 
 int nlz (in uint64_t x) {
@@ -54,26 +28,25 @@ int findSplit( int first, int last, uint SIMDThread)
 {
     MORTONTYPE firstCode = Mortoncodes[first];
     MORTONTYPE lastCode = Mortoncodes[last];
-    if (firstCode == lastCode) {
-        return (first + last) >> 1;
-    }
 
-    int commonPrefix = nlz(firstCode ^ lastCode);
-    int split = first;
-    int step = last - first;
-    for (int i=0;i<8192;i++) {
-        step = (step + 1) >> 1;
-        int newSplit = split + step;
-        if (newSplit < last) {
-            MORTONTYPE splitCode = Mortoncodes[newSplit];
-            int splitPrefix = nlz(firstCode ^ splitCode);
-            if (splitPrefix > commonPrefix) {
-                split = newSplit;
+    int split = (first + last) >> 1;
+    if (firstCode != lastCode) {
+        split = first;
+        int commonPrefix = nlz(firstCode ^ lastCode);
+        int step = last - first;
+        for (int i=0;i<8192;i++) {
+            step = (step + 1) >> 1;
+            int newSplit = split + step;
+            if (newSplit < last) {
+                MORTONTYPE splitCode = Mortoncodes[newSplit];
+                int splitPrefix = nlz(firstCode ^ splitCode);
+                if (splitPrefix > commonPrefix) {
+                    split = newSplit;
+                }
             }
+            if (step <= 1) break; 
         }
-        if (step <= 1) break; 
     }
-
     return clamp(split, 0, Range[0]-2);
 }
 

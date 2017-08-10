@@ -45,8 +45,8 @@ void _collect(inout Ray ray) {
     int idx = atomicIncCt(true);
     int prev = atomicExchange(texelBuf.nodes[ray.texel].EXT.y, idx);
     ColorChain ch = chBuf.chains[idx];
-    ch.color = vec4(ray.final.xyz, 1.0f);
-    ch.cdata.x = prev;
+    ch.color = vec4(color.xyz, 1.0f);
+    ch.cdata = ivec4(prev, 0, 0, 0);
     chBuf.chains[idx] = ch;
     ray.final.xyzw = vec4(0.0f);
 }
@@ -144,7 +144,9 @@ int createRay(inout Ray original, in int idx) {
         original.bounce <= 0 || 
         mlength(original.color.xyz) < 0.0001f;
 
-    if (mlength(original.final.xyz) >= 0.0001f) _collect(original);
+    if (mlength(original.final.xyz) >= 0.0001f) {
+        _collect(original);
+    }
 
     int rayIndex = -1;
     if (!invalidRay) {
@@ -209,8 +211,8 @@ int createRay(in Ray original) {
 }
 
 int createRay(in int idx) {
-    Ray newRay;
-    return createRay(newRay, idx);
+    Ray ray;
+    return createRay(ray, idx);
 }
 
 Ray fetchRayDirect(in int texel) {

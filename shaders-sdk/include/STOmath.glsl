@@ -200,14 +200,16 @@ int firstActive(){
 uvec2 genLtMask(){
     //return unpackUint2x32(gl_SubGroupLtMaskARB);
 
+    uvec2 mask = uvec2(0, 0);
     if (LANE_IDX >= 64) {
-        return uvec2(0xFFFFFFFF, 0xFFFFFFFF);
+        mask = uvec2(0xFFFFFFFF, 0xFFFFFFFF);
     } else 
     if (LANE_IDX >= 32) {
-        return uvec2(0xFFFFFFFF, (1 << (LANE_IDX-32))-1);
+        mask = uvec2(0xFFFFFFFF, (1 << (LANE_IDX-32))-1);
     } else {
-        return uvec2((1 << LANE_IDX)-1, 0);
+        mask = uvec2((1 << LANE_IDX)-1, 0);
     }
+    return mask;
 }
 
 uint bitCount64(in uvec2 lh) {

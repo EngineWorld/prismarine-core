@@ -26,28 +26,29 @@ LOCAL_SIZE_LAYOUT;
 
 void main() {
     const int it = int(gl_GlobalInvocationID.x);
-    const bool overflow = it >= RAY_BLOCK samplerUniform.rayCount;
-    const int t = activedBuf.indc[it];
+    bool overflow = it >= RAY_BLOCK samplerUniform.rayCount;
+    int t = activedBuf.indc[it];
     globalInvocationSMP = it;
 
-    Ray newRay = fetchRayDirect(t);
+    Ray ray = fetchRayDirect(t);
     Hit hit = fetchHitDirect(t);
 
 
     // already shaded? skipping
 
-    if (hit.shaded > 0 || newRay.actived < 1) {
+    if (hit.shaded > 0 || ray.actived < 1) {
         hit.shaded = 1;
+        overflow = true;
     }
 
 
     // apply physical lights
 
     int lc = -1;
-    if ((newRay.params.z > 0 && newRay.params.x < 1) && hit.shaded < 1) {
+    if ((ray.params.z > 0 && ray.params.x < 1) && hit.shaded < 1) {
         for (int i=0;i<min(RAY_BLOCK materialUniform.lightcount, 16);i++) {
             float md = 1.0f;
-            float dt = intersectSphere(newRay.origin.xyz, newRay.direct.xyz, lightCenter(i).xyz, lightUniform.lightNode[i].lightColor.w + GAP);
+            float dt = intersectSphere(ray.origin.xyz, ray.direct.xyz, lightCenter(i).xyz, lightUniform.lightNode[i].lightColor.w + GAP);
             float t = md * dt;
             if (lessF(dt, INFINITY) && lessEqualF(t, hit.dist)) {
                 lc = i;
@@ -58,10 +59,10 @@ void main() {
         }
     }
 
-    if (lc >= 0 && (newRay.params.y == lc || newRay.params.w < 1)){
-        newRay.final.xyz = newRay.color.xyz * getLightColor(lc);
-        newRay.color.xyz *= 0.0f;
-        newRay.actived = 0;
+    if (lc >= 0 && (ray.params.y == lc || ray.params.w < 1)){
+        ray.final.xyz = ray.color.xyz * getLightColor(lc);
+        ray.color.xyz *= 0.0f;
+        ray.actived = 0;
         hit.shaded = 1;
     }
 
@@ -70,12 +71,12 @@ void main() {
 
     {
         vec4 color = vec4(0.0f);
-        EnvironmentShader(color, hit, newRay);
+        EnvironmentShader(color, hit, ray);
 
-        if (greaterEqualF(hit.dist, INFINITY) && newRay.params.w < 1 && hit.shaded < 1) {
-            newRay.final.xyz = newRay.color.xyz * color.xyz;
-            newRay.color.xyz *= 0.0f;
-            newRay.actived = 0;
+        if (greaterEqualF(hit.dist, INFINITY) && ray.params.w < 1 && hit.shaded < 1) {
+            ray.final.xyz = ray.color.xyz * color.xyz;
+            ray.color.xyz *= 0.0f;
+            ray.actived = 0;
             hit.triangleID = 0;
             hit.dist = INFINITY;
             hit.materialID = LONGEST;
@@ -86,10 +87,10 @@ void main() {
 
     // resolve and valiate ray
 
-    newRay.direct.xyz = normalize(newRay.direct.xyz);
-    newRay.origin.xyz = fma(newRay.direct.xyz, vec3(hit.dist), newRay.origin.xyz);
+    ray.direct.xyz = normalize(ray.direct.xyz);
+    ray.origin.xyz = fma(ray.direct.xyz, vec3(hit.dist), ray.origin.xyz);
 
-    if (hit.materialID < 0 || hit.materialID == LONGEST || hit.shaded > 0 || newRay.actived < 1) {
+    if (hit.materialID < 0 || hit.materialID == LONGEST || hit.shaded > 0 || ray.actived < 1) {
         hit.shaded = 1;
     }
 
@@ -102,12 +103,21 @@ void main() {
     // apply surface shading
 
     SurfaceData surface;
-    SurfaceShader(surface, materialCache, hit, newRay);
+    surface.normal = vec3(0.0f, 0.0f, 1.f);
+    surface.height = 1.0f;
+    surface.emission = vec4(0.f);
+    surface.albedo = vec4(0.f);
+    surface.specular = vec4(0.f);
+    surface.metallic = 0;
+    surface.roughness = 0;
+    surface.culling = 0;
+
+    SurfaceShader(surface, materialCache, hit, ray);
 
 
     // transmutate normals
 
-    vec3 dir = normalize(newRay.direct.xyz);
+    vec3 dir = normalize(ray.direct.xyz);
     vec3 prenormal = normalize(hit.normal.xyz);
     vec3 normal = normalize(faceforward(prenormal, dir, prenormal));
     vec3 surfacenormal = normal;
@@ -136,8 +146,8 @@ void main() {
     // backface culling
 
     if (false || 
-        surface.culling == 1 && dot(prenormal, newRay.direct.xyz) > 0.0f || 
-        surface.culling == 2 && dot(prenormal, newRay.direct.xyz) < 0.0f
+        surface.culling == 1 && dot(prenormal, ray.direct.xyz) > 0.0f || 
+        surface.culling == 2 && dot(prenormal, ray.direct.xyz) < 0.0f
     ) {
         prom = 1.0f;
     }
@@ -145,19 +155,21 @@ void main() {
 
     // create rays
 
-    Ray diffuseRay = newRay;
+    Ray diffuseRay = ray;
     diffuseRay.final.xyz *= 0.0f;
 
-    Ray reflectionRay = newRay;
+    Ray reflectionRay = ray;
     reflectionRay.final.xyz *= 0.0f;
 
-    Ray emissiveRay = newRay;
+    Ray emissiveRay = ray;
     emissiveRay.final.xyz *= 0.0f;
     
-    if (hit.shaded < 1) newRay.final.xyz *= 0.f;
+    if (hit.shaded < 1) ray.final.xyz *= 0.f;
 
-    if (newRay.actived > 0 && hit.shaded < 1) {
-        newRay.final.xyz *= 0.0f;
+    if (ray.actived > 0 && hit.shaded < 1) {
+        hit.shaded = 1;
+
+        ray.final.xyz *= 0.0f;
 
         diffuseRay = diffuse(diffuseRay, hit, tx.xyz, normal);
         diffuseRay.color.xyz *= (1.0f - prom);
@@ -170,10 +182,8 @@ void main() {
         emissiveRay.color.xyz *= (1.0f - prom);
         emissiveRay.final.xyz *= (1.0f - prom);
 
-        newRay = promised(newRay, hit, normal);
-        newRay.color.xyz *= prom;
-
-        hit.shaded = 1;
+        ray = promised(ray, hit, normal);
+        ray.color.xyz *= prom;
     } else {
         reflectionRay.color.xyz *= 0.0f;
         emissiveRay.color.xyz *= 0.0f;
@@ -191,11 +201,10 @@ void main() {
         emitRay(emissiveRay, hit, normal, clamp(emis, 0.0f, 1.0f));
     }
 
-
     // re-store current
 
     if (!overflow) {
         storeHit(t, hit);
-        storeRay(t, newRay);
+        storeRay(t, ray);
     }
 }

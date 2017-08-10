@@ -21,11 +21,12 @@ ivec2 gatherMosaic(in ivec2 uniformCoord){
 }
 
 vec4 gatherMosaicCompDyn(in sampler2D vertices, in ivec2 mosaicCoord, const uint comp){
-    if (comp == 0) return textureGather(vertices, (vec2(mosaicCoord) + 0.5f) / textureSize(vertices, 0), 0); else 
-    if (comp == 1) return textureGather(vertices, (vec2(mosaicCoord) + 0.5f) / textureSize(vertices, 0), 1); else 
-    if (comp == 2) return textureGather(vertices, (vec2(mosaicCoord) + 0.5f) / textureSize(vertices, 0), 2); else 
-    if (comp == 3) return textureGather(vertices, (vec2(mosaicCoord) + 0.5f) / textureSize(vertices, 0), 3); else 
-    return vec4(0.f);
+    vec4 components = vec4(0.0f);
+    if (comp == 0) components = textureGather(vertices, (vec2(mosaicCoord) + 0.5f) / textureSize(vertices, 0), 0); else 
+    if (comp == 1) components = textureGather(vertices, (vec2(mosaicCoord) + 0.5f) / textureSize(vertices, 0), 1); else 
+    if (comp == 2) components = textureGather(vertices, (vec2(mosaicCoord) + 0.5f) / textureSize(vertices, 0), 2); else 
+    if (comp == 3) components = textureGather(vertices, (vec2(mosaicCoord) + 0.5f) / textureSize(vertices, 0), 3); else 
+    return components;
 }
 
 

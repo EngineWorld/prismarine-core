@@ -142,40 +142,40 @@ vec3 glossy(in vec3 dir, in vec3 normal, in float refli) {
     return normalize(mix(normalize(dir), randomCosine(normal), clamp(sqrt(random()) * refli, 0.0f, 1.0f)));
 }
 
-Ray reflection(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal, in float refly){
-    newRay.direct.xyz = normalize(mix(reflect(newRay.direct.xyz, normal), randomCosine(normal), clamp(refly * random(), 0.0f, 1.0f)));
-    newRay.color.xyz *= color;
-    newRay.params.x = (SUNLIGHT_CAUSTICS ? true : newRay.params.z < 1) ? 0 : 1;
-    newRay.bounce = min(3, newRay.bounce);
-    newRay.origin.xyz = fma(faceforward(hit.normal.xyz, newRay.direct.xyz, -hit.normal.xyz), vec3(GAP), newRay.origin.xyz); // padding
-    newRay.actived = newRay.params.w == 1 ? 0 : newRay.actived;
-    return newRay;
+Ray reflection(in Ray ray, in Hit hit, in vec3 color, in vec3 normal, in float refly){
+    ray.direct.xyz = normalize(mix(reflect(ray.direct.xyz, normal), randomCosine(normal), clamp(refly * random(), 0.0f, 1.0f)));
+    ray.color.xyz *= color;
+    ray.params.x = (SUNLIGHT_CAUSTICS ? true : ray.params.z < 1) ? 0 : 1;
+    ray.bounce = min(3, ray.bounce);
+    ray.origin.xyz = fma(faceforward(hit.normal.xyz, ray.direct.xyz, -hit.normal.xyz), vec3(GAP), ray.origin.xyz); // padding
+    ray.actived = ray.params.w == 1 ? 0 : ray.actived;
+    return ray;
 }
 
-Ray refraction(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal, in float inior, in float outior, in float glossiness){
-     vec3 refrDir = normalize(  refract(newRay.direct.xyz, normal, inior / outior)  );
+Ray refraction(in Ray ray, in Hit hit, in vec3 color, in vec3 normal, in float inior, in float outior, in float glossiness){
+     vec3 refrDir = normalize(  refract(ray.direct.xyz, normal, inior / outior)  );
      bool refrc = equalF(inior, outior);
 
 #ifdef REFRACTION_SKIP_SUN
 
-    newRay.bounce += 1;
-    if (newRay.params.w < 1) {
-        newRay.direct.xyz = refrDir;
+    ray.bounce += 1;
+    if (ray.params.w < 1) {
+        ray.direct.xyz = refrDir;
     }
 
 #else
     
-    newRay.direct.xyz = refrDir;
-    if (!refrc) newRay.params.x = (SUNLIGHT_CAUSTICS ? true : newRay.params.z < 1) ? 0 : 1; // can be lighted by direct
-    if (newRay.params.w < 1 || refrc) { 
-        newRay.bounce += 1;
+    ray.direct.xyz = refrDir;
+    if (!refrc) ray.params.x = (SUNLIGHT_CAUSTICS ? true : ray.params.z < 1) ? 0 : 1; // can be lighted by direct
+    if (ray.params.w < 1 || refrc) { 
+        ray.bounce += 1;
     }
     
 #endif
 
-    if (!refrc) newRay.origin.xyz = fma(faceforward(hit.normal.xyz, newRay.direct.xyz, -hit.normal.xyz), vec3(GAP), newRay.origin.xyz); // padding
-    newRay.color.xyz *= color;
-    return newRay;
+    if (!refrc) ray.origin.xyz = fma(faceforward(hit.normal.xyz, ray.direct.xyz, -hit.normal.xyz), vec3(GAP), ray.origin.xyz); // padding
+    ray.color.xyz *= color;
+    return ray;
 }
 
 vec3 lightCenter(in int i){
@@ -188,11 +188,10 @@ vec3 sLight(in int i){
     return fma(randomDirectionInSphere(), vec3(lightUniform.lightNode[i].lightColor.w), lightCenter(i));
 }
 
-int applyLight(in Ray directRay, inout Ray newRay, in vec3 normal){
+int applyLight(in Ray directRay, inout Ray ray, in vec3 normal){
 #ifdef DIRECT_LIGHT
-    directRay.actived = newRay.params.w == 1 ? 0 : directRay.actived;
-    directRay.actived = dot(normal, directRay.direct.xyz) < 0.f ? 0 : directRay.actived;
-    newRay.params.x = 1;
+    directRay.actived = (ray.params.w == 1 || dot(normal, directRay.direct.xyz) < 0.f) ? 0 : directRay.actived;
+    ray.params.x = 1;
     return createRay(directRay);
 #else 
     return -1;
@@ -232,31 +231,31 @@ Ray directLight(in int i, in Ray directRay, in Hit hit, in vec3 color, in vec3 n
     return directRay;
 }
 
-Ray diffuse(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal){
-    newRay.actived = newRay.params.w == 1 ? 0 : newRay.actived;
-    newRay.color.xyz *= color;
-    newRay.direct.xyz = normalize(randomCosine(normal));
-    newRay.bounce = min(2, newRay.bounce);
-    newRay.params.z = 1; // hit on diffuse
-    newRay.params.x = 0; // enable sunlight
-    newRay.origin.xyz = fma(faceforward(hit.normal.xyz, newRay.direct.xyz, -hit.normal.xyz), vec3(GAP), newRay.origin.xyz); // padding
-    return newRay;
+Ray diffuse(in Ray ray, in Hit hit, in vec3 color, in vec3 normal){
+    ray.actived = ray.params.w == 1 ? 0 : ray.actived;
+    ray.color.xyz *= color;
+    ray.direct.xyz = normalize(randomCosine(normal));
+    ray.bounce = min(2, ray.bounce);
+    ray.params.z = 1; // hit on diffuse
+    ray.params.x = 0; // enable sunlight
+    ray.origin.xyz = fma(faceforward(hit.normal.xyz, ray.direct.xyz, -hit.normal.xyz), vec3(GAP), ray.origin.xyz); // padding
+    return ray;
 }
 
-Ray promised(in Ray newRay, in Hit hit, in vec3 normal){
-    newRay.bounce += 1;
-    return newRay;
+Ray promised(in Ray ray, in Hit hit, in vec3 normal){
+    ray.bounce += 1;
+    return ray;
 }
 
-Ray emissive(in Ray newRay, in Hit hit, in vec3 color, in vec3 normal){
-    newRay.final.xyz = max(newRay.color.xyz * color, vec3(0.0f));
-    newRay.final = newRay.params.w == 1 ? vec4(0.0f) : max(newRay.final, vec4(0.0f));
-    newRay.color.xyz *= 0.0f;
-    newRay.direct.xyz = normalize(randomCosine(normal));
-    newRay.actived = 0;
-    newRay.params.x = 1;
-    newRay.origin.xyz = fma(faceforward(hit.normal.xyz, newRay.direct.xyz, -hit.normal.xyz), vec3(GAP), newRay.origin.xyz); // padding
-    return newRay;
+Ray emissive(in Ray ray, in Hit hit, in vec3 color, in vec3 normal){
+    ray.final.xyz = max(ray.color.xyz * color, vec3(0.0f));
+    ray.final = ray.params.w == 1 ? vec4(0.0f) : max(ray.final, vec4(0.0f));
+    ray.color.xyz *= 0.0f;
+    ray.direct.xyz = normalize(randomCosine(normal));
+    ray.actived = 0;
+    ray.params.x = 1;
+    ray.origin.xyz = fma(faceforward(hit.normal.xyz, ray.direct.xyz, -hit.normal.xyz), vec3(GAP), ray.origin.xyz); // padding
+    return ray;
 }
 
 int emitRay(in Ray directRay, in Hit hit, in vec3 normal, in float coef){

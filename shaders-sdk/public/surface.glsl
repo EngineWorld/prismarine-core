@@ -37,6 +37,7 @@ vec4 fetchNormal(in Material mat, in vec2 texcoord, in ivec2 offset){
 
 vec3 getNormalMapping(in Material mat, vec2 texcoordi) {
     vec3 tc = fetchNormal(mat, texcoordi).xyz;
+    vec3 normal = vec3(0.0f, 0.0f, 1.0f);
     if(equalF(tc.x, tc.y) && equalF(tc.x, tc.z)){
         const ivec3 off = ivec3(0,0,1);
         const float size = 1.0f;
@@ -44,11 +45,11 @@ vec3 getNormalMapping(in Material mat, vec2 texcoordi) {
         vec3 p00 = vec3(0.0f, 0.0f, fetchNormal(mat, texcoordi, off.yy).x * pike);
         vec3 p01 = vec3(size, 0.0f, fetchNormal(mat, texcoordi, off.zy).x * pike);
         vec3 p10 = vec3(0.0f, size, fetchNormal(mat, texcoordi, off.yz).x * pike);
-        return normalize(cross(p10 - p00, p01 - p00));
+        normal = normalize(cross(p10 - p00, p01 - p00));
     } else {
-        return normalize(mix(vec3(0.0f, 0.0f, 1.0f), fma(tc, vec3(2.0f), vec3(-1.0f)), vec3(1.0f)));
+        normal = normalize(mix(vec3(0.0f, 0.0f, 1.0f), fma(tc, vec3(2.0f), vec3(-1.0f)), vec3(1.0f)));
     }
-    return vec3(0.0, 0.0, 1.0);
+    return normal;
 }
 
 vec4 fetchDiffuse(in Material mat, in vec2 texcoord){

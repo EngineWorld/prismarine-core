@@ -72,6 +72,7 @@ call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%resolver.comp.spv       -o %OUTDIR%%RNDR
 call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%traverse.comp.spv       -o %OUTDIR%%RNDR%traverse.comp.spv
 call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%reclaim.comp.spv        -o %OUTDIR%%RNDR%reclaim.comp.spv
 call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%begin.comp.spv          -o %OUTDIR%%RNDR%begin.comp.spv
+call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%testmat.comp.spv        -o %OUTDIR%%RNDR%testmat.comp.spv
 
 call spirv-opt %OPTFLAGS% %OUTDIR%%HLBV%aabbmaker.comp.spv      -o %OUTDIR%%HLBV%aabbmaker.comp.spv
 call spirv-opt %OPTFLAGS% %OUTDIR%%HLBV%build.comp.spv          -o %OUTDIR%%HLBV%build.comp.spv
