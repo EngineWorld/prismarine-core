@@ -1,5 +1,7 @@
 #version 460 core
 
+#define ORDERING_NOT_REQUIRED
+
 #include "../include/constants.glsl"
 #include "../include/structs.glsl"
 #include "../include/uniforms.glsl"
@@ -33,7 +35,7 @@ struct TResult {
 uint L = 0;
 SharedVarsData sharedVarsData;
 
-const int foundLimit = 8192 * 8192;
+const int foundLimit = 4096 * 4096;
 const int bakedFragments = 8;
 shared int bakedStack[WORK_SIZED][bakedFragments];
 
@@ -207,7 +209,7 @@ TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tr
             res.triangleID = tri;
         }
         if ( inbaked ) {
-            bakedStack[L][add(sharedVarsData.bakedStackCount, 1)] = tri;
+            bakedStack[L][sharedVarsData.bakedStackCount++] = tri;
         } else 
         if ( sharedVarsData.bakedRange < tri || sharedVarsData.bakedRange == LONGEST || changed ) {
             sharedVarsData.bakedRange = tri;
@@ -238,7 +240,7 @@ TResult testIntersection4(inout TResult res, in vec3 orig, in vec3 dir, in ivec4
             res.triangleID = outTri;
         }
         if ( inbaked ) {
-            bakedStack[L][add(sharedVarsData.bakedStackCount, 1)] = outTri;
+            bakedStack[L][sharedVarsData.bakedStackCount++] = outTri;
         } else 
         if ( sharedVarsData.bakedRange < outTri || sharedVarsData.bakedRange == LONGEST || changed ) {
             sharedVarsData.bakedRange = outTri;
@@ -285,7 +287,7 @@ void main() {
         if (!valid) break;
 
         // validate BVH intersection
-        bool nearer = lessEqualF(result.boxDistance, lastRes.predist) && valid; //&& (LANE_SKIP--) <= 0;
+        bool nearer = lessEqualF(result.boxDistance, lastRes.predist) && valid;
 
         // synchronized intersection (because is heavy operation)
         bool synced = nearer || !valid;
@@ -293,10 +295,11 @@ void main() {
             const int groupSize = 1;
             for (int ls=0;ls<groupSize;ls+=1) 
             {
-                bool overtaken = ls > result.range.y-result.range.x;
+                bool overtaken = ls > (result.range.y-result.range.x);
                 if (overtaken) break;
-                int triIdx = !overtaken ? Leafs[MortonIndices[result.range.x + ls]].pdata.w : LONGEST;
-                testIntersection(lastRes, ray.origin.xyz, ray.direct.xyz, triIdx, nearer);
+
+                int triIdx = overtaken ? LONGEST : Leafs[MortonIndices[result.range.x + ls]].pdata.w;//overtaken ? LONGEST : leaf.pdata.w;
+                testIntersection(lastRes, ray.origin.xyz, ray.direct.xyz, triIdx, nearer && valid && !overtaken);
             }
             foundID = result.nextResult;
             if (foundID != -1) {
@@ -312,7 +315,8 @@ void main() {
     }
 
     // resolve intersection
-    LResult res = interpolateMeshData(choiceBaked(lastRes, ray.origin.xyz, ray.direct.xyz, int(floor(1.f + hit.vmods.w))));
+    choiceBaked(lastRes, ray.origin.xyz, ray.direct.xyz, int(floor(1.f + hit.vmods.w)));
+    LResult res = interpolateMeshData(lastRes);
 
     // resolve intersection
     if (

@@ -212,7 +212,7 @@ namespace ppr {
         freedoms = allocateBuffer<int32_t>(currentRayLimit);
         availables = allocateBuffer<int32_t>(currentRayLimit);
 
-        resultFounds = allocateBuffer<GroupFoundResult>(8192 * 8192);
+        resultFounds = allocateBuffer<GroupFoundResult>(4096 * 4096);
         givenRays = allocateBuffer<int32_t>(currentRayLimit);
 
         samplerUniformData.sceneRes = { float(width), float(height) };
