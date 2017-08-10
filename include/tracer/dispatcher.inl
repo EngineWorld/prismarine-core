@@ -423,12 +423,16 @@ namespace ppr {
         // copy given counts
         glCopyNamedBufferSubData(arcounter, rayBlockUniform, (1 + 5) * sizeof(int32_t), offsetof(RayBlockUniform, samplerUniform) + offsetof(SamplerUniformStruct, rayCount), sizeof(int32_t));
         
+        // get counter value
+        GLuint tcount = 0;
+        glGetNamedBufferSubData(arcounter, (1 + 5) * sizeof(int32_t), sizeof(int32_t), &tcount);
+
         // run hit resolver
         obj->bindLeafs();
         obj->bind();
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, resultFounds);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, givenRays); // change active list
-        dispatch(resolverProgram, tiled(rsize, worksize));
+        dispatch(resolverProgram, tiled(tcount, worksize));
         
         /*
         this->bind();
