@@ -77,7 +77,9 @@ void reorderTriangles() {
     int cleanBakedStackCount = 0;
 
     // select only unique triangle ID's
-    for (int iround = 0; iround < sharedVarsData.bakedStackCount-1; iround++) {
+    //for (int iround = 0; iround < sharedVarsData.bakedStackCount-1; iround++) {
+    for (int iround = 0; iround < bakedFragments; iround++) {
+        if (iround >= sharedVarsData.bakedStackCount-1) break;
         int next = bakedStack[L][iround+1];
         int prim = bakedStack[L][iround];
         if (next != prim) {
@@ -86,8 +88,11 @@ void reorderTriangles() {
     }
 
     // copy last primitive
-    bakedStack[L][cleanBakedStackCount++] = bakedStack[L][sharedVarsData.bakedStackCount-1];
-    sharedVarsData.bakedStackCount = cleanBakedStackCount; // fir count
+    if (sharedVarsData.bakedStackCount > 0 && cleanBakedStackCount < bakedFragments) {
+        bakedStack[L][cleanBakedStackCount++] = bakedStack[L][sharedVarsData.bakedStackCount-1];
+    }
+    
+    sharedVarsData.bakedStackCount = cleanBakedStackCount;
 }
 
 TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
@@ -186,15 +191,8 @@ LResult interpolateMeshData(in TResult hitp) {
 layout ( local_size_x = WORK_SIZED ) in;
 
 TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tri, in bool isValid) {
-    bool validTriangle = 
-        isValid && 
-        tri >= 0 && 
-        tri != res.triangleID &&
-        tri != LONGEST;
-
-    if (!validTriangle) {
-        return res;
-    }
+    bool validTriangle = isValid && tri >= 0 && tri != LONGEST;
+    if (!validTriangle) { return res; }
 
     vec2 uv = vec2(0.0f);
     float _d = intersectTriangle(orig, dir, tri, uv, validTriangle);
@@ -281,10 +279,15 @@ void main() {
     sharedVarsData.bakedStackCount = 0;
     sharedVarsData.bakedRangeIntersection = vec4(INFINITY, 0.f, 0.f, 0.f);
     
+    for (int i=0;i<bakedFragments;i++) {
+        bakedStack[L][i] = -1;
+    }
+
     GroupFoundResult result = FoundGroupsChains[foundID];
     for (int i=0;i<2048;i++) {
         valid = valid && foundID != -1 && foundID < foundLimit;
         if (!valid) break;
+        result = FoundGroupsChains[foundID]; // put here for avoid bug
 
         // validate BVH intersection
         bool nearer = lessEqualF(result.boxDistance, lastRes.predist) && valid;
@@ -298,24 +301,18 @@ void main() {
                 bool overtaken = ls > (result.range.y-result.range.x);
                 if (overtaken) break;
 
-                int triIdx = overtaken ? LONGEST : Leafs[MortonIndices[result.range.x + ls]].pdata.w;//overtaken ? LONGEST : leaf.pdata.w;
-                testIntersection(lastRes, ray.origin.xyz, ray.direct.xyz, triIdx, nearer && valid && !overtaken);
+                int triIdx = overtaken ? LONGEST : Leafs[MortonIndices[result.range.x + ls]].pdata.w;
+                lastRes = testIntersection(lastRes, ray.origin.xyz, ray.direct.xyz, triIdx, nearer && valid && !overtaken);
             }
             foundID = result.nextResult;
-            if (foundID != -1) {
-                result = FoundGroupsChains[foundID];
-            }
         } else 
         if (!synced) { // if not ready, move next
             foundID = valid ? result.nextResult : -1;
-            if (foundID != -1) {
-                result = FoundGroupsChains[foundID];
-            }
         }
     }
 
     // resolve intersection
-    choiceBaked(lastRes, ray.origin.xyz, ray.direct.xyz, int(floor(1.f + hit.vmods.w)));
+    lastRes = choiceBaked(lastRes, ray.origin.xyz, ray.direct.xyz, int(floor(1.f + hit.vmods.w + 0.0001f)));
     LResult res = interpolateMeshData(lastRes);
 
     // resolve intersection
