@@ -194,11 +194,20 @@ int firstActive(){
 #else
 
 #define   LC_IDX (gl_LocalInvocationID.x / gl_SubGroupSizeARB)
-#define LANE_IDX (gl_SubGroupInvocationARB)
+#define LANE_IDX (gl_LocalInvocationID.x % gl_SubGroupSizeARB)
 #define UVEC_BALLOT_WARP uvec2
 
 uvec2 genLtMask(){
-    return unpackUint2x32(gl_SubGroupLtMaskARB);
+    //return unpackUint2x32(gl_SubGroupLtMaskARB);
+
+    if (LANE_IDX >= 64) {
+        return uvec2(0xFFFFFFFF, 0xFFFFFFFF);
+    } else 
+    if (LANE_IDX >= 32) {
+        return uvec2(0xFFFFFFFF, (1 << (LANE_IDX-32))-1);
+    } else {
+        return uvec2((1 << LANE_IDX)-1, 0);
+    }
 }
 
 uint bitCount64(in uvec2 lh) {
