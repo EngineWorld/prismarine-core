@@ -33,6 +33,7 @@ struct TResult {
 uint L = 0;
 SharedVarsData sharedVarsData;
 
+const int foundLimit = 8192 * 8192;
 const int bakedFragments = 8;
 shared int bakedStack[WORK_SIZED][bakedFragments];
 
@@ -264,7 +265,8 @@ void main() {
 
     Hit hit = fetchHitDirect(t);
     int foundID = hit.triangleID;
-    if (foundID == -1) return;
+    bool valid = foundID != -1 && foundID < foundLimit && !overflow;
+    if (!valid) return;
 
     TResult lastRes;
     lastRes.dist = INFINITY;
@@ -276,11 +278,10 @@ void main() {
     sharedVarsData.bakedRange = LONGEST;
     sharedVarsData.bakedStackCount = 0;
     sharedVarsData.bakedRangeIntersection = vec4(INFINITY, 0.f, 0.f, 0.f);
-
-    bool valid = foundID != -1 && !overflow;
+    
     GroupFoundResult result = FoundGroupsChains[foundID];
     for (int i=0;i<2048;i++) {
-        valid = valid && foundID != -1;
+        valid = valid && foundID != -1 && foundID < foundLimit;
         if (!valid) break;
 
         // validate BVH intersection
