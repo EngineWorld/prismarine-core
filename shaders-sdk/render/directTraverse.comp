@@ -262,7 +262,7 @@ void includeLeaf(in vec3 origin, in vec3 direct, in bool validBox, in HlbvhNode 
             bool overtaken = ls > node.pdata.y-node.pdata.w || !isLeaf;
             if (!overtaken) {
                 int triIdx = !overtaken ? Leafs[MortonIndices[node.pdata.w + ls]].pdata.w : LONGEST;
-                testIntersection(lastRes, origin.xyz, direct.xyz, triIdx, isLeaf);
+                testIntersection(lastRes, origin.xyz, direct.xyz, triIdx, isLeaf && !overtaken);
             }
         }
     }
@@ -295,10 +295,8 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     float d = intersectCubeSingle(torig, dirproj, vec4(vec3(0.0f), 1.0f), vec4(1.0f), near, far);
     lastRes.predist = far * dirlen;
 
-    // node indexing
-    int prevLeaf = -1, idx = 0;
-
     // init state
+    int idx = 0;
     HlbvhNode node = Nodes[idx];
     bool validBox = lessF(d, INFINITY) && greaterEqualF(d, 0.0f), skip = false;
     for (int i=0;i<4096;i++) {
