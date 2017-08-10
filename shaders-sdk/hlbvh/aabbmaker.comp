@@ -63,46 +63,29 @@ void main() {
     vec4 tcenter = (triverts[0] + triverts[1] + triverts[2]) * 0.33333333333333f;
     if (length(abs(triverts[0] - tcenter).xyz + abs(triverts[1] - tcenter).xyz + abs(triverts[2] - tcenter).xyz) < 1.e-5) return;
 
-    mat3x4 stack[9];
-    uint split[4];
-    split[0] = 0;
-    stack[0] = triverts;
-
     const uint maxSplits = 0;
     uint countBox = 1;
 
-    for (uint i=0;i<4;i++) {
-        if (i >= countBox) break;
-        
-        mat3x4 current = stack[i];
-        vec4 center = (current[0] + current[1] + current[2]) * 0.33333333333333f;
-        if (split[i] >= maxSplits) {
-            int to = atomicIncAABB(true);
-            mortonIdc.MortoncodesIndices[to] = int(to);
+    mat3x4 current = triverts;
+    bbox bounding = calcTriBox(triverts);
+
+    vec4 center = (current[0] + current[1] + current[2]) * 0.33333333333333f;
+    int to = atomicIncAABB(true);
+    mortonIdc.MortoncodesIndices[to] = int(to);
 
 #ifdef INT64_MORTON
-            mortonBuf.Mortoncodes[to] = MORTONTYPE(encodeMorton3_64(clamp(
-                uvec3(floor(clamp(center.xyz, vec3(0.0f), vec3(0.99999f)) * 2097152.0f)), 
-                uvec3(0), uvec3(0x200000))));
+    mortonBuf.Mortoncodes[to] = MORTONTYPE(encodeMorton3_64(clamp(
+        uvec3(floor(clamp(center.xyz, vec3(0.0f), vec3(0.99999f)) * 2097152.0f)), 
+        uvec3(0), uvec3(0x200000))));
 #else
-            mortonBuf.Mortoncodes[to] = MORTONTYPE(encodeMorton3_64(clamp(
-                uvec3(floor(clamp(center.xyz, vec3(0.0f), vec3(0.99999f)) * 1024.0f)), 
-                uvec3(0), uvec3(0x400))));
+    mortonBuf.Mortoncodes[to] = MORTONTYPE(encodeMorton3_64(clamp(
+        uvec3(floor(clamp(center.xyz, vec3(0.0f), vec3(0.99999f)) * 1024.0f)), 
+        uvec3(0), uvec3(0x400))));
 #endif
 
-            HlbvhNode outLeaf = outLeafsBuf.OutLeafs[to];
-            outLeaf.box = calcTriBox(triverts);
-            outLeaf.pdata.xy = ivec2(to);
-            outLeaf.pdata.zw = ivec2(-1, t);
-            outLeafsBuf.OutLeafs[to] = outLeaf;
-        } else {
-            uint tris = add(countBox, 3);
-            split[tris+0] = split[i]+1;
-            stack[tris+0] = mat3x4(center, current[1], current[2]);
-            split[tris+1] = split[i]+1;
-            stack[tris+1] = mat3x4(current[0], center, current[2]);
-            split[tris+2] = split[i]+1;
-            stack[tris+2] = mat3x4(current[0], current[1], center);
-        }
-    }
+    HlbvhNode outLeaf = outLeafsBuf.OutLeafs[to];
+    outLeaf.box = bounding;
+    outLeaf.pdata.xy = ivec2(to);
+    outLeaf.pdata.zw = ivec2(-1, t);
+    outLeafsBuf.OutLeafs[to] = outLeaf;
 }

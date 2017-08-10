@@ -83,8 +83,8 @@ void main() {
 
                 // unify bounding box
                 bbox bound = nd.box;
-                bound.mn = min(ln.box.mn, rn.box.mn) - 0.00001f;
-                bound.mx = max(ln.box.mx, rn.box.mx) + 0.00001f;
+                bound.mn = min(ln.box.mn, rn.box.mn);
+                bound.mx = max(ln.box.mx, rn.box.mx);
                 nd.box = bound;
 
                 // store if valid
