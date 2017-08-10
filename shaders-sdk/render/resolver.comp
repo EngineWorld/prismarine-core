@@ -35,7 +35,7 @@ struct TResult {
 uint L = 0;
 SharedVarsData sharedVarsData;
 
-const int foundLimit = 4096 * 4096;
+const int foundLimit = 8192 * 8192;
 const int bakedFragments = 8;
 shared int bakedStack[WORK_SIZED][bakedFragments];
 
