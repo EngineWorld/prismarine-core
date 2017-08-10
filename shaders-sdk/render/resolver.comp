@@ -293,10 +293,10 @@ void main() {
         bool nearer = lessEqualF(result.boxDistance, lastRes.predist) && valid;
 
         // synchronized intersection (because is heavy operation)
-        bool synced = nearer || !valid;
-        if (allInvocations(synced)) { // all ready?
-            for (int ls=0;ls<groupSize;ls+=1) 
-            {
+        bool available = nearer || !valid;
+        bool synced = allInvocations(available);
+        if (synced) { // all ready?
+            for (int ls=0;ls<groupSize;ls+=1) {
                 bool overtaken = ls > (result.range.y-result.range.x);
                 if (!overtaken) {
                     int triIdx = overtaken ? LONGEST : Leafs[MortonIndices[result.range.x + ls]].pdata.w;
@@ -305,8 +305,13 @@ void main() {
             }
             foundID = result.nextResult;
         } else 
-        if (!synced) { // if not ready, move next
+        if (!available) { // if not ready, move next
             foundID = valid ? result.nextResult : -1;
+        }
+
+        // next memory request
+        if (!available && !synced || synced) {
+            result = FoundGroupsChains[foundID];
         }
     }
 
