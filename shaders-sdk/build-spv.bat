@@ -90,8 +90,4 @@ call spirv-opt %OPTFLAGS% %OUTDIR%%RDXI%histogram.comp.spv      -o %OUTDIR%%RDXI
 call spirv-opt %OPTFLAGS% %OUTDIR%%RDXI%permute.comp.spv        -o %OUTDIR%%RDXI%permute.comp.spv
 call spirv-opt %OPTFLAGS% %OUTDIR%%RDXI%prefix-scan.comp.spv    -o %OUTDIR%%RDXI%prefix-scan.comp.spv
 
-
-call spirv-dis %OUTDIR%%HLBV%build.comp.spv          -o %OUTDIR%%HLBV%build.comp.spv.txt
-
-
 pause
