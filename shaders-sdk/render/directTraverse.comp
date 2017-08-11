@@ -88,7 +88,8 @@ void reorderTriangles() {
     int cleanBakedStackCount = 0;
 
     // select only unique triangle ID's
-    for (int iround = 0; iround < sharedVarsData.bakedStackCount-1; iround++) {
+    for (int iround = 0; iround < bakedFragments; iround++) {
+        if (iround >= sharedVarsData.bakedStackCount-1) break;
         int next = bakedStack[L][iround+1];
         int prim = bakedStack[L][iround];
         if (next != prim) {
@@ -97,8 +98,11 @@ void reorderTriangles() {
     }
 
     // copy last primitive
-    bakedStack[L][cleanBakedStackCount++] = bakedStack[L][sharedVarsData.bakedStackCount-1];
-    sharedVarsData.bakedStackCount = cleanBakedStackCount; // fir count
+    if (sharedVarsData.bakedStackCount > 0 && cleanBakedStackCount < bakedFragments) {
+        bakedStack[L][cleanBakedStackCount++] = bakedStack[L][sharedVarsData.bakedStackCount-1];
+    }
+    
+    sharedVarsData.bakedStackCount = cleanBakedStackCount;
 }
 
 TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
@@ -256,7 +260,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     for (int i=0;i<bakedFragments;i++) {
         bakedStack[L][i] = -1;
     }
-    
+
     // test constants
     int bakedStep = int(floor(1.f + hit.vmods.w));
     vec3 torig = projectVoxels(origin);
