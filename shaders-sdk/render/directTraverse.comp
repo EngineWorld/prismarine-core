@@ -330,6 +330,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
         } skip = false;
     }
 
+    lastRes.triangleID = LONGEST; // avoid side effect
     choiceBaked(lastRes, origin.xyz, direct.xyz, int(floor(1.f + hit.vmods.w)));
     return lastRes;
 }
