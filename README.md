@@ -7,8 +7,6 @@
 
 ### "Highway" Update (formelly OpenGL 4.6) Mainly Done (06.08.2017)
 
-<img src="logo/highway.png" alt="HighwayUpdate" width="960"/>
-
 - [x] Use compatible library with OpenGL 4.6
 - [x] Change shading language version to **460**
 - [x] OpenGL 4.6 subgroup vote support
@@ -24,8 +22,6 @@
 <summary>Master Update (on development)</summary>
 
 ### "Master" Update (low level API, tweaks) WIP (??.08.2017)
-
-<img src="logo/paper.png" alt="MasterUpdate" width="1024"/>
 
 - [x] (Beta) Fully device memory based storing and copying, when loading mesh (less overhead instancing)
 - [x] (Beta) Divide uploading and current scene state (you can load meshes, while you using in traverse stable state)
@@ -45,8 +41,6 @@
 <summary>Clockwork Update (on development)</summary>
 
 ### "Clockwork" Update (improved BVH system) planned (??.??.2017)
-
-<img src="logo/clockwork.png" alt="ClockworkUpdate" width="960"/>
 
 - [x] (Alpha) Support of 64-bit morton code check-sums
 - [ ] SIMT optimized intersection and traverse stage
