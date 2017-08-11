@@ -157,8 +157,8 @@ void main() {
     if (length(abs(triverts[0] - tcenter).xyz + abs(triverts[1] - tcenter).xyz + abs(triverts[2] - tcenter).xyz) < 1.e-5) return;
 
     uint countBox = 1;
-    bbox bstack[9];
-    uint bsplit[9];
+    bbox bstack[12];
+    uint bsplit[12];
 
     bstack[0] = calcTriBox(triverts);
     bsplit[0] = 0;
