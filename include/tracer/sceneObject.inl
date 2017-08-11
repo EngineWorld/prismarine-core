@@ -177,10 +177,11 @@ namespace ppr {
         if (this->triangleCount <= 0 || !dirty) return;
 
         // copy uploading buffers to BVH
-        glCopyImageSubData(vbo_vertex_textrue_upload, GL_TEXTURE_2D, 0, 0, 0, 0, vbo_vertex_textrue, GL_TEXTURE_2D, 0, 0, 0, 0, 3072, std::min((triangleCount > 0 ? (triangleCount - 1) / 1023 + 1 : 0) + 1, 1024ull), 1);
-        glCopyImageSubData(vbo_normal_textrue_upload, GL_TEXTURE_2D, 0, 0, 0, 0, vbo_normal_textrue, GL_TEXTURE_2D, 0, 0, 0, 0, 3072, std::min((triangleCount > 0 ? (triangleCount - 1) / 1023 + 1 : 0) + 1, 1024ull), 1);
-        glCopyImageSubData(vbo_texcoords_textrue_upload, GL_TEXTURE_2D, 0, 0, 0, 0, vbo_texcoords_textrue, GL_TEXTURE_2D, 0, 0, 0, 0, 3072, std::min((triangleCount > 0 ? (triangleCount - 1) / 1023 + 1 : 0) + 1, 1024ull), 1);
-        glCopyImageSubData(vbo_modifiers_textrue_upload, GL_TEXTURE_2D, 0, 0, 0, 0, vbo_modifiers_textrue, GL_TEXTURE_2D, 0, 0, 0, 0, 3072, std::min((triangleCount > 0 ? (triangleCount - 1) / 1023 + 1 : 0) + 1, 1024ull), 1);
+        size_t height = std::min(triangleCount > 0 ? (triangleCount - 1) / 1023 + 1 : 0, 1023ull) + 1;
+        glCopyImageSubData(vbo_vertex_textrue_upload, GL_TEXTURE_2D, 0, 0, 0, 0, vbo_vertex_textrue, GL_TEXTURE_2D, 0, 0, 0, 0, 3072, height, 1);
+        glCopyImageSubData(vbo_normal_textrue_upload, GL_TEXTURE_2D, 0, 0, 0, 0, vbo_normal_textrue, GL_TEXTURE_2D, 0, 0, 0, 0, 3072, height, 1);
+        glCopyImageSubData(vbo_texcoords_textrue_upload, GL_TEXTURE_2D, 0, 0, 0, 0, vbo_texcoords_textrue, GL_TEXTURE_2D, 0, 0, 0, 0, 3072, height, 1);
+        glCopyImageSubData(vbo_modifiers_textrue_upload, GL_TEXTURE_2D, 0, 0, 0, 0, vbo_modifiers_textrue, GL_TEXTURE_2D, 0, 0, 0, 0, 3072, height, 1);
         glCopyNamedBufferSubData(mat_triangle_ssbo_upload, mat_triangle_ssbo, 0, 0, std::min(uint32_t(this->triangleCount), uint32_t(maxt)) * sizeof(uint32_t));
 
         this->resolve();
