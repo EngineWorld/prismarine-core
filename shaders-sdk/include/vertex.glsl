@@ -43,6 +43,7 @@ ivec2 getUniformCoord(in uint indice){
 }
 
 
+/// LEGACY
 float intersectTriangle4(in vec3 orig, in vec3 dir, in ivec4 tri, inout vec2 UV, inout int triID) {
     UV = vec2(0.f);
     triID = LONGEST;

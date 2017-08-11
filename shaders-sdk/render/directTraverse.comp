@@ -214,38 +214,6 @@ TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tr
     return res;
 }
 
-TResult testIntersection4(inout TResult res, in vec3 orig, in vec3 dir, in ivec4 tri, in bool isValid) {
-    bool validTriangle = isValid;
-
-    if (allInvocations(!validTriangle || all(equal(tri, ivec4(LONGEST))))) {
-        return res;
-    }
-
-    int outTri = LONGEST;
-    vec2 uv = vec2(0.0f);
-    float _d = intersectTriangle4(orig, dir, tri, uv, outTri);
-    bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.predist) && greaterEqualF(_d, 0.0f);
-    bool inbaked = equalF(_d, 0.0f);
-    bool isbaked = equalF(_d, res.predist);
-    bool changed = !isbaked && !inbaked;
-
-    if (near) {
-        if ( changed ) {
-            res.predist = _d;
-            res.triangleID = outTri;
-        }
-        if ( inbaked ) {
-            bakedStack[L][add(sharedVarsData.bakedStackCount, 1)] = outTri;
-        } else 
-        if ( sharedVarsData.bakedRange < outTri || sharedVarsData.bakedRange == LONGEST || changed ) {
-            sharedVarsData.bakedRange = outTri;
-            sharedVarsData.bakedRangeIntersection = vec4(_d, uv, 0.f);
-        }
-    }
-
-    return res;
-}
-
 vec3 projectVoxels(in vec3 orig) {
     return mult4(vec4(orig, 1.0f), GEOMETRY_BLOCK geometryUniform.transform).xyz;
 }
@@ -259,6 +227,7 @@ vec3 unprojectVoxels(in vec3 orig) {
 void includeLeaf(in vec3 origin, in vec3 direct, in bool validBox, in HlbvhNode node, inout TResult lastRes){
     bool isLeaf = node.pdata.x == node.pdata.y && validBox;
     if (anyInvocation(isLeaf)) {
+        
         for (int ls=0;ls<groupSize;ls+=1) {
             bool overtaken = ls > node.pdata.y-node.pdata.w || !isLeaf;
             if (!overtaken) {
