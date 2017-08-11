@@ -1,4 +1,4 @@
-# OpenGL Ray Tracer (aka. "Paper")
+# OpenGL Ray Tracer (aka. "Prismarine")
 
 ## Updates
 
