@@ -606,8 +606,8 @@ int main(const int argc, const char ** argv)
     const double measureSeconds = 2.0;
     const unsigned superSampling = 2;
 
-    int32_t baseWidth = 512;
-    int32_t baseHeight = 512;
+    int32_t baseWidth = 640;
+    int32_t baseHeight = 360;
 
     GLFWwindow* window = glfwCreateWindow(baseWidth, baseHeight, "Simple example", NULL, NULL);
     if (!window) { glfwTerminate(); exit(EXIT_FAILURE); }

@@ -1,5 +1,9 @@
 #pragma once
 
+#include "includes.hpp"
+#include "utils.hpp"
+#include "structs.hpp"
+
 namespace ppr {
 
     class RadixSort {
@@ -70,7 +74,6 @@ namespace ppr {
                 dispatch(prefixScanProgram, 1);
                 dispatch(permuteProgram, WG_COUNT);
                 glCopyNamedBufferSubData(OutKeys, InKeys, 0, 0, strided<uint64_t>(size));
-                //glCopyNamedBufferSubData(OutKeys, InKeys, 0, 0, strided<uint32_t>(size));
                 glCopyNamedBufferSubData(OutValues, InVals, 0, 0, strided<uint32_t>(size));
             }
         }
