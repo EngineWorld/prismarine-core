@@ -61,8 +61,9 @@ vec2 intersectCube(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 cubeMax
     float tNear = max(max(t1.x, t1.y), t1.z);
     float tFar  = min(min(t2.x, t2.y), t2.z);
 #endif
-    bool isCube = lessEqualF(tNear, tFar);
-    return isCube ? vec2(tNear, tFar) : vec2(INFINITY);
+    bool isCube = lessEqualF(tNear, tFar); //&& greaterEqualF(tFar, 0.f);
+    //return isCube ? vec2(greaterEqualF(tNear, 0.f) ? min(tNear, tFar) : max(tNear, tFar)) : vec2(INFINITY);
+    return isCube ? vec2(min(tNear, tFar), max(tNear, tFar)) : vec2(INFINITY);
 }
 
 
@@ -96,27 +97,27 @@ bbox compactBoxByTriangle(in bbox abox, in mat3x4 triverts){
     uint pcount = 0;
 
     if (d0.x < INFINITY) {
-        vec4 p0 = vec4(triverts[0].xyz + e0.xyz * d0.x, 1.0f);
-        vec4 p1 = vec4(triverts[0].xyz + e0.xyz * d0.y, 1.0f);
+        vec4 p0 = vec4(triverts[0].xyz + e0.xyz * sign(d0.x) * min(abs(d0.x), l0), 1.0f);
+        vec4 p1 = vec4(triverts[0].xyz + e0.xyz * sign(d0.y) * min(abs(d0.y), l0), 1.0f);
 
-        if (isContain(p0, abox)) points[pcount++] = p0;
-        if (isContain(p1, abox)) points[pcount++] = p1;
+        if (isContain(p0, abox) && greaterEqualF(d0.x, 0.f)) points[pcount++] = p0;
+        if (isContain(p1, abox) && greaterEqualF(d0.y, 0.f)) points[pcount++] = p1;
     }
 
     if (d1.x < INFINITY) {
-        vec4 p0 = vec4(triverts[1].xyz + e1.xyz * d1.x, 1.0f);
-        vec4 p1 = vec4(triverts[1].xyz + e1.xyz * d1.y, 1.0f);
+        vec4 p0 = vec4(triverts[1].xyz + e1.xyz * sign(d1.x) * min(abs(d1.x), l1), 1.0f);
+        vec4 p1 = vec4(triverts[1].xyz + e1.xyz * sign(d1.y) * min(abs(d1.y), l1), 1.0f);
 
-        if (isContain(p0, abox)) points[pcount++] = p0;
-        if (isContain(p1, abox)) points[pcount++] = p1;
+        if (isContain(p0, abox) && greaterEqualF(d1.x, 0.f)) points[pcount++] = p0;
+        if (isContain(p1, abox) && greaterEqualF(d1.y, 0.f)) points[pcount++] = p1;
     }
 
     if (d2.x < INFINITY) {
-        vec4 p0 = vec4(triverts[2].xyz + e2.xyz * d2.x, 1.0f);
-        vec4 p1 = vec4(triverts[2].xyz + e2.xyz * d2.y, 1.0f);
+        vec4 p0 = vec4(triverts[2].xyz + e2.xyz * sign(d2.x) * min(abs(d2.x), l2), 1.0f);
+        vec4 p1 = vec4(triverts[2].xyz + e2.xyz * sign(d2.y) * min(abs(d2.y), l2), 1.0f);
 
-        if (isContain(p0, abox)) points[pcount++] = p0;
-        if (isContain(p1, abox)) points[pcount++] = p1;
+        if (isContain(p0, abox) && greaterEqualF(d2.x, 0.f)) points[pcount++] = p0;
+        if (isContain(p1, abox) && greaterEqualF(d2.y, 0.f)) points[pcount++] = p1;
     }
 
     bbox result;
