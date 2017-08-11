@@ -326,9 +326,16 @@ namespace PaperExample {
             ppr::VirtualMaterial submat;
 
             // diffuse?
+            
             int32_t texId = getTextureIndex(material.values["baseColorTexture"].json_double_value);
             submat.diffusePart = texId >= 0 ? rtTextures[texId] : 0;
-            submat.diffuse = glm::vec4(1.0f);
+
+            if (material.values["baseColorFactor"].number_array.size() >= 3) {
+                submat.diffuse = glm::vec4(glm::make_vec3(&material.values["baseColorFactor"].number_array[0]), 1.0f);
+            }
+            else {
+                submat.diffuse = glm::vec4(1.0f);
+            }
 
             // metallic roughness
             texId = getTextureIndex(material.values["metallicRoughnessTexture"].json_double_value);
