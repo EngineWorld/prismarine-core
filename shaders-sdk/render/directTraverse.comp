@@ -54,20 +54,17 @@ shared int bakedStack[WORK_SIZE][bakedFragments];
 
 TResult choiceFirstBaked(inout TResult res) {
     int tri = sharedVarsData.bakedRange;
-
     bool validTriangle = tri >= 0 && tri != LONGEST;
-    if (allInvocations(!validTriangle)) return res;
-
-    vec2 uv = sharedVarsData.bakedRangeIntersection.yz;
-    float _d = sharedVarsData.bakedRangeIntersection.x;
-    bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.dist);
-
-    if (near) {
-        res.dist = _d;
-        res.triangleID = tri;
-        res.uv.xy = uv.xy;
+    if (anyInvocation(validTriangle)) {
+        vec2 uv = sharedVarsData.bakedRangeIntersection.yz;
+        float _d = sharedVarsData.bakedRangeIntersection.x;
+        bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.dist);
+        if (near) {
+            res.dist = _d;
+            res.triangleID = tri;
+            res.uv.xy = uv.xy;
+        }
     }
-
     return res;
 }
 
@@ -111,18 +108,18 @@ TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
 
     int tri = tpi < sharedVarsData.bakedStackCount ? bakedStack[L][tpi] : LONGEST;
     bool validTriangle = tri >= 0 && tri != LONGEST;
-    if (allInvocations(!validTriangle)) return res;
 
-    vec2 uv = vec2(0.0f);
-    float _d = intersectTriangle(orig, dir, tri, uv, validTriangle);
-    bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.dist);
-
-    if (near) {
-        res.dist = _d;
-        res.triangleID = tri;
-        res.uv.xy = uv.xy;
+    if (anyInvocation(validTriangle)) {
+        vec2 uv = vec2(0.0f);
+        float _d = intersectTriangle(orig, dir, tri, uv, validTriangle);
+        bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.dist);
+        if (near) {
+            res.dist = _d;
+            res.triangleID = tri;
+            res.uv.xy = uv.xy;
+        }
     }
-    
+
     return res;
 }
 
@@ -190,28 +187,26 @@ TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tr
         tri != LONGEST && 
         tri != res.triangleID;
 
-    if (allInvocations(!validTriangle)) {
-        return res;
-    }
+    if (anyInvocation(validTriangle)) {
+        vec2 uv = vec2(0.0f);
+        float _d = intersectTriangle(orig, dir, tri, uv, validTriangle);
+        bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.predist) && greaterEqualF(_d, 0.0f);
+        bool inbaked = equalF(_d, 0.0f);
+        bool isbaked = equalF(_d, res.predist);
+        bool changed = !isbaked && !inbaked;
 
-    vec2 uv = vec2(0.0f);
-    float _d = intersectTriangle(orig, dir, tri, uv, validTriangle);
-    bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.predist) && greaterEqualF(_d, 0.0f);
-    bool inbaked = equalF(_d, 0.0f);
-    bool isbaked = equalF(_d, res.predist);
-    bool changed = !isbaked && !inbaked;
-
-    if (near) {
-        if ( changed ) {
-            res.predist = _d;
-            res.triangleID = tri;
-        }
-        if ( inbaked ) {
-            bakedStack[L][add(sharedVarsData.bakedStackCount, 1)] = tri;
-        } else 
-        if ( sharedVarsData.bakedRange < tri || sharedVarsData.bakedRange == LONGEST || changed ) {
-            sharedVarsData.bakedRange = tri;
-            sharedVarsData.bakedRangeIntersection = vec4(_d, uv, 0.f);
+        if (near) {
+            if ( changed ) {
+                res.predist = _d;
+                res.triangleID = tri;
+            }
+            if ( inbaked ) {
+                bakedStack[L][add(sharedVarsData.bakedStackCount, 1)] = tri;
+            } else 
+            if ( sharedVarsData.bakedRange < tri || sharedVarsData.bakedRange == LONGEST || changed ) {
+                sharedVarsData.bakedRange = tri;
+                sharedVarsData.bakedRangeIntersection = vec4(_d, uv, 0.f);
+            }
         }
     }
 
@@ -231,18 +226,17 @@ vec3 unprojectVoxels(in vec3 orig) {
 void includeLeaf(in vec3 origin, in vec3 direct, in bool validBox, in HlbvhNode node, inout TResult lastRes){
     bool isLeaf = node.pdata.x == node.pdata.y && validBox;
     if (anyInvocation(isLeaf)) {
-        
         for (int ls=0;ls<groupSize;ls+=1) {
             bool overtaken = ls > node.pdata.y-node.pdata.w || !isLeaf;
-            if (!overtaken) {
-                int triIdx = !overtaken ? Leafs[MortonIndices[node.pdata.w + ls]].pdata.w : LONGEST;
+            if (anyInvocation(!overtaken)) {
+                int triIdx = overtaken ? LONGEST : Leafs[MortonIndices[node.pdata.w + ls]].pdata.w;
                 testIntersection(lastRes, origin.xyz, direct.xyz, triIdx, isLeaf && !overtaken);
             }
         }
     }
 }
 
-TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
+TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit, in bool valid) {
     TResult lastRes;
     lastRes.dist = INFINITY;
     lastRes.predist = INFINITY;
@@ -252,14 +246,10 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     // deferred stack
     deferredPtr = 0;
     deferredStack[L][0] = -1;
-
     sharedVarsData.bakedRange = LONGEST;
     sharedVarsData.bakedStackCount = 0;
     sharedVarsData.bakedRangeIntersection = vec4(INFINITY, 0.f, 0.f, 0.f);
-
-    for (int i=0;i<bakedFragments;i++) {
-        bakedStack[L][i] = -1;
-    }
+    for (int i=0;i<bakedFragments;i++) {bakedStack[L][i] = LONGEST;}
 
     // test constants
     int bakedStep = int(floor(1.f + hit.vmods.w));
@@ -276,12 +266,13 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     // init state
     int idx = 0;
     HlbvhNode node = Nodes[idx];
-    bool validBox = lessF(d, INFINITY) && greaterEqualF(d, 0.0f), skip = false;
+    bool validBox = valid && lessF(d, INFINITY) && greaterEqualF(d, 0.0f);
     for (int i=0;i<4096;i++) {
         if (allInvocations(!validBox)) break;
         if (idx >= 0) node = Nodes[idx];
 
         // choice near box
+        bool skip = false;
         bool notLeaf = node.pdata.x != node.pdata.y && validBox;
         if (anyInvocation(notLeaf)) {
             HlbvhNode lnode = Nodes[node.pdata.x];
@@ -327,11 +318,11 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
             int ptr = --deferredPtr;
             bool valid = ptr >= 0; idx = valid ? atomicExchange(deferredStack[L][ptr], -1) : -1;
             validBox = validBox && valid && idx >= 0;
-        } skip = false;
+        };
     }
 
     lastRes.triangleID = LONGEST; // avoid side effect
-    choiceBaked(lastRes, origin.xyz, direct.xyz, int(floor(1.f + hit.vmods.w)));
+    choiceBaked(lastRes, origin.xyz, direct.xyz, bakedStep);
     return lastRes;
 }
 
@@ -346,10 +337,11 @@ void main() {
 
     int t = activedBuf.indc[it];
     Ray ray = fetchRayDirect(t);
-    if (allInvocations(ray.actived < 1 || overflow)) return;
+    overflow = ray.actived < 1 || overflow;
+    if (allInvocations(overflow)) return;
 
     Hit hit = fetchHitDirect(t);
-    LResult res = interpolateMeshData(traverse(hit.dist, ray.origin.xyz, ray.direct.xyz, hit));
+    LResult res = interpolateMeshData(traverse(hit.dist, ray.origin.xyz, ray.direct.xyz, hit, !overflow));
 
     // resolve intersection
     if (

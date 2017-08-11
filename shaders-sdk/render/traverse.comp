@@ -50,7 +50,7 @@ void includeLeaf(in vec3 torig, in vec3 dirproj, in float dirlen, in bool validB
     }
 }
 
-TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
+TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit, in bool valid) {
     TResult lastRes;
     lastRes.dist = INFINITY;
     lastRes.predist = INFINITY;
@@ -78,7 +78,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
 
     // init state
     HlbvhNode node = Nodes[idx];
-    bool validBox = lessF(d, INFINITY) && greaterEqualF(d, 0.0f), skip = false;
+    bool validBox = valid && lessF(d, INFINITY) && greaterEqualF(d, 0.0f), skip = false;
     for (int i=0;i<8192;i++) {
         if (allInvocations(!validBox)) break;
         if (idx >= 0) node = Nodes[idx];
@@ -147,10 +147,11 @@ void main() {
 
     int t = activedBuf.indc[it];
     Ray ray = fetchRayDirect(t);
-    if (allInvocations(ray.actived < 1 || overflow)) return;
+    overflow = ray.actived < 1 || overflow;
+    if (allInvocations(overflow)) return;
 
     Hit hit = fetchHitDirect(t);
-    TResult res = traverse(hit.dist, ray.origin.xyz, ray.direct.xyz, hit);
+    TResult res = traverse(hit.dist, ray.origin.xyz, ray.direct.xyz, hit, !overflow);
 
     hit.triangleID = res.triangleID;
     if (!overflow) storeHit(t, hit);
