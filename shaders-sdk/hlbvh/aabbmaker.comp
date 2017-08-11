@@ -157,17 +157,17 @@ void main() {
     if (length(abs(triverts[0] - tcenter).xyz + abs(triverts[1] - tcenter).xyz + abs(triverts[2] - tcenter).xyz) < 1.e-5) return;
 
     uint countBox = 1;
-    bbox bstack[4];
-    uint bsplit[4];
+    bbox bstack[9];
+    uint bsplit[9];
 
     bstack[0] = calcTriBox(triverts);
     bsplit[0] = 0;
 
     vec4 factorRange = (bstack[0].mx - bstack[0].mn);
     float maxSplitFactor = dot(factorRange.xyz, vec3(2.0f));
-    uint maxSplits = uint(clamp(int(floor(maxSplitFactor)), 0, 1));
+    uint maxSplits = uint(clamp(int(floor(maxSplitFactor)), 0, 2));
 
-    for (int i=0;i<4;i++) {
+    for (int i=0;i<9;i++) {
         if (i >= countBox) break;
 
         uint splitcnt = bsplit[i];
