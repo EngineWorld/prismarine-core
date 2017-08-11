@@ -22,10 +22,11 @@ ivec2 gatherMosaic(in ivec2 uniformCoord){
 
 vec4 gatherMosaicCompDyn(in sampler2D vertices, in ivec2 mosaicCoord, const uint comp){
     vec4 components = vec4(0.0f);
-    if (comp == 0) components = textureGather(vertices, (vec2(mosaicCoord) + 0.5f) / textureSize(vertices, 0), 0); else 
-    if (comp == 1) components = textureGather(vertices, (vec2(mosaicCoord) + 0.5f) / textureSize(vertices, 0), 1); else 
-    if (comp == 2) components = textureGather(vertices, (vec2(mosaicCoord) + 0.5f) / textureSize(vertices, 0), 2); else 
-    if (comp == 3) components = textureGather(vertices, (vec2(mosaicCoord) + 0.5f) / textureSize(vertices, 0), 3); else 
+    vec2 iTexSize = 1.0f / textureSize(vertices, 0);
+    if (comp == 0) components = textureGather(vertices, (vec2(mosaicCoord) + 0.5f) * iTexSize, 0); else 
+    if (comp == 1) components = textureGather(vertices, (vec2(mosaicCoord) + 0.5f) * iTexSize, 1); else 
+    if (comp == 2) components = textureGather(vertices, (vec2(mosaicCoord) + 0.5f) * iTexSize, 2); else 
+    if (comp == 3) components = textureGather(vertices, (vec2(mosaicCoord) + 0.5f) * iTexSize, 3); else 
     return components;
 }
 
@@ -165,21 +166,22 @@ float intersectTriangle(in vec3 orig, in vec3 dir, in int tri, inout vec2 UV, in
     if (abs(det) <= 0.0f) valid = false;
     if (allInvocations(!valid)) return INFINITY;
     det = max(abs(det), 0.00001f) * sign(det);
+    float invDev = 1.f / det;
 
     // invalidate U
     vec3 tvec = orig - ve[0];
-    float u = dot(tvec, pvec) / det;
+    float u = dot(tvec, pvec) * invDev;
     if (u < 0.f || u > 1.0f) valid = false;
     if (allInvocations(!valid)) return INFINITY;
 
     // invalidate V
     vec3 qvec = cross(tvec, e1);
-    float v = dot(dir, qvec) / det;
+    float v = dot(dir, qvec) * invDev;
     if (v < 0.f || (u+v) > 1.0f) valid = false;
     if (allInvocations(!valid)) return INFINITY;
 
     // resolve T
-    float t = dot(e2, qvec) / det;
+    float t = dot(e2, qvec) * invDev;
     UV.xy = vec2(u, v);
     return (lessF(t, 0.0f) || !valid) ? INFINITY : t;
 }
