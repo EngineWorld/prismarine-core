@@ -68,12 +68,12 @@ namespace ppr {
         mat_triangle_ssbo_upload = allocateBuffer<int32_t>(maxt);
 
         aabbCounter = allocateBuffer<int32_t>(1);
-        bvhnodesBuffer = allocateBuffer<HlbvhNode>(maxt * 4);
-        bvhflagsBuffer = allocateBuffer<uint32_t>(maxt * 4);
-        activeBuffer = allocateBuffer<uint32_t>(maxt * 4);
+        bvhnodesBuffer = allocateBuffer<HlbvhNode>(maxt * 2);
+        bvhflagsBuffer = allocateBuffer<uint32_t>(maxt * 2);
+        activeBuffer = allocateBuffer<uint32_t>(maxt * 2);
         mortonBuffer = allocateBuffer<uint64_t>(maxt * 1);
         mortonBufferIndex = allocateBuffer<uint32_t>(maxt * 1);
-        leafBuffer = allocateBuffer<HlbvhNode>(maxt * 2);
+        leafBuffer = allocateBuffer<HlbvhNode>(maxt * 1);
 
         clearTribuffer();
     }
