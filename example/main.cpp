@@ -323,7 +323,7 @@ namespace PaperExample {
         materialManager->clearSubmats();
         for (int i = 0; i < gltfModel.materials.size(); i++) {
             tinygltf::Material & material = gltfModel.materials[i];
-            ppr::Material submat;
+            ppr::VirtualMaterial submat;
 
             // diffuse?
             int32_t texId = getTextureIndex(material.values["baseColorTexture"].json_double_value);

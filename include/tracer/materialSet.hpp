@@ -2,6 +2,7 @@
 
 #include "includes.hpp"
 #include "utils.hpp"
+#include "structs.hpp"
 #include <map>
 #include <algorithm>
 
@@ -18,13 +19,13 @@ namespace ppr {
 
     public:
 
-        std::vector<Material> submats;
+        std::vector<VirtualMaterial> submats;
         std::vector<uint32_t> textures;
         std::vector<uint32_t> freedomTextures;
         std::map<std::string, uint32_t> texnames;
 
         MaterialSet() {
-			submats = std::vector<Material>(0); // init
+			submats = std::vector<VirtualMaterial>(0); // init
             textures = std::vector<uint32_t>(0);
             textures.push_back(-1);
 
@@ -38,17 +39,17 @@ namespace ppr {
             submats.resize(0);
         }
 
-        size_t addSubmat(const Material * submat) {
+        size_t addSubmat(const VirtualMaterial * submat) {
             size_t idx = submats.size();
             submats.push_back(*submat);
             return idx;
         }
 
-        size_t addSubmat(const Material &submat) {
+        size_t addSubmat(const VirtualMaterial &submat) {
             return this->addSubmat(&submat);
         }
 
-        void setSumbat(const size_t& i, const Material &submat) {
+        void setSumbat(const size_t& i, const VirtualMaterial &submat) {
             if (submats.size() <= i) submats.resize(i+1);
             submats[i] = submat;
         }

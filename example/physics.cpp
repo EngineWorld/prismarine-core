@@ -588,7 +588,7 @@ namespace PaperExample {
 
         // yellow plastic
         {
-            ppr::Material submat;
+            ppr::VirtualMaterial submat;
             submat.diffuse = glm::vec4(1.0f, 0.9f, 0.6f, 1.0f);
             submat.specular = glm::vec4(0.0f, 0.0f, 0.00f, 1.0f);
             submat.emissive = glm::vec4(0.0f);
@@ -597,7 +597,7 @@ namespace PaperExample {
 
         // red platic
         {
-            ppr::Material submat;
+            ppr::VirtualMaterial submat;
             submat.diffuse = glm::vec4(1.0f, 0.6f, 0.6f, 1.0f);
             submat.specular = glm::vec4(0.0f, 0.0f, 0.00f, 1.0f);
             submat.emissive = glm::vec4(0.0f);
@@ -606,7 +606,7 @@ namespace PaperExample {
 
         // blue (slightly purple) plastic
         {
-            ppr::Material submat;
+            ppr::VirtualMaterial submat;
             submat.diffuse = glm::vec4(0.6f, 0.7f, 1.0f, 1.0f);
             submat.specular = glm::vec4(0.0f, 0.0f, 0.00f, 1.0f);
             submat.emissive = glm::vec4(0.0f);
@@ -615,7 +615,7 @@ namespace PaperExample {
 
         // green plastic
         {
-            ppr::Material submat;
+            ppr::VirtualMaterial submat;
             submat.diffuse = glm::vec4(0.6f, 1.0f, 0.6f, 1.0f);
             submat.specular = glm::vec4(0.0f, 0.0f, 0.00f, 1.0f);
             submat.emissive = glm::vec4(0.0f);
@@ -624,7 +624,7 @@ namespace PaperExample {
 
         // fully metallic
         {
-            ppr::Material submat;
+            ppr::VirtualMaterial submat;
             submat.diffuse = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
             submat.specular = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
             submat.emissive = glm::vec4(0.0f);
@@ -633,7 +633,7 @@ namespace PaperExample {
 
         // copper
         {
-            ppr::Material submat;
+            ppr::VirtualMaterial submat;
             submat.diffuse = glm::vec4(1.0f, 0.7f, 0.6f, 1.0f);
             submat.specular = glm::vec4(0.0f, 0.4f, 1.0f, 1.0f);
             submat.emissive = glm::vec4(0.0f);
@@ -642,7 +642,7 @@ namespace PaperExample {
 
         // blue metallic
         {
-            ppr::Material submat;
+            ppr::VirtualMaterial submat;
             submat.diffuse = glm::vec4(0.6f, 0.6f, 1.0f, 1.0f);
             submat.specular = glm::vec4(0.0f, 0.05f, 1.0f, 1.0f);
             submat.emissive = glm::vec4(0.0f);
@@ -651,7 +651,7 @@ namespace PaperExample {
 
         // gold
         {
-            ppr::Material submat;
+            ppr::VirtualMaterial submat;
             submat.diffuse = glm::vec4(1.0f, 0.95f, 0.6f, 1.0f);
             submat.specular = glm::vec4(0.0f, 0.4f, 1.0f, 1.0f);
             submat.emissive = glm::vec4(0.0f);

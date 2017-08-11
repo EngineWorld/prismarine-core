@@ -2,6 +2,7 @@
 
 #include "includes.hpp"
 #include "utils.hpp"
+#include "structs.hpp"
 
 namespace ppr {
 

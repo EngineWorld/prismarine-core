@@ -229,7 +229,7 @@ namespace ppr {
     };
 
 
-    struct Material {
+    struct VirtualMaterial {
         glm::vec4 diffuse = glm::vec4(0.0f);
         glm::vec4 specular = glm::vec4(0.0f);
         glm::vec4 transmission = glm::vec4(0.0f);

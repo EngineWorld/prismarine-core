@@ -19,7 +19,7 @@ namespace ppr {
             vctr[i] = texHandle;
         }
         glNamedBufferData(texturesBuffer, vctr.size() * sizeof(GLuint64), vctr.data(), GL_STATIC_DRAW);
-        glNamedBufferData(mats, strided<Material>(submats.size()), submats.data(), GL_STATIC_DRAW);
+        glNamedBufferData(mats, strided<VirtualMaterial>(submats.size()), submats.data(), GL_STATIC_DRAW);
     }
 
     inline void MaterialSet::bindWithContext(GLuint & prog) {
