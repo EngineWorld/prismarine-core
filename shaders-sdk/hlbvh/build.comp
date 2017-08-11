@@ -47,7 +47,7 @@ int findSplit( int first, int last, uint SIMDThread)
             if (step <= 1) break; 
         }
     }
-    return clamp(split, 0, Range[0]-2);
+    return clamp(split, first, last-1);
 }
 
 shared int lCounter;
