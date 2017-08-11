@@ -46,7 +46,7 @@ namespace ppr {
     }
 
     inline void SceneObject::allocate(const size_t &count) {
-        maxt = count;
+        maxt = count * 2;
 
         vbo_vertex_textrue = allocateTexture2D<GL_RGBA32F>(6144, 1024);
         vbo_normal_textrue = allocateTexture2D<GL_RGBA32F>(6144, 1024);
