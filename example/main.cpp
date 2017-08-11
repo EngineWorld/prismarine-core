@@ -340,7 +340,15 @@ namespace PaperExample {
             // metallic roughness
             texId = getTextureIndex(material.values["metallicRoughnessTexture"].json_double_value);
             submat.specularPart = texId >= 0 ? rtTextures[texId] : 0;
-            submat.specular = glm::vec4(0.0f);
+            submat.specular = glm::vec4(1.0f);
+
+            if (material.values["metallicFactor"].number_array.size() >= 1) {
+                submat.specular.z = material.values["metallicFactor"].number_array[0];
+            }
+
+            if (material.values["roughnessFactor"].number_array.size() >= 1) {
+                submat.specular.y = material.values["roughnessFactor"].number_array[0];
+            }
 
             // emission
             if (material.additionalValues["emissiveFactor"].number_array.size() >= 3) {
