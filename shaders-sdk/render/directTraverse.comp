@@ -253,6 +253,10 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit) {
     sharedVarsData.bakedStackCount = 0;
     sharedVarsData.bakedRangeIntersection = vec4(INFINITY, 0.f, 0.f, 0.f);
 
+    for (int i=0;i<bakedFragments;i++) {
+        bakedStack[L][i] = -1;
+    }
+    
     // test constants
     int bakedStep = int(floor(1.f + hit.vmods.w));
     vec3 torig = projectVoxels(origin);
