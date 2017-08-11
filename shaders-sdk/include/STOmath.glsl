@@ -147,7 +147,7 @@ void intersectCubeApart(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 cu
 #define UVEC_BALLOT_WARP uint
 
 shared uint ballotCache[WORK_SIZE];
-shared uint invocationCache[WORK_SIZE][WARP_SIZE];
+shared uint invocationCache[WORK_SIZE/WARP_SIZE][WARP_SIZE];
 
 uint genLtMask(){
     return (1 << LANE_IDX)-1;
