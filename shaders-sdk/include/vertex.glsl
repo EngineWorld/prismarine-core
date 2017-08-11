@@ -165,8 +165,7 @@ float intersectTriangle(in vec3 orig, in vec3 dir, in int tri, inout vec2 UV, in
     // invalidate culling
     if (abs(det) <= 0.0f) valid = false;
     if (allInvocations(!valid)) return INFINITY;
-    det = max(abs(det), 0.00001f) * sign(det);
-    float invDev = 1.f / det;
+    float invDev = 1.f / (max(abs(det), 0.00001f) * sign(det));
 
     // invalidate U
     vec3 tvec = orig - ve[0];
