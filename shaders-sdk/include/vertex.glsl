@@ -36,11 +36,11 @@ vec4 fetchMosaic(in sampler2D vertices, in ivec2 mosaicCoord, in uint idc){
 }
 
 ivec2 getUniformCoord(in int indice){
-    return ivec2(indice % 1023, indice / 1023);
+    return ivec2(indice % 2047, indice / 2047);
 }
 
 ivec2 getUniformCoord(in uint indice){
-    return ivec2(indice % 1023, indice / 1023);
+    return ivec2(indice % 2047, indice / 2047);
 }
 
 

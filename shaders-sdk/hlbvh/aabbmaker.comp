@@ -175,7 +175,7 @@ void main() {
         vec4 bcenter = (bounding.mn + bounding.mx) * 0.5f;
         vec4 branges = (bounding.mx - bounding.mn);
 
-        if (branges.x >= 0.f && branges.y >= 0.f && branges.z >= 0.f) {
+        if (greaterEqualF(branges.x, 0.f) && greaterEqualF(branges.y, 0.f) && greaterEqualF(branges.z, 0.f)) {
             if (splitcnt >= maxSplits) {
                 int to = atomicIncAABB(true);
 
