@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 3.0)
-set (PROJECT_NAME paper-render)
-set (APPLICATION_NAME paper-render)
+set (PROJECT_NAME prismarine-examples)
+set (APPLICATION_NAME prismarine-gltf)
 
 project (${PROJECT_NAME})
 
@@ -83,6 +83,7 @@ add_definitions(${DEFINES})
 link_directories(${LIB_DIR})
 include_directories(${INCLUDE_LIST})
 file (GLOB RSOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${SOURCES_LIST})
+
 add_executable(${APPLICATION_NAME} example/main.cpp ${RSOURCES})
 target_link_libraries(${APPLICATION_NAME} ${LIBS})
 
@@ -108,9 +109,9 @@ set (LIBS
     BulletSoftBody_RelWithDebugInfo
 )
 
-
-add_executable(${APPLICATION_NAME}-physics example/physics.cpp ${RSOURCES})
-target_link_libraries(${APPLICATION_NAME}-physics ${LIBS})
+set (APPLICATION_NAME prismarine-physics)
+add_executable(${APPLICATION_NAME} example/physics.cpp ${RSOURCES})
+target_link_libraries(${APPLICATION_NAME} ${LIBS})
 
 foreach(source IN LISTS RSOURCES)
     get_filename_component(source_path "${source}" PATH)
