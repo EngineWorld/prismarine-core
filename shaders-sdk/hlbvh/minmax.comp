@@ -58,7 +58,7 @@ void main() {
         sdata[tid] = bboxunion(bound, bboxunion(getMinMaxPrimitive(i), getMinMaxPrimitive(i + gl_WorkGroupSize.x)));
         i += gridSize;
     };
-    barrier(); memoryBarrier(); groupMemoryBarrier();
+    memoryBarrier(); barrier(); 
 
     for (uint ki=(gl_WorkGroupSize.x>>1);ki>=1;ki>>=1) {
         if (tid < ki) {
@@ -67,7 +67,7 @@ void main() {
             sdata[tid] = bboxunion(bound, opbound); 
         }
         if (ki > gl_SubGroupSizeARB) {
-            barrier(); memoryBarrier(); groupMemoryBarrier();
+            memoryBarrier(); barrier(); 
         }
     }
 

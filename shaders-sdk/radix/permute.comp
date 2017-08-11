@@ -47,7 +47,7 @@ void sortBits(inout UVEC64_WARP sort, inout uint sortVal){
         // prefix scan for WARP vector
         uint pscan = prefix_scan(warpKey);
         if (LANE_IDX == 0) warpPScan[LC_IDX] = pscan; // cache by WARP ID
-        barrier(); memoryBarrier(); groupMemoryBarrier();
+        memoryBarrier(); barrier();
 
         // use LANE_IDX as LC_IDX, so we did caching
         if (LC_IDX == 0) {
@@ -58,7 +58,7 @@ void sortBits(inout UVEC64_WARP sort, inout uint sortVal){
                 totals[LANE_IDX] = warpTotal;
             }
         }
-        barrier(); memoryBarrier(); groupMemoryBarrier();
+        memoryBarrier(); barrier();
         
         // use generalized local indexing (incl. warps)
         warpKey += psums[LC_IDX];
@@ -66,11 +66,11 @@ void sortBits(inout UVEC64_WARP sort, inout uint sortVal){
         UVEC_WARP destAddr = cmp ? warpKey : (addr - warpKey + totals[LC_IDX]);
         localSort64 [destAddr] = sort;
         localSortVal[destAddr] = sortVal;
-        barrier(); memoryBarrier(); groupMemoryBarrier();
+        memoryBarrier(); barrier();
 
         sort    = localSort64 [addr];
         sortVal = localSortVal[addr];
-        barrier(); memoryBarrier(); groupMemoryBarrier();
+        memoryBarrier(); barrier();
     }
 }
 
@@ -79,12 +79,12 @@ void main(){
      UVEC_WARP def = 0xFFFFFFFFu;
 
     if (localIdx < RADICES) localHistogramToCarry[localIdx] = Histogram[localIdx * WG_COUNT + WG_IDX];
-    barrier(); memoryBarrier(); groupMemoryBarrier();
+    memoryBarrier(); barrier();
 
     blocks_info blocks = get_blocks_info(NumKeys, WG_IDX);
     UVEC_WARP addr = blocks.offset + localIdx;
     if (LANE_IDX == 0 && LC_IDX == 0) bcount = blocks.count;
-    barrier(); memoryBarrier(); groupMemoryBarrier();
+    memoryBarrier(); barrier();
 
     for ( int i_block=0; i_block < 1024 ; i_block++ ) {
         if (i_block >= bcount) break;
@@ -99,11 +99,11 @@ void main(){
         UVEC_WARP  histKey = key;
         UVEC_WARP localKey = key + (LC_IDX / RADICES) * RADICES;
         if (localIdx < WORK_SIZE) localSort[LANE_IDX] = 0;
-        barrier(); memoryBarrier(); groupMemoryBarrier();
+        memoryBarrier(); barrier();
 
         atomicAdd(localSort[localKey], uint(validAddress));
         UVEC_WARP offset = localHistogramToCarry[k] + localIdx;
-        barrier(); memoryBarrier(); groupMemoryBarrier();
+        memoryBarrier(); barrier();
 
         // Use LANE_IDX as LC_IDX (non-vector mode)
         if (LC_IDX == 0) {
@@ -125,12 +125,12 @@ void main(){
                 localHistogram[LANE_IDX] = warpHistogram;
             }
         }
-        barrier(); memoryBarrier(); groupMemoryBarrier();
+        memoryBarrier(); barrier();
 
         UVEC_WARP outKey = offset - localHistogram[histKey];
         if (validAddress)   KeyOut[outKey] = KEYTYPE(data);
         if (validAddress) ValueOut[outKey] = dataValue;
-        barrier(); memoryBarrier(); groupMemoryBarrier();
+        memoryBarrier(); barrier();
 
         addr += BLOCK_SIZE;
     }
