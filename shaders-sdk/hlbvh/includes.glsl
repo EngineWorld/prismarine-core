@@ -27,3 +27,7 @@ layout ( std430, binding = 5 ) restrict buffer FlagsBlock {
 layout ( std430, binding = 6 ) restrict buffer ActivesBlock {
     int Actives[];
 };
+
+layout ( std430, binding = 7 ) restrict buffer ChildBuffer {
+    int LeafIndices[];
+};

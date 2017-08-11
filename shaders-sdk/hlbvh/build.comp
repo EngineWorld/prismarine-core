@@ -50,12 +50,14 @@ int findSplit( int first, int last, uint SIMDThread)
     return clamp(split, first, last-1);
 }
 
+shared int cCounter;
 shared int lCounter;
 shared int aCounter;
 shared int aRange[2];
 
 initAtomicIncFunction(lCounter, lCounterInc, int);
 initAtomicIncFunction(aCounter, aCounterInc, int);
+initAtomicIncFunction(cCounter, cCounterInc, int);
 
 void main() {
     if (gl_WorkGroupID.x <= 0) {
@@ -63,6 +65,7 @@ void main() {
 
         if (threadID == 0) {
             lCounter = 1;
+            cCounter = 0;
             aRange[0] = 0, aRange[1] = 1, aCounter = 1;
             atomicExchange(Actives[aRange[0]], int(threadID));
 
@@ -76,6 +79,14 @@ void main() {
             Flags[threadID] = 0;
         }
 
+        // set leaf indices to initial
+        uint workSize = min((Range[0] <= 0) ? 0 : ((Range[0] - 1) / int(gl_WorkGroupSize.x) + 1), 8192);
+        for (int i=0;i<workSize;i++) {
+            int trID = int(gl_WorkGroupSize.x) * i + (int(threadID) / 2);
+            atomicExchange(LeafIndices[trID], -1);
+        }
+
+        // construct BVH
         int cntstdr = 0;
         for (int h=0;h<256;h++) { // every level of BVH
             // begin work on splitting
@@ -133,6 +144,8 @@ void main() {
                             ivec2 range = childNode.pdata.xy;
                             childNode.pdata.xy = range.yy; // leaf end (for identify that is leaf)
                             childNode.pdata.w  = range.x;  // leaf index (except morton-code) is primitive
+
+                            atomicExchange(LeafIndices[cCounterInc(true)], hid);
 
                         } else { // add to next works
                             atomicExchange(Actives[aCounterInc(true)], hid);

@@ -26,27 +26,15 @@ void main() {
 
     memoryBarrier(); barrier(); 
     {
-        int n = GEOMETRY_BLOCK geometryUniform.triangleCount*2;
-        int wcount = min(n <= 0 ? 0 : ((n - 1) / int(gl_WorkGroupSize.x) + 1), 50000);
-        for (int w=0;w<wcount;w++) {
-            int globalID = w * int(gl_WorkGroupSize.x) + localID;
-            if (globalID < n && globalID >= 0) { 
-                atomicExchange(Flags[globalID], 0);
-                atomicExchange(Actives[globalID], -1);
-            }
-        }
-    }
-
-    memoryBarrier(); barrier(); 
-    { // initial nodes
         int n = GEOMETRY_BLOCK geometryUniform.triangleCount;
         int wcount = min(n <= 0 ? 0 : ((n - 1) / int(gl_WorkGroupSize.x) + 1), 50000);
         for (int w=0;w<wcount;w++) {
             int globalID = w * int(gl_WorkGroupSize.x) + localID;
             if (globalID < n && globalID >= 0) {
-                HlbvhNode nd = Leafs[globalID];
-                if (nd.pdata.z >= 0 && atomicCompSwap(Flags[nd.pdata.z], 0, 1) == 0) {
-                    atomicExchange(Actives[aCounterInc(true)], nd.pdata.z);
+                int idx = atomicExchange(LeafIndices[globalID], -1);
+                if (idx >= 0) {
+                    atomicExchange(Flags[idx], 0);
+                    atomicExchange(Actives[aCounterInc(true)], idx);
                 }
             }
         }
@@ -72,29 +60,31 @@ void main() {
             if (globalID < n && globalID >= 0) {
                 // get current level node
                 int idx = atomicExchange(Actives[aRange[0]+globalID], -1);
-                HlbvhNode nd = Nodes[idx];
+                if (idx >= 0) {
+                    HlbvhNode nd = Nodes[idx];
 
-                // if parent node is not occupy
-                bool validParent = nd.pdata.z >= 0 && idx >= 0;
-                if (validParent) validParent = atomicCompSwap(Flags[nd.pdata.z], 0, 1) == 1;
+                    // if parent node is not occupy
+                    bool validParent = nd.pdata.z >= 0 && idx >= 0;
+                    if (validParent) validParent = atomicCompSwap(Flags[nd.pdata.z], 0, 1) == 1;
 
-                // defer parent nodes
-                if (validParent) atomicExchange(Actives[aCounterInc( validParent )], nd.pdata.z);
+                    // defer parent nodes
+                    if (validParent) atomicExchange(Actives[aCounterInc( validParent )], nd.pdata.z);
 
-                // process unifying boxes
-                if (nd.pdata.x != nd.pdata.y && idx >= 0) {
-                    // get nodes
-                    HlbvhNode ln = Nodes[nd.pdata.x];
-                    HlbvhNode rn = Nodes[nd.pdata.y];
+                    // process unifying boxes
+                    if (nd.pdata.x != nd.pdata.y && idx >= 0) {
+                        // get nodes
+                        HlbvhNode ln = Nodes[nd.pdata.x];
+                        HlbvhNode rn = Nodes[nd.pdata.y];
 
-                    // unify bounding box
-                    bbox bound = nd.box;
-                    bound.mn = min(ln.box.mn, rn.box.mn);
-                    bound.mx = max(ln.box.mx, rn.box.mx);
-                    nd.box = bound;
+                        // unify bounding box
+                        bbox bound = nd.box;
+                        bound.mn = min(ln.box.mn, rn.box.mn);
+                        bound.mx = max(ln.box.mx, rn.box.mx);
+                        nd.box = bound;
 
-                    // store if valid
-                    Nodes[idx] = nd;
+                        // store if valid
+                        Nodes[idx] = nd;
+                    }
                 }
             }
         }

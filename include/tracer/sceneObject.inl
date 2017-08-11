@@ -74,6 +74,7 @@ namespace ppr {
         mortonBuffer = allocateBuffer<uint64_t>(maxt * 1);
         mortonBufferIndex = allocateBuffer<uint32_t>(maxt * 1);
         leafBuffer = allocateBuffer<HlbvhNode>(maxt * 1);
+        childBuffer = allocateBuffer<HlbvhNode>(maxt * 1);
 
         clearTribuffer();
     }
@@ -237,6 +238,7 @@ namespace ppr {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, bvhnodesBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, bvhflagsBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, activeBuffer);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, childBuffer);
 
         dispatch(buildProgramH, 1);
         dispatch(refitProgramH, 1);
