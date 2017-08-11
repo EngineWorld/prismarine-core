@@ -61,8 +61,7 @@ vec2 intersectCube(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 cubeMax
     float tNear = max(max(t1.x, t1.y), t1.z);
     float tFar  = min(min(t2.x, t2.y), t2.z);
 #endif
-    bool isCube = tFar >= tNear;
-    //return isCube ? min(tFar, tNear) : INFINITY;
+    bool isCube = lessEqualF(tNear, tFar);
     return isCube ? vec2(tNear, tFar) : vec2(0.f);
 }
 
