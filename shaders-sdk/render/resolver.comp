@@ -190,7 +190,7 @@ LResult interpolateMeshData(in TResult hitp) {
 layout ( local_size_x = WORK_SIZED ) in;
 
 TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tri, in bool isValid) {
-    bool validTriangle = isValid && tri >= 0 && tri != LONGEST;
+    bool validTriangle = isValid && tri >= 0 && tri != LONGEST && tri != res.triangleID;
     if (allInvocations(!validTriangle)) { return res; }
 
     vec2 uv = vec2(0.0f);

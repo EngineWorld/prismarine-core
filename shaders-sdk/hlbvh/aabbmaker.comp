@@ -33,7 +33,7 @@ initAtomicIncFunction(counters.aabbCounter[0], atomicIncAABB, int)
 
 bbox calcTriBox(in mat3x4 triverts){
     bbox result;
-    #ifdef ENABLE_AMD_INSTRUCTION_SET
+#ifdef ENABLE_AMD_INSTRUCTION_SET
     result.mn = min3(triverts[0], triverts[1], triverts[2]) - 0.00001f;
     result.mx = max3(triverts[0], triverts[1], triverts[2]) + 0.00001f;
 #else
@@ -43,7 +43,59 @@ bbox calcTriBox(in mat3x4 triverts){
     return result;
 }
 
-const uint maxSplits = 0;
+
+//float intersectCubeSingle(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 cubeMax, inout float near, inout float far);
+
+
+
+vec2 intersectCube(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 cubeMax) {
+    vec3 dr = 1.0f / ray;
+    vec3 tMin = (cubeMin.xyz - origin) * dr;
+    vec3 tMax = (cubeMax.xyz - origin) * dr;
+    vec3 t1 = min(tMin, tMax);
+    vec3 t2 = max(tMin, tMax);
+#ifdef ENABLE_AMD_INSTRUCTION_SET
+    float tNear = max3(t1.x, t1.y, t1.z);
+    float tFar  = min3(t2.x, t2.y, t2.z);
+#else
+    float tNear = max(max(t1.x, t1.y), t1.z);
+    float tFar  = min(min(t2.x, t2.y), t2.z);
+#endif
+    bool isCube = tFar >= tNear;
+    //return isCube ? min(tFar, tNear) : INFINITY;
+    return isCube ? vec2(tNear, tFar) : vec2(0.f);
+}
+
+
+
+bbox compactBoxByTriangle(in bbox abox, in mat3x4 triverts){
+    // triangle vectors
+    vec3 e0 = normalize(triverts[1].xyz - triverts[0].xyz);
+    vec3 e1 = normalize(triverts[2].xyz - triverts[1].xyz);
+    vec3 e2 = normalize(triverts[0].xyz - triverts[2].xyz);
+
+    // box distances
+    vec2 d0 = intersectCube(triverts[0].xyz, e0.xyz, abox.mn, abox.mx);
+    vec2 d1 = intersectCube(triverts[1].xyz, e1.xyz, abox.mn, abox.mx);
+    vec2 d2 = intersectCube(triverts[2].xyz, e2.xyz, abox.mn, abox.mx);
+
+    // backsides
+    vec4 p0 = vec4(triverts[0].xyz + e0.xyz * d0.x, 1.0f);
+    vec4 p1 = vec4(triverts[1].xyz + e1.xyz * d1.x, 1.0f);
+    vec4 p2 = vec4(triverts[2].xyz + e2.xyz * d2.x, 1.0f);
+
+    // frontsides
+    vec4 p3 = vec4(triverts[0].xyz + e0.xyz * d0.y, 1.0f);
+    vec4 p4 = vec4(triverts[1].xyz + e1.xyz * d1.y, 1.0f);
+    vec4 p5 = vec4(triverts[2].xyz + e2.xyz * d2.y, 1.0f);
+
+    // calc compaction bounding
+    bbox result;
+    result.mn = min( min(min(p0, p1), p2), min(min(p3, p4), p5) ) - 0.00001f;
+    result.mx = max( max(max(p0, p1), p2), max(max(p3, p4), p5) ) + 0.00001f;
+    return result;
+}
+
 
 void main() {
     int t = int(gl_GlobalInvocationID.x);
@@ -66,27 +118,64 @@ void main() {
     if (length(abs(triverts[0] - tcenter).xyz + abs(triverts[1] - tcenter).xyz + abs(triverts[2] - tcenter).xyz) < 1.e-5) return;
 
     uint countBox = 1;
+    bbox bstack[4];
+    uint bsplit[4];
 
-    mat3x4 current = triverts;
-    bbox bounding = calcTriBox(triverts);
+    bstack[0] = calcTriBox(triverts);
+    bsplit[0] = 0;
 
-    vec4 center = (current[0] + current[1] + current[2]) * 0.33333333333333f;
-    int to = atomicIncAABB(true);
-    mortonIdc.MortoncodesIndices[to] = int(to);
+    vec4 factorRange = (bstack[0].mx - bstack[0].mn);
+    float maxSplitFactor = dot(factorRange.xyz, vec3(2.0f));
+    uint maxSplits = uint(clamp(int(floor(maxSplitFactor)), 0, 1));
 
+    for (int i=0;i<4;i++) {
+        if (i >= countBox) break;
+
+        uint splitcnt = bsplit[i];
+        bbox bounding = bstack[i];
+        vec4 bcenter = (bounding.mn + bounding.mx) * 0.5f;
+        vec4 branges = (bounding.mx - bounding.mn);
+
+        if (splitcnt >= maxSplits) {
+            int to = atomicIncAABB(true);
+
+            mortonIdc.MortoncodesIndices[to] = int(to);
 #ifdef INT64_MORTON
-    mortonBuf.Mortoncodes[to] = MORTONTYPE(encodeMorton3_64(clamp(
-        uvec3(floor(clamp(center.xyz, vec3(0.0f), vec3(0.99999f)) * 2097152.0f)), 
-        uvec3(0), uvec3(0x1FFFFF))));
+            mortonBuf.Mortoncodes[to] = MORTONTYPE(encodeMorton3_64(clamp(
+                uvec3(floor(clamp(bcenter.xyz, vec3(0.0f), vec3(0.99999f)) * 2097152.0f)), 
+                uvec3(0), uvec3(0x1FFFFF))));
 #else
-    mortonBuf.Mortoncodes[to] = MORTONTYPE(encodeMorton3_64(clamp(
-        uvec3(floor(clamp(center.xyz, vec3(0.0f), vec3(0.99999f)) * 1024.0f)), 
-        uvec3(0), uvec3(0x3FF))));
+            mortonBuf.Mortoncodes[to] = MORTONTYPE(encodeMorton3_64(clamp(
+                uvec3(floor(clamp(bcenter.xyz, vec3(0.0f), vec3(0.99999f)) * 1024.0f)), 
+                uvec3(0), uvec3(0x3FF))));
 #endif
 
-    HlbvhNode outLeaf = outLeafsBuf.OutLeafs[to];
-    outLeaf.box = bounding;
-    outLeaf.pdata.xy = ivec2(to);
-    outLeaf.pdata.zw = ivec2(-1, t);
-    outLeafsBuf.OutLeafs[to] = outLeaf;
+            HlbvhNode outLeaf = outLeafsBuf.OutLeafs[to];
+            outLeaf.box = bounding;
+            outLeaf.pdata.xy = ivec2(to);
+            outLeaf.pdata.zw = ivec2(-1, t);
+            outLeafsBuf.OutLeafs[to] = outLeaf;
+        } else {
+            bbox bleft = bounding, bright = bounding;
+            if (branges.x >= branges.y && branges.x > branges.z) {
+                bleft.mx.x = bright.mn.x = bcenter.x;
+            } else 
+            if (branges.y >= branges.z && branges.y > branges.x) {
+                bleft.mx.y = bright.mn.y = bcenter.y;
+            } else {
+                bleft.mx.z = bright.mn.z = bcenter.z;
+            }
+
+            uint bLeftId = countBox++, bRightId = countBox++;
+            bstack[bLeftId] = compactBoxByTriangle(bleft, triverts);
+            bsplit[bLeftId] = splitcnt+1;
+            bstack[bRightId] = compactBoxByTriangle(bright, triverts);
+            bsplit[bRightId] = splitcnt+1;
+        }
+    }
+
+
+
+
+
 }

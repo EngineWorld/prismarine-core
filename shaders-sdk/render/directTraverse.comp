@@ -183,7 +183,8 @@ TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tr
     bool validTriangle = 
         isValid && 
         tri >= 0 && 
-        tri != LONGEST;
+        tri != LONGEST && 
+        tri != res.triangleID;
 
     if (allInvocations(!validTriangle)) {
         return res;
