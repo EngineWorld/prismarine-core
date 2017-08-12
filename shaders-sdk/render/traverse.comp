@@ -21,6 +21,7 @@ struct TResult {
     int materialID; // legacy
     float predist;
     vec4 uv;
+    vec4 normal;
 };
 
 vec3 projectVoxels(in vec3 orig) {

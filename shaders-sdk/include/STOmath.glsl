@@ -120,7 +120,13 @@ void intersectCubeApart(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 cu
 }
 
 
-
+vec3 bboxNormal(in bbox box, in vec3 hit){
+    vec3 c = (box.mn + box.mx).xyz * 0.5f;
+    vec3 p = hit - c;
+    vec3 d = abs((box.mx - box.mn).xyz * 0.5f);
+    float bias = 1.000001f;
+    return normalize(floor(p / d * bias));
+}
 
 
 

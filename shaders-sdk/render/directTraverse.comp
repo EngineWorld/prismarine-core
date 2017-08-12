@@ -25,6 +25,7 @@ struct TResult {
     int materialID; // legacy
     float predist;
     vec4 uv;
+    vec4 normal;
 };
 
 struct LResult {
@@ -125,11 +126,14 @@ TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
 
 LResult interpolateMeshData(in TResult hitp) {
     LResult res;
-    res.dist = INFINITY;
+    res.dist = hitp.dist;
     res.triangleID = hitp.triangleID;
-    res.materialID = LONGEST;
+    //res.materialID = LONGEST;
+    res.materialID = 0;
     res.predist = hitp.predist; // legacy
     res.uv = hitp.uv; // legacy
+    res.normal = hitp.normal;
+    res.texcoord = vec4(0.f);
 
     int tri = hitp.triangleID;
     if (greaterEqualF(hitp.dist, 0.0f) && lessF(hitp.dist, INFINITY) && tri != LONGEST &&  mats[tri] != LONGEST) {
@@ -163,12 +167,6 @@ LResult interpolateMeshData(in TResult hitp) {
         float f = 1.0f / fma(deltaUV1.x, deltaUV2.y, -deltaUV1.y * deltaUV2.x);
         vec3 tan = fma(deltaPos1, vec3(deltaUV2.y), -deltaPos2 * deltaUV1.y) * f;
 
-        res.dist = hitp.dist;
-        res.triangleID = hitp.triangleID;
-        res.materialID = LONGEST;
-        res.predist = hitp.predist; // legacy
-        res.uv = hitp.uv; // legacy
-        
         res.normal = vec4(normal, 0.0f);
         res.tangent = vec4(normalize(tan - normal * sign(dot(tan, nor))), 0.0f);
         res.texcoord = fma(texcoords[0], vec4(1.0f - uv.x - uv.y), fma(texcoords[1], vec4(uv.x), texcoords[2] * vec4(uv.y)));
@@ -223,9 +221,11 @@ vec3 unprojectVoxels(in vec3 orig) {
 
 #define SGN(v) v = idx
 
-void includeLeaf(in vec3 origin, in vec3 direct, in bool validBox, in HlbvhNode node, inout TResult lastRes){
+void includeLeaf(in vec3 origin, in vec3 direct, in bool validBox, in HlbvhNode node, in vec3 boxHit, inout TResult lastRes){
     bool isLeaf = node.pdata.x == node.pdata.y && validBox;
-    if (anyInvocation(isLeaf)) {
+    //if (anyInvocation(isLeaf)) {
+    if (isLeaf) {
+        
         for (int ls=0;ls<groupSize;ls+=1) {
             bool overtaken = ls > node.pdata.y-node.pdata.w || !isLeaf;
             if (anyInvocation(!overtaken)) {
@@ -233,6 +233,10 @@ void includeLeaf(in vec3 origin, in vec3 direct, in bool validBox, in HlbvhNode 
                 testIntersection(lastRes, origin.xyz, direct.xyz, triIdx, isLeaf && !overtaken);
             }
         }
+
+        // bbox debug
+        //lastRes.normal = mult4(GEOMETRY_BLOCK geometryUniform.transformInv, vec4(bboxNormal(node.box, boxHit), 1.0));
+        //lastRes.predist = distance(origin, unprojectVoxels(boxHit));
     }
 }
 
@@ -242,6 +246,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit, in 
     lastRes.predist = INFINITY;
     lastRes.triangleID = LONGEST;
     lastRes.materialID = LONGEST;
+    lastRes.normal = vec4(0.f);
 
     // deferred stack
     deferredPtr = 0;
@@ -262,7 +267,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit, in 
     // test with root node
     float near = INFINITY, far = INFINITY;
     float d = intersectCubeSingle(torig, dirproj, vec4(vec3(0.0f), 1.0f), vec4(1.0f), near, far);
-    lastRes.predist = far * dirlen;
+    //lastRes.predist = far * dirlen;
 
     // init state
     int idx = 0;
@@ -289,9 +294,10 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit, in 
             bvec2 overlapsGeneral = 
                 and2(bvec2(notLeaf),
                 and2(lessThanEqual(hits, vec2(INFINITY-PZERO)),
+                and2(lessThanEqual(hits * dirlen, vec2(INFINITY-PZERO)),
                 and2(greaterThan(hits, -vec2(PZERO)),
                 lessThan(nears * dirlen, vec2(lastRes.predist+PZERO))
-            )));
+            ))));
 
             bvec2 overlaps = and2(overlapsGeneral, bvec2(lnode.pdata.x != lnode.pdata.y, rnode.pdata.x != rnode.pdata.y));
             bool anyOverlap = any(overlaps);
@@ -312,8 +318,8 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit, in 
             // because traverse stack is limited, we does not including leafs to this stack
             bool leafOrder = lessEqualF(hits.x, hits.y);
             overlapsGeneral = leafOrder ? overlapsGeneral : overlapsGeneral.yx;
-            includeLeaf(origin, direct, validBox && overlapsGeneral.x && lessEqualF(leafOrder ? nears.x : nears.y, lastRes.predist), leafOrder ? lnode : rnode, lastRes);
-            includeLeaf(origin, direct, validBox && overlapsGeneral.y && lessEqualF(leafOrder ? nears.y : nears.x, lastRes.predist), leafOrder ? rnode : lnode, lastRes);
+            includeLeaf(origin, direct, validBox && overlapsGeneral.x && lessEqualF(leafOrder ? nears.x : nears.y, lastRes.predist), leafOrder ? lnode : rnode, dirproj * (leafOrder ? hits.x : hits.y) + torig, lastRes);
+            includeLeaf(origin, direct, validBox && overlapsGeneral.y && lessEqualF(leafOrder ? nears.y : nears.x, lastRes.predist), leafOrder ? rnode : lnode, dirproj * (leafOrder ? hits.y : hits.x) + torig, lastRes);
         }
 
         // go to parent 
@@ -325,6 +331,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit, in 
     }
 
     lastRes.triangleID = LONGEST; // avoid side effect
+    lastRes.dist = lastRes.predist; // debug
     choiceBaked(lastRes, origin.xyz, direct.xyz, bakedStep);
     return lastRes;
 }
