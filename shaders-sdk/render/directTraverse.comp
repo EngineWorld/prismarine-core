@@ -256,7 +256,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit, in 
     vec3 torig = projectVoxels(origin);
     vec3 tdirproj = mult4(GEOMETRY_BLOCK geometryUniform.transform, vec4(direct, 1.0)).xyz;
     //vec3 tdirproj = mult4(vec4(direct, 0.0), GEOMETRY_BLOCK geometryUniform.transform).xyz;
-    float dirlen = 1.0f / length(tdirproj);
+    float dirlen = length(direct) / length(tdirproj);
     vec3 dirproj = normalize(tdirproj);
 
     // test with root node
