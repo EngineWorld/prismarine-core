@@ -250,6 +250,39 @@ int firstActive(){
     return (lv >= 0 ? lv : (32+findLSB(bits.y)));
 }
 
+
+
+
+
+// bit logic
+const int bx = 1, by = 2, bz = 4, bw = 8;
+const int bswiz[8] = {1, 2, 4, 8, 16, 32, 64, 128};
+
+int cB(in bool a, in int swizzle){
+    return a ? swizzle : 0;
+}
+
+int cB2(in bvec2 a){
+    return 
+        (a.x ? bx : 0) | 
+        (a.y ? by : 0);
+}
+
+bvec2 cI2(in int a){
+    return bvec2(
+        (a & bx) > 0, 
+        (a & by) > 0
+    );
+}
+
+bool anyB(in int a){
+    return a > 0;
+}
+
+bool allB2(in int a){
+    return a == 3;
+}
+
 #endif
 
 #define initAtomicIncFunction(mem, fname, T)\

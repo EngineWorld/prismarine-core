@@ -296,18 +296,13 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit, in 
                 intersectCubeSingle(torig, dirproj, rnode.box.mn, rnode.box.mx, nears.y, fars.y)
             );
 
-            bvec2 overlapsGeneral = 
-                and2(bvec2(notLeaf), 
-                and2(lessThanEqual(hits, vec2(INFINITY-PZERO)), 
-                and2(greaterThan(hits, -vec2(PZERO)), 
-                lessThanEqual(nears, vec2(lastRes.predist+PZERO) * dirlen)
-            )));
+            int overlapsGeneral = (notLeaf ? 3 : 0) & cB2(lessThanEqual(hits, vec2(INFINITY-PZERO))) & cB2(greaterThan(hits, -vec2(PZERO))) & cB2(lessThanEqual(nears, vec2(lastRes.predist+PZERO) * dirlen));
+            int overlaps = overlapsGeneral & cB2(bvec2(lnode.pdata.x != lnode.pdata.y, rnode.pdata.x != rnode.pdata.y));
 
-            bvec2 overlaps = and2(overlapsGeneral, bvec2(lnode.pdata.x != lnode.pdata.y, rnode.pdata.x != rnode.pdata.y));
-            bool anyOverlap = any(overlaps);
+            bool anyOverlap = anyB(overlaps);
             if (anyInvocation(anyOverlap)) {
-                bool leftOrder = all(overlaps) ? lessEqualF(nears.x, nears.y) : overlaps.x;
-                ivec2 leftright = mix(ivec2(-1), node.pdata.xy, overlaps);
+                bool leftOrder = allB2(overlaps) ? lessEqualF(nears.x, nears.y) : ((overlaps.x & bx) > 0);
+                ivec2 leftright = mix(ivec2(-1), node.pdata.xy, cI2(overlaps));
                 leftright = leftOrder ? leftright : leftright.yx;
                 if (anyOverlap) {
                     if (deferredPtr < STACK_SIZE && leftright.y != -1 && leftright.x != leftright.y) {
@@ -319,13 +314,14 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit, in 
             }
 
             // because traverse stack is limited, we does not including leafs to this stack
-            if (anyInvocation(any(overlapsGeneral))) {
+            if (anyInvocation(anyB(overlapsGeneral))) {
                 bool leafOrder = lessEqualF(nears.x, nears.y);
-                overlapsGeneral = leafOrder ? overlapsGeneral : overlapsGeneral.yx;
+                bvec2 overlaps = cI2(overlapsGeneral);
+                overlaps = leafOrder ? overlaps : overlaps.yx;
                 nears = leafOrder ? nears : nears.yx;
                 hits = leafOrder ? hits : hits.yx;
-                includeLeaf(origin, direct, validBox && overlapsGeneral.x && lessEqualF(nears.x, lastRes.predist), leafOrder ? lnode : rnode, dirproj * hits.x + torig, lastRes);
-                includeLeaf(origin, direct, validBox && overlapsGeneral.y && lessEqualF(nears.y, lastRes.predist), leafOrder ? rnode : lnode, dirproj * hits.y + torig, lastRes);
+                includeLeaf(origin, direct, validBox && overlaps.x && lessEqualF(nears.x, lastRes.predist), leafOrder ? lnode : rnode, dirproj * hits.x + torig, lastRes);
+                includeLeaf(origin, direct, validBox && overlaps.y && lessEqualF(nears.y, lastRes.predist), leafOrder ? rnode : lnode, dirproj * hits.y + torig, lastRes);
             }
         }
 
