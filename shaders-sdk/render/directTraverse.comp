@@ -267,23 +267,32 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit, in 
     int idx = 0;
     bool validBox = valid && lessF(d, INFINITY) && greaterEqualF(d, 0.0f);
     for (int i=0;i<1024;i++) {
-        if (allInvocations(!validBox)) break;
+        //if (allInvocations(!validBox)) break;
+        if (!validBox) break;
         HlbvhNode node = Nodes[idx];
 
         // choice near box
         bool skip = false;
         bool notLeaf = node.pdata.x != node.pdata.y && validBox;
-        if (anyInvocation(notLeaf)) {
+        //if (anyInvocation(notLeaf)) {
+        if (notLeaf) {
             HlbvhNode lnode = Nodes[node.pdata.x];
             HlbvhNode rnode = Nodes[node.pdata.y];
 
+            vec2 inf2 = vec2(INFINITY), nears = inf2, fars = inf2;
+            vec2 hits = vec2(
+                intersectCubeSingle(torig, dirproj, lnode.box.mn, lnode.box.mx, nears.x, fars.x),
+                intersectCubeSingle(torig, dirproj, rnode.box.mn, rnode.box.mx, nears.y, fars.y)
+            );
+
+            /*
             vec2 inf2 = vec2(INFINITY), nearsLR = inf2, farsLR = inf2;
             intersectCubeApart(torig, dirproj, lnode.box.mn, lnode.box.mx, nearsLR.x, farsLR.x);
             intersectCubeApart(torig, dirproj, rnode.box.mn, rnode.box.mx, nearsLR.y, farsLR.y);
 
             bvec2 isCube = and2(greaterThanEqual(farsLR, nearsLR), greaterThanEqual(farsLR, vec2(0.0f)));
             vec2 nears = mix(inf2, nearsLR, isCube), fars = mix(inf2, farsLR, isCube), hits = mix(nears, fars, lessThan(nears, vec2(0.0f)));
-            //nears += 0.1f;
+            */
 
             bvec2 overlapsGeneral = 
                 and2(bvec2(notLeaf), 
@@ -294,7 +303,8 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit, in 
 
             bvec2 overlaps = and2(overlapsGeneral, bvec2(lnode.pdata.x != lnode.pdata.y, rnode.pdata.x != rnode.pdata.y));
             bool anyOverlap = any(overlaps);
-            if (anyInvocation(anyOverlap)) {
+            //if (anyInvocation(anyOverlap)) {
+            if (anyOverlap) {
                 bool leftOrder = all(overlaps) ? lessEqualF(hits.x, hits.y) : overlaps.x;
                 ivec2 leftright = mix(ivec2(-1), node.pdata.xy, overlaps);
                 leftright = leftOrder ? leftright : leftright.yx;
