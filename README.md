@@ -2,7 +2,7 @@
 
 <img src="screenshots/title.jpg" alt="SM0" width="640"/>
 
-<sup>Real-time rendered with 4 fps. More than 2 million polygon is there.</sup>
+<sup>Real-time rendered with 4 fps. More than 1 million polygon is there.</sup>
 
 ## Updates
 
