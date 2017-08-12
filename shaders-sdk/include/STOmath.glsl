@@ -66,12 +66,14 @@ void mixed(inout vec3 src, inout vec3 dst, in vec3 coef){ dst *= coef; src *= 1.
 
 
 // matrix math
-vec4 mult4(in vec4 vec, in mat4 mat){
-    return vec4(dot(mat[0], vec), dot(mat[1], vec), dot(mat[2], vec), dot(mat[3], vec));
+vec4 mult4(in vec4 vec, in mat4 tmat){
+    //return vec4(dot(tmat[0], vec), dot(tmat[1], vec), dot(tmat[2], vec), dot(tmat[3], vec));
+    return vec * tmat;
 }
 
 vec4 mult4(in mat4 tmat, in vec4 vec){
-    return fma(tmat[0], vec.xxxx, fma(tmat[1], vec.yyyy, fma(tmat[2], vec.zzzz, tmat[3] * vec.wwww)));
+    //return fma(tmat[0], vec.xxxx, fma(tmat[1], vec.yyyy, fma(tmat[2], vec.zzzz, tmat[3] * vec.wwww)));
+    return tmat * vec;
 }
 
 
