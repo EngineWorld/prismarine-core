@@ -104,20 +104,23 @@ void reorderTriangles() {
 }
 
 TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
-    choiceFirstBaked(res);
-    reorderTriangles();
+    bool haveBaked = tpi < sharedVarsData.bakedStackCount;
+    if (!haveBaked) choiceFirstBaked(res);
+    
+    if (anyInvocation(haveBaked)) {
+        reorderTriangles();
 
-    int tri = tpi < sharedVarsData.bakedStackCount ? bakedStack[L][tpi] : LONGEST;
-    bool validTriangle = tri >= 0 && tri != LONGEST;
-
-    if (anyInvocation(validTriangle)) {
-        vec2 uv = vec2(0.0f);
-        float _d = intersectTriangle(orig, dir, tri, uv, validTriangle);
-        bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.dist);
-        if (near) {
-            res.dist = _d;
-            res.triangleID = tri;
-            res.uv.xy = uv.xy;
+        int tri = haveBaked ? bakedStack[L][tpi] : LONGEST;
+        bool validTriangle = tri >= 0 && tri != LONGEST;
+        if (anyInvocation(validTriangle)) {
+            vec2 uv = vec2(0.0f);
+            float _d = intersectTriangle(orig, dir, tri, uv, validTriangle);
+            bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.dist);
+            if (near) {
+                res.dist = _d;
+                res.triangleID = tri;
+                res.uv.xy = uv.xy;
+            }
         }
     }
 

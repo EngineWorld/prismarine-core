@@ -174,7 +174,7 @@ void main() {
 
         uint splitcnt = bsplit[i];
         bbox bounding = bstack[i];
-        vec4 bcenter = (bounding.mn + bounding.mx) * 0.5f;
+        vec4 bcenter = maxSplits <= 0 ? (triverts[0] + triverts[1] + triverts[2]) * 0.333333333f : (bounding.mn + bounding.mx) * 0.5f;
         vec4 branges = (bounding.mx - bounding.mn);
 
         if (greaterEqualF(branges.x, 0.f) && greaterEqualF(branges.y, 0.f) && greaterEqualF(branges.z, 0.f)) {
