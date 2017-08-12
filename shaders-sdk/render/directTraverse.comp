@@ -319,12 +319,14 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit, in 
             }
 
             // because traverse stack is limited, we does not including leafs to this stack
-            bool leafOrder = lessEqualF(nears.x, nears.y);
-            overlapsGeneral = leafOrder ? overlapsGeneral : overlapsGeneral.yx;
-            nears = leafOrder ? nears : nears.yx;
-            hits = leafOrder ? hits : hits.yx;
-            includeLeaf(origin, direct, validBox && overlapsGeneral.x && lessEqualF(nears.x, lastRes.predist), leafOrder ? lnode : rnode, dirproj * hits.x + torig, lastRes);
-            includeLeaf(origin, direct, validBox && overlapsGeneral.y && lessEqualF(nears.y, lastRes.predist), leafOrder ? rnode : lnode, dirproj * hits.y + torig, lastRes);
+            if (anyInvocation(any(overlapsGeneral))) {
+                bool leafOrder = lessEqualF(nears.x, nears.y);
+                overlapsGeneral = leafOrder ? overlapsGeneral : overlapsGeneral.yx;
+                nears = leafOrder ? nears : nears.yx;
+                hits = leafOrder ? hits : hits.yx;
+                includeLeaf(origin, direct, validBox && overlapsGeneral.x && lessEqualF(nears.x, lastRes.predist), leafOrder ? lnode : rnode, dirproj * hits.x + torig, lastRes);
+                includeLeaf(origin, direct, validBox && overlapsGeneral.y && lessEqualF(nears.y, lastRes.predist), leafOrder ? rnode : lnode, dirproj * hits.y + torig, lastRes);
+            }
         }
 
         // go to parent 
