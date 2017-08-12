@@ -286,15 +286,6 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit, in 
                 intersectCubeSingle(torig, dirproj, rnode.box.mn, rnode.box.mx, nears.y, fars.y)
             );
 
-            /*
-            vec2 inf2 = vec2(INFINITY), nearsLR = inf2, farsLR = inf2;
-            intersectCubeApart(torig, dirproj, lnode.box.mn, lnode.box.mx, nearsLR.x, farsLR.x);
-            intersectCubeApart(torig, dirproj, rnode.box.mn, rnode.box.mx, nearsLR.y, farsLR.y);
-
-            bvec2 isCube = and2(greaterThanEqual(farsLR, nearsLR), greaterThanEqual(farsLR, vec2(0.0f)));
-            vec2 nears = mix(inf2, nearsLR, isCube), fars = mix(inf2, farsLR, isCube), hits = mix(nears, fars, lessThan(nears, vec2(0.0f)));
-            */
-
             bvec2 overlapsGeneral = 
                 and2(bvec2(notLeaf), 
                 and2(lessThanEqual(hits, vec2(INFINITY-PZERO)),
