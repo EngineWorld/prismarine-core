@@ -135,7 +135,7 @@ bbox compactBoxByTriangle(in bbox abox, in mat3x4 triverts){
     return result;
 }
 
-const int splitLimit = 0;
+const int splitLimit = 1;
 const int splitLimitStack = (1 << (splitLimit+1))-1;
 
 void main() {
