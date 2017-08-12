@@ -312,10 +312,10 @@ namespace PaperExample {
 
     // possible rigid bodies
     std::string rigidMeshTypeList[4] = {
-        "sphere.obj",
-        "cow.obj", 
-        "rbox.obj",
-        "box.obj" // wall
+        "toys/sphere.obj",
+        "toys/cow.obj", 
+        "toys/rbox.obj",
+        "toys/box.obj" // wall
     };
 
     uint32_t activeShapes[2] = {
