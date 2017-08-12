@@ -263,9 +263,8 @@ int cB(in bool a, in int swizzle){
 }
 
 int cB2(in bvec2 a){
-    return 
-        (a.x ? bx : 0) | 
-        (a.y ? by : 0);
+    ivec2 mx = mix(ivec2(0), ivec2(bx, by), a);
+    return (mx.x | mx.y);
 }
 
 bvec2 cI2(in int a){
