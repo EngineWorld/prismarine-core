@@ -123,7 +123,7 @@ void main() {
     vec3 surfacenormal = normal;
     vec3 tan = normalize(hit.tangent.xyz);
     mat3 tbn = mat3(tan, normalize(cross(normal, tan)), normal);
-    //normal = normalize(tbn * normalize(surface.normal));
+    normal = normalize(tbn * normalize(surface.normal));
     normal = faceforward(normal, dir, normal);
 
 
