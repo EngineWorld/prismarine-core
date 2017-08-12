@@ -267,7 +267,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit, in 
     // test with root node
     float near = INFINITY, far = INFINITY;
     float d = intersectCubeSingle(torig, dirproj, vec4(vec3(0.0f), 1.0f), vec4(1.0f), near, far);
-    //lastRes.predist = far * dirlen;
+    lastRes.predist = far * dirlen;
 
     // init state
     int idx = 0;
@@ -331,7 +331,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit, in 
     }
 
     lastRes.triangleID = LONGEST; // avoid side effect
-    lastRes.dist = lastRes.predist; // debug
+    //lastRes.dist = lastRes.predist; // debug
     choiceBaked(lastRes, origin.xyz, direct.xyz, bakedStep);
     return lastRes;
 }
