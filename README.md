@@ -1,5 +1,7 @@
 # OpenGL Ray Tracer (aka. "Prismarine")
 
+<img src="screenshots/title.jpg" alt="SM0" width="640"/>
+
 ## Updates
 
 <details>
