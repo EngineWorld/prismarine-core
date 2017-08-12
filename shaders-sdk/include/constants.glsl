@@ -60,7 +60,7 @@
 
 
 // System Constants
-#define PZERO 0.00021f
+#define PZERO 0.00022f
 #define COMPATIBLE_PRECISION 8388608.0
 
 // Compute Shaders Definitions
