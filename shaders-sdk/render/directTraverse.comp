@@ -303,7 +303,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit, in 
             bool anyOverlap = any(overlaps);
             //if (anyInvocation(anyOverlap)) {
             if (anyOverlap) {
-                bool leftOrder = all(overlaps) ? lessEqualF(hits.x, hits.y) : overlaps.x;
+                bool leftOrder = all(overlaps) ? lessEqualF(nears.x, nears.y) : overlaps.x;
                 ivec2 leftright = mix(ivec2(-1), node.pdata.xy, overlaps);
                 leftright = leftOrder ? leftright : leftright.yx;
                 if (anyOverlap) {
@@ -316,7 +316,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit, in 
             }
 
             // because traverse stack is limited, we does not including leafs to this stack
-            bool leafOrder = lessEqualF(hits.x, hits.y);
+            bool leafOrder = lessEqualF(nears.x, nears.y);
             overlapsGeneral = leafOrder ? overlapsGeneral : overlapsGeneral.yx;
             includeLeaf(origin, direct, validBox && overlapsGeneral.x && lessEqualF(leafOrder ? nears.x : nears.y, lastRes.predist), leafOrder ? lnode : rnode, dirproj * (leafOrder ? hits.x : hits.y) + torig, lastRes);
             includeLeaf(origin, direct, validBox && overlapsGeneral.y && lessEqualF(leafOrder ? nears.y : nears.x, lastRes.predist), leafOrder ? rnode : lnode, dirproj * (leafOrder ? hits.y : hits.x) + torig, lastRes);
