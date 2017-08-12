@@ -105,7 +105,7 @@ float intersectCubeSingle(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 
     bool isCube = tFar >= tNear && greaterEqualF(tFar, 0.0f);
     near = isCube ? tNear : INFINITY;
     far  = isCube ? tFar  : INFINITY;
-    return isCube ? (lessF(tNear, 0.0f) ? tFar : tNear) : INFINITY;
+    return (isCube ? (lessF(tNear, 0.0f) ? tFar : tNear) : INFINITY);
 }
 
 void intersectCubeApart(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 cubeMax, inout float near, inout float far) {
