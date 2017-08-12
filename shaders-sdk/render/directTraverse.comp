@@ -259,32 +259,34 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit, in 
     sharedVarsData.bakedRangeIntersection = vec4(INFINITY, 0.f, 0.f, 0.f);
     for (int i=0;i<bakedFragments;i++) {bakedStack[L][i] = LONGEST;}
 
+    // something fix
+    direct = normalize(direct);
+
     // test constants
     int bakedStep = int(floor(1.f + hit.vmods.w));
     vec3 torig = projectVoxels(origin);
-    vec3 tdirproj = mult4(GEOMETRY_BLOCK geometryUniform.transform, vec4(direct, 1.0)).xyz;
-    //vec3 tdirproj = mult4(vec4(direct, 0.0), GEOMETRY_BLOCK geometryUniform.transform).xyz;
-    float dirlen = length(direct) / length(tdirproj);
+    //vec3 tdirproj = mult4(GEOMETRY_BLOCK geometryUniform.transform, vec4(direct, 1.0)).xyz;
+    vec3 tdirproj = mult4(vec4(direct, 0.0), GEOMETRY_BLOCK geometryUniform.transform).xyz;
+    float dirlen = length(tdirproj) / max(length(direct), 0.000001f);
+    float dirlenInv = 1.f / max(dirlen, 0.000001f);
     vec3 dirproj = normalize(tdirproj);
 
     // test with root node
     float near = INFINITY, far = INFINITY;
-    float d = intersectCubeSingle(torig, dirproj, vec4(vec3(0.0f), 1.0f), vec4(1.0f), near, far);
-    lastRes.predist = far * dirlen;
+    float d = intersectCubeSingle(torig, dirproj, vec4(vec3(0.f), 1.0f), vec4(vec3(1.f), 1.0f), near, far);
+    lastRes.predist = min(hit.dist, far * dirlenInv);
 
     // init state
     int idx = 0;
-    bool validBox = valid && lessF(d, INFINITY) && lessF(d * dirlen, INFINITY) && greaterEqualF(d, 0.0f);
+    bool validBox = valid && lessF(d, INFINITY) && lessF(d * dirlenInv, INFINITY) && greaterEqualF(d, 0.0f);
     for (int i=0;i<16384;i++) {
-        //if (allInvocations(!validBox)) break;
-        if (!validBox) break;
+        if (allInvocations(!validBox)) break;
         HlbvhNode node = Nodes[idx];
 
         // choice near box
         bool skip = false;
         bool notLeaf = node.pdata.x != node.pdata.y && validBox;
-        //if (anyInvocation(notLeaf)) {
-        if (notLeaf) {
+        if (anyInvocation(notLeaf)) {
             HlbvhNode lnode = Nodes[node.pdata.x];
             HlbvhNode rnode = Nodes[node.pdata.y];
 
@@ -295,17 +297,15 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit, in 
             );
 
             bvec2 overlapsGeneral = 
-                and2(bvec2(notLeaf),
-                and2(lessThanEqual(hits, vec2(INFINITY-PZERO)),
-                and2(lessThanEqual(hits * dirlen, vec2(INFINITY-PZERO)),
-                and2(greaterThan(hits, -vec2(PZERO)),
-                lessThan(nears * dirlen, vec2(lastRes.predist+PZERO))
-            ))));
+                and2(bvec2(notLeaf), 
+                and2(lessThanEqual(hits, vec2(INFINITY-PZERO)), 
+                and2(greaterThan(hits, -vec2(PZERO)), 
+                lessThanEqual(nears, vec2(lastRes.predist+PZERO) * dirlen)
+            )));
 
             bvec2 overlaps = and2(overlapsGeneral, bvec2(lnode.pdata.x != lnode.pdata.y, rnode.pdata.x != rnode.pdata.y));
             bool anyOverlap = any(overlaps);
-            //if (anyInvocation(anyOverlap)) {
-            if (anyOverlap) {
+            if (anyInvocation(anyOverlap)) {
                 bool leftOrder = all(overlaps) ? lessEqualF(nears.x, nears.y) : overlaps.x;
                 ivec2 leftright = mix(ivec2(-1), node.pdata.xy, overlaps);
                 leftright = leftOrder ? leftright : leftright.yx;

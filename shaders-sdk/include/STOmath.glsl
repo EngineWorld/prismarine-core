@@ -97,7 +97,7 @@ float intersectCubeSingle(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 
     float tNear = max(max(t1.x, t1.y), t1.z);
     float tFar  = min(min(t2.x, t2.y), t2.z);
 #endif
-    bool isCube = tFar >= tNear && greaterEqualF(tFar, 0.0f);
+    bool isCube = greaterEqualF(tFar, tNear) && greaterEqualF(tFar, 0.0f);
     float inf = INFINITY;
     near = isCube ? min(tNear, tFar) : inf;
     far  = isCube ? max(tNear, tFar) : inf;
