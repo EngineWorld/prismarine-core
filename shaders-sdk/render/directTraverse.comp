@@ -254,8 +254,8 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit, in 
     // test constants
     int bakedStep = int(floor(1.f + hit.vmods.w));
     vec3 torig = projectVoxels(origin);
-    vec3 tdirproj = mult4(GEOMETRY_BLOCK geometryUniform.transform, vec4(direct, 1.0)).xyz;
-    //vec3 tdirproj = mult4(vec4(direct, 0.0), GEOMETRY_BLOCK geometryUniform.transform).xyz;
+    //vec3 tdirproj = mult4(GEOMETRY_BLOCK geometryUniform.transform, vec4(direct, 1.0)).xyz;
+    vec3 tdirproj = mult4(vec4(direct, 0.0), GEOMETRY_BLOCK geometryUniform.transform).xyz;
     float dirlen = 1.0f / length(tdirproj);
     vec3 dirproj = normalize(tdirproj);
 
@@ -266,7 +266,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit, in 
 
     // init state
     int idx = 0;
-    bool validBox = valid && lessF(d * dirlen, INFINITY) && lessF(d, INFINITY) && greaterEqualF(d, 0.0f);
+    bool validBox = valid && lessF(d, INFINITY) && lessF(d * dirlen, INFINITY) && greaterEqualF(d, 0.0f);
     for (int i=0;i<16384;i++) {
         //if (allInvocations(!validBox)) break;
         if (!validBox) break;
@@ -290,7 +290,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit, in 
                 and2(bvec2(notLeaf), 
                 and2(lessThanEqual(hits, vec2(INFINITY-PZERO)),
                 and2(lessThanEqual(hits * dirlen, vec2(INFINITY-PZERO)),
-                and2(greaterThan(hits * dirlen, -vec2(PZERO)),
+                and2(greaterThan(hits, -vec2(PZERO)),
                 lessThan(nears * dirlen, vec2(lastRes.predist+PZERO))
             ))));
 
