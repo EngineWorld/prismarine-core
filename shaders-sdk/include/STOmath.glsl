@@ -18,11 +18,6 @@ float mlength(in vec3 mcolor){ return max(mcolor.x, max(mcolor.y, mcolor.z)); }
 vec4 divW(in vec4 aw){ return aw / aw.w; }
 
 
-// unorm compasion
-bool iseq8(float a, float cmp){ return abs(fma(a, 255.f, -cmp)) < 0.00001f; }
-bool iseq16(float a, float cmp){ return abs(fma(a, 65535.f, -cmp)) < 0.00001f; }
-
-
 // memory managment
 void swap(inout int a, inout int b){ int t = a; a = b; b = t; }
 uint exchange(inout uint mem, in uint v){ uint tmp = mem; mem = v; return tmp; }
@@ -103,9 +98,10 @@ float intersectCubeSingle(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 
     float tFar  = min(min(t2.x, t2.y), t2.z);
 #endif
     bool isCube = tFar >= tNear && greaterEqualF(tFar, 0.0f);
-    near = isCube ? tNear : INFINITY;
-    far  = isCube ? tFar  : INFINITY;
-    return (isCube ? (lessF(tNear, 0.0f) ? tFar : tNear) : INFINITY);
+    float inf = INFINITY;
+    near = isCube ? tNear : inf;
+    far  = isCube ? tFar  : inf;
+    return (isCube ? (lessF(tNear, 0.0f) ? tFar : tNear) : inf);
 }
 
 void intersectCubeApart(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 cubeMax, inout float near, inout float far) {

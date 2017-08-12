@@ -146,43 +146,49 @@ float intersectTriangle4(in vec3 orig, in vec3 dir, in ivec4 tri, inout vec2 UV,
 // WARP optimized triangle intersection
 float intersectTriangle(in vec3 orig, in vec3 dir, in int tri, inout vec2 UV, in bool valid) {
     // pre-invalidate
+    float T = INFINITY;
+
     if (tri == LONGEST) valid = false;
-    if (allInvocations(!valid)) return INFINITY;
+    if (anyInvocation(valid)) {
+        // fetch directly
+        mat3 ve = mat3(
+            fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri)), 0).xyz, 
+            fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri)), 1).xyz, 
+            fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri)), 2).xyz
+        );
 
-    // fetch directly
-    mat3 ve = mat3(
-        fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri)), 0).xyz, 
-        fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri)), 1).xyz, 
-        fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri)), 2).xyz
-    );
+        // init vars
+        vec3 e1 = ve[1] - ve[0];
+        vec3 e2 = ve[2] - ve[0];
+        vec3 pvec = cross(dir, e2);
+        float det = dot(e1, pvec);
 
-    // init vars
-    vec3 e1 = ve[1] - ve[0];
-    vec3 e2 = ve[2] - ve[0];
-    vec3 pvec = cross(dir, e2);
-    float det = dot(e1, pvec);
+        // invalidate culling
+        if (abs(det) <= 0.0f) valid = false;
+        if (anyInvocation(valid)) {
+            // invalidate U
+            float invDev = 1.f / (max(abs(det), 0.000001f) * sign(det));
+            vec3 tvec = orig - ve[0];
+            float u = dot(tvec, pvec) * invDev;
+            if (u < 0.f || u > 1.0f) valid = false;
+            if (anyInvocation(valid)) {
+                // invalidate V
+                vec3 qvec = cross(tvec, e1);
+                float v = dot(dir, qvec) * invDev;
+                if (v < 0.f || (u+v) > 1.0f) valid = false;
+                if (anyInvocation(valid)) {
+                    // resolve T
+                    float t = dot(e2, qvec) * invDev;
+                    if (greaterEqualF(t, 0.0f) && valid) {
+                        T = t;
+                        UV.xy = vec2(u, v);
+                    }
+                }
+            }
+        }
+    }
 
-    // invalidate culling
-    if (abs(det) <= 0.0f) valid = false;
-    if (allInvocations(!valid)) return INFINITY;
-    float invDev = 1.f / (max(abs(det), 0.00001f) * sign(det));
-
-    // invalidate U
-    vec3 tvec = orig - ve[0];
-    float u = dot(tvec, pvec) * invDev;
-    if (u < 0.f || u > 1.0f) valid = false;
-    if (allInvocations(!valid)) return INFINITY;
-
-    // invalidate V
-    vec3 qvec = cross(tvec, e1);
-    float v = dot(dir, qvec) * invDev;
-    if (v < 0.f || (u+v) > 1.0f) valid = false;
-    if (allInvocations(!valid)) return INFINITY;
-
-    // resolve T
-    float t = dot(e2, qvec) * invDev;
-    UV.xy = vec2(u, v);
-    return (lessF(t, 0.0f) || !valid) ? INFINITY : t;
+    return T;
 }
 
 #endif
