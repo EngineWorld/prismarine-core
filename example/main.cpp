@@ -610,6 +610,7 @@ int main(const int argc, const char ** argv)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_CONTEXT_NO_ERROR, GLFW_TRUE);
+    
 
     const double measureSeconds = 2.0;
     const unsigned superSampling = 2;

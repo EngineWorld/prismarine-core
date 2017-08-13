@@ -33,17 +33,13 @@ void main() {
     Ray ray = fetchRayDirect(t);
     Hit hit = fetchHitDirect(t);
 
-
     // already shaded? skipping
-
     if (hit.shaded > 0 || ray.actived < 1) {
         hit.shaded = 1;
         overflow = true;
     }
 
-
     // apply physical lights
-
     int lc = -1;
     if ((ray.params.z > 0 && ray.params.x < 1) && hit.shaded < 1) {
         for (int i=0;i<min(RAY_BLOCK materialUniform.lightcount, 16);i++) {
@@ -66,9 +62,7 @@ void main() {
         hit.shaded = 1;
     }
 
-
     // apply background
-
     {
         vec4 color = vec4(0.0f);
         EnvironmentShader(color, hit, ray);
@@ -86,7 +80,6 @@ void main() {
 
 
     // resolve and valiate ray
-
     ray.direct.xyz = normalize(ray.direct.xyz);
     ray.origin.xyz = fma(ray.direct.xyz, vec3(hit.dist), ray.origin.xyz);
 
@@ -94,14 +87,10 @@ void main() {
         hit.shaded = 1;
     }
 
-
     // get material data
-
     Material materialCache = submats[hit.materialID];
 
-
     // apply surface shading
-
     SurfaceData surface;
     surface.normal = vec3(0.0f, 0.0f, 1.f);
     surface.height = 1.0f;
@@ -116,7 +105,6 @@ void main() {
 
 
     // transmutate normals
-
     vec3 dir = normalize(ray.direct.xyz);
     vec3 prenormal = normalize(hit.normal.xyz);
     vec3 normal = normalize(faceforward(prenormal, dir, prenormal));
@@ -128,7 +116,6 @@ void main() {
 
 
     // get surface data
-
     vec4 tx = surface.albedo;
     vec4 emi = materialCache.emissive * surface.emission;
     vec3 dielectric = vec3(clamp(0.04f + pow(1.0f - abs(dot(dir, normal)), 5.0f), 0.0f, 1.0f));
@@ -136,7 +123,6 @@ void main() {
 
 
     // we coming to PBR model
-
     float refly = surface.roughness; // roughness
     float emis = mlength(emi.xyz);
     float spca = clamp(mlength(sc.xyz), 0.0f, 1.0f);
@@ -144,7 +130,6 @@ void main() {
 
 
     // backface culling
-
     if (false || 
         surface.culling == 1 && dot(prenormal, ray.direct.xyz) > 0.0f || 
         surface.culling == 2 && dot(prenormal, ray.direct.xyz) < 0.0f
@@ -154,7 +139,6 @@ void main() {
 
 
     // create rays
-
     Ray diffuseRay = ray;
     diffuseRay.final.xyz *= 0.0f;
 
@@ -191,7 +175,6 @@ void main() {
     }
 
     // emit rays
-
     if (!overflow) {
         //mixed(diffuseRay.color.xyz, reflectionRay.color.xyz, clamp(spic, 0.0f, 1.0f));
         mixed(diffuseRay.color.xyz, reflectionRay.color.xyz, clamp(float(random() < spca), 0.0f, 1.0f));
@@ -202,7 +185,6 @@ void main() {
     }
 
     // re-store current
-
     if (!overflow) {
         storeHit(t, hit);
         storeRay(t, ray);

@@ -41,13 +41,17 @@ initAtomicIncFunction(arcounter.Gt, atomicIncGt, int);
 
 void _collect(inout Ray ray) {
     vec4 color = max(ray.final, vec4(0.f));
-    float amplitude = mlength(color.xyz);
     int idx = atomicIncCt(true);
-    int prev = atomicExchange(texelBuf.nodes[ray.texel].EXT.y, idx);
+
+    int prev = atomicExchange(texelBuf.nodes[ray.texel].EXT.z, idx);
+    bool isFirst = atomicCompSwap(texelBuf.nodes[ray.texel].EXT.y, -1, idx) == -1;
+    if (!isFirst && prev != -1) atomicExchange(chBuf.chains[prev].cdata.x, idx); // linked 
+
     ColorChain ch = chBuf.chains[idx];
     ch.color = vec4(color.xyz, 1.0f);
-    ch.cdata = ivec4(prev, 0, 0, 0);
+    ch.cdata = ivec4(-1, 0, 0, 0);
     chBuf.chains[idx] = ch;
+
     ray.final.xyzw = vec4(0.0f);
 }
 
