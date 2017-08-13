@@ -134,9 +134,10 @@ struct HitRework {
     vec4 metallicRoughtness; // Y - roughtness, Z - metallic, also available other params
     vec4 normalHeight; // normal with height mapping, will already interpolated with geometry
     vec4 emission;
-    int ray; // ray index
     int bitfield; 
-    ivec2 reserved; // for padding
+    int ray; // ray index
+    int materialID;
+    int reserved;
 };
 
 // OIT, transparency sampled per ray
