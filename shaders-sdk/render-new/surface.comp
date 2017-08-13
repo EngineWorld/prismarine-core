@@ -8,10 +8,10 @@
 
 #include "../include/structs.glsl"
 #include "../include/uniforms.glsl"
-#include "../include/rays.glsl"
+#include "../include/rays-new.glsl"
 #include "../include/random.glsl"
 #include "../include/STOmath.glsl"
-#include "../include/materialFunc.glsl"
+#include "../include/materialFunc-new.glsl"
 #include "../include/vertex.glsl"
 
 #include "../public/surface.glsl"
@@ -88,8 +88,8 @@ void main() {
     bool overflow = it >= RAY_BLOCK samplerUniform.hitCount;
     globalInvocationSMP = it;
 
-    Hit hit = hitBuf.nodes[t];
-    Ray ray = rayBuf.nodes[hit.ray];
+    HitReworked hit = hitBuf.nodes[t];
+    RayReworked ray = rayBuf.nodes[hit.ray];
 
     vec3 normal = normalize(hit.normal.xyz);
     vec3 tangent = normalize(hit.tangent.xyz);

@@ -8,10 +8,10 @@
 
 #include "../include/structs.glsl"
 #include "../include/uniforms.glsl"
-#include "../include/rays.glsl"
+#include "../include/rays-new.glsl"
 #include "../include/random.glsl"
 #include "../include/STOmath.glsl"
-#include "../include/materialFunc.glsl"
+#include "../include/materialFunc-new.glsl"
 #include "../public/environment.glsl"
 
 
@@ -31,13 +31,12 @@ void main() {
     int t = activedBuf.indc[it];
     globalInvocationSMP = it;
 
-    Ray ray = rayBuf.nodes[t];
+    RayReworked ray = rayBuf.nodes[t];
     HitChain htc = htBuf.chains[ray.hitChain];
-    Hit hit = hitBuf.nodes[htc.hit];
 
     int layers = 1; // support only one layer
     int currentLayer = 0;
-    Hit compositedHit[1] = { hit };
+    HitReworked compositedHit[1] = { hitBuf.nodes[htc.hit] };
     vec3 dir = ray.direct;
     
 
@@ -47,7 +46,7 @@ void main() {
         if (htc.next == -1) break;
         htc = htBuf.chains[htc.next];
 
-        Hit hit = hitBuf.nodes[htc.hit];
+        HitReworked hit = hitBuf.nodes[htc.hit];
         if (!equalF(compositedHit[searchLayer].uvt.z, hit.uvt.z)) {
             searchLayer = layers++;
             break; // unsupported
@@ -66,7 +65,7 @@ void main() {
 
     // apply physical lights
     int lc = -1;
-    if ((ray.params.z > 0 && ray.params.x < 1) && !skipping) {
+    if (RayDL(ray) > 0 && (RayType(ray) == 1 || RayType(ray) == 2) && !skipping) {
         for (int i=0;i<min(RAY_BLOCK materialUniform.lightcount, 16);i++) {
             float md = 1.0f;
             float dt = intersectSphere(ray.origin.xyz, ray.direct.xyz, lightCenter(i).xyz, lightUniform.lightNode[i].lightColor.w + GAP);
@@ -78,10 +77,10 @@ void main() {
     }
 
     // shade light
-    if (lc >= 0 && (ray.params.y == lc || ray.params.w < 1)){
+    if (lc >= 0 && (RayTargetLight(ray) == lc || RayType(ray) != 2)){
         ray.final.xyz = ray.color.xyz * getLightColor(lc);
         ray.color.xyz *= 0.0f;
-        ray.actived = 0;
+        RayActived(ray, 0);
         skipping = true;
     }
 
@@ -91,10 +90,10 @@ void main() {
         vec4 color = vec4(0.0f);
         EnvironmentShader(color, ray);
 
-        if (greaterEqualF(compositedHit[currentLayer].uvt.z, INFINITY) && ray.params.w < 1 && !skipping) {
+        if (greaterEqualF(compositedHit[currentLayer].uvt.z, INFINITY) && RayType(ray) != 2 && !skipping) {
             ray.final.xyz = ray.color.xyz * color.xyz;
             ray.color.xyz *= 0.0f;
-            ray.actived = 0;
+            RayActived(ray, 0);
             skipping = true;
         }
     }
@@ -104,7 +103,7 @@ void main() {
     ray.origin.xyz = ray.origin.xyz + ray.direct.xyz * compositedHit[currentLayer].uvt.z;
 
     // not shadeable skipping
-    if (ray.actived < 1 || ray.hitChain == -1) {
+    if (RayActived(ray) < 1 || ray.hitChain == -1) {
         skipping = true;
     }
 
@@ -125,18 +124,18 @@ void main() {
     float prom = 1.0f - tx.a;
 
     // create rays
-    Ray diffuseRay = ray;
+    RayReworked diffuseRay = ray;
     diffuseRay.final.xyz *= 0.0f;
 
-    Ray reflectionRay = ray;
+    RayReworked reflectionRay = ray;
     reflectionRay.final.xyz *= 0.0f;
 
-    Ray emissiveRay = ray;
+    RayReworked emissiveRay = ray;
     emissiveRay.final.xyz *= 0.0f;
     
     if (!skipping) ray.final.xyz *= 0.f;
 
-    if (ray.actived > 0 && !skipping) {
+    if (RayActived(ray) > 0 && !skipping) {
         ray.final.xyz *= 0.0f;
 
         diffuseRay = diffuse(diffuseRay, tx.xyz, normal);

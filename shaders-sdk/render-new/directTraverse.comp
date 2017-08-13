@@ -3,7 +3,7 @@
 #include "../include/constants.glsl"
 #include "../include/structs.glsl"
 #include "../include/uniforms.glsl"
-#include "../include/rays.glsl"
+#include "../include/rays-new.glsl"
 #include "../include/morton.glsl"
 #include "../include/STOmath.glsl"
 #include "../include/vertex.glsl"
@@ -24,20 +24,6 @@ struct TResult {
     float predist;
     vec4 uv;
     vec4 normal;
-};
-
-struct LResult {
-    vec4 normal;
-    vec4 tangent;
-    vec4 texcoord;
-    vec4 color;
-    vec4 mods;
-
-    float dist;
-    int triangleID;
-    int materialID;
-    float predist; // legacy
-    vec4 uv; // legacy
 };
 
 uint L = 0;
@@ -194,7 +180,6 @@ vec3 unprojectVoxels(in vec3 orig) {
 void includeLeaf(in vec3 origin, in vec3 direct, in bool validBox, in HlbvhNode node, in vec3 boxHit, inout TResult lastRes){
     bool isLeaf = validBox;
     if (isLeaf) {
-        
         for (int ls=0;ls<groupSize;ls+=1) {
             bool overtaken = ls > node.pdata.y-node.pdata.w || !isLeaf;
             if (anyInvocation(!overtaken)) {
@@ -311,7 +296,7 @@ void main() {
     if (allInvocations(overflow)) return;
 
     int t = activedBuf.indc[it];
-    Ray ray = rayBuf.nodes[t];
+    RayReworked ray = rayBuf.nodes[t];
     overflow = ray.actived < 1 || overflow;
     if (allInvocations(overflow)) return;
 

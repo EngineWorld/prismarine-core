@@ -41,6 +41,7 @@ initAtomicDecFunction(arcounter.Ut, atomicDecUt, int);
 initAtomicIncFunction(arcounter.Ct, atomicIncCt, int);
 initAtomicIncFunction(arcounter.Ft, atomicIncFt, int);
 initAtomicIncFunction(arcounter.Gt, atomicIncGt, int);
+initAtomicIncFunction(arcounter.Ht, atomicIncHt, int);
 
 void _collect(inout Ray ray) {
     /*
@@ -66,18 +67,12 @@ void _collect(inout Ray ray) {
     
 }
 
-void storeHit(in int hitIndex, inout Hit hit) {
-    if (!(hitIndex == -1 || hitIndex == LONGEST || hitIndex >= RAY_BLOCK samplerUniform.currentRayLimit)) {
-        hitBuf.nodes[hitIndex] = hit;
-    }
-}
-
 int addRayToList(in Ray ray){
     int rayIndex = ray.idx;
     int actived = -1;
 
     // ordered form list
-    if (ray.actived == 1) {
+    if (RayActived(ray) == 1) {
         int act = atomicIncAt(true);
         collBuf.indc[act] = rayIndex; actived = act;
     } else { // if not actived, why need?
@@ -91,7 +86,7 @@ int addRayToList(in Ray ray){
 int addRayToList(in Ray ray, in int act){
     int rayIndex = ray.idx;
     int actived = -1;
-    if (ray.actived == 1) {
+    if (RayActived(ray) == 1) {
         collBuf.indc[act] = rayIndex; actived = act;
     }
     return actived;
@@ -99,7 +94,7 @@ int addRayToList(in Ray ray, in int act){
 
 void storeRay(in int rayIndex, inout Ray ray) {
     if (rayIndex == -1 || rayIndex == LONGEST || rayIndex >= RAY_BLOCK samplerUniform.currentRayLimit) {
-        ray.actived = 0;
+        RayActived(ray, 0);
     } else {
         _collect(ray);
         ray.idx = rayIndex;
@@ -113,36 +108,22 @@ int createRayStrict(inout Ray original, in int idx, in int rayIndex) {
         rayIndex == LONGEST || 
         rayIndex >= RAY_BLOCK samplerUniform.currentRayLimit || 
 
-        original.actived < 1 || 
-        original.bounce <= 0 || 
+        RayActived(original) < 1 || 
+        RayBounce(original) <= 0 || 
         mlength(original.color.xyz) < 0.0001f;
+
+    // mark as unusual
+    if (invalidRay) {
+        RayActived(original, 0);
+    }
 
     if (!invalidRay) {
         Ray ray = original;
-        ray.bounce -= 1;
+        RayActived(ray, 0);
+        RayBounce(ray, RayBounce(ray)-1);
         ray.idx = rayIndex;
         ray.texel = idx;
-
-        // mark as unusual
-        if (invalidRay) {
-            ray.actived = 0;
-        }
-
-        Hit hit;
-        if (original.idx != LONGEST) {
-            hit = hitBuf.nodes[original.idx];
-        } else {
-            hit.normal = vec4(0.0f);
-            hit.tangent = vec4(0.0f);
-            hit.vmods = vec4(0.0f);
-            hit.triangleID = LONGEST;
-            hit.materialID = LONGEST;
-        }
-        hit.shaded = 1;
-
-        hitBuf.nodes[rayIndex] = hit;
         rayBuf.nodes[rayIndex] = ray;
-
         addRayToList(ray);
     }
 
@@ -155,8 +136,8 @@ int createRayStrict(inout Ray original, in int rayIndex) {
 
 int createRay(inout Ray original, in int idx) {
     bool invalidRay = 
-        original.actived < 1 || 
-        original.bounce <= 0 || 
+        RayActived(original) < 1 || 
+        RayBounce(original) <= 0 || 
         mlength(original.color.xyz) < 0.0001f;
 
     if (mlength(original.final.xyz) >= 0.0001f) {
@@ -195,8 +176,8 @@ int createRay(inout Ray original, in int idx) {
 
 int createRayIdx(inout Ray original, in int idx, in int rayIndex) {
     bool invalidRay = 
-        original.actived < 1 || 
-        original.bounce <= 0 || 
+        RayActived(original) < 1 || 
+        RayBounce(original) <= 0 || 
         mlength(original.color.xyz) < 0.0001f;
 
     if (mlength(original.final.xyz) >= 0.0001f) {
@@ -212,11 +193,6 @@ int createRayIdx(inout Ray original, in int idx, in int rayIndex) {
     return createRayStrict(original, idx, rayIndex);
 }
 
-
-void storeHit(inout Ray ray, inout Hit hit) {
-    storeHit(ray.idx, hit);
-}
-
 void storeRay(inout Ray ray) {
     storeRay(ray.idx, ray);
 }
@@ -228,18 +204,6 @@ int createRay(in Ray original) {
 int createRay(in int idx) {
     Ray ray;
     return createRay(ray, idx);
-}
-
-Ray fetchRayDirect(in int texel) {
-    return rayBuf.nodes[texel];
-}
-
-Hit fetchHitDirect(in int texel) {
-    return hitBuf.nodes[texel];
-}
-
-Hit fetchHit(in Ray ray){
-    return hitBuf.nodes[ray.idx];
 }
 
 #endif

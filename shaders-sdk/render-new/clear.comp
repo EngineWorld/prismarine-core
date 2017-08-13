@@ -3,7 +3,7 @@
 #include "../include/constants.glsl"
 #include "../include/structs.glsl"
 #include "../include/uniforms.glsl"
-#include "../include/rays.glsl"
+#include "../include/rays-new.glsl"
 #include "../include/STOmath.glsl"
 
 layout ( binding = 0, r32ui ) uniform uimage2D sampleflags;

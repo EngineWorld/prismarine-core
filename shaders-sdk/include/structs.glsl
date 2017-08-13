@@ -128,6 +128,57 @@ struct RayRework {
     int hitchain; // index of hit chain
 };
 
+
+
+int RayActived(in RayRework ray){
+    return bitfieldExtract(ray.bitfield, 0, 1);
+}
+
+void RayActived(inout RayRework ray, in int actived){
+    ray.bitfield = bitfieldInsert(ray.bitfield, actived, 0, 1);
+}
+
+
+int RayType(in RayRework ray){
+    return bitfieldExtract(ray.bitfield, 1, 2);
+}
+
+void RayType(inout RayRework ray, in int type){
+    ray.bitfield = bitfieldInsert(ray.bitfield, type, 1, 2);
+}
+
+
+int RayDL(in RayRework ray){
+    return bitfieldExtract(ray.bitfield, 3, 1);
+}
+
+void RayDL(inout RayRework ray, in int dl){
+    ray.bitfield = bitfieldInsert(ray.bitfield, dl, 3, 1);
+}
+
+
+int RayTargetLight(in RayRework ray){
+    return bitfieldExtract(ray.bitfield, 4, 4);
+}
+
+void RayTargetLight(inout RayRework ray, in int tl){
+    ray.bitfield = bitfieldInsert(ray.bitfield, tl, 4, 4);
+}
+
+
+int RayBounce(in RayRework ray){
+    return bitfieldExtract(ray.bitfield, 8, 4);
+}
+
+void RayBounce(inout RayRework ray, in int bn){
+    ray.bitfield = bitfieldInsert(ray.bitfield, bn, 8, 4);
+}
+
+
+
+
+
+
 struct HitRework {
     vec4 uvt; // UV, distance, triangle
     vec4 albedoAlpha;

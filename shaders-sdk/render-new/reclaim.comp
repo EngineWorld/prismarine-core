@@ -3,7 +3,7 @@
 #include "../include/constants.glsl"
 #include "../include/structs.glsl"
 #include "../include/uniforms.glsl"
-#include "../include/rays.glsl"
+#include "../include/rays-new.glsl"
 #include "../include/STOmath.glsl"
 
 LOCAL_SIZE_LAYOUT;
@@ -19,17 +19,16 @@ void main()
     if (overflow) return;
     int t = activedBuf.indc[it];
     
-    Ray ray = fetchRayDirect(t);
-    int bounce = bitfieldExtract(ray.bitfield,  8, 4)-1;
+    RayReworked ray = rayBuf.nodes[t];
+    int bounce = RayBounce(ray)-1;
     ray.final.xyz = max(vec3(0.0f), ray.final.xyz);
     ray.color.xyz = max(vec3(0.0f), ray.color.xyz);
 
     if (bounce < 0 || mlength(ray.color.xyz) < 0.0001f || overflow || ray.hitChain == -1) {
-        //ray.actived = 0;
         ray.bitfield = bitfieldInsert(ray.bitfield, 0,  0, 1);
     }
 
-    ray.bitfield = bitfieldInsert(ray.bitfield, bounce,  8, 4);
+    if (bounce >= 0) RayBounce(ray, bounce);
     ray.hitChain = -1; // reset chains
 
     if (!overflow) {

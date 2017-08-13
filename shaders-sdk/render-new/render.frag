@@ -5,7 +5,7 @@
 #include "../include/constants.glsl"
 #include "../include/structs.glsl"
 #include "../include/uniforms.glsl"
-#include "../include/rays.glsl"
+#include "../include/rays-new.glsl"
 
 #define NEIGHBOURS 8
 #define AXES       (NEIGHBOURS/2)

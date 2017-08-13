@@ -3,7 +3,7 @@
 #include "../include/constants.glsl"
 #include "../include/structs.glsl"
 #include "../include/uniforms.glsl"
-#include "../include/rays.glsl"
+#include "../include/rays-new.glsl"
 #include "../include/random.glsl"
 #include "../include/STOmath.glsl"
 
@@ -68,10 +68,9 @@ void main()
         }
 
         // apply DOF
-        
 #ifdef EXPERIMENTAL_DOF
-         float dofFocusRadius = 10.f;
-         float dofFocalRadius = 1.f / 64.f;
+        float dofFocusRadius = 10.f;
+        float dofFocalRadius = 1.f / 64.f;
         vec4 defEye = RAY_BLOCK cameraUniform.camInv * vec4(0.0f, 0.0f, 0.0f, 1.0f);
         vec4 focus = defEye + dir * dofFocusRadius;//length(orig.xyz - defEye.xyz);
         vec4 offsetEye = RAY_BLOCK cameraUniform.camInv * vec4(randomDirectionInSphere() * dofFocalRadius, 1.0f);
@@ -79,25 +78,23 @@ void main()
         dir = vec4(normalize(focus.xyz - offsetEye.xyz), 0.0f);
 #endif
 
-        Ray ray;
+        RayReworked ray;
         ray.texel = idx;
         ray.idx = LONGEST;
         ray.direct = dir;
         ray.origin = orig;
         ray.origin.w = 1.0f;
         ray.color = vec4(1.0f);
-        ray.actived = 1;
         ray.final = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
-        ray.params = ivec4(0);
-        ray.params.y = -1;
-        ray.params.x = 0;
-        ray.params.z = 0; // Show sunlight or not
-        ray.params.w = 0;
-        ray.bounce = 4;
+        ray.bitfield = 0;
+        RayActived(ray, 1);
+        RayType(ray, 0); // specular
+        RayDL(ray, 0);
+        RayBounce(ray, 4);
 
         if (RAY_BLOCK cameraUniform.interlace == 1) {
-            if ((abs(xy.x + xy.y) % 2) == RAY_BLOCK cameraUniform.interlaceStage) ray.actived = 0;
+            if ((abs(xy.x + xy.y) % 2) == RAY_BLOCK cameraUniform.interlaceStage) RayActived(ray, 0);
         }
         
         createRayIdx(ray, idx, RAY_BLOCK cameraUniform.interlace == 1 ? (idx / 2) : idx);
