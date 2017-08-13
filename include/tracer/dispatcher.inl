@@ -92,7 +92,7 @@ namespace ppr {
     inline void Dispatcher::init() {
         initShaders();
         lightUniformData = new LightUniformStruct[6];
-        sorter = new RadixSort();
+        //sorter = new RadixSort();
 
         for (int i = 0; i < 6;i++) {
             lightColor[i] = glm::vec4((glm::vec3(255.f, 250.f, 244.f) / 255.f) * 150.f, 40.0f);
