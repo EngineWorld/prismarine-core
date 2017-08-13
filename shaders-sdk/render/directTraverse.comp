@@ -131,8 +131,7 @@ LResult interpolateMeshData(in TResult hitp) {
     LResult res;
     res.dist = hitp.dist;
     res.triangleID = hitp.triangleID;
-    //res.materialID = LONGEST;
-    res.materialID = 0;
+    res.materialID = LONGEST;
     res.predist = hitp.predist; // legacy
     res.uv = hitp.uv; // legacy
     res.normal = hitp.normal;
