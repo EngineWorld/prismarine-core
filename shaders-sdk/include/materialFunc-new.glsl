@@ -86,7 +86,7 @@ vec3 glossy(in vec3 dir, in vec3 normal, in float refli) {
     return normalize(mix(normalize(dir), randomCosine(normal), clamp(sqrt(random()) * refli, 0.0f, 1.0f)));
 }
 
-Ray reflection(in Ray ray, in vec3 color, in vec3 normal, in float refly){
+RayRework reflection(in RayRework ray, in vec3 color, in vec3 normal, in float refly){
     ray.direct.xyz = normalize(mix(reflect(ray.direct.xyz, normal), randomCosine(normal), clamp(refly * random(), 0.0f, 1.0f)));
     ray.color.xyz *= color;
     ray.origin.xyz = fma(ray.direct.xyz, vec3(GAP), ray.origin.xyz);
@@ -97,7 +97,7 @@ Ray reflection(in Ray ray, in vec3 color, in vec3 normal, in float refly){
     return ray;
 }
 
-Ray refraction(in Ray ray, in vec3 color, in vec3 normal, in float inior, in float outior, in float glossiness){
+RayRework refraction(in RayRework ray, in vec3 color, in vec3 normal, in float inior, in float outior, in float glossiness){
      vec3 refrDir = normalize(  refract(ray.direct.xyz, normal, inior / outior)  );
      bool refrc = equalF(inior, outior);
 
@@ -133,7 +133,7 @@ vec3 sLight(in int i){
     return fma(randomDirectionInSphere(), vec3(lightUniform.lightNode[i].lightColor.w), lightCenter(i));
 }
 
-int applyLight(in Ray directRay, inout Ray ray, in vec3 normal){
+int applyLight(in RayRework directRay, inout RayRework ray, in vec3 normal){
 #ifdef DIRECT_LIGHT
     RayActived(ray, (RayType(ray) == 2 || dot(normal, directRay.direct.xyz) < 0.f) ? 0 : RayActived(ray)); RayDL(ray, 0);
     return createRay(directRay);
@@ -160,7 +160,7 @@ float intersectSphere(in vec3 origin, in vec3 ray, in vec3 sphereCenter, in floa
     return t;
 }
 
-Ray directLight(in int i, in Ray directRay, in vec3 color, in vec3 normal){
+RayRework directLight(in int i, in RayRework directRay, in vec3 color, in vec3 normal){
     RayActived(directRay, RayType(directRay) == 2 ? 0 : RayActived(directRay));
     RayDL(directRay, 1);
     RayType(directRay, 2);
@@ -176,7 +176,7 @@ Ray directLight(in int i, in Ray directRay, in vec3 color, in vec3 normal){
     return directRay;
 }
 
-Ray diffuse(in Ray ray, in vec3 color, in vec3 normal){
+RayRework diffuse(in RayRework ray, in vec3 color, in vec3 normal){
     ray.color.xyz *= color;
     ray.direct.xyz = normalize(randomCosine(normal));
     ray.origin.xyz = ray.origin.xyz = fma(ray.direct.xyz, vec3(GAP), ray.origin.xyz);
@@ -187,13 +187,13 @@ Ray diffuse(in Ray ray, in vec3 color, in vec3 normal){
     return ray;
 }
 
-Ray promised(in Ray ray, in vec3 normal){
+RayRework promised(in RayRework ray, in vec3 normal){
     RayBounce(ray, RayBounce(ray)+1);
     ray.origin.xyz = ray.origin.xyz = fma(ray.direct.xyz, vec3(GAP), ray.origin.xyz);
     return ray;
 }
 
-Ray emissive(in Ray ray, in vec3 color, in vec3 normal){
+RayRework emissive(in RayRework ray, in vec3 color, in vec3 normal){
     ray.final.xyz = max(ray.color.xyz * color, vec3(0.0f));
     ray.final = RayType(ray) == 1 ? vec4(0.0f) : max(ray.final, vec4(0.0f));
     ray.color.xyz *= 0.0f;
@@ -204,7 +204,7 @@ Ray emissive(in Ray ray, in vec3 color, in vec3 normal){
     return ray;
 }
 
-int emitRay(in Ray directRay, in vec3 normal, in float coef){
+int emitRay(in RayRework directRay, in vec3 normal, in float coef){
     directRay.color.xyz *= coef;
     directRay.final.xyz *= coef;
     return createRay(directRay);

@@ -78,7 +78,7 @@ void main()
         dir = vec4(normalize(focus.xyz - offsetEye.xyz), 0.0f);
 #endif
 
-        RayReworked ray;
+        RayRework ray;
         ray.texel = idx;
         ray.idx = LONGEST;
         ray.direct = dir;

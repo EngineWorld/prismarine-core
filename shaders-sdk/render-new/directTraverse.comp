@@ -43,8 +43,8 @@ void reorderTriangles() {
     for (int iround = 1; iround < sharedVarsData.bakedStackCount; iround++) {
         for (int index = 0; index < sharedVarsData.bakedStackCount - iround; index++) {
             bool lessIdx = floatBitsToInt(bakedStack[L][index].w) <= floatBitsToInt(bakedStack[L][index+1].w);
-            float baked = equalF(bakedStack[L][index].z, bakedStack[L][index+1].z);
-            float deeper = lessF(bakedStack[L][index].z, bakedStack[L][index+1].z);
+            bool baked = equalF(bakedStack[L][index].z, bakedStack[L][index+1].z);
+            bool deeper = lessF(bakedStack[L][index].z, bakedStack[L][index+1].z);
             if (lessIdx && baked || deeper) {
                 vec4 tmp = bakedStack[L][index];
                 bakedStack[L][index] = bakedStack[L][index+1];
@@ -74,7 +74,7 @@ void reorderTriangles() {
 
 
 
-HitReworked interpolateMeshData(inout HitReworked res) {
+HitRework interpolateMeshData(inout HitRework res) {
     int tri = floatBitsToInt(res.uvt.w);
 
     if (greaterEqualF(res.uvt.z, 0.0f) && lessF(res.uvt.z, INFINITY) && tri != LONGEST && mats[tri] != LONGEST) {
@@ -108,11 +108,10 @@ HitReworked interpolateMeshData(inout HitReworked res) {
         float f = 1.0f / fma(deltaUV1.x, deltaUV2.y, -deltaUV1.y * deltaUV2.x);
         vec3 tan = fma(deltaPos1, vec3(deltaUV2.y), -deltaPos2 * deltaUV1.y) * f;
 
-        res.normal = vec4(normal, 0.0f);
+        res.normalHeight = vec4(normal, 0.0f);
         res.tangent = vec4(normalize(tan - normal * sign(dot(tan, nor))), 0.0f);
         res.texcoord = fma(texcoords[0], vec4(1.0f - uv.x - uv.y), fma(texcoords[1], vec4(uv.x), texcoords[2] * vec4(uv.y)));
-        res.color = fma(colors[0], vec4(1.0f - uv.x - uv.y), fma(colors[1], vec4(uv.x), colors[2] * vec4(uv.y)));
-        res.mods = fma(mods[0], vec4(1.0f - uv.x - uv.y), fma(mods[1], vec4(uv.x), mods[2] * vec4(uv.y)));
+        res.albedo = fma(colors[0], vec4(1.0f - uv.x - uv.y), fma(colors[1], vec4(uv.x), colors[2] * vec4(uv.y)));
         res.materialID = mats[tri];
     }
 
@@ -124,9 +123,9 @@ int prevHt = -1;
 
 void includeChain(in vec4 intersection){
     int hid = atomicIncHt(true);
-    HitReworked hitp = bitBuf.nodes[hid];
+    HitRework hitp = hitBuf.nodes[hid];
     hitp.uvt = intersection;
-    bitBuf.nodes[hid] = interpolateMeshData(hitp);
+    hitBuf.nodes[hid] = interpolateMeshData(hitp);
     int chainID = hid;
     if (prevHt == -1) {
         sharedVarsData.chainID = chainID;
@@ -203,13 +202,12 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
     deferredStack[L][0] = -1;
     sharedVarsData.chainID = -1;
     sharedVarsData.bakedStackCount = 0;
-    for (int i=0;i<bakedFragments;i++) {bakedStack[L][i] = LONGEST;}
+    for (int i=0;i<bakedFragments;i++) {bakedStack[L][i] = vec4(vec2(0.0f), INFINITY, LONGEST);}
 
     // something fix
     direct = normalize(direct);
 
     // test constants
-    int bakedStep = int(floor(1.f + hit.vmods.w));
     vec3 torig = projectVoxels(origin);
     //vec3 tdirproj = mult4(GEOMETRY_BLOCK geometryUniform.transform, vec4(direct, 1.0)).xyz;
     vec3 tdirproj = mult4(vec4(direct, 0.0), GEOMETRY_BLOCK geometryUniform.transform).xyz;
@@ -282,7 +280,7 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
     }
 
     lastRes.triangleID = LONGEST;
-    choiceBaked(lastRes, origin.xyz, direct.xyz, bakedStep);
+    choiceBaked(lastRes, origin.xyz, direct.xyz, 0);
     return lastRes;
 }
 
@@ -296,12 +294,12 @@ void main() {
     if (allInvocations(overflow)) return;
 
     int t = activedBuf.indc[it];
-    RayReworked ray = rayBuf.nodes[t];
-    overflow = ray.actived < 1 || overflow;
+    RayRework ray = rayBuf.nodes[t];
+    overflow = RayActived(ray) == 0 || overflow;
     if (allInvocations(overflow)) return;
 
-    prevHt = ray.hitChain;
+    prevHt = ray.hitchain;
     traverse(ray.origin.xyz, ray.direct.xyz, !overflow);
-    ray.hitChain = prevHt;
+    ray.hitchain = prevHt;
     rayBuf.nodes[t] = ray; // just store
 }

@@ -5,7 +5,7 @@
 #include "../include/morton.glsl"
 
 layout ( std430, binding = 0 ) restrict buffer RaysSSBO { RayRework nodes[]; } rayBuf;
-layout ( std430, binding = 1 ) restrict buffer HitsSSBO { RayRework nodes[]; } hitBuf;
+layout ( std430, binding = 1 ) restrict buffer HitsSSBO { HitRework nodes[]; } hitBuf;
 layout ( std430, binding = 2 ) restrict buffer TexelsSSBO { Texel nodes[]; } texelBuf;
 layout ( std430, binding = 3 ) restrict buffer ColorChainBlock { ColorChain chains[]; } chBuf;
 
@@ -28,6 +28,8 @@ layout ( std430, binding = 8 ) restrict buffer CounterBlock {
     // traverser counters
     int Ft;
     int Gt; 
+
+    int Ht;
 } arcounter;
 
 layout ( std430, binding = 9 ) restrict buffer HitChainBlock { HitChain chains[]; } htBuf;
@@ -43,7 +45,7 @@ initAtomicIncFunction(arcounter.Ft, atomicIncFt, int);
 initAtomicIncFunction(arcounter.Gt, atomicIncGt, int);
 initAtomicIncFunction(arcounter.Ht, atomicIncHt, int);
 
-void _collect(inout Ray ray) {
+void _collect(inout RayRework ray) {
     /*
     vec4 color = max(ray.final, vec4(0.f));
     int idx = atomicIncCt(true);
@@ -67,7 +69,7 @@ void _collect(inout Ray ray) {
     
 }
 
-int addRayToList(in Ray ray){
+int addRayToList(in RayRework ray){
     int rayIndex = ray.idx;
     int actived = -1;
 
@@ -83,7 +85,7 @@ int addRayToList(in Ray ray){
     return actived;
 }
 
-int addRayToList(in Ray ray, in int act){
+int addRayToList(in RayRework ray, in int act){
     int rayIndex = ray.idx;
     int actived = -1;
     if (RayActived(ray) == 1) {
@@ -92,7 +94,7 @@ int addRayToList(in Ray ray, in int act){
     return actived;
 }
 
-void storeRay(in int rayIndex, inout Ray ray) {
+void storeRay(in int rayIndex, inout RayRework ray) {
     if (rayIndex == -1 || rayIndex == LONGEST || rayIndex >= RAY_BLOCK samplerUniform.currentRayLimit) {
         RayActived(ray, 0);
     } else {
@@ -102,7 +104,7 @@ void storeRay(in int rayIndex, inout Ray ray) {
     }
 }
 
-int createRayStrict(inout Ray original, in int idx, in int rayIndex) {
+int createRayStrict(inout RayRework original, in int idx, in int rayIndex) {
     bool invalidRay = 
         rayIndex == -1 || 
         rayIndex == LONGEST || 
@@ -118,7 +120,7 @@ int createRayStrict(inout Ray original, in int idx, in int rayIndex) {
     }
 
     if (!invalidRay) {
-        Ray ray = original;
+        RayRework ray = original;
         RayActived(ray, 0);
         RayBounce(ray, RayBounce(ray)-1);
         ray.idx = rayIndex;
@@ -130,11 +132,11 @@ int createRayStrict(inout Ray original, in int idx, in int rayIndex) {
     return rayIndex;
 }
 
-int createRayStrict(inout Ray original, in int rayIndex) {
+int createRayStrict(inout RayRework original, in int rayIndex) {
     return createRayStrict(original, original.texel, rayIndex);
 }
 
-int createRay(inout Ray original, in int idx) {
+int createRay(inout RayRework original, in int idx) {
     bool invalidRay = 
         RayActived(original) < 1 || 
         RayBounce(original) <= 0 || 
@@ -174,7 +176,7 @@ int createRay(inout Ray original, in int idx) {
     return createRayStrict(original, idx, rayIndex);
 }
 
-int createRayIdx(inout Ray original, in int idx, in int rayIndex) {
+int createRayIdx(inout RayRework original, in int idx, in int rayIndex) {
     bool invalidRay = 
         RayActived(original) < 1 || 
         RayBounce(original) <= 0 || 
@@ -193,16 +195,16 @@ int createRayIdx(inout Ray original, in int idx, in int rayIndex) {
     return createRayStrict(original, idx, rayIndex);
 }
 
-void storeRay(inout Ray ray) {
+void storeRay(inout RayRework ray) {
     storeRay(ray.idx, ray);
 }
 
-int createRay(in Ray original) {
+int createRay(in RayRework original) {
     return createRay(original, original.texel);
 }
 
 int createRay(in int idx) {
-    Ray ray;
+    RayRework ray;
     return createRay(ray, idx);
 }
 

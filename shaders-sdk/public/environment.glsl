@@ -40,7 +40,7 @@ vec3 lightCenterSky(in int i) {
     return lightUniform.lightNode[i].lightOffset.xyz + lvec + playerCenter.xyz;
 }
 
-void env(inout vec4 color, in Hit hit, in Ray ray){
+void env(inout vec4 color, in RayRework ray){
     vec3 lcenter = lightCenterSky(0);
     color = readEnv(ray.direct.xyz);
     

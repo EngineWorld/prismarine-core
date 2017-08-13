@@ -31,13 +31,14 @@ void main() {
     int t = activedBuf.indc[it];
     globalInvocationSMP = it;
 
-    RayReworked ray = rayBuf.nodes[t];
-    HitChain htc = htBuf.chains[ray.hitChain];
+    RayRework ray = rayBuf.nodes[t];
+    HitChain htc = htBuf.chains[ray.hitchain];
 
     int layers = 1; // support only one layer
     int currentLayer = 0;
-    HitReworked compositedHit[1] = { hitBuf.nodes[htc.hit] };
-    vec3 dir = ray.direct;
+    HitRework compositedHit[1];
+    compositedHit[0] = hitBuf.nodes[htc.hit];
+    vec3 dir = ray.direct.xyz;
     
 
     // layers composition
@@ -46,7 +47,7 @@ void main() {
         if (htc.next == -1) break;
         htc = htBuf.chains[htc.next];
 
-        HitReworked hit = hitBuf.nodes[htc.hit];
+        HitRework hit = hitBuf.nodes[htc.hit];
         if (!equalF(compositedHit[searchLayer].uvt.z, hit.uvt.z)) {
             searchLayer = layers++;
             break; // unsupported
@@ -58,7 +59,7 @@ void main() {
         // composite decals
         compositedHit[searchLayer].uvt = hit.uvt;
         compositedHit[searchLayer].albedo = composite(compositedHit[searchLayer].albedo, hit.albedo);
-        compositedHit[searchLayer].normal = mix(compositedHit[searchLayer].normal, hit.normal, hit.albedo.w);
+        compositedHit[searchLayer].normalHeight = mix(compositedHit[searchLayer].normalHeight, hit.normalHeight, hit.albedo.w);
         compositedHit[searchLayer].metallicRoughness = composite(compositedHit[searchLayer].metallicRoughness, vec4(hit.metallicRoughness.xyz, hit.metallicRoughness.w) * hit.albedo.w);
     }
 
@@ -103,12 +104,12 @@ void main() {
     ray.origin.xyz = ray.origin.xyz + ray.direct.xyz * compositedHit[currentLayer].uvt.z;
 
     // not shadeable skipping
-    if (RayActived(ray) < 1 || ray.hitChain == -1) {
+    if (RayActived(ray) < 1 || ray.hitchain == -1) {
         skipping = true;
     }
 
     // get normals
-    vec3 surfacenormal = compositedHit[currentLayer].normal;
+    vec3 surfacenormal = compositedHit[currentLayer].normalHeight.xyz;
     vec3 normal = faceforward(surfacenormal, dir, surfacenormal);
 
     // get texture composition data
@@ -124,13 +125,13 @@ void main() {
     float prom = 1.0f - tx.a;
 
     // create rays
-    RayReworked diffuseRay = ray;
+    RayRework diffuseRay = ray;
     diffuseRay.final.xyz *= 0.0f;
 
-    RayReworked reflectionRay = ray;
+    RayRework reflectionRay = ray;
     reflectionRay.final.xyz *= 0.0f;
 
-    RayReworked emissiveRay = ray;
+    RayRework emissiveRay = ray;
     emissiveRay.final.xyz *= 0.0f;
     
     if (!skipping) ray.final.xyz *= 0.f;

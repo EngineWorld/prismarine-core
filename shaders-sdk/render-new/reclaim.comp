@@ -19,17 +19,17 @@ void main()
     if (overflow) return;
     int t = activedBuf.indc[it];
     
-    RayReworked ray = rayBuf.nodes[t];
+    RayRework ray = rayBuf.nodes[t];
     int bounce = RayBounce(ray)-1;
     ray.final.xyz = max(vec3(0.0f), ray.final.xyz);
     ray.color.xyz = max(vec3(0.0f), ray.color.xyz);
 
-    if (bounce < 0 || mlength(ray.color.xyz) < 0.0001f || overflow || ray.hitChain == -1) {
+    if (bounce < 0 || mlength(ray.color.xyz) < 0.0001f || overflow || ray.hitchain == -1) {
         ray.bitfield = bitfieldInsert(ray.bitfield, 0,  0, 1);
     }
 
     if (bounce >= 0) RayBounce(ray, bounce);
-    ray.hitChain = -1; // reset chains
+    ray.hitchain = -1; // reset chains
 
     if (!overflow) {
         storeRay(t, ray);

@@ -88,8 +88,8 @@ void main() {
     bool overflow = it >= RAY_BLOCK samplerUniform.hitCount;
     globalInvocationSMP = it;
 
-    HitReworked hit = hitBuf.nodes[t];
-    RayReworked ray = rayBuf.nodes[hit.ray];
+    HitRework hit = hitBuf.nodes[t];
+    RayRework ray = rayBuf.nodes[hit.ray];
 
     vec3 normal = normalize(hit.normal.xyz);
     vec3 tangent = normalize(hit.tangent.xyz);

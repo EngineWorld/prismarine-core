@@ -181,7 +181,7 @@ void RayBounce(inout RayRework ray, in int bn){
 
 struct HitRework {
     vec4 uvt; // UV, distance, triangle
-    vec4 albedoAlpha;
+    vec4 albedo;
     vec4 metallicRoughness; // Y - roughtness, Z - metallic, also available other params
     vec4 normalHeight; // normal with height mapping, will already interpolated with geometry
     vec4 emission;
