@@ -244,6 +244,8 @@ Ray diffuse(in Ray ray, in Hit hit, in vec3 color, in vec3 normal){
 
 Ray promised(in Ray ray, in Hit hit, in vec3 normal){
     ray.bounce += 1;
+    //ray.origin.xyz = fma(faceforward(hit.normal.xyz, ray.direct.xyz, -hit.normal.xyz), vec3(GAP), ray.origin.xyz); // padding
+    // because transparency and baked will processing in fly, it may required
     return ray;
 }
 
