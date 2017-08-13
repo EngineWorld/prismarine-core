@@ -14,6 +14,7 @@ layout ( std430, binding = 18 ) readonly buffer MortonIndicesBlock { int MortonI
 
 struct SharedVarsData {
     int bakedStackCount;
+    int chainID;
 };
 
 struct TResult {
@@ -55,7 +56,10 @@ void reorderTriangles() {
 
     for (int iround = 1; iround < sharedVarsData.bakedStackCount; iround++) {
         for (int index = 0; index < sharedVarsData.bakedStackCount - iround; index++) {
-            if (floatBitsToInt(bakedStack[L][index].w) <= floatBitsToInt(bakedStack[L][index+1].w) && lessEqualF(bakedStack[L][index].z, bakedStack[L][index+1].z)) {
+            bool lessIdx = floatBitsToInt(bakedStack[L][index].w) <= floatBitsToInt(bakedStack[L][index+1].w);
+            float baked = equalF(bakedStack[L][index].z, bakedStack[L][index+1].z);
+            float deeper = lessF(bakedStack[L][index].z, bakedStack[L][index+1].z);
+            if (lessIdx && baked || deeper) {
                 vec4 tmp = bakedStack[L][index];
                 bakedStack[L][index] = bakedStack[L][index+1];
                 bakedStack[L][index+1] = tmp;
@@ -82,8 +86,68 @@ void reorderTriangles() {
     sharedVarsData.bakedStackCount = cleanBakedStackCount;
 }
 
-void includeChain(in vec4 intersection){
 
+
+HitReworked interpolateMeshData(inout HitReworked res) {
+    int tri = floatBitsToInt(res.uvt.w);
+
+    if (greaterEqualF(res.uvt.z, 0.0f) && lessF(res.uvt.z, INFINITY) && tri != LONGEST && mats[tri] != LONGEST) {
+        vec3 trinorms[3];
+        vec3 triverts[3];
+        vec4 texcoords[3];
+        vec4 colors[3];
+        vec4 mods[3];
+
+        for (int x=0;x<3;x++) {
+            ivec2 mos = gatherMosaic(getUniformCoord(tri));
+            triverts[x] = fetchMosaic(vertex_texture, mos, x).xyz;
+            trinorms[x] = fetchMosaic(normal_texture, mos, x).xyz;
+            texcoords[x] = fetchMosaic(texcoords_texture, mos, x);
+            colors[x] = vec4(1.0f);
+            mods[x] = fetchMosaic(modifiers_texture, mos, x);
+        }
+
+        vec3 deltaPos1 = triverts[1] - triverts[0];
+        vec3 deltaPos2 = triverts[2] - triverts[0];
+        vec2 uv = res.uvt.xy;
+        vec3 nor = normalize(cross(deltaPos1, deltaPos2));
+        vec3 normal = fma(trinorms[0], vec3(1.0f - uv.x - uv.y), fma(trinorms[1], vec3(uv.x), trinorms[2] * vec3(uv.y)));
+        normal = lessF(length(normal), 0.f) ? nor : normalize(normal);
+        normal = normal * sign(dot(normal, nor));
+
+        bool delta = all(equal(texcoords[0].xy, texcoords[1].xy)) && all(equal(texcoords[0].xy, texcoords[2].xy));
+        vec2 deltaUV1 = delta ? vec2(1.0f, 0.0f) : texcoords[1].xy - texcoords[0].xy;
+        vec2 deltaUV2 = delta ? vec2(0.0f, 1.0f) : texcoords[2].xy - texcoords[0].xy;
+
+        float f = 1.0f / fma(deltaUV1.x, deltaUV2.y, -deltaUV1.y * deltaUV2.x);
+        vec3 tan = fma(deltaPos1, vec3(deltaUV2.y), -deltaPos2 * deltaUV1.y) * f;
+
+        res.normal = vec4(normal, 0.0f);
+        res.tangent = vec4(normalize(tan - normal * sign(dot(tan, nor))), 0.0f);
+        res.texcoord = fma(texcoords[0], vec4(1.0f - uv.x - uv.y), fma(texcoords[1], vec4(uv.x), texcoords[2] * vec4(uv.y)));
+        res.color = fma(colors[0], vec4(1.0f - uv.x - uv.y), fma(colors[1], vec4(uv.x), colors[2] * vec4(uv.y)));
+        res.mods = fma(mods[0], vec4(1.0f - uv.x - uv.y), fma(mods[1], vec4(uv.x), mods[2] * vec4(uv.y)));
+        res.materialID = mats[tri];
+    }
+
+    return res;
+}
+
+
+int prevHt = -1;
+
+void includeChain(in vec4 intersection){
+    int hid = atomicIncHt(true);
+    HitReworked hitp = bitBuf.nodes[hid];
+    hitp.uvt = intersection;
+    bitBuf.nodes[hid] = interpolateMeshData(hitp);
+    int chainID = hid;
+    if (prevHt == -1) {
+        sharedVarsData.chainID = chainID;
+    }
+    htBuf.chains[chainID] = HitChain(hid, -1);
+    htBuf.chains[prevHt].next = chainID;
+    prevHt = chainID;
 }
 
 TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
@@ -107,6 +171,9 @@ TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tr
         bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.predist) && greaterEqualF(_d, 0.0f);
 
         if (near) {
+            if (!equalF(_d, res.predist)) { // if distance not equal, reset baked storage counting
+                sharedVarsData.bakedStackCount = 0;
+            }
             bakedStack[L][add(sharedVarsData.bakedStackCount, 1)] = vec4(uv, _d, intBitsToFloat(tri));
         }
     }
@@ -125,8 +192,7 @@ vec3 unprojectVoxels(in vec3 orig) {
 #define SGN(v) v = idx
 
 void includeLeaf(in vec3 origin, in vec3 direct, in bool validBox, in HlbvhNode node, in vec3 boxHit, inout TResult lastRes){
-    bool isLeaf = /*node.pdata.x == node.pdata.y &&*/ validBox;
-    //if (anyInvocation(isLeaf)) {
+    bool isLeaf = validBox;
     if (isLeaf) {
         
         for (int ls=0;ls<groupSize;ls+=1) {
@@ -136,14 +202,10 @@ void includeLeaf(in vec3 origin, in vec3 direct, in bool validBox, in HlbvhNode 
                 testIntersection(lastRes, origin.xyz, direct.xyz, triIdx, isLeaf && !overtaken);
             }
         }
-
-        // bbox debug
-        //lastRes.normal = mult4(GEOMETRY_BLOCK geometryUniform.transformInv, vec4(bboxNormal(node.box, boxHit), 1.0));
-        //lastRes.predist = distance(origin, unprojectVoxels(boxHit));
     }
 }
 
-TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit, in bool valid) {
+TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
     TResult lastRes;
     lastRes.dist = INFINITY;
     lastRes.predist = INFINITY;
@@ -154,7 +216,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit, in 
     // deferred stack
     deferredPtr = 0;
     deferredStack[L][0] = -1;
-    sharedVarsData.bakedRange = LONGEST;
+    sharedVarsData.chainID = -1;
     sharedVarsData.bakedStackCount = 0;
     for (int i=0;i<bakedFragments;i++) {bakedStack[L][i] = LONGEST;}
 
@@ -234,8 +296,7 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit, in 
         };
     }
 
-    lastRes.triangleID = LONGEST; // avoid side effect
-    //lastRes.dist = lastRes.predist; // debug
+    lastRes.triangleID = LONGEST;
     choiceBaked(lastRes, origin.xyz, direct.xyz, bakedStep);
     return lastRes;
 }
@@ -250,33 +311,12 @@ void main() {
     if (allInvocations(overflow)) return;
 
     int t = activedBuf.indc[it];
-    Ray ray = fetchRayDirect(t);
+    Ray ray = rayBuf.nodes[t];
     overflow = ray.actived < 1 || overflow;
     if (allInvocations(overflow)) return;
 
-    Hit hit = fetchHitDirect(t);
-    LResult res = interpolateMeshData(traverse(hit.dist, ray.origin.xyz, ray.direct.xyz, hit, !overflow));
-
-    // resolve intersection
-    if (
-        greaterEqualF(res.dist, 0.0f) &&
-        lessF(res.dist, INFINITY) &&
-        (lessEqualF(res.dist, hit.dist) || GEOMETRY_BLOCK geometryUniform.clearDepth > 0) &&
-        res.materialID >= 0 &&
-        res.materialID != LONGEST
-    ) {
-        Hit newHit = hit;
-        vec4 sysmod = newHit.vmods;
-        newHit.normal = res.normal;
-        newHit.tangent = res.tangent;
-        newHit.texcoord = res.texcoord;
-        newHit.vcolor = res.color;
-        newHit.vmods = res.mods;
-        newHit.dist = res.dist;
-        newHit.triangleID = res.triangleID;
-        newHit.materialID = res.materialID;
-        newHit.shaded = 0;
-        newHit.vmods.w = sysmod.w;
-        if (!overflow) storeHit(t, newHit);
-    }
+    prevHt = ray.hitChain;
+    traverse(ray.origin.xyz, ray.direct.xyz, !overflow);
+    ray.hitChain = prevHt;
+    rayBuf.nodes[t] = ray; // just store
 }

@@ -28,9 +28,9 @@ struct SamplerUniformStruct {
     iVc1 rayCount;
     iVc1 iteration;
     iVc1 phase;
-    iVc1 maxSamples;
-    iVc1 currentSample;
-    iVc1 maxFilters;
+    iVc1 hitCount; // planned
+    iVc1 reserved0;
+    iVc1 reserved1;
     iVc1 currentRayLimit;
 };
 

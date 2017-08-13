@@ -30,7 +30,7 @@ layout ( std430, binding = 8 ) restrict buffer CounterBlock {
     int Gt; 
 } arcounter;
 
-layout ( std430, binding = 9 ) restrict buffer ColorChainBlock { HitChain chains[]; } htBuf;
+layout ( std430, binding = 9 ) restrict buffer HitChainBlock { HitChain chains[]; } htBuf;
 
 
 

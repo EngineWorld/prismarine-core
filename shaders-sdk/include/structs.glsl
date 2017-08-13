@@ -129,11 +129,13 @@ struct RayRework {
 };
 
 struct HitRework {
-    vec4 uvt; // UV, distance
+    vec4 uvt; // UV, distance, triangle
     vec4 albedoAlpha;
-    vec4 metallicRoughtness; // Y - roughtness, Z - metallic, also available other params
+    vec4 metallicRoughness; // Y - roughtness, Z - metallic, also available other params
     vec4 normalHeight; // normal with height mapping, will already interpolated with geometry
     vec4 emission;
+    vec4 texcoord;
+    vec4 tangent;
     int bitfield; 
     int ray; // ray index
     int materialID;

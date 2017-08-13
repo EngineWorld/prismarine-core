@@ -1,0 +1,103 @@
+#version 460 core
+
+#include "../include/constants.glsl"
+
+#ifdef USE_BINDLESS
+#extension GL_ARB_bindless_texture : require
+#endif
+
+#include "../include/structs.glsl"
+#include "../include/uniforms.glsl"
+#include "../include/rays.glsl"
+#include "../include/random.glsl"
+#include "../include/STOmath.glsl"
+#include "../include/materialFunc.glsl"
+#include "../include/vertex.glsl"
+
+#include "../public/surface.glsl"
+#include "../public/environment.glsl"
+
+
+
+vec4 fetchSpecular(in Material mat, in vec2 texcoord){
+    vec4 specular = mat.specular;
+    if (validateTexture(mat.specularPart)) {
+        specular = fetchTexture(mat.specularPart, texcoord);
+    }
+    return specular;
+}
+
+vec4 fetchEmissive(in Material mat, in vec2 texcoord){
+    vec4 emission = vec4(0.0f);
+    if (validateTexture(mat.emissivePart)) {
+        emission = fetchTexture(mat.emissivePart, texcoord);
+    }
+    return emission;
+}
+
+vec4 fetchTransmission(in Material mat, in vec2 texcoord){
+    return mat.transmission;
+}
+
+vec4 fetchNormal(in Material mat, in vec2 texcoord){
+    vec4 nmap = vec4(0.5f, 0.5f, 1.0f, 1.0f);
+    if (validateTexture(mat.bumpPart)) {
+        nmap = fetchTexture(mat.bumpPart, vec2(texcoord.x, texcoord.y));
+    }
+    return nmap;
+}
+
+vec4 fetchNormal(in Material mat, in vec2 texcoord, in ivec2 offset){
+    vec4 nmap = vec4(0.5f, 0.5f, 1.0f, 1.0f);
+    if (validateTexture(mat.bumpPart)) {
+        nmap = fetchTexture(mat.bumpPart, vec2(texcoord.x, texcoord.y), offset);
+    }
+    return nmap;
+}
+
+vec3 getNormalMapping(in Material mat, vec2 texcoordi) {
+    vec3 tc = fetchNormal(mat, texcoordi).xyz;
+    vec3 normal = vec3(0.0f, 0.0f, 1.0f);
+    if(equalF(tc.x, tc.y) && equalF(tc.x, tc.z)){
+        const ivec3 off = ivec3(0,0,1);
+        const float size = 1.0f;
+        const float pike = 2.0f;
+        vec3 p00 = vec3(0.0f, 0.0f, fetchNormal(mat, texcoordi, off.yy).x * pike);
+        vec3 p01 = vec3(size, 0.0f, fetchNormal(mat, texcoordi, off.zy).x * pike);
+        vec3 p10 = vec3(0.0f, size, fetchNormal(mat, texcoordi, off.yz).x * pike);
+        normal = normalize(cross(p10 - p00, p01 - p00));
+    } else {
+        normal = normalize(mix(vec3(0.0f, 0.0f, 1.0f), fma(tc, vec3(2.0f), vec3(-1.0f)), vec3(1.0f)));
+    }
+    return normal;
+}
+
+vec4 fetchDiffuse(in Material mat, in vec2 texcoord){
+    vec4 result = vec4(0.0f);
+    result = mat.diffuse;
+    if (validateTexture(mat.diffusePart)) {
+        result = fetchTexture(mat.diffusePart, texcoord);
+    }
+    return result;
+}
+
+LOCAL_SIZE_LAYOUT;
+
+void main() {
+    int t = int(gl_GlobalInvocationID.x);
+    bool overflow = it >= RAY_BLOCK samplerUniform.hitCount;
+    globalInvocationSMP = it;
+
+    Hit hit = hitBuf.nodes[t];
+    Ray ray = rayBuf.nodes[hit.ray];
+
+    vec3 normal = normalize(hit.normal.xyz);
+    vec3 tangent = normalize(hit.tangent.xyz);
+    mat3 tbn = mat3(tangent, normalize(cross(normal, tangent)), normal);
+
+    hit.albedo = fetchDiffuse(material, hit.texcoord.xy);
+    hit.normal.xyz = normalize(tbn * normalize(getNormalMapping(material, hit.texcoord.xy).xyz));
+    hit.emission = vec4(fetchEmissive(material, hit.texcoord.xy).xyz * 2.f, 1.0f);
+    hit.metallicRoughness = vec4(fetchSpecular(material, hit.texcoord.xy).xyz, 1.0f);
+    hitBuf.nodes[t] = hit;
+}

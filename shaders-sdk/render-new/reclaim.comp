@@ -20,19 +20,19 @@ void main()
     int t = activedBuf.indc[it];
     
     Ray ray = fetchRayDirect(t);
-    Hit hit = fetchHitDirect(t);
-    ray.bounce -= 1;
+    int bounce = bitfieldExtract(ray.bitfield,  8, 4)-1;
     ray.final.xyz = max(vec3(0.0f), ray.final.xyz);
     ray.color.xyz = max(vec3(0.0f), ray.color.xyz);
-    hit.vmods.w = equalF(hit.dist, 0.f) ? (hit.vmods.w+1.f) : 0.f;
 
-    if (ray.bounce < 0 || hit.shaded <= 0 || mlength(ray.color.xyz) < 0.0001f || overflow) {
-        ray.actived = 0;
+    if (bounce < 0 || mlength(ray.color.xyz) < 0.0001f || overflow || ray.hitChain == -1) {
+        //ray.actived = 0;
+        ray.bitfield = bitfieldInsert(ray.bitfield, 0,  0, 1);
     }
 
+    ray.bitfield = bitfieldInsert(ray.bitfield, bounce,  8, 4);
+    ray.hitChain = -1; // reset chains
+
     if (!overflow) {
-        hit.shaded = 1;
-        storeHit(t, hit);
         storeRay(t, ray);
         addRayToList(ray); // add current rays to additions with newer
     }

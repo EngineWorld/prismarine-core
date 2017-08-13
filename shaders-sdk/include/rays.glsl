@@ -23,11 +23,15 @@ layout ( std430, binding = 8 ) restrict buffer CounterBlock {
     int Rt; // ray list counter
     int Qt; // next available ptr 
     int Ut; // free list counter
+
     int Ct; // color chain list counter
 
     // traverser counters
     int Ft;
-    int Gt; 
+    int Gt;
+
+    // hit chain counters
+    int Ht;
 } arcounter;
 
 
@@ -38,6 +42,7 @@ initAtomicDecFunction(arcounter.Ut, atomicDecUt, int);
 initAtomicIncFunction(arcounter.Ct, atomicIncCt, int);
 initAtomicIncFunction(arcounter.Ft, atomicIncFt, int);
 initAtomicIncFunction(arcounter.Gt, atomicIncGt, int);
+initAtomicIncFunction(arcounter.Ht, atomicIncHt, int);
 
 void _collect(inout Ray ray) {
     /*
