@@ -315,8 +315,8 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit, in 
 
             // because traverse stack is limited, we does not including leafs to this stack
             if (anyInvocation(anyB(overlapsGeneral))) {
-                bool leafOrder = lessEqualF(nears.x, nears.y);
                 bvec2 overlaps = cI2(overlapsGeneral);
+                bool leafOrder = allB2(overlapsGeneral) ? lessEqualF(nears.x, nears.y) : overlaps.x;
                 overlaps = leafOrder ? overlaps : overlaps.yx;
                 nears = leafOrder ? nears : nears.yx;
                 hits = leafOrder ? hits : hits.yx;
