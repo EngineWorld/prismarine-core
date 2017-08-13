@@ -1,0 +1,382 @@
+#version 460 core
+
+#include "../include/constants.glsl"
+#include "../include/structs.glsl"
+#include "../include/uniforms.glsl"
+#include "../include/rays.glsl"
+#include "../include/morton.glsl"
+#include "../include/STOmath.glsl"
+#include "../include/vertex.glsl"
+
+layout ( std430, binding = 9 ) readonly buffer NodesBlock { HlbvhNode Nodes[]; };
+layout ( std430, binding = 17 ) readonly buffer LeafBlock { HlbvhNode Leafs[]; };
+layout ( std430, binding = 18 ) readonly buffer MortonIndicesBlock { int MortonIndices[]; };
+
+struct SharedVarsData {
+    vec4 bakedRangeIntersection;
+    int bakedRange;
+    int bakedStackCount;
+    uint L;
+};
+
+struct TResult {
+    float dist;
+    int triangleID;
+    int materialID; // legacy
+    float predist;
+    vec4 uv;
+    vec4 normal;
+};
+
+struct LResult {
+    vec4 normal;
+    vec4 tangent;
+    vec4 texcoord;
+    vec4 color;
+    vec4 mods;
+
+    float dist;
+    int triangleID;
+    int materialID;
+    float predist; // legacy
+    vec4 uv; // legacy
+};
+
+uint L = 0;
+int deferredPtr = 0;
+SharedVarsData sharedVarsData;
+
+const int STACK_SIZE = 16;
+const int groupSize = 1;
+const int bakedFragments = 8;
+
+shared int deferredStack[WORK_SIZE][STACK_SIZE];
+shared int bakedStack[WORK_SIZE][bakedFragments];
+
+TResult choiceFirstBaked(inout TResult res) {
+    int tri = sharedVarsData.bakedRange;
+    bool validTriangle = tri >= 0 && tri != LONGEST;
+    if (anyInvocation(validTriangle)) {
+        vec2 uv = sharedVarsData.bakedRangeIntersection.yz;
+        float _d = sharedVarsData.bakedRangeIntersection.x;
+        bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.dist);
+        if (near) {
+            res.dist = _d;
+            res.triangleID = tri;
+            res.uv.xy = uv.xy;
+        }
+    }
+    return res;
+}
+
+void reorderTriangles() {
+    // fit hits count
+    sharedVarsData.bakedStackCount = min(sharedVarsData.bakedStackCount, bakedFragments);
+
+    // resort z-fighting primitives
+    for (int iround = 1; iround < sharedVarsData.bakedStackCount; iround++) {
+        for (int index = 0; index < sharedVarsData.bakedStackCount - iround; index++) {
+            if (bakedStack[L][index] <= bakedStack[L][index+1]) {
+                swap(bakedStack[L][index], bakedStack[L][index+1]);
+            }
+        }
+    }
+
+    // initial clean list
+    int cleanBakedStackCount = 0;
+
+    // select only unique triangle ID's
+    for (int iround = 0; iround < bakedFragments; iround++) {
+        if (iround >= sharedVarsData.bakedStackCount-1) break;
+        int next = bakedStack[L][iround+1];
+        int prim = bakedStack[L][iround];
+        if (next != prim) {
+            bakedStack[L][cleanBakedStackCount++] = prim;
+        }
+    }
+
+    // copy last primitive
+    if (sharedVarsData.bakedStackCount > 0 && cleanBakedStackCount < bakedFragments) {
+        bakedStack[L][cleanBakedStackCount++] = bakedStack[L][sharedVarsData.bakedStackCount-1];
+    }
+    
+    sharedVarsData.bakedStackCount = cleanBakedStackCount;
+}
+
+TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
+    bool haveBaked = tpi < sharedVarsData.bakedStackCount;
+    if (!haveBaked) choiceFirstBaked(res);
+    
+    if (anyInvocation(haveBaked)) {
+        reorderTriangles();
+
+        int tri = haveBaked ? bakedStack[L][tpi] : LONGEST;
+        bool validTriangle = tri >= 0 && tri != LONGEST;
+        if (anyInvocation(validTriangle)) {
+            vec2 uv = vec2(0.0f);
+            float _d = intersectTriangle(orig, dir, tri, uv, validTriangle);
+            bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.dist);
+            if (near) {
+                res.dist = _d;
+                res.triangleID = tri;
+                res.uv.xy = uv.xy;
+            }
+        }
+    }
+
+    return res;
+}
+
+LResult interpolateMeshData(in TResult hitp) {
+    LResult res;
+    res.dist = hitp.dist;
+    res.triangleID = hitp.triangleID;
+    res.materialID = 0;
+    res.predist = hitp.predist; // legacy
+    res.uv = hitp.uv; // legacy
+    res.normal = hitp.normal;
+    res.texcoord = vec4(0.f);
+
+    int tri = hitp.triangleID;
+    if (greaterEqualF(hitp.dist, 0.0f) && lessF(hitp.dist, INFINITY) && tri != LONGEST &&  mats[tri] != LONGEST) {
+        vec3 trinorms[3];
+        vec3 triverts[3];
+        vec4 texcoords[3];
+        vec4 colors[3];
+        vec4 mods[3];
+
+        for (int x=0;x<3;x++) {
+            ivec2 mos = gatherMosaic(getUniformCoord(tri));
+            triverts[x] = fetchMosaic(vertex_texture, mos, x).xyz;
+            trinorms[x] = fetchMosaic(normal_texture, mos, x).xyz;
+            texcoords[x] = fetchMosaic(texcoords_texture, mos, x);
+            colors[x] = vec4(1.0f);
+            mods[x] = fetchMosaic(modifiers_texture, mos, x);
+        }
+
+        vec3 deltaPos1 = triverts[1] - triverts[0];
+        vec3 deltaPos2 = triverts[2] - triverts[0];
+        vec2 uv = hitp.uv.xy;
+        vec3 nor = normalize(cross(deltaPos1, deltaPos2));
+        vec3 normal = fma(trinorms[0], vec3(1.0f - uv.x - uv.y), fma(trinorms[1], vec3(uv.x), trinorms[2] * vec3(uv.y)));
+        normal = lessF(length(normal), 0.f) ? nor : normalize(normal);
+        normal = normal * sign(dot(normal, nor));
+
+        bool delta = all(equal(texcoords[0].xy, texcoords[1].xy)) && all(equal(texcoords[0].xy, texcoords[2].xy));
+        vec2 deltaUV1 = delta ? vec2(1.0f, 0.0f) : texcoords[1].xy - texcoords[0].xy;
+        vec2 deltaUV2 = delta ? vec2(0.0f, 1.0f) : texcoords[2].xy - texcoords[0].xy;
+
+        float f = 1.0f / fma(deltaUV1.x, deltaUV2.y, -deltaUV1.y * deltaUV2.x);
+        vec3 tan = fma(deltaPos1, vec3(deltaUV2.y), -deltaPos2 * deltaUV1.y) * f;
+
+        res.normal = vec4(normal, 0.0f);
+        res.tangent = vec4(normalize(tan - normal * sign(dot(tan, nor))), 0.0f);
+        res.texcoord = fma(texcoords[0], vec4(1.0f - uv.x - uv.y), fma(texcoords[1], vec4(uv.x), texcoords[2] * vec4(uv.y)));
+        res.color = fma(colors[0], vec4(1.0f - uv.x - uv.y), fma(colors[1], vec4(uv.x), colors[2] * vec4(uv.y)));
+        res.mods = fma(mods[0], vec4(1.0f - uv.x - uv.y), fma(mods[1], vec4(uv.x), mods[2] * vec4(uv.y)));
+        res.materialID = mats[tri];
+    }
+
+    return res;
+}
+
+TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tri, in bool isValid) {
+    bool validTriangle = 
+        isValid && 
+        tri >= 0 && 
+        tri != LONGEST && 
+        tri != res.triangleID;
+
+    if (anyInvocation(validTriangle)) {
+        vec2 uv = vec2(0.0f);
+        float _d = intersectTriangle(orig, dir, tri, uv, validTriangle);
+        bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.predist) && greaterEqualF(_d, 0.0f);
+        bool inbaked = equalF(_d, 0.0f);
+        bool isbaked = equalF(_d, res.predist);
+        bool changed = !isbaked && !inbaked;
+
+        if (near) {
+            if ( changed ) {
+                res.predist = _d;
+                res.triangleID = tri;
+            }
+            if ( inbaked ) {
+                bakedStack[L][add(sharedVarsData.bakedStackCount, 1)] = tri;
+            } else 
+            if ( sharedVarsData.bakedRange < tri || sharedVarsData.bakedRange == LONGEST || changed ) {
+                sharedVarsData.bakedRange = tri;
+                sharedVarsData.bakedRangeIntersection = vec4(_d, uv, 0.f);
+            }
+        }
+    }
+
+    return res;
+}
+
+vec3 projectVoxels(in vec3 orig) {
+    return mult4(vec4(orig, 1.0f), GEOMETRY_BLOCK geometryUniform.transform).xyz;
+}
+
+vec3 unprojectVoxels(in vec3 orig) {
+    return mult4(vec4(orig, 1.0f), GEOMETRY_BLOCK geometryUniform.transformInv).xyz;
+}
+
+#define SGN(v) v = idx
+
+void includeLeaf(in vec3 origin, in vec3 direct, in bool validBox, in HlbvhNode node, in vec3 boxHit, inout TResult lastRes){
+    bool isLeaf = /*node.pdata.x == node.pdata.y &&*/ validBox;
+    //if (anyInvocation(isLeaf)) {
+    if (isLeaf) {
+        
+        for (int ls=0;ls<groupSize;ls+=1) {
+            bool overtaken = ls > node.pdata.y-node.pdata.w || !isLeaf;
+            if (anyInvocation(!overtaken)) {
+                int triIdx = overtaken ? LONGEST : Leafs[MortonIndices[node.pdata.w + ls]].pdata.w;
+                testIntersection(lastRes, origin.xyz, direct.xyz, triIdx, isLeaf && !overtaken);
+            }
+        }
+
+        // bbox debug
+        //lastRes.normal = mult4(GEOMETRY_BLOCK geometryUniform.transformInv, vec4(bboxNormal(node.box, boxHit), 1.0));
+        //lastRes.predist = distance(origin, unprojectVoxels(boxHit));
+    }
+}
+
+TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit, in bool valid) {
+    TResult lastRes;
+    lastRes.dist = INFINITY;
+    lastRes.predist = INFINITY;
+    lastRes.triangleID = LONGEST;
+    lastRes.materialID = LONGEST;
+    lastRes.normal = vec4(0.f);
+
+    // deferred stack
+    deferredPtr = 0;
+    deferredStack[L][0] = -1;
+    sharedVarsData.bakedRange = LONGEST;
+    sharedVarsData.bakedStackCount = 0;
+    sharedVarsData.bakedRangeIntersection = vec4(INFINITY, 0.f, 0.f, 0.f);
+    for (int i=0;i<bakedFragments;i++) {bakedStack[L][i] = LONGEST;}
+
+    // something fix
+    direct = normalize(direct);
+
+    // test constants
+    int bakedStep = int(floor(1.f + hit.vmods.w));
+    vec3 torig = projectVoxels(origin);
+    //vec3 tdirproj = mult4(GEOMETRY_BLOCK geometryUniform.transform, vec4(direct, 1.0)).xyz;
+    vec3 tdirproj = mult4(vec4(direct, 0.0), GEOMETRY_BLOCK geometryUniform.transform).xyz;
+    float dirlen = length(tdirproj) / max(length(direct), 0.000001f);
+    float dirlenInv = 1.f / max(dirlen, 0.000001f);
+    vec3 dirproj = normalize(tdirproj);
+
+    // test with root node
+    float near = INFINITY, far = INFINITY;
+    float d = intersectCubeSingle(torig, dirproj, vec4(vec3(0.f), 1.0f), vec4(vec3(1.f), 1.0f), near, far);
+    //lastRes.predist = min(hit.dist, far * dirlenInv);
+
+    // init state
+    int idx = 0;
+    bool validBox = valid && lessF(d, INFINITY) && lessF(d * dirlenInv, INFINITY) && greaterEqualF(d, 0.0f);
+    for (int i=0;i<16384;i++) {
+        if (allInvocations(!validBox)) break;
+        HlbvhNode node = Nodes[idx];
+
+        // choice near box
+        bool skip = false;
+        bool notLeaf = node.pdata.x != node.pdata.y && validBox;
+        if (anyInvocation(notLeaf)) {
+            HlbvhNode lnode = Nodes[node.pdata.x];
+            HlbvhNode rnode = Nodes[node.pdata.y];
+
+            vec2 inf2 = vec2(INFINITY), nears = inf2, fars = inf2;
+            vec2 hits = vec2(
+                intersectCubeSingle(torig, dirproj, lnode.box.mn, lnode.box.mx, nears.x, fars.x),
+                intersectCubeSingle(torig, dirproj, rnode.box.mn, rnode.box.mx, nears.y, fars.y)
+            );
+
+            int overlapsGeneral = (notLeaf ? 3 : 0) & cB2(lessThanEqual(hits, vec2(INFINITY-PZERO))) & cB2(greaterThan(hits, -vec2(PZERO))) & cB2(lessThanEqual(nears, vec2(lastRes.predist+PZERO) * dirlen));
+            int overlaps = overlapsGeneral & cB2(bvec2(lnode.pdata.x != lnode.pdata.y, rnode.pdata.x != rnode.pdata.y));
+
+            bool anyOverlap = anyB(overlaps);
+            if (anyInvocation(anyOverlap)) {
+                bvec2 overlapsBool = cI2(overlaps);
+                bool leftOrder = allB2(overlaps) ? lessEqualF(nears.x, nears.y) : overlapsBool.x;
+                ivec2 leftright = mix(ivec2(-1), node.pdata.xy, overlapsBool);
+                leftright = leftOrder ? leftright : leftright.yx;
+                if (anyOverlap && leftright.x != -1) {
+                    if (deferredPtr < STACK_SIZE && leftright.y != -1 && leftright.x != leftright.y) {
+                        deferredStack[L][deferredPtr++] = leftright.y;
+                    }
+                    idx = leftright.x;
+                    skip = true;
+                }
+            }
+
+            // because traverse stack is limited, we does not including leafs to this stack
+            overlapsGeneral &= cB2(bvec2(lnode.pdata.x == lnode.pdata.y, rnode.pdata.x == rnode.pdata.y)); // is leafs
+            if (anyInvocation(anyB(overlapsGeneral))) {
+                bvec2 overlaps = cI2(overlapsGeneral);
+                bool leafOrder = allB2(overlapsGeneral) ? lessEqualF(nears.x, nears.y) : overlaps.x;
+                overlaps = leafOrder ? overlaps : overlaps.yx;
+                nears = leafOrder ? nears : nears.yx;
+                hits = leafOrder ? hits : hits.yx;
+                includeLeaf(origin, direct, validBox && overlaps.x && lessEqualF(nears.x, lastRes.predist), leafOrder ? lnode : rnode, dirproj * hits.x + torig, lastRes);
+                includeLeaf(origin, direct, validBox && overlaps.y && lessEqualF(nears.y, lastRes.predist), leafOrder ? rnode : lnode, dirproj * hits.y + torig, lastRes);
+            }
+        }
+
+        // go to parent 
+        if (!skip) {
+            int ptr = --deferredPtr;
+            bool valid = ptr >= 0; idx = valid ? atomicExchange(deferredStack[L][ptr], -1) : -1;
+            validBox = validBox && valid && idx >= 0;
+        };
+    }
+
+    lastRes.triangleID = LONGEST; // avoid side effect
+    //lastRes.dist = lastRes.predist; // debug
+    choiceBaked(lastRes, origin.xyz, direct.xyz, bakedStep);
+    return lastRes;
+}
+
+LOCAL_SIZE_LAYOUT;
+
+void main() {
+    L = gl_LocalInvocationID.x;
+
+    int it = int(gl_GlobalInvocationID.x);
+    bool overflow = it >= RAY_BLOCK samplerUniform.rayCount;
+    if (allInvocations(overflow)) return;
+
+    int t = activedBuf.indc[it];
+    Ray ray = fetchRayDirect(t);
+    overflow = ray.actived < 1 || overflow;
+    if (allInvocations(overflow)) return;
+
+    Hit hit = fetchHitDirect(t);
+    LResult res = interpolateMeshData(traverse(hit.dist, ray.origin.xyz, ray.direct.xyz, hit, !overflow));
+
+    // resolve intersection
+    if (
+        greaterEqualF(res.dist, 0.0f) &&
+        lessF(res.dist, INFINITY) &&
+        (lessEqualF(res.dist, hit.dist) || GEOMETRY_BLOCK geometryUniform.clearDepth > 0) &&
+        res.materialID >= 0 &&
+        res.materialID != LONGEST
+    ) {
+        Hit newHit = hit;
+        vec4 sysmod = newHit.vmods;
+        newHit.normal = res.normal;
+        newHit.tangent = res.tangent;
+        newHit.texcoord = res.texcoord;
+        newHit.vcolor = res.color;
+        newHit.vmods = res.mods;
+        newHit.dist = res.dist;
+        newHit.triangleID = res.triangleID;
+        newHit.materialID = res.materialID;
+        newHit.shaded = 0;
+        newHit.vmods.w = sysmod.w;
+        if (!overflow) storeHit(t, newHit);
+    }
+}

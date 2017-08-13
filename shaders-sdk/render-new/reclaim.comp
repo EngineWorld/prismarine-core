@@ -1,0 +1,39 @@
+#version 460 core
+
+#include "../include/constants.glsl"
+#include "../include/structs.glsl"
+#include "../include/uniforms.glsl"
+#include "../include/rays.glsl"
+#include "../include/STOmath.glsl"
+
+LOCAL_SIZE_LAYOUT;
+
+//layout ( std430, binding = 4 ) restrict buffer RayMortons {uint rayMorton[];};
+//layout ( std430, binding = 5 ) restrict buffer BoundingBox {bbox inbound;};
+
+void main()
+{
+    int it = int(gl_GlobalInvocationID.x);
+    bool overflow = it >= RAY_BLOCK samplerUniform.rayCount;
+
+    if (overflow) return;
+    int t = activedBuf.indc[it];
+    
+    Ray ray = fetchRayDirect(t);
+    Hit hit = fetchHitDirect(t);
+    ray.bounce -= 1;
+    ray.final.xyz = max(vec3(0.0f), ray.final.xyz);
+    ray.color.xyz = max(vec3(0.0f), ray.color.xyz);
+    hit.vmods.w = equalF(hit.dist, 0.f) ? (hit.vmods.w+1.f) : 0.f;
+
+    if (ray.bounce < 0 || hit.shaded <= 0 || mlength(ray.color.xyz) < 0.0001f || overflow) {
+        ray.actived = 0;
+    }
+
+    if (!overflow) {
+        hit.shaded = 1;
+        storeHit(t, hit);
+        storeRay(t, ray);
+        addRayToList(ray); // add current rays to additions with newer
+    }
+}

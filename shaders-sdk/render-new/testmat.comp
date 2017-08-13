@@ -1,0 +1,192 @@
+#version 460 core
+
+#include "../include/constants.glsl"
+
+#ifdef USE_BINDLESS
+#extension GL_ARB_bindless_texture : require
+#endif
+
+#include "../include/structs.glsl"
+#include "../include/uniforms.glsl"
+#include "../include/rays.glsl"
+#include "../include/random.glsl"
+#include "../include/STOmath.glsl"
+#include "../include/materialFunc.glsl"
+
+#include "../public/surface.glsl"
+#include "../public/environment.glsl"
+
+
+
+
+
+
+
+LOCAL_SIZE_LAYOUT;
+
+void main() {
+    int it = int(gl_GlobalInvocationID.x);
+    bool overflow = it >= RAY_BLOCK samplerUniform.rayCount;
+    int t = activedBuf.indc[it];
+    globalInvocationSMP = it;
+
+    Ray ray = fetchRayDirect(t);
+    Hit hit = fetchHitDirect(t);
+
+    // already shaded? skipping
+    if (hit.shaded > 0 || ray.actived < 1) {
+        hit.shaded = 1;
+        overflow = true;
+    }
+
+    // apply physical lights
+    int lc = -1;
+    if ((ray.params.z > 0 && ray.params.x < 1) && hit.shaded < 1) {
+        for (int i=0;i<min(RAY_BLOCK materialUniform.lightcount, 16);i++) {
+            float md = 1.0f;
+            float dt = intersectSphere(ray.origin.xyz, ray.direct.xyz, lightCenter(i).xyz, lightUniform.lightNode[i].lightColor.w + GAP);
+            float t = md * dt;
+            if (lessF(dt, INFINITY) && lessEqualF(t, hit.dist)) {
+                lc = i;
+                hit.triangleID = 0;
+                hit.dist = t;
+                hit.materialID = LONGEST;
+            }
+        }
+    }
+
+    if (lc >= 0 && (ray.params.y == lc || ray.params.w < 1)){
+        ray.final.xyz = ray.color.xyz * getLightColor(lc);
+        ray.color.xyz *= 0.0f;
+        ray.actived = 0;
+        hit.shaded = 1;
+    }
+
+    // apply background
+    {
+        vec4 color = vec4(0.0f);
+        EnvironmentShader(color, hit, ray);
+
+        if (greaterEqualF(hit.dist, INFINITY) && ray.params.w < 1 && hit.shaded < 1) {
+            ray.final.xyz = ray.color.xyz * color.xyz;
+            ray.color.xyz *= 0.0f;
+            ray.actived = 0;
+            hit.triangleID = 0;
+            hit.dist = INFINITY;
+            hit.materialID = LONGEST;
+            hit.shaded = 1;
+        }
+    }
+
+
+    // resolve and valiate ray
+    ray.direct.xyz = normalize(ray.direct.xyz);
+    ray.origin.xyz = fma(ray.direct.xyz, vec3(hit.dist), ray.origin.xyz);
+
+    if (hit.materialID < 0 || hit.materialID == LONGEST || hit.shaded > 0 || ray.actived < 1) {
+        hit.shaded = 1;
+    }
+
+    // get material data
+    Material materialCache = submats[hit.materialID];
+
+    // apply surface shading
+    SurfaceData surface;
+    surface.normal = vec3(0.0f, 0.0f, 1.f);
+    surface.height = 1.0f;
+    surface.emission = vec4(0.f);
+    surface.albedo = vec4(0.f);
+    surface.specular = vec4(0.f);
+    surface.metallic = 0;
+    surface.roughness = 0;
+    surface.culling = 0;
+
+    SurfaceShader(surface, materialCache, hit, ray);
+
+
+    // transmutate normals
+    vec3 dir = normalize(ray.direct.xyz);
+    vec3 prenormal = normalize(hit.normal.xyz);
+    vec3 normal = normalize(faceforward(prenormal, dir, prenormal));
+    vec3 surfacenormal = normal;
+    vec3 tan = normalize(hit.tangent.xyz);
+    mat3 tbn = mat3(tan, normalize(cross(normal, tan)), normal);
+    normal = normalize(tbn * normalize(surface.normal));
+    normal = faceforward(normal, dir, normal);
+
+
+    // get surface data
+    vec4 tx = surface.albedo;
+    vec4 emi = materialCache.emissive * surface.emission;
+    vec3 dielectric = vec3(clamp(0.04f + pow(1.0f - abs(dot(dir, normal)), 5.0f), 0.0f, 1.0f));
+    vec3 sc = mix(dielectric, tx.xyz, sqrt(surface.metallic));
+
+
+    // we coming to PBR model
+    float refly = surface.roughness; // roughness
+    float emis = mlength(emi.xyz);
+    float spca = clamp(mlength(sc.xyz), 0.0f, 1.0f);
+    float prom = 1.0f - tx.a;
+
+
+    // backface culling
+    if (false || 
+        surface.culling == 1 && dot(prenormal, ray.direct.xyz) > 0.0f || 
+        surface.culling == 2 && dot(prenormal, ray.direct.xyz) < 0.0f
+    ) {
+        prom = 1.0f;
+    }
+
+
+    // create rays
+    Ray diffuseRay = ray;
+    diffuseRay.final.xyz *= 0.0f;
+
+    Ray reflectionRay = ray;
+    reflectionRay.final.xyz *= 0.0f;
+
+    Ray emissiveRay = ray;
+    emissiveRay.final.xyz *= 0.0f;
+    
+    if (hit.shaded < 1) ray.final.xyz *= 0.f;
+
+    if (ray.actived > 0 && hit.shaded < 1) {
+        hit.shaded = 1;
+
+        ray.final.xyz *= 0.0f;
+
+        diffuseRay = diffuse(diffuseRay, hit, tx.xyz, normal);
+        diffuseRay.color.xyz *= (1.0f - prom);
+        diffuseRay.color.xyz *= clamp(1.0f - emis, 0.0f, 1.0f);
+
+        reflectionRay = reflection(reflectionRay, hit, clamp(sc.xyz / spca, 0.0f, 1.0f), normal, refly);
+        reflectionRay.color.xyz *= (1.0f - prom);
+        
+        emissiveRay = emissive(emissiveRay, hit, emi.xyz / min(emis, 1.0f), normal);
+        emissiveRay.color.xyz *= (1.0f - prom);
+        emissiveRay.final.xyz *= (1.0f - prom);
+
+        ray = promised(ray, hit, normal);
+        ray.color.xyz *= prom;
+    } else {
+        reflectionRay.color.xyz *= 0.0f;
+        emissiveRay.color.xyz *= 0.0f;
+        diffuseRay.color.xyz *= 0.0f;
+    }
+
+    // emit rays
+    if (!overflow) {
+        //mixed(diffuseRay.color.xyz, reflectionRay.color.xyz, clamp(spic, 0.0f, 1.0f));
+        mixed(diffuseRay.color.xyz, reflectionRay.color.xyz, clamp(float(random() < spca), 0.0f, 1.0f));
+        emitRay(reflectionRay, hit, normal, 1.0f);
+        applyLight(directLight(0, diffuseRay, hit, vec3(1.0f), normal), diffuseRay, surfacenormal); // push shadow
+        emitRay(diffuseRay, hit, normal, 1.0f);
+        emitRay(emissiveRay, hit, normal, clamp(emis, 0.0f, 1.0f));
+    }
+
+    // re-store current
+    if (!overflow) {
+        storeHit(t, hit);
+        storeRay(t, ray);
+    }
+}

@@ -106,6 +106,50 @@ struct bbox {
 #endif
 };
 
+
+
+
+
+// ray bitfield spec
+// {0     }[1] - actived or not
+// {1 ..2 }[2] - ray type (for example diffuse, specular, shadow)
+// {3     }[1] - applyable direct light (can intersect with light data or not)
+// {4 ..7 }[4] - target light index (for shadow type)
+// {8 ..11}[4] - bounce index
+
+struct RayRework {
+    vec4 origin;
+    vec4 direct;
+    vec4 color;
+    vec4 final;
+    int bitfield; // up to 32-bits
+    int idx; // ray index itself
+    int texel; // texel index
+    int hitchain; // index of hit chain
+};
+
+struct HitRework {
+    vec4 uvt; // UV, distance
+    vec4 albedoAlpha;
+    vec4 metallicRoughtness; // Y - roughtness, Z - metallic, also available other params
+    vec4 normalHeight; // normal with height mapping, will already interpolated with geometry
+    vec4 emission;
+    int ray; // ray index
+    int bitfield; 
+    ivec2 reserved; // for padding
+};
+
+// OIT, transparency sampled per ray
+struct HitChain {
+    int hit;  // link with hit buffer
+    int next; // next hit of chain 
+};
+
+
+
+
+
+
 struct Ray {
 #ifdef USE_WARP_OPTIMIZED
     Vc1 origin[4];

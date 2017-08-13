@@ -1,0 +1,105 @@
+#version 460 core
+
+#include "../include/constants.glsl"
+#include "../include/structs.glsl"
+#include "../include/uniforms.glsl"
+#include "../include/rays.glsl"
+#include "../include/random.glsl"
+#include "../include/STOmath.glsl"
+
+LOCAL_SIZE_LAYOUT;
+
+void main()
+{
+    int enable360 = RAY_BLOCK cameraUniform.enable360;
+    ivec2 wh = ivec2(RAY_BLOCK samplerUniform.sceneRes.xy);
+    int idx = int(gl_GlobalInvocationID.x);
+    globalInvocationSMP = idx;
+
+    ivec2 xy = ivec2(idx % wh.x, idx / wh.x);
+    vec2 sceneResInv = 1.0f / vec2(RAY_BLOCK samplerUniform.sceneRes.xy);
+    if (xy.x < wh.x && xy.y < wh.y) {
+#ifdef RT_OPTIMIZED
+        vec2 coord = (vec2(xy) + clamp(vec2(0.5f), vec2(0.00001f), vec2(0.99999f))) * sceneResInv;
+#else
+        vec2 coord = (vec2(xy) + clamp(vec2(random(), random()), vec2(0.00001f), vec2(0.99999f))) * sceneResInv;
+#endif
+
+        Texel txfi = texelBuf.nodes[idx];
+        txfi.coord.x = coord.x;
+        txfi.coord.y = coord.y;
+        txfi.EXT = ivec4(0);
+        txfi.EXT.x = -1; //Object-Selection
+        txfi.EXT.y = -1; // no chains
+        txfi.EXT.z = -1;
+        texelBuf.nodes[idx] = txfi;
+
+        if (enable360 == 1) {
+            coord.x = 1.f - coord.x;
+            if (coord.x > 0.5f) {
+                coord.y = 1.f - coord.y;
+            }
+        }
+
+        float fov_x = PI;
+        float fov_y = PI;
+
+        vec4 ray_rot = vec4(0.0f, 0.0f, (mod(coord.x * 2.0f, 1.0f) * fov_x) - fov_x/2, (coord.y * fov_y) - fov_y/2);
+        vec4 rot_sin = sin(ray_rot), rot_cos = cos(ray_rot);
+        vec4 n = vec4(rot_cos.w * rot_sin.z, -rot_sin.w, rot_cos.w * rot_cos.z, 0.0f);
+        vec4 v = vec4(
+            n.x*rot_cos.x + n.y*rot_sin.x*rot_sin.y + n.z*rot_sin.x*rot_cos.y,
+            n.y*rot_cos.y - n.z*rot_sin.y,
+            -n.x*rot_sin.x + n.y*rot_cos.x*rot_sin.y + n.z*rot_cos.x*rot_cos.y,
+            0.0f
+        );
+
+        vec4 orig;
+        vec4 dir;
+        vec4 eye = vec4(vec3(0.0f), 1.0f);
+        eye = mult4(RAY_BLOCK cameraUniform.camInv, eye);
+        if (enable360 == 1) {
+            orig = mult4(RAY_BLOCK cameraUniform.camInv, vec4(0.0f, 0.0f, 0.0f, 1.0f));
+             dir = mult4(RAY_BLOCK cameraUniform.camInv, (coord.x > 0.5f ? v : -v));
+        } else {
+            vec4 co = divW(mult4(RAY_BLOCK cameraUniform.camInv, mult4(RAY_BLOCK cameraUniform.projInv, vec4(coord * 2.0f - 1.0f, 0.999f, 1.0f))));
+               orig = divW(mult4(RAY_BLOCK cameraUniform.camInv, mult4(RAY_BLOCK cameraUniform.projInv, vec4(coord * 2.0f - 1.0f, 0.0f, 1.0f))));
+                dir = vec4(normalize(co.xyz - orig.xyz), 0.0f);
+        }
+
+        // apply DOF
+        
+#ifdef EXPERIMENTAL_DOF
+         float dofFocusRadius = 10.f;
+         float dofFocalRadius = 1.f / 64.f;
+        vec4 defEye = RAY_BLOCK cameraUniform.camInv * vec4(0.0f, 0.0f, 0.0f, 1.0f);
+        vec4 focus = defEye + dir * dofFocusRadius;//length(orig.xyz - defEye.xyz);
+        vec4 offsetEye = RAY_BLOCK cameraUniform.camInv * vec4(randomDirectionInSphere() * dofFocalRadius, 1.0f);
+        orig = offsetEye;
+        dir = vec4(normalize(focus.xyz - offsetEye.xyz), 0.0f);
+#endif
+
+        Ray ray;
+        ray.texel = idx;
+        ray.idx = LONGEST;
+        ray.direct = dir;
+        ray.origin = orig;
+        ray.origin.w = 1.0f;
+        ray.color = vec4(1.0f);
+        ray.actived = 1;
+        ray.final = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+
+        ray.params = ivec4(0);
+        ray.params.y = -1;
+        ray.params.x = 0;
+        ray.params.z = 0; // Show sunlight or not
+        ray.params.w = 0;
+        ray.bounce = 4;
+
+        if (RAY_BLOCK cameraUniform.interlace == 1) {
+            if ((abs(xy.x + xy.y) % 2) == RAY_BLOCK cameraUniform.interlaceStage) ray.actived = 0;
+        }
+        
+        createRayIdx(ray, idx, RAY_BLOCK cameraUniform.interlace == 1 ? (idx / 2) : idx);
+    }
+}
