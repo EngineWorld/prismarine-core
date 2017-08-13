@@ -121,6 +121,7 @@ struct Ray {
     iVc1 bounce;
     iVc1 texel;
     iVc1 actived;
+    // planned additional block for hit chains
 };
 
 struct Hit {

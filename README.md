@@ -32,7 +32,8 @@
 - [x] (Alpha) Lower level accessor set and virtual accessor
 - [x] (Alpha) Divide BVH traverse and primitive intersection stages
 - [x] (Alpha) Direct traverse variant without buffering
-- [x] (Alpha) Surface and environment shaders 
+- [x] (Alpha) Basic surface and environment shaders 
+- [x] (Alpha) Support of 64-bit morton code check-sums
 - [ ] (WIP) Class refactoring
 - [ ] (WIP) Structural refactoring
 - [ ] (WIP) Shaders refactoring
@@ -44,11 +45,12 @@
 <details>
 <summary>Clockwork Update (on development)</summary>
 
-### "Clockwork" Update (improved BVH system) planned (??.??.2017)
+### "Clockwork" Update (yet another pipeline system) planned (??.??.2017)
 
-- [x] (Alpha) Support of 64-bit morton code check-sums
-- [ ] SIMT optimized intersection and traverse stage
-- [ ] Sorting hit chains by range (for better exclusion of triangle hits)
+- [ ] Rework of Hit/Ray structures (division to different types), create hit chains
+- [ ] Create new structure type for hits - Surface 
+- [ ] Support of sorting of shaded samples
+- [ ] Add bitfields for Ray and Hit structures (instead of using own swizzles)
 - [ ] Consideration of trBVH support
 </details>
 
