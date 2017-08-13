@@ -300,10 +300,11 @@ TResult traverse(in float distn, in vec3 origin, in vec3 direct, in Hit hit, in 
 
             bool anyOverlap = anyB(overlaps);
             if (anyInvocation(anyOverlap)) {
-                bool leftOrder = allB2(overlaps) ? lessEqualF(nears.x, nears.y) : ((overlaps.x & bx) > 0);
-                ivec2 leftright = mix(ivec2(-1), node.pdata.xy, cI2(overlaps));
+                bvec2 overlapsBool = cI2(overlaps);
+                bool leftOrder = allB2(overlaps) ? lessEqualF(nears.x, nears.y) : overlapsBool.x;
+                ivec2 leftright = mix(ivec2(-1), node.pdata.xy, overlapsBool);
                 leftright = leftOrder ? leftright : leftright.yx;
-                if (anyOverlap) {
+                if (anyOverlap && leftright.x != -1) {
                     if (deferredPtr < STACK_SIZE && leftright.y != -1 && leftright.x != leftright.y) {
                         deferredStack[L][deferredPtr++] = leftright.y;
                     }
