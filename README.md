@@ -1,9 +1,5 @@
 # OpenGL Ray Tracer (aka. "Prismarine")
 
-<img src="screenshots/title.jpg" alt="SM0" width="640"/>
-
-<sup>Real-time rendered with 4 fps. More than 1 million polygon is there.</sup>
-
 ## Updates
 
 <details>
@@ -57,12 +53,6 @@
 ## Screenshots
 
 <details>
-<summary>8 August 2017</summary>
-
-<img src="screenshots/sm0.jpg" alt="SM0" width="640"/>
-<img src="screenshots/sm1.jpg" alt="SM1" width="640"/>
-<img src="screenshots/sm2.jpg" alt="SM2" width="640"/>
-<img src="screenshots/sm3.jpg" alt="SM3" width="640"/>
 
 </details>
 
