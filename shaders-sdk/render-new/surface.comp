@@ -91,10 +91,9 @@ void main() {
     vec3 tangent = normalize(hit.tangent.xyz);
     mat3 tbn = mat3(tangent, normalize(cross(normal, tangent)), normal);
 
-    hit.albedo = vec4(1.0f);//fetchDiffuse(material, hit.texcoord.xy);
-    //hit.normalHeight.xyz = normalize(tbn * normalize(getNormalMapping(material, hit.texcoord.xy).xyz));
-    //hit.emission = vec4(fetchEmissive(material, hit.texcoord.xy).xyz * 2.f, 1.0f);
-    hit.emission = vec4(0.0f);
-    hit.metallicRoughness = vec4(0.f);//vec4(fetchSpecular(material, hit.texcoord.xy).xyz, 1.0f);
+    hit.albedo = fetchDiffuse(material, hit.texcoord.xy);
+    hit.normalHeight.xyz = normalize(tbn * normalize(getNormalMapping(material, hit.texcoord.xy).xyz));
+    hit.emission = vec4(fetchEmissive(material, hit.texcoord.xy).xyz * 2.f, 1.0f);
+    hit.metallicRoughness = vec4(fetchSpecular(material, hit.texcoord.xy).xyz, 1.0f);
     hitBuf.nodes[t] = hit;
 }

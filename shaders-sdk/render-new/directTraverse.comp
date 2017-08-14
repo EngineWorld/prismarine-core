@@ -154,6 +154,7 @@ TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tr
         bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.predist) && greaterEqualF(_d, 0.0f);
 
         if (near) {
+            res.predist = _d;
             if (!equalF(_d, res.predist)) { // if distance not equal, reset baked storage counting
                 sharedVarsData.bakedStackCount = 0;
             }

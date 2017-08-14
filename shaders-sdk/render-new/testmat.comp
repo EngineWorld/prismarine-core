@@ -154,8 +154,6 @@ void main() {
         emissiveRay.color.xyz *= (1.0f - prom);
         emissiveRay.final.xyz *= (1.0f - prom);
 
-
-
         ray = promised(ray, normal);
         ray.color.xyz *= prom;
     } else {

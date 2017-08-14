@@ -382,6 +382,7 @@ namespace ppr {
         if (rsize <= 0) return;
 
         mat->bindWithContext(matProgram);
+        mat->bindWithContext(surfProgram);
 
         // get surface samplers
         glCopyNamedBufferSubData(arcounter, rayBlockUniform, 7 * sizeof(int32_t), offsetof(RayBlockUniform, samplerUniform) + offsetof(SamplerUniformStruct, hitCount), sizeof(int32_t));
