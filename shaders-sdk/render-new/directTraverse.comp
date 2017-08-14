@@ -193,8 +193,8 @@ void includeLeaf(in vec3 origin, in vec3 direct, in bool validBox, in HlbvhNode 
 
 TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
     TResult lastRes;
-    lastRes.dist = INFINITY;
-    lastRes.predist = INFINITY;
+    lastRes.dist = prevHt != -1 ? hitBuf.nodes[prevHt].uvt.z : INFINITY;
+    lastRes.predist = prevHt != -1 ? hitBuf.nodes[prevHt].uvt.z : INFINITY;
     lastRes.triangleID = LONGEST;
     lastRes.materialID = LONGEST;
     lastRes.normal = vec4(0.f);
@@ -220,7 +220,7 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
     // test with root node
     float near = INFINITY, far = INFINITY;
     float d = intersectCubeSingle(torig, dirproj, vec4(vec3(0.f), 1.0f), vec4(vec3(1.f), 1.0f), near, far);
-    //lastRes.predist = min(hit.dist, far * dirlenInv);
+    lastRes.predist = min(lastRes.predist, far * dirlenInv);
 
     // init state
     int idx = 0;
