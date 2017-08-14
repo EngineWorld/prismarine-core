@@ -4,7 +4,7 @@
 //#include "./pivot.glsl"
 //#include "./ggx.glsl"
 
-#define GAP PZERO*2.0f
+#define GAP (PZERO*2.f)
 
 struct Material {
     vec4 diffuse;
