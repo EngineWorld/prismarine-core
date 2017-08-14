@@ -161,6 +161,7 @@ TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tr
                 sharedVarsData.bakedStackCount = 0;
             }
             res.predist = _d;
+            res.triangleID = tri;
             bakedStack[L][add(sharedVarsData.bakedStackCount, 1)] = vec4(uv, _d, intBitsToFloat(tri));
         }
     }
