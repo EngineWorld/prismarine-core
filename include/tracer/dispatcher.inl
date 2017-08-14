@@ -381,13 +381,15 @@ namespace ppr {
         int32_t rsize = getRayCount();
         if (rsize <= 0) return;
 
+        mat->bindWithContext(matProgram);
+
         // get surface samplers
         glCopyNamedBufferSubData(arcounter, rayBlockUniform, 7 * sizeof(int32_t), offsetof(RayBlockUniform, samplerUniform) + offsetof(SamplerUniformStruct, hitCount), sizeof(int32_t));
         GLuint tcount = 0; glGetNamedBufferSubData(arcounter, 7 * sizeof(int32_t), sizeof(int32_t), &tcount);
         dispatch(surfProgram, tiled(tcount, worksize));
 
         // composite and shade rays
-        materialUniformData.time = rand(); this->bind(); mat->bindWithContext(matProgram);
+        materialUniformData.time = rand(); this->bind();
         glBindTextureUnit(5, skybox);
         dispatch(matProgram, tiled(rsize, worksize));
     }

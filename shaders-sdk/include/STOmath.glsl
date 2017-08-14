@@ -324,7 +324,7 @@ T fname(in bool value){ \
 #endif
 
 
-
+#define BFE(a,o,n) ((a >> o) & ((1 << n)-1))
 
 
 #if defined(ENABLE_AMD_INSTRUCTION_SET) || defined(ENABLE_NVIDIA_INSTRUCTION_SET)
@@ -332,7 +332,7 @@ T fname(in bool value){ \
 #define M16(m, i) (m[i])
 #else
 #define INDEX16 uint
-#define M16(m, i) (bitfieldExtract(m[i/2], int(16*(i%2)), 16))
+#define M16(m, i) (BFE(m[i/2], int(16*(i%2)), 16))
 #endif
 
 #ifdef ENABLE_INT16_LOADING

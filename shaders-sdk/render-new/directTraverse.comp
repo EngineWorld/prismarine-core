@@ -77,7 +77,7 @@ void reorderTriangles() {
 HitRework interpolateMeshData(inout HitRework res) {
     int tri = floatBitsToInt(res.uvt.w);
 
-    if (greaterEqualF(res.uvt.z, 0.0f) && lessF(res.uvt.z, INFINITY) && tri != LONGEST && mats[tri] != LONGEST) {
+    if (greaterEqualF(res.uvt.z, 0.0f) && lessF(res.uvt.z, INFINITY) && tri != LONGEST) {
         vec3 trinorms[3];
         vec3 triverts[3];
         vec4 texcoords[3];

@@ -34,8 +34,14 @@ void main() {
 
     int layers = 1; // support only one layer
     int currentLayer = 0;
+
     HitRework compositedHit[1];
     compositedHit[0] = hitBuf.nodes[ray.hit];
+    
+    if (ray.hit == -1) {
+        compositedHit[0].uvt = vec4(vec2(0.f), INFINITY, intBitsToFloat(-1));
+    }
+
     vec3 dir = ray.direct.xyz;
 
     // layers composition
@@ -148,6 +154,8 @@ void main() {
         emissiveRay.color.xyz *= (1.0f - prom);
         emissiveRay.final.xyz *= (1.0f - prom);
 
+
+
         ray = promised(ray, normal);
         ray.color.xyz *= prom;
     } else {
@@ -158,11 +166,13 @@ void main() {
 
     // emit rays
     if (!overflow && !skipping) {
+
         //mixed(diffuseRay.color.xyz, reflectionRay.color.xyz, clamp(spic, 0.0f, 1.0f));
         mixed(diffuseRay.color.xyz, reflectionRay.color.xyz, clamp(float(random() < spca), 0.0f, 1.0f));
         emitRay(reflectionRay, normal, 1.0f);
         applyLight(directLight(0, diffuseRay, vec3(1.0f), normal), diffuseRay, surfacenormal); // push shadow
         emitRay(diffuseRay, normal, 1.0f);
+
         emitRay(emissiveRay, normal, clamp(emis, 0.0f, 1.0f));
     }
 

@@ -103,26 +103,23 @@ void storeRay(in int rayIndex, inout RayRework ray) {
 }
 
 int createRayStrict(inout RayRework original, in int idx, in int rayIndex) {
-    bool invalidRay = 
-        rayIndex == -1 || 
+    bool invalidRay = true && // debug
+        (rayIndex == -1 || 
         rayIndex == LONGEST || 
         rayIndex >= RAY_BLOCK samplerUniform.currentRayLimit || 
 
         RayActived(original) < 1 || 
         RayBounce(original) <= 0 || 
-        mlength(original.color.xyz) < 0.0001f;
-
-    // mark as unusual
-    if (invalidRay) {
-        RayActived(original, 0);
-    }
+        mlength(original.color.xyz) < 0.0001f);
 
     if (!invalidRay) {
         RayRework ray = original;
-        RayActived(ray, 0);
-        RayBounce(ray, RayBounce(ray)-1);
+        int bounce = RayBounce(ray)-1;
+        RayBounce(ray, bounce > 0 ? bounce : 0);
+        if (bounce < 0) RayActived(ray, 0); 
         ray.idx = rayIndex;
         ray.texel = idx;
+        ray.hit = -1;
         rayBuf.nodes[rayIndex] = ray;
         addRayToList(ray);
     }
@@ -175,10 +172,10 @@ int createRay(inout RayRework original, in int idx) {
 }
 
 int createRayIdx(inout RayRework original, in int idx, in int rayIndex) {
-    bool invalidRay = 
-        RayActived(original) < 1 || 
+    bool invalidRay = true && 
+        (RayActived(original) < 1 || 
         RayBounce(original) <= 0 || 
-        mlength(original.color.xyz) < 0.0001f;
+        mlength(original.color.xyz) < 0.0001f);
 
     if (mlength(original.final.xyz) >= 0.0001f) {
         _collect(original);

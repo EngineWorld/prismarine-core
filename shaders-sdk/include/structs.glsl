@@ -129,49 +129,57 @@ struct RayRework {
 };
 
 
+#define BFE(a,o,n) ((a >> o) & ((1 << n)-1))
+
+int BFI(in int base, in int inserts, in int offset, in int bits){
+    int mask = bits >= 32 ? 0xFFFFFFFF : (1<<bits)-1;
+    int offsetMask = mask << offset;
+    return ((base & (~offsetMask)) | ((inserts & mask) << offset));
+}
+
 
 int RayActived(in RayRework ray){
-    return bitfieldExtract(ray.bitfield, 0, 1);
+    return BFE(ray.bitfield, 0, 1);
 }
 
 void RayActived(inout RayRework ray, in int actived){
-    ray.bitfield = bitfieldInsert(ray.bitfield, actived, 0, 1);
+    ray.bitfield = BFI(ray.bitfield, actived, 0, 1);
 }
 
 
 int RayType(in RayRework ray){
-    return bitfieldExtract(ray.bitfield, 1, 2);
+    return BFE(ray.bitfield, 1, 2);
 }
 
 void RayType(inout RayRework ray, in int type){
-    ray.bitfield = bitfieldInsert(ray.bitfield, type, 1, 2);
+    ray.bitfield = BFI(ray.bitfield, type, 1, 2);
 }
 
 
 int RayDL(in RayRework ray){
-    return bitfieldExtract(ray.bitfield, 3, 1);
+    return BFE(ray.bitfield, 3, 1);
 }
 
 void RayDL(inout RayRework ray, in int dl){
-    ray.bitfield = bitfieldInsert(ray.bitfield, dl, 3, 1);
+    ray.bitfield = BFI(ray.bitfield, dl, 3, 1);
 }
 
 
 int RayTargetLight(in RayRework ray){
-    return bitfieldExtract(ray.bitfield, 4, 4);
+    return BFE(ray.bitfield, 4, 4);
 }
 
 void RayTargetLight(inout RayRework ray, in int tl){
-    ray.bitfield = bitfieldInsert(ray.bitfield, tl, 4, 4);
+    ray.bitfield = BFI(ray.bitfield, tl, 4, 4);
 }
 
 
 int RayBounce(in RayRework ray){
-    return bitfieldExtract(ray.bitfield, 8, 4);
+    return BFE(ray.bitfield, 8, 4);
 }
 
 void RayBounce(inout RayRework ray, in int bn){
-    ray.bitfield = bitfieldInsert(ray.bitfield, bn, 8, 4);
+    ray.bitfield = BFI(ray.bitfield, bn, 8, 4);
 }
 
 
