@@ -64,19 +64,20 @@ void main() {
         uint threadID = uint(gl_LocalInvocationID.x);
 
         if (threadID == 0) {
-            lCounter = 1;
-            cCounter = 0;
-            aRange[0] = 0, aRange[1] = 1, aCounter = 1;
-            atomicExchange(Actives[aRange[0]], int(threadID));
+            lCounter = 0, aCounter = 0, cCounter = 0;
+            aRange[0] = 0, aRange[1] = 0;
 
-            HlbvhNode node = Nodes[threadID];
+            int hid = lCounterInc(true);
+            atomicExchange(Actives[aCounterInc(true)], hid);
+
+            HlbvhNode node = Nodes[hid];
             node.box.mn = (0.0f).xxxx;
             node.box.mx = (0.0f).xxxx;
             node.pdata.xy = ivec2(0, Range[0]-1);
             node.pdata.zw = (-1).xx;
             
-            Nodes[threadID] = node;
-            Flags[threadID] = 0;
+            Nodes[hid] = node;
+            Flags[hid] = 0;
         }
 
         // set leaf indices to initial
@@ -89,6 +90,14 @@ void main() {
         // construct BVH
         int cntstdr = 0;
         for (int h=0;h<256;h++) { // every level of BVH
+
+            // synchronize, and make next work view
+            memoryBarrier(); barrier(); 
+            if (threadID == 0) {
+                aRange[0] = aRange[1];
+                aRange[1] = aCounter;
+            }
+
             // begin work on splitting
             memoryBarrier(); barrier(); 
             if (aRange[1] <= aRange[0]) break; // no work, break
@@ -163,13 +172,6 @@ void main() {
                     }
                 }
                 
-            }
-
-            // synchronize, and make next work view
-            memoryBarrier(); barrier(); 
-            if (threadID == 0) {
-                aRange[0] = aRange[1];
-                aRange[1] = aCounter;
             }
         }
     }
