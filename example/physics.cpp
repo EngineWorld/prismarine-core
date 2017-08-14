@@ -616,7 +616,7 @@ namespace PaperExample {
         // green plastic
         {
             ppr::VirtualMaterial submat;
-            submat.diffuse = glm::vec4(0.6f, 1.0f, 0.6f, 0.5f);
+            submat.diffuse = glm::vec4(0.6f, 1.0f, 0.6f, 1.0f);
             submat.specular = glm::vec4(0.0f, 0.0f, 0.00f, 1.0f);
             submat.emissive = glm::vec4(0.0f);
             materialManager->addSubmat(&submat);

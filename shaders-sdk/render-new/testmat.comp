@@ -51,12 +51,10 @@ void main() {
     for (int i=0;i<8;i++) {
         if (hitID == -1) break;
         HitRework hit = hitBuf.nodes[hitID];
-
-        /*
         if (!equalF(compositedHit[searchLayer].uvt.z, hit.uvt.z)) {
             searchLayer = layers++;
             break; // unsupported
-        }*/
+        }
 
         // composite decals
         compositedHit[searchLayer].uvt = hit.uvt;

@@ -117,16 +117,15 @@ HitRework interpolateMeshData(inout HitRework res) {
     return res;
 }
 
-
 int prevHt = -1;
 
-void includeChain(in vec4 intersection){
+void includeChain(in int chainID, in vec4 intersection){
     int hid = atomicIncHt(true);
     HitRework hitp = hitBuf.nodes[hid];
     hitp.uvt = intersection;
+
     hitp.next = -1;
     hitBuf.nodes[hid] = interpolateMeshData(hitp);
-    
     if (prevHt == -1) {
         sharedVarsData.chainID = hid;
     } else {
@@ -137,9 +136,11 @@ void includeChain(in vec4 intersection){
 
 TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
     reorderTriangles();
+
     for (int i=0;i<sharedVarsData.bakedStackCount;i++) {
-        includeChain(bakedStack[L][i]);
+        includeChain(i, bakedStack[L][i]);
     }
+
     return res;
 }
 
@@ -301,6 +302,6 @@ void main() {
 
     prevHt = ray.hit;
     traverse(ray.origin.xyz, ray.direct.xyz, !overflow);
-    ray.hit = prevHt;
+    ray.hit = sharedVarsData.chainID;
     rayBuf.nodes[t] = ray; // just store
 }
