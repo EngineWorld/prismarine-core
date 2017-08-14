@@ -43,9 +43,8 @@ void reorderTriangles() {
     for (int iround = 1; iround < sharedVarsData.bakedStackCount; iround++) {
         for (int index = 0; index < sharedVarsData.bakedStackCount - iround; index++) {
             bool lessIdx = floatBitsToInt(bakedStack[L][index].w) <= floatBitsToInt(bakedStack[L][index+1].w);
-            bool baked = equalF(bakedStack[L][index].z, bakedStack[L][index+1].z);
             bool deeper = lessF(bakedStack[L][index].z, bakedStack[L][index+1].z);
-            if (lessIdx && baked || deeper) {
+            if (lessIdx || deeper) {
                 vec4 tmp = bakedStack[L][index];
                 bakedStack[L][index] = bakedStack[L][index+1];
                 bakedStack[L][index+1] = tmp;
@@ -126,10 +125,13 @@ void includeChain(in vec4 intersection){
     HitRework hitp = hitBuf.nodes[hid];
     hitp.uvt = intersection;
     hitp.next = -1;
-    hitBuf.nodes[prevHt].next = hid;
     hitBuf.nodes[hid] = interpolateMeshData(hitp);
     
-    if (prevHt == -1) sharedVarsData.chainID = hid;
+    if (prevHt == -1) {
+        sharedVarsData.chainID = hid;
+    } else {
+        hitBuf.nodes[prevHt].next = hid;
+    }
     prevHt = hid;
 }
 
@@ -154,10 +156,10 @@ TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tr
         bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.predist) && greaterEqualF(_d, 0.0f);
 
         if (near) {
-            res.predist = _d;
             if (!equalF(_d, res.predist)) { // if distance not equal, reset baked storage counting
                 sharedVarsData.bakedStackCount = 0;
             }
+            res.predist = _d;
             bakedStack[L][add(sharedVarsData.bakedStackCount, 1)] = vec4(uv, _d, intBitsToFloat(tri));
         }
     }

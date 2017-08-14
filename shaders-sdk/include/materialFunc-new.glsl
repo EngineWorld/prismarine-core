@@ -89,8 +89,8 @@ vec3 glossy(in vec3 dir, in vec3 normal, in float refli) {
 RayRework reflection(in RayRework ray, in vec3 color, in vec3 normal, in float refly){
     ray.direct.xyz = normalize(mix(reflect(ray.direct.xyz, normal), randomCosine(normal), clamp(refly * random(), 0.0f, 1.0f)));
     ray.color.xyz *= color;
-    //ray.origin.xyz = fma(ray.direct.xyz, vec3(GAP), ray.origin.xyz);
-    ray.origin.xyz = fma(faceforward(normal, ray.direct.xyz, -normal), vec3(GAP), ray.origin.xyz); // padding
+    ray.origin.xyz = fma(ray.direct.xyz, vec3(GAP), ray.origin.xyz);
+    //ray.origin.xyz = fma(faceforward(normal, ray.direct.xyz, -normal), vec3(GAP), ray.origin.xyz); // padding
 
     RayDL(ray, (SUNLIGHT_CAUSTICS ? true : RayType(ray) == 1) ? 0 : 1); RayType(ray, 0);
     RayBounce(ray, min(3, RayBounce(ray)));
@@ -120,8 +120,8 @@ RayRework refraction(in RayRework ray, in vec3 color, in vec3 normal, in float i
 #endif
 
     if (!refrc) {
-        //ray.origin.xyz = fma(ray.direct.xyz, vec3(GAP), ray.origin.xyz);
-        ray.origin.xyz = fma(faceforward(normal, ray.direct.xyz, -normal), vec3(GAP), ray.origin.xyz); // padding
+        ray.origin.xyz = fma(ray.direct.xyz, vec3(GAP), ray.origin.xyz);
+        //ray.origin.xyz = fma(faceforward(normal, ray.direct.xyz, -normal), vec3(GAP), ray.origin.xyz); // padding
     }
     ray.color.xyz *= color;
     return ray;
@@ -183,8 +183,8 @@ RayRework directLight(in int i, in RayRework directRay, in vec3 color, in vec3 n
 RayRework diffuse(in RayRework ray, in vec3 color, in vec3 normal){
     ray.color.xyz *= color;
     ray.direct.xyz = normalize(randomCosine(normal));
-    //ray.origin.xyz = ray.origin.xyz = fma(ray.direct.xyz, vec3(GAP), ray.origin.xyz);
-    ray.origin.xyz = fma(faceforward(normal, ray.direct.xyz, -normal), vec3(GAP), ray.origin.xyz); // padding
+    ray.origin.xyz = ray.origin.xyz = fma(ray.direct.xyz, vec3(GAP), ray.origin.xyz);
+    //ray.origin.xyz = fma(faceforward(normal, ray.direct.xyz, -normal), vec3(GAP), ray.origin.xyz); // padding
     RayActived(ray, RayType(ray) == 2 ? 0 : RayActived(ray));
     RayBounce(ray, min(2, RayBounce(ray)));
     RayType(ray, 1);
@@ -194,8 +194,8 @@ RayRework diffuse(in RayRework ray, in vec3 color, in vec3 normal){
 
 RayRework promised(in RayRework ray, in vec3 normal){
     RayBounce(ray, RayBounce(ray)+1);
-    //ray.origin.xyz = ray.origin.xyz = fma(ray.direct.xyz, vec3(GAP), ray.origin.xyz);
-    ray.origin.xyz = fma(faceforward(normal, ray.direct.xyz, -normal), vec3(GAP), ray.origin.xyz); // padding
+    ray.origin.xyz = ray.origin.xyz = fma(ray.direct.xyz, vec3(GAP), ray.origin.xyz);
+    //ray.origin.xyz = fma(faceforward(normal, ray.direct.xyz, -normal), vec3(GAP), ray.origin.xyz); // padding
     return ray;
 }
 
@@ -204,8 +204,8 @@ RayRework emissive(in RayRework ray, in vec3 color, in vec3 normal){
     ray.final = RayType(ray) == 1 ? vec4(0.0f) : max(ray.final, vec4(0.0f));
     ray.color.xyz *= 0.0f;
     ray.direct.xyz = normalize(randomCosine(normal));
-    //ray.origin.xyz = fma(ray.direct.xyz, vec3(GAP), ray.origin.xyz);
-    ray.origin.xyz = fma(faceforward(normal, ray.direct.xyz, -normal), vec3(GAP), ray.origin.xyz); // padding
+    ray.origin.xyz = fma(ray.direct.xyz, vec3(GAP), ray.origin.xyz);
+    //ray.origin.xyz = fma(faceforward(normal, ray.direct.xyz, -normal), vec3(GAP), ray.origin.xyz); // padding
 
     RayActived(ray, 0);
     RayDL(ray, 0);

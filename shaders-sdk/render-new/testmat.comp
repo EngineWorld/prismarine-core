@@ -15,7 +15,7 @@
 #include "../public/environment.glsl"
 
 
-vec4 composite(in vec4 dst, in vec4 src){
+vec4 composite(in vec4 src, in vec4 dst){
     float oa = src.a + dst.a * (1.0f - src.a);
     return clamp(vec4((src.rgb * src.a + dst.rgb * dst.a * (1.0f - src.a)) / max(oa, 0.0001f), oa), vec4(0.0f), vec4(1.0f));
 }
@@ -40,6 +40,7 @@ void main() {
     
     if (ray.hit == -1) {
         compositedHit[0].uvt = vec4(vec2(0.f), INFINITY, intBitsToFloat(-1));
+        compositedHit[0].next = -1;
     }
 
     vec3 dir = ray.direct.xyz;
@@ -50,19 +51,21 @@ void main() {
     for (int i=0;i<8;i++) {
         if (hitID == -1) break;
         HitRework hit = hitBuf.nodes[hitID];
+
+        /*
         if (!equalF(compositedHit[searchLayer].uvt.z, hit.uvt.z)) {
             searchLayer = layers++;
             break; // unsupported
-        }
-
-        // already filled layer
-        if (compositedHit[searchLayer].albedo.a > 0.99999f) continue;
+        }*/
 
         // composite decals
         compositedHit[searchLayer].uvt = hit.uvt;
         compositedHit[searchLayer].albedo = composite(compositedHit[searchLayer].albedo, hit.albedo);
         compositedHit[searchLayer].normalHeight = mix(compositedHit[searchLayer].normalHeight, hit.normalHeight, hit.albedo.w);
         compositedHit[searchLayer].metallicRoughness = composite(compositedHit[searchLayer].metallicRoughness, vec4(hit.metallicRoughness.xyz, hit.metallicRoughness.w) * hit.albedo.w);
+
+        // already filled layer
+        if (compositedHit[searchLayer].albedo.a > 0.99999f) continue;
 
         hitID = hit.next;
     }
