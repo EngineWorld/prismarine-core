@@ -45,12 +45,11 @@
 <details>
 <summary>Clockwork Update (on development)</summary>
 
-### "Clockwork" Update (yet another pipeline system) planned (??.??.2017)
+### "Clockwork" Update (yet another pipeline system) on development (??.??.2017)
 
-- [ ] Rework of Hit/Ray structures (division to different types), create hit chains
-- [ ] Create new structure type for hits - Surface 
-- [ ] Support of sorting of shaded samples
-- [ ] Add bitfields for Ray and Hit structures (instead of using own swizzles)
+- [x] (Alpha) Rework of Hit/Ray structures (division to different types), create hit chains
+- [x] (Alpha) Add bitfields for Ray and Hit structures (instead of using own swizzles)
+- [ ] Multi-layered traverse support
 - [ ] Consideration of trBVH support
 </details>
 
