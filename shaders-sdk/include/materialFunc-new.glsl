@@ -139,7 +139,7 @@ vec3 sLight(in int i){
 
 int applyLight(in RayRework directRay, inout RayRework ray, in vec3 normal){
 #ifdef DIRECT_LIGHT
-    RayActived(ray, (RayType(ray) == 2 || dot(normal, directRay.direct.xyz) < 0.f) ? 0 : RayActived(ray)); RayDL(ray, 0);
+    RayActived(directRay, (RayType(ray) == 2 || dot(normal, directRay.direct.xyz) < 0.f) ? 0 : RayActived(directRay)); RayDL(ray, 0);
     return createRay(directRay);
 #else 
     return -1;
