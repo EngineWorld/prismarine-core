@@ -32,8 +32,6 @@ layout ( std430, binding = 8 ) restrict buffer CounterBlock {
     int Ht;
 } arcounter;
 
-layout ( std430, binding = 9 ) restrict buffer HitChainBlock { HitChain chains[]; } htBuf;
-
 
 
 initAtomicIncFunction(arcounter.At, atomicIncAt, int);

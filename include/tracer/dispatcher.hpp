@@ -36,6 +36,7 @@ namespace ppr {
         GLuint availables = -1;
         GLuint arcounter = -1;
         GLuint arcounterTemp = -1;
+        GLuint hitChains = -1;
 
         GLuint lightUniform = -1;
         GLuint rayBlockUniform = -1;
@@ -74,6 +75,7 @@ namespace ppr {
         GLuint resultCounters = -1;
         GLuint resultFounds = -1;
         GLuint givenRays = -1;
+        
 
 
     public:

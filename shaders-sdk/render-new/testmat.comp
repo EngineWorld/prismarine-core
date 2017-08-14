@@ -32,22 +32,20 @@ void main() {
     globalInvocationSMP = it;
 
     RayRework ray = rayBuf.nodes[t];
-    HitChain htc = htBuf.chains[ray.hitchain];
 
     int layers = 1; // support only one layer
     int currentLayer = 0;
     HitRework compositedHit[1];
-    compositedHit[0] = hitBuf.nodes[htc.hit];
+    compositedHit[0] = hitBuf.nodes[ray.hit];
     vec3 dir = ray.direct.xyz;
     
 
     // layers composition
     int searchLayer = 0;
+    int hitID = compositedHit[0].next;
     for (int i=0;i<8;i++) {
-        if (htc.next == -1) break;
-        htc = htBuf.chains[htc.next];
-
-        HitRework hit = hitBuf.nodes[htc.hit];
+        if (hitID == -1) break;
+        HitRework hit = hitBuf.nodes[hitID];
         if (!equalF(compositedHit[searchLayer].uvt.z, hit.uvt.z)) {
             searchLayer = layers++;
             break; // unsupported
@@ -61,6 +59,8 @@ void main() {
         compositedHit[searchLayer].albedo = composite(compositedHit[searchLayer].albedo, hit.albedo);
         compositedHit[searchLayer].normalHeight = mix(compositedHit[searchLayer].normalHeight, hit.normalHeight, hit.albedo.w);
         compositedHit[searchLayer].metallicRoughness = composite(compositedHit[searchLayer].metallicRoughness, vec4(hit.metallicRoughness.xyz, hit.metallicRoughness.w) * hit.albedo.w);
+
+        hitID = hit.next;
     }
 
 
@@ -104,7 +104,7 @@ void main() {
     ray.origin.xyz = ray.origin.xyz + ray.direct.xyz * compositedHit[currentLayer].uvt.z;
 
     // not shadeable skipping
-    if (RayActived(ray) < 1 || ray.hitchain == -1) {
+    if (RayActived(ray) < 1 || ray.hit == -1) {
         skipping = true;
     }
 

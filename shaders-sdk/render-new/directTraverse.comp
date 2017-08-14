@@ -8,7 +8,7 @@
 #include "../include/STOmath.glsl"
 #include "../include/vertex.glsl"
 
-layout ( std430, binding = 11 ) readonly buffer NodesBlock { HlbvhNode Nodes[]; };
+layout ( std430, binding = 9 ) readonly buffer NodesBlock { HlbvhNode Nodes[]; };
 layout ( std430, binding = 17 ) readonly buffer LeafBlock { HlbvhNode Leafs[]; };
 layout ( std430, binding = 18 ) readonly buffer MortonIndicesBlock { int MortonIndices[]; };
 
@@ -125,14 +125,12 @@ void includeChain(in vec4 intersection){
     int hid = atomicIncHt(true);
     HitRework hitp = hitBuf.nodes[hid];
     hitp.uvt = intersection;
+    hitp.next = -1;
+    hitBuf.nodes[prevHt].next = hid;
     hitBuf.nodes[hid] = interpolateMeshData(hitp);
-    int chainID = hid;
-    if (prevHt == -1) {
-        sharedVarsData.chainID = chainID;
-    }
-    htBuf.chains[chainID] = HitChain(hid, -1);
-    htBuf.chains[prevHt].next = chainID;
-    prevHt = chainID;
+    
+    if (prevHt == -1) sharedVarsData.chainID = hid;
+    prevHt = hid;
 }
 
 TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
@@ -298,8 +296,8 @@ void main() {
     overflow = RayActived(ray) == 0 || overflow;
     if (allInvocations(overflow)) return;
 
-    prevHt = ray.hitchain;
+    prevHt = ray.hit;
     traverse(ray.origin.xyz, ray.direct.xyz, !overflow);
-    ray.hitchain = prevHt;
+    ray.hit = prevHt;
     rayBuf.nodes[t] = ray; // just store
 }

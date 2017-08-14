@@ -125,7 +125,7 @@ struct RayRework {
     int bitfield; // up to 32-bits
     int idx; // ray index itself
     int texel; // texel index
-    int hitchain; // index of hit chain
+    int hit; // index of hit chain
 };
 
 
@@ -190,13 +190,7 @@ struct HitRework {
     int bitfield; 
     int ray; // ray index
     int materialID;
-    int reserved;
-};
-
-// OIT, transparency sampled per ray
-struct HitChain {
-    int hit;  // link with hit buffer
-    int next; // next hit of chain 
+    int next;
 };
 
 

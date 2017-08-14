@@ -86,6 +86,7 @@ void main()
         ray.origin.w = 1.0f;
         ray.color = vec4(1.0f);
         ray.final = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+        ray.hit = -1;
 
         ray.bitfield = 0;
         RayActived(ray, 1);

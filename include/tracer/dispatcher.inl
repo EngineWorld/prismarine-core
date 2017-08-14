@@ -273,17 +273,19 @@ namespace ppr {
         bound.mx.y = -100000.f;
         bound.mx.z = -100000.f;
         bound.mx.w = -100000.f;
-        for (int i = 0; i < 5;i++) {
+        for (int i = 0; i < 8;i++) {
             glCopyNamedBufferSubData(arcounterTemp, arcounter, 0, sizeof(uint32_t) * i, sizeof(uint32_t));
         }
     }
 
     inline void Dispatcher::resetHits() {
-        int32_t rsize = getRayCount();
-        if (rsize <= 0) return;
+        //int32_t rsize = getRayCount();
+        //if (rsize <= 0) return;
 
-        this->bind();
-        dispatch(beginProgram, tiled(rsize, worksize));
+        glCopyNamedBufferSubData(arcounterTemp, arcounter, 0, sizeof(uint32_t) * 7, sizeof(uint32_t));
+
+        //this->bind();
+        //dispatch(beginProgram, tiled(rsize, worksize));
     }
 
     inline void Dispatcher::sample() {
@@ -408,9 +410,9 @@ namespace ppr {
         bound.mx = glm::max(obj->bound.mx, bound.mx);
 
         // reset counters
-        for (int i = 0; i < 2; i++) {
-            glCopyNamedBufferSubData(arcounterTemp, arcounter, 0, sizeof(uint32_t) * (i + 5), sizeof(uint32_t));
-        }
+        //for (int i = 0; i < 2; i++) {
+        //    glCopyNamedBufferSubData(arcounterTemp, arcounter, 0, sizeof(uint32_t) * (i + 5), sizeof(uint32_t));
+        //}
 
         
         /*

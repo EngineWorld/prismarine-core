@@ -24,12 +24,12 @@ void main()
     ray.final.xyz = max(vec3(0.0f), ray.final.xyz);
     ray.color.xyz = max(vec3(0.0f), ray.color.xyz);
 
-    if (bounce < 0 || mlength(ray.color.xyz) < 0.0001f || overflow || ray.hitchain == -1) {
+    if (bounce < 0 || mlength(ray.color.xyz) < 0.0001f || overflow || ray.hit == -1) {
         ray.bitfield = bitfieldInsert(ray.bitfield, 0,  0, 1);
     }
 
     if (bounce >= 0) RayBounce(ray, bounce);
-    ray.hitchain = -1; // reset chains
+    ray.hit = -1; // reset chains
 
     if (!overflow) {
         storeRay(t, ray);
