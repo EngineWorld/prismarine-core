@@ -10,8 +10,6 @@ namespace ppr {
         initShaderComputeSPIRV("./shaders-spv/render-new/camera.comp.spv", cameraProgram);
         initShaderComputeSPIRV("./shaders-spv/render-new/clear.comp.spv", clearProgram);
         initShaderComputeSPIRV("./shaders-spv/render-new/sampler.comp.spv", samplerProgram);
-        initShaderComputeSPIRV("./shaders-spv/render-new/traverse.comp.spv", traverseProgram);
-        initShaderComputeSPIRV("./shaders-spv/render-new/resolver.comp.spv", resolverProgram);
         initShaderComputeSPIRV("./shaders-spv/render-new/directTraverse.comp.spv", traverseDirectProgram);
 
 

@@ -14,11 +14,6 @@
 #include "../include/materialFunc-new.glsl"
 #include "../include/vertex.glsl"
 
-#include "../public/surface.glsl"
-#include "../public/environment.glsl"
-
-
-
 vec4 fetchSpecular(in Material mat, in vec2 texcoord){
     vec4 specular = mat.specular;
     if (validateTexture(mat.specularPart)) {
@@ -85,18 +80,19 @@ LOCAL_SIZE_LAYOUT;
 
 void main() {
     int t = int(gl_GlobalInvocationID.x);
-    bool overflow = it >= RAY_BLOCK samplerUniform.hitCount;
-    globalInvocationSMP = it;
+    bool overflow = t >= RAY_BLOCK samplerUniform.hitCount;
+    globalInvocationSMP = t;
 
     HitRework hit = hitBuf.nodes[t];
     RayRework ray = rayBuf.nodes[hit.ray];
+    Material material = submats[hit.materialID];
 
-    vec3 normal = normalize(hit.normal.xyz);
+    vec3 normal = normalize(hit.normalHeight.xyz);
     vec3 tangent = normalize(hit.tangent.xyz);
     mat3 tbn = mat3(tangent, normalize(cross(normal, tangent)), normal);
 
     hit.albedo = fetchDiffuse(material, hit.texcoord.xy);
-    hit.normal.xyz = normalize(tbn * normalize(getNormalMapping(material, hit.texcoord.xy).xyz));
+    hit.normalHeight.xyz = normalize(tbn * normalize(getNormalMapping(material, hit.texcoord.xy).xyz));
     hit.emission = vec4(fetchEmissive(material, hit.texcoord.xy).xyz * 2.f, 1.0f);
     hit.metallicRoughness = vec4(fetchSpecular(material, hit.texcoord.xy).xyz, 1.0f);
     hitBuf.nodes[t] = hit;

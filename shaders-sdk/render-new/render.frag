@@ -63,13 +63,13 @@ vec4 filtered(in vec2 tx){
         metric_reference[axis] = GEN_METRIC (before_pix, center_pix_cache, after_pix);
     }
 
-     vec4 sum = center_pix_cache;
-     vec4 cur = center_pix_cache;
+    vec4 sum = center_pix_cache;
+    vec4 cur = center_pix_cache;
     ivec4 count = ivec4(1);
 
     for (int direction = 0; direction < NEIGHBOURS; direction++) {
-         vec4 pix   = checkerFetch(samples, center_pix + offsets[direction], 0);
-         vec4 value = (pix + cur) * (0.5f);
+        vec4 pix   = checkerFetch(samples, center_pix + offsets[direction], 0);
+        vec4 value = (pix + cur) * (0.5f);
         ivec4 mask = {1, 1, 1, 0};
         for (int axis = 0; axis < AXES; axis++) {
             vec4 before_pix = checkerFetch(samples, center_pix + offsets[axis], 0);

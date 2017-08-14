@@ -8,9 +8,6 @@
 
 LOCAL_SIZE_LAYOUT;
 
-//layout ( std430, binding = 4 ) restrict buffer RayMortons {uint rayMorton[];};
-//layout ( std430, binding = 5 ) restrict buffer BoundingBox {bbox inbound;};
-
 void main()
 {
     int it = int(gl_GlobalInvocationID.x);
@@ -25,7 +22,7 @@ void main()
     ray.color.xyz = max(vec3(0.0f), ray.color.xyz);
 
     if (bounce < 0 || mlength(ray.color.xyz) < 0.0001f || overflow || ray.hit == -1) {
-        ray.bitfield = bitfieldInsert(ray.bitfield, 0,  0, 1);
+        RayActived(ray, 0);
     }
 
     RayBounce(ray, bounce >= 0 ? bounce : 0);

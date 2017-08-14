@@ -84,13 +84,13 @@ namespace ppr {
         ~Dispatcher() {
             glDeleteProgram(renderProgram);
             glDeleteProgram(matProgram);
-            glDeleteProgram(beginProgram);
             glDeleteProgram(reclaimProgram);
             glDeleteProgram(cameraProgram);
             glDeleteProgram(clearProgram);
             glDeleteProgram(samplerProgram);
             glDeleteProgram(traverseProgram);
             glDeleteProgram(resolverProgram);
+            glDeleteProgram(surfProgram);
 
             glDeleteBuffers(1, &colorchains);
             glDeleteBuffers(1, &quantized);
