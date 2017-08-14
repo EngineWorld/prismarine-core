@@ -20,7 +20,6 @@ void main()
     int bounce = RayBounce(ray)-1;
     ray.final.xyz = max(vec3(0.0f), ray.final.xyz);
     ray.color.xyz = max(vec3(0.0f), ray.color.xyz);
-    //ray.final.xyz = ray.direct.xyz * 0.5f + 0.5f;
 
     if (bounce < 0 || mlength(ray.color.xyz) < 0.0001f || overflow || ray.hit == -1) {
         RayActived(ray, 0);
