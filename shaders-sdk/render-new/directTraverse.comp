@@ -15,6 +15,7 @@ layout ( std430, binding = 18 ) readonly buffer MortonIndicesBlock { int MortonI
 struct SharedVarsData {
     int bakedStackCount;
     int chainID;
+    int prevHt;
 };
 
 struct TResult {
@@ -117,8 +118,6 @@ HitRework interpolateMeshData(inout HitRework res) {
     return res;
 }
 
-int prevHt = -1;
-
 void includeChain(in int chainID, in vec4 intersection){
     int hid = atomicIncHt(true);
     HitRework hitp = hitBuf.nodes[hid];
@@ -126,12 +125,12 @@ void includeChain(in int chainID, in vec4 intersection){
 
     hitp.next = -1;
     hitBuf.nodes[hid] = interpolateMeshData(hitp);
-    if (prevHt == -1) {
+    if (sharedVarsData.prevHt == -1) {
         sharedVarsData.chainID = hid;
     } else {
-        hitBuf.nodes[prevHt].next = hid;
+        hitBuf.nodes[sharedVarsData.prevHt].next = hid;
     }
-    prevHt = hid;
+    sharedVarsData.prevHt = hid;
 }
 
 TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
@@ -194,8 +193,8 @@ void includeLeaf(in vec3 origin, in vec3 direct, in bool validBox, in HlbvhNode 
 
 TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
     TResult lastRes;
-    lastRes.dist = prevHt != -1 ? hitBuf.nodes[prevHt].uvt.z : INFINITY;
-    lastRes.predist = prevHt != -1 ? hitBuf.nodes[prevHt].uvt.z : INFINITY;
+    lastRes.dist = sharedVarsData.prevHt != -1 ? hitBuf.nodes[sharedVarsData.prevHt].uvt.z : INFINITY;
+    lastRes.predist = sharedVarsData.prevHt != -1 ? hitBuf.nodes[sharedVarsData.prevHt].uvt.z : INFINITY;
     lastRes.triangleID = LONGEST;
     lastRes.materialID = LONGEST;
     lastRes.normal = vec4(0.f);
@@ -301,7 +300,7 @@ void main() {
     overflow = RayActived(ray) == 0 || overflow;
     if (allInvocations(overflow)) return;
 
-    prevHt = ray.hit;
+    sharedVarsData.prevHt = ray.hit;
     traverse(ray.origin.xyz, ray.direct.xyz, !overflow);
     ray.hit = sharedVarsData.chainID;
     rayBuf.nodes[t] = ray; // just store
