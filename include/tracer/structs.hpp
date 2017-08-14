@@ -83,28 +83,30 @@ namespace ppr {
 
 
     struct Ray {
-        Vc4 origin;
-        Vc4 direct;
-        Vc4 color;
-        Vc4 final;
-        iVc4 params;
-        iVc1 idx;
-        iVc1 prev;
-        iVc1 bounce;
-        iVc1 actived;
+        glm::vec4 origin;
+        glm::vec4 direct;
+        glm::vec4 color;
+        glm::vec4 final;
+        int bitfield; // up to 32-bits
+        int idx; // ray index itself
+        int texel; // texel index
+        int hit; // index of hit chain
     };
 
     struct Hit {
-        Vc4 normal;
-        Vc4 tangent;
-        Vc4 texcoord;
-        Vc4 vcolor;
-        Vc4 vmods;
-        Vc1 dist;
-        iVc1 triangle;
-        iVc1 materialID;
-        iVc1 shaded;
+        glm::vec4 uvt; // UV, distance, triangle
+        glm::vec4 albedo;
+        glm::vec4 metallicRoughness; // Y - roughtness, Z - metallic, also available other params
+        glm::vec4 normalHeight; // normal with height mapping, will already interpolated with geometry
+        glm::vec4 emission;
+        glm::vec4 texcoord;
+        glm::vec4 tangent;
+        int bitfield;
+        int ray; // ray index
+        int materialID;
+        int next;
     };
+
 
     struct Texel {
         Vc4 coord;
@@ -150,9 +152,9 @@ namespace ppr {
         iVc1 rayCount;
         iVc1 iteration;
         iVc1 phase;
-        iVc1 maxSamples;
-        iVc1 currentSample;
-        iVc1 maxFilters;
+        iVc1 hitCount;
+        iVc1 reserved0;
+        iVc1 reserved1;
         iVc1 currentRayLimit;
 
         iVc2 padding;

@@ -4,28 +4,16 @@ namespace ppr {
 
     inline void Dispatcher::initShaders() {
         
-        /*
-        initShaderCompute("./shaders/render/testmat.comp", matProgram);
-        initShaderCompute("./shaders/render/begin.comp", beginProgram);
-        initShaderCompute("./shaders/render/reclaim.comp", reclaimProgram);
-        initShaderCompute("./shaders/render/camera.comp", cameraProgram);
-        initShaderCompute("./shaders/render/clear.comp", clearProgram);
-        initShaderCompute("./shaders/render/sampler.comp", samplerProgram);
-        initShaderCompute("./shaders/render/traverse.comp", traverseProgram);
-        initShaderCompute("./shaders/render/resolver.comp", resolverProgram);
-        initShaderCompute("./shaders/render/directTraverse.comp", traverseDirectProgram);
-        */
+        initShaderComputeSPIRV("./shaders-spv/render-new/surface.comp.spv", surfProgram);
+        initShaderComputeSPIRV("./shaders-spv/render-new/testmat.comp.spv", matProgram);
+        initShaderComputeSPIRV("./shaders-spv/render-new/reclaim.comp.spv", reclaimProgram);
+        initShaderComputeSPIRV("./shaders-spv/render-new/camera.comp.spv", cameraProgram);
+        initShaderComputeSPIRV("./shaders-spv/render-new/clear.comp.spv", clearProgram);
+        initShaderComputeSPIRV("./shaders-spv/render-new/sampler.comp.spv", samplerProgram);
+        initShaderComputeSPIRV("./shaders-spv/render-new/traverse.comp.spv", traverseProgram);
+        initShaderComputeSPIRV("./shaders-spv/render-new/resolver.comp.spv", resolverProgram);
+        initShaderComputeSPIRV("./shaders-spv/render-new/directTraverse.comp.spv", traverseDirectProgram);
 
-        initShaderComputeSPIRV("./shaders-spv/render/testmat.comp.spv", matProgram);
-        initShaderComputeSPIRV("./shaders-spv/render/begin.comp.spv", beginProgram);
-        initShaderComputeSPIRV("./shaders-spv/render/reclaim.comp.spv", reclaimProgram);
-        initShaderComputeSPIRV("./shaders-spv/render/camera.comp.spv", cameraProgram);
-        initShaderComputeSPIRV("./shaders-spv/render/clear.comp.spv", clearProgram);
-        initShaderComputeSPIRV("./shaders-spv/render/sampler.comp.spv", samplerProgram);
-        initShaderComputeSPIRV("./shaders-spv/render/traverse.comp.spv", traverseProgram);
-        initShaderComputeSPIRV("./shaders-spv/render/resolver.comp.spv", resolverProgram);
-        initShaderComputeSPIRV("./shaders-spv/render/directTraverse.comp.spv", traverseDirectProgram);
-        //initShaderCompute("./shaders/render/directTraverse.comp", traverseDirectProgram);
 
         {
             GLuint vert = glCreateShader(GL_VERTEX_SHADER);
@@ -134,9 +122,6 @@ namespace ppr {
         glVertexArrayVertexBuffer(vao, 0, posBuf, 0, strided<Vc2>(1));
 
         materialUniformData.lightcount = 1;
-        samplerUniformData.currentSample = currentSample;
-        samplerUniformData.maxSamples = maxSamples;
-        samplerUniformData.maxFilters = maxFilters;
         cameraUniformData.enable360 = 0;
         framenum = 0;
         syncUniforms();
@@ -213,9 +198,6 @@ namespace ppr {
         freedoms = allocateBuffer<int32_t>(currentRayLimit);
         availables = allocateBuffer<int32_t>(currentRayLimit);
 
-        //resultFounds = allocateBuffer<GroupFoundResult>(8192 * 8192);
-        //givenRays = allocateBuffer<int32_t>(currentRayLimit);
-
         samplerUniformData.sceneRes = { float(width), float(height) };
         samplerUniformData.currentRayLimit = currentRayLimit;
 
@@ -259,7 +241,6 @@ namespace ppr {
         
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, arcounter);
 
-
         syncUniforms();
         bindUniforms();
     }
@@ -279,13 +260,7 @@ namespace ppr {
     }
 
     inline void Dispatcher::resetHits() {
-        //int32_t rsize = getRayCount();
-        //if (rsize <= 0) return;
-
         glCopyNamedBufferSubData(arcounterTemp, arcounter, 0, sizeof(uint32_t) * 7, sizeof(uint32_t));
-
-        //this->bind();
-        //dispatch(beginProgram, tiled(rsize, worksize));
     }
 
     inline void Dispatcher::sample() {
@@ -296,7 +271,6 @@ namespace ppr {
         dispatch(samplerProgram, tiled(displayWidth * displayHeight, worksize));
 
         currentSample = (currentSample + 1) % maxSamples;
-        samplerUniformData.currentSample = currentSample;
     }
 
     inline void Dispatcher::camera(const glm::mat4 &persp, const glm::mat4 &frontSide) {
@@ -332,8 +306,6 @@ namespace ppr {
 
     inline void Dispatcher::clearSampler() {
         samplerUniformData.samplecount = displayWidth * displayHeight;
-        samplerUniformData.currentSample = 0;
-        samplerUniformData.maxSamples = maxSamples;
         this->bind();
 
         glBindImageTexture(0, sampleflags, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
@@ -347,12 +319,6 @@ namespace ppr {
 
         uint32_t availableCount = 0;
         glGetNamedBufferSubData(arcounter, 2 * sizeof(int32_t), sizeof(int32_t), &availableCount);
-
-        // set available pointer
-        int32_t availablePtr = int32_t(availableCount) - 1;
-        //glNamedBufferSubData(arcounter, 3 * sizeof(int32_t), sizeof(int32_t), &availablePtr);
-
-        // copy pointer+1
         glCopyNamedBufferSubData(arcounter, arcounter, 2 * sizeof(int32_t), 3 * sizeof(int32_t), sizeof(int32_t));
 
         // set to zeros
@@ -370,11 +336,6 @@ namespace ppr {
         }
 
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
-
-        // sort actives by index
-        if (raycountCache > 0 && doSort) {
-            //sorter->sort(activel, activel, raycountCache);
-        }
     }
 
     inline void Dispatcher::reclaim() {
@@ -409,40 +370,11 @@ namespace ppr {
         bound.mn = glm::min(obj->bound.mn, bound.mn);
         bound.mx = glm::max(obj->bound.mx, bound.mx);
 
-        // reset counters
-        //for (int i = 0; i < 2; i++) {
-        //    glCopyNamedBufferSubData(arcounterTemp, arcounter, 0, sizeof(uint32_t) * (i + 5), sizeof(uint32_t));
-        //}
-
-        
-        /*
-        // bind ray tracer buffers
-        this->bind();
-        
-        // traverse accelerators
-        obj->bindBVH();
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 17, resultFounds);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, givenRays); // bind collection buffer
-        dispatch(traverseProgram, tiled(rsize, worksize)); // run traverse
-
-        // copy given counts
-        glCopyNamedBufferSubData(arcounter, rayBlockUniform, (1 + 5) * sizeof(int32_t), offsetof(RayBlockUniform, samplerUniform) + offsetof(SamplerUniformStruct, rayCount), sizeof(int32_t));
-        GLuint tcount = 0; glGetNamedBufferSubData(arcounter, (1 + 5) * sizeof(int32_t), sizeof(int32_t), &tcount);
-
-        // run hit resolver
-        obj->bindLeafs();
-        obj->bind();
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, resultFounds);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, givenRays); // change active list
-        dispatch(resolverProgram, tiled(tcount, worksize));
-        */
-
         this->bind();
         obj->bindBVH();
         obj->bindLeafs();
         obj->bind();
         dispatch(traverseDirectProgram, tiled(rsize, worksize));
-        
         
         return 1;
     }
@@ -451,14 +383,14 @@ namespace ppr {
         int32_t rsize = getRayCount();
         if (rsize <= 0) return;
 
-        samplerUniformData.rayCount = rsize;
-        materialUniformData.time = rand();
+        // get surface samplers
+        glCopyNamedBufferSubData(arcounter, rayBlockUniform, 7 * sizeof(int32_t), offsetof(RayBlockUniform, samplerUniform) + offsetof(SamplerUniformStruct, hitCount), sizeof(int32_t));
+        GLuint tcount = 0; glGetNamedBufferSubData(arcounter, 7 * sizeof(int32_t), sizeof(int32_t), &tcount);
+        dispatch(surfProgram, tiled(tcount, worksize));
 
-        this->bind();
-        mat->bindWithContext(matProgram);
-
+        // composite and shade rays
+        materialUniformData.time = rand(); this->bind(); mat->bindWithContext(matProgram);
         glBindTextureUnit(5, skybox);
-
         dispatch(matProgram, tiled(rsize, worksize));
     }
 

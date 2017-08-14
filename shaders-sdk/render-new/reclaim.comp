@@ -28,7 +28,7 @@ void main()
         ray.bitfield = bitfieldInsert(ray.bitfield, 0,  0, 1);
     }
 
-    if (bounce >= 0) RayBounce(ray, bounce);
+    RayBounce(ray, bounce >= 0 ? bounce : 0);
     ray.hit = -1; // reset chains
 
     if (!overflow) {

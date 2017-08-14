@@ -30,7 +30,6 @@ void main() {
 
     int t = activedBuf.indc[it];
     globalInvocationSMP = it;
-
     RayRework ray = rayBuf.nodes[t];
 
     int layers = 1; // support only one layer
@@ -38,7 +37,6 @@ void main() {
     HitRework compositedHit[1];
     compositedHit[0] = hitBuf.nodes[ray.hit];
     vec3 dir = ray.direct.xyz;
-    
 
     // layers composition
     int searchLayer = 0;

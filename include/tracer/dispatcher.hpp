@@ -15,8 +15,8 @@ namespace ppr {
         GLuint skybox = -1;
 
         GLuint renderProgram = -1;
+        GLuint surfProgram = -1;
         GLuint matProgram = -1;
-        GLuint beginProgram = -1;
         GLuint reclaimProgram = -1;
         GLuint cameraProgram = -1;
         GLuint clearProgram = -1;
