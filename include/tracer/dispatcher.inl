@@ -257,9 +257,7 @@ namespace ppr {
         }
     }
 
-    inline void Dispatcher::resetHits() {
-        glCopyNamedBufferSubData(arcounterTemp, arcounter, 0, sizeof(uint32_t) * 7, sizeof(uint32_t));
-    }
+    inline void Dispatcher::resetHits() {} // no more needed
 
     inline void Dispatcher::sample() {
         glBindImageTexture(0, presampled, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
@@ -320,6 +318,7 @@ namespace ppr {
         glCopyNamedBufferSubData(arcounter, arcounter, 2 * sizeof(int32_t), 3 * sizeof(int32_t), sizeof(int32_t));
 
         // set to zeros
+        glCopyNamedBufferSubData(arcounterTemp, arcounter, 0, sizeof(uint32_t) * 7, sizeof(uint32_t));
         glCopyNamedBufferSubData(arcounterTemp, arcounter, 0, sizeof(uint32_t) * 2, sizeof(uint32_t));
         glCopyNamedBufferSubData(arcounterTemp, arcounter, 0, sizeof(uint32_t) * 0, sizeof(uint32_t));
 
