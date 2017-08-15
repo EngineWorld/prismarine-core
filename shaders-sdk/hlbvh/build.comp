@@ -66,7 +66,7 @@ void main() {
     // set leaf indices to initial
     uint workSize = min((Range[0] <= 0) ? 0 : ((Range[0] - 1) / int(gl_WorkGroupSize.x) + 1), 8192);
     for (int i=0;i<workSize;i++) {
-        int trID = int(gl_WorkGroupSize.x) * i + (int(threadID) / 2);
+        int trID = int(gl_WorkGroupSize.x) * i + int(threadID);
         atomicExchange(LeafIndices[trID], -1);
         atomicExchange(Actives[trID], -1);
     }
@@ -89,7 +89,6 @@ void main() {
     }
 
     // construct BVH
-    int cntstdr = 0;
     for (int h=0;h<256;h++) { // every level of BVH
 
         // synchronize, and make next work view
@@ -131,32 +130,7 @@ void main() {
                     //if (childNode.pdata.x == childNode.pdata.y) {
                     bool isLeaf = (childNode.pdata.y - childNode.pdata.x) < 1;
                     if (isLeaf) {
-
-                        // load leaf data
-                        childNode.box.mn = ( 100000.f).xxxx;
-                        childNode.box.mx = (-100000.f).xxxx;
-                        
-                        // ranged child
-                        for (int l=childNode.pdata.x;l<=childNode.pdata.y;l++) {
-                            uint leafID = MortoncodesIndices[l];
-
-                            // make leafs links
-                            atomicExchange(Leafs[leafID].pdata.z, int(hid));
-
-                            // fit bounding box
-                            bbox lbound = Leafs[leafID].box;
-                            bbox bound = childNode.box;
-                            childNode.box.mn = min(bound.mn, lbound.mn);
-                            childNode.box.mx = max(bound.mx, lbound.mx);
-                        }
-
-                        // reform range
-                        ivec2 range = childNode.pdata.xy;
-                        childNode.pdata.xy = range.yy; // leaf end (for identify that is leaf)
-                        childNode.pdata.w  = range.x;  // leaf index (except morton-code) is primitive
-
                         atomicExchange(LeafIndices[cCounterInc(true)], hid);
-
                     } else { // add to next works
                         atomicExchange(Actives[aCounterInc(true)], hid);
                     }
@@ -172,8 +146,41 @@ void main() {
                     }
                 }
             }
-            
         }
     }
-    
+
+    {
+        memoryBarrier(); barrier(); 
+        uint workSize = min(cCounter <= 0 ? 0 : ((cCounter - 1) / int(gl_WorkGroupSize.x) + 1), 8192);
+        for (int i=0;i<workSize;i++) {
+            int trID = int(gl_WorkGroupSize.x) * i + int(threadID);
+            if (trID < cCounter) {
+                int hid = LeafIndices[trID];
+                HlbvhNode childNode = Nodes[hid];
+                childNode.box.mn = ( 100000.f).xxxx;
+                childNode.box.mx = (-100000.f).xxxx;
+                
+                // ranged child
+                for (int l=childNode.pdata.x;l<=childNode.pdata.y;l++) {
+                    uint leafID = MortoncodesIndices[l];
+
+                    // make leafs links
+                    atomicExchange(Leafs[leafID].pdata.z, int(hid));
+
+                    // fit bounding box
+                    bbox lbound = Leafs[leafID].box;
+                    bbox bound = childNode.box;
+                    childNode.box.mn = min(bound.mn, lbound.mn);
+                    childNode.box.mx = max(bound.mx, lbound.mx);
+                }
+
+                // reform range
+                ivec2 range = childNode.pdata.xy;
+                childNode.pdata.xy = range.yy; // leaf end (for identify that is leaf)
+                childNode.pdata.w  = range.x;  // leaf index (except morton-code) is primitive
+
+                Nodes[hid] = childNode;
+            }
+        }
+    }
 }
