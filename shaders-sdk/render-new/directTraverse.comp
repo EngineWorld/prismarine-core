@@ -134,11 +134,9 @@ void includeChain(in int chainID, in vec4 intersection){
 
 TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
     reorderTriangles();
-
     for (int i=0;i<sharedVarsData.bakedStackCount;i++) {
         includeChain(i, bakedStack[L][i]);
     }
-
     return res;
 }
 
@@ -223,7 +221,7 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
     // init state
     int idx = 0;
     bool validBox = valid && lessF(d, INFINITY) && lessF(d * dirlenInv, INFINITY) && greaterEqualF(d, 0.0f);
-    for (int i=0;i<16384;i++) {
+    for (int i=0;i<4096;i++) {
         if (allInvocations(!validBox)) break;
         HlbvhNode node = Nodes[idx];
 
@@ -241,10 +239,10 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
             );
 
             int overlapsGeneral = (notLeaf ? 3 : 0) & 
-            cB2(lessThanEqual(hits, vec2(INFINITY-PZERO))) & 
-            cB2(lessThanEqual(hits * dirlenInv, vec2(INFINITY-PZERO))) & 
-            cB2(greaterThan(hits, -vec2(PZERO))) & 
-            cB2(lessThanEqual(nears, vec2(lastRes.predist+PZERO) * dirlen));
+                cB2(lessThanEqual(hits, vec2(INFINITY-PZERO))) & 
+                cB2(lessThanEqual(hits * dirlenInv, vec2(INFINITY-PZERO))) & 
+                cB2(greaterThan(hits, -vec2(PZERO))) & 
+                cB2(lessThanEqual(nears, vec2(lastRes.predist+PZERO) * dirlen));
             int overlaps = overlapsGeneral & cB2(bvec2(lnode.pdata.x != lnode.pdata.y, rnode.pdata.x != rnode.pdata.y));
 
             bool anyOverlap = anyB(overlaps);
