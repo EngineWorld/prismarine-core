@@ -168,7 +168,7 @@ TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tr
 const int groupSize = 1;
 void includeLeaf(in vec3 origin, in vec3 direct, in bool validBox, in HlbvhNode node, in vec3 boxHit, inout TResult lastRes){
     bool isLeaf = validBox;
-    if (isLeaf) {
+    if (anyInvocation(isLeaf)) {
         for (int ls=0;ls<groupSize;ls+=1) {
             bool overtaken = ls > node.pdata.y-node.pdata.w || !isLeaf;
             if (anyInvocation(!overtaken)) {

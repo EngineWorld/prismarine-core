@@ -95,5 +95,8 @@ void main() {
     hit.normalHeight.xyz = normalize(tbn * normalize(getNormalMapping(material, hit.texcoord.xy).xyz));
     hit.emission = vec4(fetchEmissive(material, hit.texcoord.xy).xyz * 2.f, 1.0f);
     hit.metallicRoughness = vec4(fetchSpecular(material, hit.texcoord.xy).xyz, 1.0f);
-    hitBuf.nodes[t] = hit;
+    
+    if (!overflow) {
+        hitBuf.nodes[t] = hit;
+    }
 }
