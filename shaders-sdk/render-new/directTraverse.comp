@@ -240,7 +240,11 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
                 intersectCubeSingle(torig, dirproj, rnode.box.mn, rnode.box.mx, nears.y, fars.y)
             );
 
-            int overlapsGeneral = (notLeaf ? 3 : 0) & cB2(lessThanEqual(hits, vec2(INFINITY-PZERO))) & cB2(greaterThan(hits, -vec2(PZERO))) & cB2(lessThanEqual(nears, vec2(lastRes.predist+PZERO) * dirlen));
+            int overlapsGeneral = (notLeaf ? 3 : 0) & 
+            cB2(lessThanEqual(hits, vec2(INFINITY-PZERO))) & 
+            cB2(lessThanEqual(hits * dirlenInv, vec2(INFINITY-PZERO))) & 
+            cB2(greaterThan(hits, -vec2(PZERO))) & 
+            cB2(lessThanEqual(nears, vec2(lastRes.predist+PZERO) * dirlen));
             int overlaps = overlapsGeneral & cB2(bvec2(lnode.pdata.x != lnode.pdata.y, rnode.pdata.x != rnode.pdata.y));
 
             bool anyOverlap = anyB(overlaps);
