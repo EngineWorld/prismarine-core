@@ -105,6 +105,7 @@ void main() {
         uint workSize = min((aRange[1] <= aRange[0]) ? 0 : (((aRange[1] - aRange[0]) - 1) / (int(gl_WorkGroupSize.x) / 2) + 1), 8192);
         for (int i=0;i<workSize;i++) {
             int trID = aRange[0] + ((int(gl_WorkGroupSize.x) / 2) * i + (int(threadID) / 2));
+            if (allInvocations(trID >= aRange[1])) break;
 
             if (trID < aRange[1]) {
                 int chID = int(threadID) % 2;
@@ -154,6 +155,7 @@ void main() {
         uint workSize = min(cCounter <= 0 ? 0 : ((cCounter - 1) / int(gl_WorkGroupSize.x) + 1), 8192);
         for (int i=0;i<workSize;i++) {
             int trID = int(gl_WorkGroupSize.x) * i + int(threadID);
+            if (allInvocations(trID >= cCounter)) break;
             if (trID < cCounter) {
                 int hid = LeafIndices[trID];
                 HlbvhNode childNode = Nodes[hid];

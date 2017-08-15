@@ -30,6 +30,7 @@ void main() {
         int wcount = min(n <= 0 ? 0 : ((n - 1) / int(gl_WorkGroupSize.x) + 1), 50000);
         for (int w=0;w<wcount;w++) {
             int globalID = w * int(gl_WorkGroupSize.x) + localID;
+            if (allInvocations(globalID >= n)) break;
             if (globalID < n && globalID >= 0) {
                 int idx = atomicExchange(LeafIndices[globalID], -1);
                 if (idx >= 0) {
@@ -57,6 +58,7 @@ void main() {
         int wcount = min(n <= 0 ? 0 : ((n - 1) / int(gl_WorkGroupSize.x) + 1), 50000);
         for (int w=0;w<wcount;w++) {
             int globalID = w * int(gl_WorkGroupSize.x) + localID;
+            if (allInvocations(globalID >= n)) break;
             if (globalID < n && globalID >= 0) {
                 // get current level node
                 int idx = atomicExchange(Actives[aRange[0]+globalID], -1);

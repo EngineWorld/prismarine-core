@@ -170,7 +170,7 @@ namespace ppr {
         if (quantized   != -1) glDeleteBuffers(1, &quantized);
 
         const int32_t wrsize = width * height;
-        currentRayLimit = std::min(wrsize * 8, 4096 * 4096);
+        currentRayLimit = std::min(wrsize * 4, 4096 * 4096);
 
         colorchains = allocateBuffer<ColorChain>(currentRayLimit * 4);
         rays = allocateBuffer<Ray>(currentRayLimit);
