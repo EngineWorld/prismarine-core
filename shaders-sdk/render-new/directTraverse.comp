@@ -76,7 +76,8 @@ void reorderTriangles() {
 HitRework interpolateMeshData(inout HitRework res) {
     int tri = floatBitsToInt(res.uvt.w);
 
-    if (greaterEqualF(res.uvt.z, 0.0f) && lessF(res.uvt.z, INFINITY) && tri != LONGEST) {
+    bool validInterpolant = greaterEqualF(res.uvt.z, 0.0f) && lessF(res.uvt.z, INFINITY) && tri != LONGEST;
+    if (anyInvocation(validInterpolant)) {
         vec3 trinorms[3];
         vec3 triverts[3];
         vec4 texcoords[3];
@@ -107,11 +108,13 @@ HitRework interpolateMeshData(inout HitRework res) {
         float f = 1.0f / fma(deltaUV1.x, deltaUV2.y, -deltaUV1.y * deltaUV2.x);
         vec3 tan = fma(deltaPos1, vec3(deltaUV2.y), -deltaPos2 * deltaUV1.y) * f;
 
-        res.normalHeight = vec4(normal, 0.0f);
-        res.tangent = vec4(normalize(tan - normal * sign(dot(tan, nor))), 0.0f);
-        res.texcoord = fma(texcoords[0], vec4(1.0f - uv.x - uv.y), fma(texcoords[1], vec4(uv.x), texcoords[2] * vec4(uv.y)));
-        res.albedo = fma(colors[0], vec4(1.0f - uv.x - uv.y), fma(colors[1], vec4(uv.x), colors[2] * vec4(uv.y)));
-        res.materialID = mats[tri];
+        if (validInterpolant) {
+            res.normalHeight = vec4(normal, 0.0f);
+            res.tangent = vec4(normalize(tan - normal * sign(dot(tan, nor))), 0.0f);
+            res.texcoord = fma(texcoords[0], vec4(1.0f - uv.x - uv.y), fma(texcoords[1], vec4(uv.x), texcoords[2] * vec4(uv.y)));
+            res.albedo = fma(colors[0], vec4(1.0f - uv.x - uv.y), fma(colors[1], vec4(uv.x), colors[2] * vec4(uv.y)));
+            res.materialID = mats[tri];
+        }
     }
 
     return res;
