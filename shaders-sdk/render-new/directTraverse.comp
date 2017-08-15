@@ -312,5 +312,5 @@ void main() {
     sharedVarsData.prevHt = ray.hit;
     traverse(ray.origin.xyz, ray.direct.xyz, !overflow);
     ray.hit = sharedVarsData.chainID;
-    rayBuf.nodes[t] = ray; // just store
+    if (!overflow) rayBuf.nodes[t] = ray; // avoid invalids
 }
