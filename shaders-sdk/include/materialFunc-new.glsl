@@ -93,7 +93,7 @@ RayRework reflection(in RayRework ray, in vec3 color, in vec3 normal, in float r
     //ray.origin.xyz = fma(faceforward(normal, ray.direct.xyz, -normal), vec3(GAP), ray.origin.xyz); // padding
 
     RayDL(ray, (SUNLIGHT_CAUSTICS ? true : RayType(ray) == 1) ? 0 : 1); RayType(ray, 0);
-    RayBounce(ray, min(3, RayBounce(ray)));
+    RayBounce(ray, min(2, RayBounce(ray)));
     RayActived(ray, RayType(ray) == 2 ? 0 : RayActived(ray));
     return ray;
 }
@@ -137,14 +137,16 @@ vec3 sLight(in int i){
     return fma(randomDirectionInSphere(), vec3(lightUniform.lightNode[i].lightColor.w), lightCenter(i));
 }
 
-int applyLight(in RayRework directRay, inout RayRework ray, in vec3 normal){
+int applyLight(in RayRework directRay, inout RayRework ray, in vec3 normal) {
 #ifdef DIRECT_LIGHT
-    RayActived(directRay, (RayType(ray) == 2 || dot(normal, directRay.direct.xyz) < 0.f) ? 0 : RayActived(directRay)); RayDL(ray, 0);
+    RayActived(directRay, (RayType(ray) == 2 || dot(normal, directRay.direct.xyz) < 0.f) ? 0 : RayActived(directRay)); 
+    RayDL(ray, 0);
     return createRay(directRay);
 #else 
     return -1;
 #endif
 }
+
 
 float intersectSphere(in vec3 origin, in vec3 ray, in vec3 sphereCenter, in float sphereRadius) {
     vec3 toSphere = origin - sphereCenter;
@@ -164,6 +166,24 @@ float intersectSphere(in vec3 origin, in vec3 ray, in vec3 sphereCenter, in floa
     return t;
 }
 
+
+
+RayRework directLightWhitted(in int i, in RayRework directRay, in vec3 color, in vec3 normal){
+    RayActived(directRay, RayType(directRay) == 2 ? 0 : 1);
+    RayDL(directRay, 1);
+    RayType(directRay, 2);
+    RayTargetLight(directRay, i);
+    RayBounce(directRay, min(1, RayBounce(directRay)));
+    
+    vec3 ltr = lightCenter(i).xyz-directRay.origin.xyz;
+    vec3 ldirect = normalize(sLight(i) - directRay.origin.xyz);
+    float cos_a_max = sqrt(1.f - clamp(lightUniform.lightNode[i].lightColor.w * lightUniform.lightNode[i].lightColor.w / sqlen(ltr), 0.0f, 1.0f));
+    float diffuseWeight = clamp(dot(ldirect, normal), 0.0f, 1.0f);
+    directRay.direct.xyz = ldirect;
+    directRay.color.xyz *= color * diffuseWeight * ((1.0f - cos_a_max) * 2.0f);
+    return directRay;
+}
+
 RayRework directLight(in int i, in RayRework directRay, in vec3 color, in vec3 normal){
     RayActived(directRay, RayType(directRay) == 2 ? 0 : RayActived(directRay));
     RayDL(directRay, 1);
@@ -179,6 +199,19 @@ RayRework directLight(in int i, in RayRework directRay, in vec3 color, in vec3 n
     directRay.color.xyz *= color * diffuseWeight * ((1.0f - cos_a_max) * 2.0f);
     return directRay;
 }
+
+
+RayRework ambient(in RayRework ray, in vec3 color, in vec3 normal){
+    ray.final.xyz = color * ray.color.xyz;
+    ray.direct.xyz = normalize(randomCosine(normal));
+    ray.origin.xyz = ray.origin.xyz = fma(ray.direct.xyz, vec3(GAP), ray.origin.xyz);
+    //ray.origin.xyz = fma(faceforward(normal, ray.direct.xyz, -normal), vec3(GAP), ray.origin.xyz); // padding
+    RayActived(ray, 0);
+    RayType(ray, 1);
+    RayDL(ray, 1);
+    return ray;
+}
+
 
 RayRework diffuse(in RayRework ray, in vec3 color, in vec3 normal){
     ray.color.xyz *= color;
