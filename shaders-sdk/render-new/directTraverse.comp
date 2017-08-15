@@ -224,7 +224,7 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
     // init state
     int idx = 0;
     bool validBox = valid && lessF(d, INFINITY) && lessF(d * dirlenInv, INFINITY) && greaterEqualF(d, 0.0f);
-    for (int i=0;i<4096;i++) {
+    for (int i=0;i<8192;i++) {
         if (allInvocations(!validBox)) break;
         HlbvhNode node = Nodes[idx];
 
@@ -245,7 +245,9 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
                 cB2(lessThanEqual(hits, vec2(INFINITY-PZERO))) & 
                 cB2(lessThanEqual(hits * dirlenInv, vec2(INFINITY-PZERO))) & 
                 cB2(greaterThan(hits, -vec2(PZERO))) & 
-                cB2(lessThanEqual(nears, vec2(lastRes.predist+PZERO) * dirlen));
+                cB2(lessThanEqual(nears, vec2(lastRes.predist+PZERO) * dirlen)) & 
+                cB2(bvec2(node.pdata.x != -1, node.pdata.y != -1)) & 
+                cB2(bvec2(node.pdata.x != node.pdata.y));
             int overlaps = overlapsGeneral & cB2(bvec2(lnode.pdata.x != lnode.pdata.y, rnode.pdata.x != rnode.pdata.y));
 
             bool anyOverlap = anyB(overlaps);
@@ -254,18 +256,19 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
                 bool leftOrder = allB2(overlaps) ? lessEqualF(nears.x, nears.y) : overlapsBool.x;
                 ivec2 leftright = mix(ivec2(-1), node.pdata.xy, overlapsBool);
                 leftright = leftOrder ? leftright : leftright.yx;
-                if (anyOverlap && leftright.x != -1) {
+
+                if (anyOverlap) {
                     if (deferredPtr < STACK_SIZE && leftright.y != -1 && leftright.x != leftright.y) {
                         deferredStack[L][deferredPtr++] = leftright.y;
                     }
                     idx = leftright.x;
-                    skip = true;
                 }
             }
 
             // because traverse stack is limited, we does not including leafs to this stack
             overlapsGeneral &= cB2(bvec2(lnode.pdata.x == lnode.pdata.y, rnode.pdata.x == rnode.pdata.y)); // is leafs
-            if (anyInvocation(anyB(overlapsGeneral))) {
+            bool anyLeaf = anyB(overlapsGeneral); skip = skip || anyLeaf; // if any leaf found, skipping
+            if (anyInvocation(anyLeaf)) {
                 bvec2 overlaps = cI2(overlapsGeneral);
                 bool leafOrder = allB2(overlapsGeneral) ? lessEqualF(nears.x, nears.y) : overlaps.x;
                 overlaps = leafOrder ? overlaps : overlaps.yx;
@@ -273,7 +276,10 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
                 hits = leafOrder ? hits : hits.yx;
                 includeLeaf(origin, direct, validBox && overlaps.x && lessEqualF(nears.x, lastRes.predist), leafOrder ? lnode : rnode, dirproj * hits.x + torig, lastRes);
                 includeLeaf(origin, direct, validBox && overlaps.y && lessEqualF(nears.y, lastRes.predist), leafOrder ? rnode : lnode, dirproj * hits.y + torig, lastRes);
+                skip = false; // continue search when found
             }
+
+            skip = skip || anyOverlap; // have any branching? don't upstream to next or parents
         }
 
         // go to parent 
