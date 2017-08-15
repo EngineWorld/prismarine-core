@@ -32,7 +32,6 @@ int deferredPtr = 0;
 SharedVarsData sharedVarsData;
 
 const int STACK_SIZE = 16;
-const int groupSize = 1;
 const int bakedFragments = 8;
 
 shared int deferredStack[WORK_SIZE][STACK_SIZE];
@@ -168,16 +167,7 @@ TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tr
     return res;
 }
 
-vec3 projectVoxels(in vec3 orig) {
-    return mult4(vec4(orig, 1.0f), GEOMETRY_BLOCK geometryUniform.transform).xyz;
-}
-
-vec3 unprojectVoxels(in vec3 orig) {
-    return mult4(vec4(orig, 1.0f), GEOMETRY_BLOCK geometryUniform.transformInv).xyz;
-}
-
-#define SGN(v) v = idx
-
+const int groupSize = 1;
 void includeLeaf(in vec3 origin, in vec3 direct, in bool validBox, in HlbvhNode node, in vec3 boxHit, inout TResult lastRes){
     bool isLeaf = validBox;
     if (isLeaf) {
@@ -189,6 +179,14 @@ void includeLeaf(in vec3 origin, in vec3 direct, in bool validBox, in HlbvhNode 
             }
         }
     }
+}
+
+vec3 projectVoxels(in vec3 orig) {
+    return mult4(vec4(orig, 1.0f), GEOMETRY_BLOCK geometryUniform.transform).xyz;
+}
+
+vec3 unprojectVoxels(in vec3 orig) {
+    return mult4(vec4(orig, 1.0f), GEOMETRY_BLOCK geometryUniform.transformInv).xyz;
 }
 
 TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
