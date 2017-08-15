@@ -81,7 +81,7 @@ namespace ppr {
         //sorter = new RadixSort();
 
         for (int i = 0; i < 6;i++) {
-            lightColor[i] = glm::vec4((glm::vec3(255.f, 250.f, 244.f) / 255.f) * 150.f * 20.f, 10.0f);
+            lightColor[i] = glm::vec4((glm::vec3(255.f, 250.f, 244.f) / 255.f) * 800.f, 20.0f);
             lightAmbient[i] = glm::vec4(0.0f);
             lightVector[i] = glm::vec4(0.2f, 1.0f, 0.4f, 400.0f);
             lightOffset[i] = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
