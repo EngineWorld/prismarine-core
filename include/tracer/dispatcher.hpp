@@ -50,7 +50,6 @@ namespace ppr {
         int32_t worksize = 128;
 
         GLuint presampled = -1;
-        GLuint samples = -1;
         GLuint sampleflags = -1;
         GLuint vao = -1;
 
@@ -108,7 +107,6 @@ namespace ppr {
             glDeleteBuffers(1, &rayBlockUniform);
 
             glDeleteTextures(1, &presampled);
-            glDeleteTextures(1, &samples);
             glDeleteTextures(1, &sampleflags);
 
             glDeleteVertexArrays(1, &vao);

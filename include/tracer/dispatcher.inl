@@ -140,27 +140,12 @@ namespace ppr {
         displayWidth = w;
         displayHeight = h;
 
-        if (samples     != -1) glDeleteTextures(1, &samples);
         if (sampleflags != -1) glDeleteTextures(1, &sampleflags);
         if (presampled  != -1) glDeleteTextures(1, &presampled);
 
-        samples = allocateTexture2D<GL_RGBA32F>(displayWidth, displayHeight);
         sampleflags = allocateTexture2D<GL_R32UI>(displayWidth, displayHeight);
         presampled = allocateTexture2D<GL_RGBA32F>(displayWidth, displayHeight);
         
-
-        // set sampler of
-        glTextureParameteri(samples, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTextureParameteri(samples, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTextureParameteri(samples, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTextureParameteri(samples, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-        // set sampler of
-        glTextureParameteri(sampleflags, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTextureParameteri(sampleflags, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTextureParameteri(sampleflags, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTextureParameteri(sampleflags, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
         // set sampler of
         glTextureParameteri(presampled, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTextureParameteri(presampled, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
