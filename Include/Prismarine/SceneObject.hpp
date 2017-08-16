@@ -101,7 +101,6 @@ namespace ppr {
 
         int32_t materialID = 0;
         size_t triangleCount = 0;
-        bbox bound;
 
         void syncUniforms();
         void allocate(const size_t &count);

@@ -21,6 +21,7 @@ namespace ppr {
         tcounter = allocateBuffer<uint32_t>(1);
         geometryBlockUniform = allocateBuffer<GeometryBlockUniform>(1);
 
+        bbox bound;
         bound.mn.x = 100000.f;
         bound.mn.y = 100000.f;
         bound.mn.z = 100000.f;
@@ -162,15 +163,13 @@ namespace ppr {
     inline void SceneObject::build(const glm::dmat4 &optimization) {
         // get triangle count that uploaded
         glGetNamedBufferSubData(tcounter, 0, strided<uint32_t>(1), &this->triangleCount);
-
         size_t triangleCount = std::min(uint32_t(this->triangleCount), uint32_t(maxt));
         geometryUniformData.triangleCount = triangleCount;
 
         // validate
         if (this->triangleCount <= 0 || !dirty) return;
-
+        
         // copy uploading buffers to BVH
-
         size_t maxHeight = std::min(maxt > 0 ? (maxt - 1) / 2047 + 1 : 0, 2047u) + 1;
         size_t height = std::min(triangleCount > 0 ? (triangleCount - 1) / 2047 + 1 : 0, maxHeight) + 1;
         glCopyImageSubData(vbo_vertex_textrue_upload, GL_TEXTURE_2D, 0, 0, 0, 0, vbo_vertex_textrue, GL_TEXTURE_2D, 0, 0, 0, 0, 6144, height, 1);
@@ -179,9 +178,7 @@ namespace ppr {
         glCopyImageSubData(vbo_modifiers_textrue_upload, GL_TEXTURE_2D, 0, 0, 0, 0, vbo_modifiers_textrue, GL_TEXTURE_2D, 0, 0, 0, 0, 6144, height, 1);
         glCopyNamedBufferSubData(mat_triangle_ssbo_upload, mat_triangle_ssbo, 0, 0, std::min(uint32_t(this->triangleCount), uint32_t(maxt)) * sizeof(uint32_t));
 
-        this->resolve();
-        const double prec = 1000000.0;
-        
+        // use optimization matrix
         glCopyNamedBufferSubData(minmaxBufRef, minmaxBuf, 0, 0, strided<bbox>(1));
         {
             glm::dmat4 mat(1.0);
@@ -190,34 +187,38 @@ namespace ppr {
             geometryUniformData.transformInv = *(Vc4x4 *)glm::value_ptr(glm::transpose(glm::inverse(glm::mat4(mat))));
         }
 
+        // get bounding box of scene
         this->syncUniforms();
         this->bind();
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, minmaxBuf);
         dispatch(minmaxProgram2, 1);
 
+        // getting boundings
+        bbox bound;
         glGetNamedBufferSubData(minmaxBuf, 0, strided<bbox>(1), &bound);
         scale = (glm::make_vec4((float *)&bound.mx) - glm::make_vec4((float *)&bound.mn)).xyz();
         offset = glm::make_vec4((float *)&bound.mn).xyz();
 
+        // fit BVH to boundings
         {
             glm::dmat4 mat(1.0);
             mat *= glm::inverse(glm::translate(glm::dvec3(offset)) * glm::scale(glm::dvec3(scale)));
             mat *= glm::inverse(glm::dmat4(optimization));
-
             geometryUniformData.transform = *(Vc4x4 *)glm::value_ptr(glm::transpose(glm::mat4(mat)));
             geometryUniformData.transformInv = *(Vc4x4 *)glm::value_ptr(glm::transpose(glm::inverse(glm::mat4(mat))));
         }
 
+        // bind buffers
         glCopyNamedBufferSubData(lscounterTemp, aabbCounter, 0, 0, strided<uint32_t>(1));
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, mortonBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mortonBufferIndex);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, aabbCounter);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, leafBuffer);
 
+        // get nodes morton codes and boundings
         this->bind();
         this->syncUniforms();
         dispatch(aabbMakerProgramH, tiled(triangleCount, worksize));
-
         glGetNamedBufferSubData(aabbCounter, 0, strided<uint32_t>(1), &triangleCount);
         if (triangleCount <= 0) return;
 
@@ -225,21 +226,24 @@ namespace ppr {
         sorter->sort(mortonBuffer, mortonBufferIndex, triangleCount); // early serial tests
         geometryUniformData.triangleCount = triangleCount;
 
+        // debug
         //std::vector<GLuint64> mortons(triangleCount);
         //glGetNamedBufferSubData(mortonBuffer, 0, strided<GLuint64>(mortons.size()), mortons.data());
 
+        // bind BVH buffers
         this->syncUniforms();
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, bvhnodesBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, bvhflagsBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, activeBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, childBuffer);
 
+        // build BVH itself
         dispatch(buildProgramH, 1);
         dispatch(refitProgramH, 1);
 
         // set back triangle count
         this->geometryUniformData.triangleCount = this->triangleCount;
         this->syncUniforms();
-
+        this->resolve();
     }
 }
