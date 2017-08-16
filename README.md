@@ -21,7 +21,7 @@
 <details>
 <summary>Master Update (on development)</summary>
 
-### "Master" Update (low level API, tweaks) WIP (??.08.2017)
+### "Master" Update (low level API, refactoring, tweaks) WIP (??.08.2017)
 
 - [x] (Beta) Fully device memory based storing and copying, when loading mesh (less overhead instancing)
 - [x] (Beta) Divide uploading and current scene state (you can load meshes, while you using in traverse stable state)
