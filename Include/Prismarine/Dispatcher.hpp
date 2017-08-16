@@ -1,10 +1,9 @@
 #pragma once
 
-#include "includes.hpp"
-#include "utils.hpp"
-#include "structs.hpp"
-#include "sceneObject.hpp"
-#include "materialSet.hpp"
+#include "Utils.hpp"
+#include "Structs.hpp"
+#include "SceneObject.hpp"
+#include "MaterialSet.hpp"
 
 namespace ppr {
 
@@ -149,4 +148,4 @@ namespace ppr {
     };
 }
 
-#include "./dispatcher.inl"
+#include "./Dispatcher.inl"

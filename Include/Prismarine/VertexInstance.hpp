@@ -1,8 +1,7 @@
 #pragma once
 
-#include "includes.hpp"
-#include "utils.hpp"
-#include "structs.hpp"
+#include "Utils.hpp"
+#include "Structs.hpp"
 
 namespace ppr {
 
@@ -107,4 +106,4 @@ namespace ppr {
     };
 }
 
-#include "./vertexInstance.inl"
+#include "./VertexInstance.inl"

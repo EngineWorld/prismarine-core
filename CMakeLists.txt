@@ -10,27 +10,22 @@ endif()
 
 set(SOURCES_LIST 
     #include
-    "./include/*.hpp"
-    "./include/*.hh"
-    "./include/*.h"
-    
-    #include
-    "./external/include/*/*.hpp"
-    "./external/include/*/*.hh"
-    "./external/include/*/*.h"
-    "./external/include/*.hpp"
-    "./external/include/*.hh"
-    "./external/include/*.h"
+    "./External/include/*/*.hpp"
+    "./External/include/*/*.hh"
+    "./External/include/*/*.h"
+    "./External/include/*.hpp"
+    "./External/include/*.hh"
+    "./External/include/*.h"
     
     #ray-tracer
-    "./include/tracer/*.hpp"
-    "./include/tracer/*.inl"
+    "./Include/Prismarine/*.hpp"
+    "./Include/Prismarine/*.inl"
     
     #shaders
-    "./shaders-sdk/include/*.*"
-    "./shaders-sdk/render/*.*"
-    "./shaders-sdk/hlbvh/*.*"
-    "./shaders-sdk/tools/*.*"
+    "./ShadersSDK/include/*.*"
+    "./ShadersSDK/render/*.*"
+    "./ShadersSDK/hlbvh/*.*"
+    "./ShadersSDK/tools/*.*"
 )
 
 set (DEFINES
@@ -45,8 +40,8 @@ set (DEFINES
 )
 
 set (DEP_DIR "${PROJECT_SOURCE_DIR}")
-set (LIB_DIR "${DEP_DIR}/external/lib"     "${DEP_DIR}/lib"     "${CMAKE_MODULE_PATH}/lib"     "${DEP_DIR}/external/lib/bullet")
-set (INC_DIR "${DEP_DIR}/external/include" "${DEP_DIR}/include" "${CMAKE_MODULE_PATH}/include" "${DEP_DIR}/external/include/bullet" "${PROJECT_SOURCE_DIR}")
+set (LIB_DIR "${DEP_DIR}/External/lib"     "${DEP_DIR}/lib"     "${CMAKE_MODULE_PATH}/lib"     "${DEP_DIR}/External/lib/bullet")
+set (INC_DIR "${DEP_DIR}/External/include" "${DEP_DIR}/include" "${CMAKE_MODULE_PATH}/include" "${DEP_DIR}/External/include/bullet" "${PROJECT_SOURCE_DIR}")
 
 set (CMAKE_MODULE_PATH 
     "${DEP_DIR}/modules" 
@@ -84,7 +79,7 @@ link_directories(${LIB_DIR})
 include_directories(${INCLUDE_LIST})
 file (GLOB RSOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${SOURCES_LIST})
 
-add_executable(${APPLICATION_NAME} example/main.cpp ${RSOURCES})
+add_executable(${APPLICATION_NAME} Source/Examples/Viewer.cpp ${RSOURCES})
 target_link_libraries(${APPLICATION_NAME} ${LIBS})
 
 foreach(source IN LISTS RSOURCES)
@@ -110,7 +105,7 @@ set (LIBS
 )
 
 set (APPLICATION_NAME prismarine-physics)
-add_executable(${APPLICATION_NAME} example/physics.cpp ${RSOURCES})
+add_executable(${APPLICATION_NAME} Source/Examples/Physics.cpp ${RSOURCES})
 target_link_libraries(${APPLICATION_NAME} ${LIBS})
 
 foreach(source IN LISTS RSOURCES)

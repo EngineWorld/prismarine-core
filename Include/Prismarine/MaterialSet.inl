@@ -1,7 +1,4 @@
-#include "materialSet.hpp"
-#include <algorithm>
-#include <numeric>
-#include <list>
+#include "MaterialSet.hpp"
 
 namespace ppr {
 

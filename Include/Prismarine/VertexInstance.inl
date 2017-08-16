@@ -1,4 +1,4 @@
-#include "vertexInstance.hpp"
+#include "VertexInstance.hpp"
 
 namespace ppr {
 

@@ -16,21 +16,13 @@
 #include <GLFW/glfw3native.h>
 #include <tiny_gltf.h>
 
-#include <tiny_obj_loader.h>
-#define TINYOBJLOADER_IMPLEMENTATION
-#include <tiny_obj_loader.h>
-
-#include "tracer/includes.hpp"
-#include "tracer/utils.hpp"
-#include "tracer/dispatcher.hpp"
-#include "tracer/sceneObject.hpp"
-#include "tracer/vertexInstance.hpp"
-#include "tracer/materialSet.hpp"
-#include "tracer/radix.hpp"
+#include "Prismarine/Utils.hpp"
+#include "Prismarine/Dispatcher.hpp"
+#include "Prismarine/SceneObject.hpp"
+#include "Prismarine/VertexInstance.hpp"
+#include "Prismarine/MaterialSet.hpp"
+#include "Prismarine/Radix.hpp"
 #include <functional>
-
-#include "bullet/btBulletCollisionCommon.h"
-#include "bullet/btBulletDynamicsCommon.h"
 
 namespace PaperExample {
     using namespace ppr;
@@ -158,7 +150,8 @@ namespace PaperExample {
 
 
 
-    const std::string bgTexName = "background2.jpg";
+
+    const std::string bgTexName = "background.jpg";
 
     GLuint loadCubemap() {
         FREE_IMAGE_FORMAT formato = FreeImage_GetFileType(bgTexName.c_str(), 0);
@@ -191,143 +184,6 @@ namespace PaperExample {
         return texture;
     }
 
-
-
-    bool loadMeshFile(std::string inputfile, std::vector<tinyobj::material_t> &materials, std::vector<tinyobj::shape_t> &shapes, tinyobj::attrib_t &attrib) {
-        std::string err = "";
-        bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &err, inputfile.c_str());
-        if (!err.empty()) { // `err` may contain warning message.
-            std::cerr << err << std::endl;
-        }
-        return ret;
-    }
-
-    void loadMesh(std::vector<tinyobj::shape_t> &shapes, tinyobj::attrib_t &attrib, std::vector<float> &rawmeshdata) {
-        // Loop over shapes
-        for (size_t s = 0; s < shapes.size(); s++) {
-            // Loop over faces(polygon)
-            size_t index_offset = 0;
-            for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {
-                int fv = shapes[s].mesh.num_face_vertices[f];
-
-                // Loop over vertices in the face.
-                for (size_t v = 0; v < fv; v++) {
-                    // access to vertex
-                    tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
-                    rawmeshdata.push_back(attrib.vertices[3 * idx.vertex_index + 0]);
-                    rawmeshdata.push_back(attrib.vertices[3 * idx.vertex_index + 1]);
-                    rawmeshdata.push_back(attrib.vertices[3 * idx.vertex_index + 2]);
-
-                    if (attrib.normals.size() > 0) {
-                        rawmeshdata.push_back(attrib.normals[3 * idx.normal_index + 0]);
-                        rawmeshdata.push_back(attrib.normals[3 * idx.normal_index + 1]);
-                        rawmeshdata.push_back(attrib.normals[3 * idx.normal_index + 2]);
-                    }
-                    else {
-                        rawmeshdata.push_back(0);
-                        rawmeshdata.push_back(0);
-                        rawmeshdata.push_back(0);
-                    }
-
-                    if (attrib.texcoords.size() > 0) {
-                        rawmeshdata.push_back(attrib.texcoords[2 * idx.texcoord_index + 0]);
-                        rawmeshdata.push_back(attrib.texcoords[2 * idx.texcoord_index + 1]);
-                    }
-                    else {
-                        rawmeshdata.push_back(0);
-                        rawmeshdata.push_back(0);
-                    }
-                }
-                index_offset += fv;
-
-                // per-face material
-                shapes[s].mesh.material_ids[f];
-            }
-        }
-    }
-
-    class MeshTemplate {
-    public:
-
-        ppr::VertexInstance * deviceHandle = nullptr;
-        std::vector<float> rawMeshData;
-        std::vector<tinyobj::material_t> materials;
-        std::vector<tinyobj::shape_t> shapes; 
-        tinyobj::attrib_t attrib;
-        glm::dmat4 transform = glm::dmat4(1.0);
-
-        MeshTemplate * load(std::string inputfile) {
-            if (loadMeshFile(inputfile, materials, shapes, attrib)) {
-                loadMesh(shapes, attrib, rawMeshData);
-
-                GLuint glBuf = -1;
-                glCreateBuffers(1, &glBuf);
-                glNamedBufferData(glBuf, rawMeshData.size() * sizeof(float), rawMeshData.data(), GL_STATIC_DRAW);
-
-
-                // virtual accessor template
-                ppr::VirtualAccessor vattr;
-                vattr.offset = 0;
-                vattr.stride = 8;
-
-
-
-                uint32_t stride = 8;
-                deviceHandle = new ppr::VertexInstance();
-
-                AccessorSet * acs = new AccessorSet();
-                deviceHandle->setAccessorSet(acs);
-
-                vattr.offset = 0;
-                vattr.components = 3;
-                deviceHandle->setVertexAccessor(acs->addVirtualAccessor(vattr));
-
-                vattr.offset = 3;
-                vattr.components = 3;
-                deviceHandle->setNormalAccessor(acs->addVirtualAccessor(vattr));
-
-                vattr.offset = 6;
-                vattr.components = 2;
-                deviceHandle->setTexcoordAccessor(acs->addVirtualAccessor(vattr));
-
-                deviceHandle->setIndexed(false);
-                deviceHandle->setVertices(glBuf);
-                deviceHandle->setNodeCount(rawMeshData.size() / stride / 3);
-                return this;
-            }
-        }
-    };
-
-    class PhysicsObject {
-    public:
-        uint32_t materialID = 0;
-        btRigidBody* rigidBody = nullptr;
-        MeshTemplate* meshTemplate = nullptr;
-        double disappearTime = 0.0;
-
-        double creationTime = 0.0;
-    };
-
-
-
-    // possible rigid bodies
-    std::string rigidMeshTypeList[4] = {
-        "toys/sphere.obj",
-        "toys/cow.obj", 
-        "toys/rbox.obj",
-        "toys/box.obj" // wall
-    };
-
-    uint32_t activeShapes[2] = {
-        0, 2
-    };
-
-
-    std::vector<MeshTemplate *> meshTemplates;
-    std::vector<PhysicsObject *> objects;
-
-
-
     class PathTracerApplication {
     public:
         PathTracerApplication(const int32_t& argc, const char ** argv, GLFWwindow * wind);
@@ -339,17 +195,9 @@ namespace PaperExample {
         void process();
         void resize(const int32_t& width, const int32_t& height);
         void resizeBuffers(const int32_t& width, const int32_t& height);
-        void pushPhysicsObject();
-        void addStaticObject(glm::vec3 position, glm::quat rotation, uint32_t materialID);
 
     private:
         
-        btBroadphaseInterface* broadphase;
-        btDefaultCollisionConfiguration* collisionConfiguration;
-        btCollisionDispatcher* dispatcher;
-        btSequentialImpulseConstraintSolver* solver;
-        btDiscreteDynamicsWorld* dynamicsWorld;
-
         GLFWwindow * window;
         ppr::Dispatcher * rays;
         ppr::SceneObject * intersector;
@@ -363,11 +211,11 @@ namespace PaperExample {
         int32_t depth = 16;
         int32_t switch360key = false;
         bool lbutton = false;
-        bool keys[11] = { false , false , false , false , false , false , false, false, false };
+        bool keys[10] = { false , false , false , false , false , false , false, false, false };
 
 #ifdef EXPERIMENTAL_GLTF
         tinygltf::Model gltfModel;
-        std::vector<PhysicsObject> meshVec = std::vector<PhysicsObject>();
+        std::vector<std::vector<ppr::VertexInstance *>> meshVec = std::vector<std::vector<ppr::VertexInstance *>>();
         std::vector<GLuint> glBuffers = std::vector<GLuint>();
         std::vector<uint32_t> rtTextures = std::vector<uint32_t>();
 #endif
@@ -403,96 +251,6 @@ namespace PaperExample {
     int32_t getTextureIndex(std::map<std::string, double> &mapped) {
         return mapped.count("index") > 0 ? mapped["index"] : -1;
     }
-
-
-
-    void PathTracerApplication::pushPhysicsObject() {
-        glm::dvec3 genDir = glm::normalize(cam->view - cam->eye);
-        glm::dvec3 genPos = cam->eye + genDir * 2.0 + glm::dvec3(0, 1, 0);
-        genDir *= 200.0;
-
-
-        std::random_device rd;     // only used once to initialise (seed) engine
-        std::mt19937 rng(rd());    // random-number engine used (Mersenne-Twister in this case)
-        uint32_t shapeTypeS = std::uniform_int_distribution<int>(0, 1)(rng);
-        uint32_t shapeType = activeShapes[shapeTypeS];
-
-
-
-
-        btScalar mass = 1; btVector3 fallInertia(0, 0, 0);
-
-        btCollisionShape* fallShape;
-        if (shapeType == 0) {
-            fallShape = new btSphereShape(0.8);
-        }
-        else
-        if (shapeType == 1) {
-            fallShape = new btCylinderShape(btVector3(0.7, 1.0, 1.0));
-        }
-        else 
-        if (shapeType == 2) {
-            fallShape = new btBoxShape(btVector3(0.7, 0.7, 0.7));
-        }
-        else {
-            fallShape = new btSphereShape(1);
-        }
-
-
-        fallShape->calculateLocalInertia(mass, fallInertia);
-
-
-        auto rotation = btQuaternion(0, 0, 0, 1);
-            rotation.setEuler(
-                std::uniform_real_distribution<float>(0, glm::two_pi<float>())(rng),
-                std::uniform_real_distribution<float>(0, glm::two_pi<float>())(rng),
-                std::uniform_real_distribution<float>(0, glm::two_pi<float>())(rng)
-            );
-
-        btDefaultMotionState* fallMotionState = new btDefaultMotionState(btTransform(rotation, btVector3(genPos.x, genPos.y, genPos.z)));
-        btRigidBody::btRigidBodyConstructionInfo fallRigidBodyCI(mass, fallMotionState, fallShape, fallInertia);
-        btRigidBody* fallRigidBody = new btRigidBody(fallRigidBodyCI);
-        fallRigidBody->applyCentralForce(btVector3(genDir.x, genDir.y, genDir.z));
-        dynamicsWorld->addRigidBody(fallRigidBody);
-
-        // init timing state
-        double time = glfwGetTime() * 1000.f;
-
-        PhysicsObject * psb = new PhysicsObject();
-        psb->meshTemplate = meshTemplates[shapeType];
-        psb->rigidBody = fallRigidBody;
-        psb->materialID = std::uniform_int_distribution<int>(0, 7)(rng);
-        psb->creationTime = time;
-        psb->disappearTime = 100000.f;
-        objects.push_back(psb);
-    }
-
-
-    void PathTracerApplication::addStaticObject(glm::vec3 position, glm::quat rotation, uint32_t materialID) {
-        btCollisionShape* groundShape = new btBoxShape(btVector3(10, 10, 1));//new btStaticPlaneShape(btVector3(0, 1, 0), 1);
-        btDefaultMotionState* groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w), btVector3(position.x, position.y, position.z)));
-        btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState, groundShape, btVector3(0, 0, 0));
-        btRigidBody* groundRigidBody = new btRigidBody(groundRigidBodyCI);
-        dynamicsWorld->addRigidBody(groundRigidBody);
-
-        std::random_device rd;     // only used once to initialise (seed) engine
-        std::mt19937 rng(rd());    // random-number engine used (Mersenne-Twister in this case)
-
-        // init timing state
-        double time = glfwGetTime() * 1000.f;
-        PhysicsObject * psb = new PhysicsObject();
-        psb->meshTemplate = meshTemplates[3];
-        psb->rigidBody = groundRigidBody;
-        psb->materialID = materialID;
-        psb->creationTime = time;
-        psb->disappearTime = 0.f;
-        objects.push_back(psb);
-
-    }
-
-
-
-
 
     PathTracerApplication::PathTracerApplication(const int32_t& argc, const char ** argv, GLFWwindow * wind) {
         window = wind;
@@ -532,44 +290,11 @@ namespace PaperExample {
                         }
         }
         if (model_input == "") {
-            std::cerr << "Physics mode enabled..." << std::endl;
+            std::cerr << "No model found :(" << std::endl;
         }
-
-
-
-        for (int i = 0; i < 4;i++) {
-            meshTemplates.push_back((new MeshTemplate())->load(rigidMeshTypeList[i]));
-        }
-
-        // initial transform
-
-
-
-
-        glm::dmat4 matrix(1.0);
-        matrix = glm::dmat4(1.0);
-        matrix = glm::scale(matrix, glm::dvec3(0.8f, 0.8f, 0.8f));
-        //matrix = glm::scale(matrix, glm::dvec3(1.25f, 1.25f, 1.25f));
-        //matrix = glm::translate(matrix, glm::dvec3(-0.1f, -0.5f, 0.0f));
-        meshTemplates[0]->transform = matrix;
-
-        matrix = glm::dmat4(1.0);
-        matrix = glm::rotate(matrix, glm::half_pi<double>(), glm::dvec3(0.0, 0.0, 1.0));
-        matrix = glm::scale(matrix, glm::dvec3(0.25f));
-        matrix = glm::translate(matrix, glm::dvec3(0.0f, 0.8f, 0.0f));
-        meshTemplates[1]->transform = matrix;
-
-        matrix = glm::dmat4(1.0);
-        matrix = glm::scale(matrix, glm::dvec3(0.7f, 0.7f, 0.7f));
-        meshTemplates[2]->transform = matrix;
-
-        matrix = glm::dmat4(1.0);
-        matrix = glm::scale(matrix, glm::dvec3(1.0f, 1.0f, 0.1f) * 10.0);
-        meshTemplates[3]->transform = matrix;
-
 
         // init material system
-        materialManager = new ppr::MaterialSet();
+        materialManager = new MaterialSet();
 
         // init ray tracer
         rays = new ppr::Dispatcher();
@@ -579,109 +304,160 @@ namespace PaperExample {
         cam = new Controller();
         cam->setRays(rays);
 
+#ifdef EXPERIMENTAL_GLTF
+        tinygltf::TinyGLTF loader;
+        std::string err = "";
+        loader.LoadASCIIFromFile(&gltfModel, &err, directory + "/" + model_input);
+
+        // load textures (TODO - native samplers support in ray tracers)
+        for (int i = 0; i < gltfModel.textures.size(); i++) {
+            tinygltf::Texture& gltfTexture = gltfModel.textures[i];
+            std::string uri = directory + "/" + gltfModel.images[gltfTexture.source].uri;
+            uint32_t rtTexture = materialManager->loadTexture(uri);
+            // todo with rtTexture processing
+            rtTextures.push_back(rtTexture);
+        }
+
+        // load materials (include PBR)
+        materialManager->clearSubmats();
+        for (int i = 0; i < gltfModel.materials.size(); i++) {
+            tinygltf::Material & material = gltfModel.materials[i];
+            ppr::VirtualMaterial submat;
+
+            // diffuse?
+            
+            int32_t texId = getTextureIndex(material.values["baseColorTexture"].json_double_value);
+            submat.diffusePart = texId >= 0 ? rtTextures[texId] : 0;
+
+            if (material.values["baseColorFactor"].number_array.size() >= 3) {
+                submat.diffuse = glm::vec4(glm::make_vec3(&material.values["baseColorFactor"].number_array[0]), 1.0f);
+            }
+            else {
+                submat.diffuse = glm::vec4(1.0f);
+            }
+
+            // metallic roughness
+            texId = getTextureIndex(material.values["metallicRoughnessTexture"].json_double_value);
+            submat.specularPart = texId >= 0 ? rtTextures[texId] : 0;
+            submat.specular = glm::vec4(1.0f);
+
+            if (material.values["metallicFactor"].number_array.size() >= 1) {
+                submat.specular.z = material.values["metallicFactor"].number_array[0];
+            }
+
+            if (material.values["roughnessFactor"].number_array.size() >= 1) {
+                submat.specular.y = material.values["roughnessFactor"].number_array[0];
+            }
+
+            // emission
+            if (material.additionalValues["emissiveFactor"].number_array.size() >= 3) {
+                submat.emissive = glm::vec4(glm::make_vec3(&material.additionalValues["emissiveFactor"].number_array[0]), 1.0f);
+            }
+            else {
+                submat.emissive = glm::vec4(0.0f);
+            }
+            
+            // emissive texture
+            texId = getTextureIndex(material.additionalValues["emissiveTexture"].json_double_value);
+            submat.emissivePart = texId >= 0 ? rtTextures[texId] : 0;
+
+            // normal map
+            texId = getTextureIndex(material.additionalValues["normalTexture"].json_double_value);
+            submat.bumpPart = texId >= 0 ? rtTextures[texId] : 0;
+
+            // load material
+            materialManager->addSubmat(submat);
+        }
+
+        // make raw mesh buffers
+        for (int i = 0; i < gltfModel.buffers.size();i++) {
+            GLuint glBuf = -1;
+            glCreateBuffers(1, &glBuf);
+            glNamedBufferData(glBuf, gltfModel.buffers[i].data.size(), &gltfModel.buffers[i].data.at(0), GL_STATIC_DRAW);
+            glBuffers.push_back(glBuf);
+        }
+
+        // load mesh templates (better view objectivity)
+        for (int m = 0; m < gltfModel.meshes.size();m++) {
+            std::vector<ppr::VertexInstance *> primitiveVec = std::vector<ppr::VertexInstance *>();
+
+            tinygltf::Mesh &glMesh = gltfModel.meshes[m];
+            for (int i = 0; i < glMesh.primitives.size();i++) {
+                tinygltf::Primitive & prim = glMesh.primitives[i];
+                ppr::VertexInstance * geom = new ppr::VertexInstance();
+                AccessorSet * acs = new AccessorSet();
+                geom->setAccessorSet(acs);
+
+                // make attributes
+                std::map<std::string, int>::const_iterator it(prim.attributes.begin());
+                std::map<std::string, int>::const_iterator itEnd(prim.attributes.end());
+                
+                // load modern mode
+                for(auto const &it : prim.attributes) {
+                    tinygltf::Accessor &accessor = gltfModel.accessors[it.second];
+                    auto& bufferView = gltfModel.bufferViews[accessor.bufferView];
+
+                    // virtual accessor template
+                    ppr::VirtualAccessor vattr;
+                    vattr.offset = (accessor.byteOffset + bufferView.byteOffset) / 4;
+                    vattr.stride = (bufferView.byteStride / 4);
+
+                    // vertex
+                    if (it.first.compare("POSITION") == 0) { // vertices
+                        vattr.components = 3;
+                        if (vattr.stride == 0) vattr.stride = 3;
+                        geom->setVertices(glBuffers[bufferView.buffer]);
+                        geom->setVertexAccessor(acs->addVirtualAccessor(vattr));
+                    } else
+                    
+                    // normal
+                    if (it.first.compare("NORMAL") == 0) {
+                        vattr.components = 3;
+                        if (vattr.stride == 0) vattr.stride = 3;
+                        geom->setNormalAccessor(acs->addVirtualAccessor(vattr));
+                    } else
+                    
+                    // texcoord
+                    if (it.first.compare("TEXCOORD_0") == 0) {
+                        vattr.components = 2;
+                        if (vattr.stride == 0) vattr.stride = 2;
+                        geom->setTexcoordAccessor(acs->addVirtualAccessor(vattr));
+                    }
+                }
+
+                // indices
+                if (prim.indices >= 0) {
+                    tinygltf::Accessor &idcAccessor = gltfModel.accessors[prim.indices];
+                    auto& bufferView = gltfModel.bufferViews[idcAccessor.bufferView];
+                    geom->setNodeCount(idcAccessor.count / 3);
+                    geom->setIndices(glBuffers[bufferView.buffer]);
+
+                    bool isInt16 = idcAccessor.componentType == TINYGLTF_COMPONENT_TYPE_SHORT || idcAccessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT;
+
+                    int32_t loadingOffset = (bufferView.byteOffset + idcAccessor.byteOffset) / (isInt16 ? 2 : 4);
+                    geom->setLoadingOffset(loadingOffset);
+                    geom->setIndexed(true);
+
+                    // is 16-bit indices?
+                    geom->useIndex16bit(isInt16);
+                }
+
+                // use material
+                geom->setMaterialOffset(prim.material);
+
+                // if triangles, then load mesh
+                if (prim.mode == TINYGLTF_MODE_TRIANGLES) {
+                    primitiveVec.push_back(geom);
+                }
+            }
+
+            meshVec.push_back(primitiveVec);
+        }
+#endif
+
         // create geometry intersector
         intersector = new ppr::SceneObject();
-        intersector->allocate(1024 * 1024);
-        
-
-        // here is 5 basic materials
-
-        // yellow plastic
-        {
-            ppr::VirtualMaterial submat;
-            submat.diffuse = glm::vec4(1.0f, 0.9f, 0.6f, 1.f);
-            submat.specular = glm::vec4(0.0f, 0.0f, 0.00f, 1.0f);
-            submat.emissive = glm::vec4(0.0f);
-            materialManager->addSubmat(&submat);
-        }
-
-        // red platic
-        {
-            ppr::VirtualMaterial submat;
-            submat.diffuse = glm::vec4(1.0f, 0.6f, 0.6f, 1.f);
-            submat.specular = glm::vec4(0.0f, 0.0f, 0.00f, 1.0f);
-            submat.emissive = glm::vec4(0.0f);
-            materialManager->addSubmat(&submat);
-        }
-
-        // blue (slightly purple) plastic
-        {
-            ppr::VirtualMaterial submat;
-            submat.diffuse = glm::vec4(0.6f, 0.7f, 1.0f, 1.f);
-            submat.specular = glm::vec4(0.0f, 0.0f, 0.00f, 1.0f);
-            submat.emissive = glm::vec4(0.0f);
-            materialManager->addSubmat(&submat);
-        }
-
-        // green plastic
-        {
-            ppr::VirtualMaterial submat;
-            submat.diffuse = glm::vec4(0.6f, 1.0f, 0.6f, 1.0f);
-            submat.specular = glm::vec4(0.0f, 0.0f, 0.00f, 1.0f);
-            submat.emissive = glm::vec4(0.0f);
-            materialManager->addSubmat(&submat);
-        }
-
-        // fully metallic
-        {
-            ppr::VirtualMaterial submat;
-            submat.diffuse = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-            submat.specular = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
-            submat.emissive = glm::vec4(0.0f);
-            materialManager->addSubmat(&submat);
-        }
-
-        // copper
-        {
-            ppr::VirtualMaterial submat;
-            submat.diffuse = glm::vec4(1.0f, 0.7f, 0.6f, 1.0f);
-            submat.specular = glm::vec4(0.0f, 0.4f, 1.0f, 1.0f);
-            submat.emissive = glm::vec4(0.0f);
-            materialManager->addSubmat(&submat);
-        }
-
-        // blue metallic
-        {
-            ppr::VirtualMaterial submat;
-            submat.diffuse = glm::vec4(0.6f, 0.6f, 1.0f, 1.0f);
-            submat.specular = glm::vec4(0.0f, 0.05f, 1.0f, 1.0f);
-            submat.emissive = glm::vec4(0.0f);
-            materialManager->addSubmat(&submat);
-        }
-
-        // gold
-        {
-            ppr::VirtualMaterial submat;
-            submat.diffuse = glm::vec4(1.0f, 0.95f, 0.6f, 1.0f);
-            submat.specular = glm::vec4(0.0f, 0.4f, 1.0f, 1.0f);
-            submat.emissive = glm::vec4(0.0f);
-            materialManager->addSubmat(&submat);
-        }
-
-
-
-        // init physics
-        broadphase = new btDbvtBroadphase();
-        collisionConfiguration = new btDefaultCollisionConfiguration();
-        dispatcher = new btCollisionDispatcher(collisionConfiguration);
-        solver = new btSequentialImpulseConstraintSolver;
-        dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
-        dynamicsWorld->setGravity(btVector3(0, -10, 0));
-
-
-        // invisible physics plane (planned ray trace)
-        btCollisionShape* groundShape = new btStaticPlaneShape(btVector3(0, 1, 0), 1);
-        btDefaultMotionState* groundMotionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, -22, 0)));
-        btRigidBody::btRigidBodyConstructionInfo groundRigidBodyCI(0, groundMotionState, groundShape, btVector3(0, 0, 0));
-        btRigidBody* groundRigidBody = new btRigidBody(groundRigidBodyCI);
-        dynamicsWorld->addRigidBody(groundRigidBody);
-
-
-        addStaticObject(glm::vec3(  0.0, 0.0, -10.0), glm::quat(glm::vec3(0.0, 0.0, 0.0)), 3);
-        addStaticObject(glm::vec3( 10.0, 0.0, 0.0), glm::quat(glm::vec3(0.0, glm::pi<float>() * 0.5, 0.0)), 2);
-        addStaticObject(glm::vec3(-10.0, 0.0, 0.0), glm::quat(glm::vec3(0.0, -glm::pi<float>() * 0.5, 0.0)), 1);
-        addStaticObject(glm::vec3( 0.0, -10.0, 0.0), glm::quat(glm::vec3(-glm::pi<float>() * 0.5, 0.0, 0.0)), 0);
-        addStaticObject(glm::vec3( 0.0, -12.0, 10.0), glm::quat(glm::vec3(0.0, 0.0, 0.0)), 0);
+        intersector->allocate(1024 * 2048);
 
         // init timing state
         time = glfwGetTime() * 1000.f;
@@ -700,7 +476,6 @@ namespace PaperExample {
         if (key == GLFW_KEY_SPACE) keys[kSpc] = true;
         if (key == GLFW_KEY_LEFT_SHIFT) keys[kSft] = true;
         if (key == GLFW_KEY_K) keys[kK] = true;
-        if (key == GLFW_KEY_M) keys[kM] = true;
     }
 
     // key release
@@ -717,10 +492,6 @@ namespace PaperExample {
         if (key == GLFW_KEY_K) {
             if (keys[kK]) switch360key = true;
             keys[kK] = false;
-        }
-        if (key == GLFW_KEY_M) {
-            pushPhysicsObject();
-            keys[kM] = false;
         }
     }
 
@@ -739,9 +510,6 @@ namespace PaperExample {
         diff = t - time;
         time = t;
 
-
-
-
         // switch to 360 degree view
         cam->work(mousepos, diff, lbutton, keys);
         if (switch360key) {
@@ -749,34 +517,50 @@ namespace PaperExample {
             switch360key = false;
         }
 
+        // initial transform
+        glm::dmat4 matrix(1.0);
+        matrix *= glm::scale(glm::dvec3(mscale));
+
         // clear BVH and load materials
-        dynamicsWorld->stepSimulation(diff / 1000.f, 10);
         intersector->clearTribuffer();
         materialManager->loadToVGA();
 
+#ifdef EXPERIMENTAL_GLTF
 
-        // initial transform
-        glm::dmat4 matrix(1.0);
-        matrix = glm::scale(matrix, glm::dvec3(mscale));
+        // load meshes
+        std::function<void(tinygltf::Node &, glm::dmat4, int)> traverse = [&](tinygltf::Node & node, glm::dmat4 inTransform, int recursive)->void {
+            glm::dmat4 localTransform(1.0);
+            localTransform *= (node.matrix.size() >= 16 ? glm::make_mat4(node.matrix.data()) : glm::dmat4(1.0));
+            localTransform *= (node.translation.size() >= 3 ? glm::translate(glm::make_vec3(node.translation.data())) : glm::dmat4(1.0));
+            localTransform *= (node.scale.size() >= 3 ? glm::scale(glm::make_vec3(node.scale.data())) : glm::dmat4(1.0));
+            localTransform *= (node.rotation.size() >= 4 ? glm::mat4_cast(glm::make_quat(node.rotation.data())) : glm::dmat4(1.0));
 
-        // reload meshes with parameters
-        for (int i = 0; i < objects.size();i++) {
-            PhysicsObject * obj = objects[i];
+            glm::dmat4 transform = inTransform * localTransform;
+            if (node.mesh >= 0) {
+                std::vector<ppr::VertexInstance *>& mesh = meshVec[node.mesh]; // load mesh object (it just vector of primitives)
+                for (int p = 0; p < mesh.size(); p++) { // load every primitive
+                    ppr::VertexInstance * geom = mesh[p];
+                    geom->setTransform(transform);
+                    intersector->loadMesh(geom);
+                }
+            }
+            else
+            if (node.children.size() > 0) {
+                for (int n = 0; n < node.children.size(); n++) {
+                    if (recursive >= 0) traverse(gltfModel.nodes[node.children[n]], transform, recursive-1);
+                }
+            }
+        };
 
-            btTransform trans = obj->rigidBody->getWorldTransform();
-
-            btScalar matr[16];
-            trans.getOpenGLMatrix(matr);
-            obj->meshTemplate->deviceHandle->setTransform(glm::dmat4(glm::make_mat4(matr)) *obj->meshTemplate->transform * matrix);
-            obj->meshTemplate->deviceHandle->setMaterialOffset(obj->materialID);
-
-            intersector->loadMesh(obj->meshTemplate->deviceHandle);
-
-            if ((time - obj->creationTime) >= obj->disappearTime && obj->disappearTime > 0.0) {
-                objects.erase(objects.begin() + i); i--;
-                dynamicsWorld->removeRigidBody(obj->rigidBody);
+        // load scene
+        uint32_t sceneID = 0;
+        if (gltfModel.scenes.size() > 0) {
+            for (int n = 0; n < gltfModel.scenes[sceneID].nodes.size(); n++) {
+                tinygltf::Node & node = gltfModel.nodes[gltfModel.scenes[sceneID].nodes[n]];
+                traverse(node, glm::dmat4(matrix), 2);
             }
         }
+#endif
 
         // build BVH in device
         intersector->build(matrix);
@@ -786,8 +570,8 @@ namespace PaperExample {
         for (int32_t j = 0;j < depth;j++) {
             if (rays->getRayCount() <= 0) break;
             rays->intersection(intersector);
-            rays->applyMaterials(materialManager);
-            rays->shade();
+            rays->applyMaterials(materialManager); // low level function for getting surface materials (may have few materials)
+            rays->shade(); // low level function for change rays
             rays->reclaim();
         }
         rays->sample();
@@ -825,6 +609,7 @@ int main(const int argc, const char ** argv)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_CONTEXT_NO_ERROR, GLFW_TRUE);
+    
 
     const double measureSeconds = 2.0;
     const unsigned superSampling = 2;

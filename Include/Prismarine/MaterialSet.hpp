@@ -1,10 +1,7 @@
 #pragma once
 
-#include "includes.hpp"
-#include "utils.hpp"
-#include "structs.hpp"
-#include <map>
-#include <algorithm>
+#include "Utils.hpp"
+#include "Structs.hpp"
 
 namespace ppr {
     class MaterialSet : public BaseClass {
@@ -70,4 +67,4 @@ namespace ppr {
     };
 }
 
-#include "materialSet.inl"
+#include "MaterialSet.inl"

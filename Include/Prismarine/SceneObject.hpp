@@ -1,9 +1,8 @@
 #pragma once
 
-#include "includes.hpp"
-#include "utils.hpp"
-#include "vertexInstance.hpp"
-#include "radix.hpp"
+#include "Utils.hpp"
+#include "VertexInstance.hpp"
+#include "Radix.hpp"
 
 namespace ppr {
 
@@ -121,4 +120,4 @@ namespace ppr {
     };
 }
 
-#include "./sceneObject.inl"
+#include "./SceneObject.inl"

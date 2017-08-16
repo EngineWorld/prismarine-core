@@ -1,24 +1,14 @@
-#include "sceneObject.hpp"
+#include "SceneObject.hpp"
 
 namespace ppr {
 
     inline void SceneObject::initShaders() {
-        /*
-        initShaderCompute("./shaders/hlbvh/refit.comp", refitProgramH);
-        initShaderCompute("./shaders/hlbvh/build.comp", buildProgramH);
-        initShaderCompute("./shaders/hlbvh/aabbmaker.comp", aabbMakerProgramH);
-        initShaderCompute("./shaders/hlbvh/minmax.comp", minmaxProgram2);
-        initShaderCompute("./shaders/tools/loader.comp", geometryLoaderProgram2);
-        initShaderCompute("./shaders/tools/loader-int16.comp", geometryLoaderProgramI16);
-        */
-        
         initShaderComputeSPIRV("./shaders-spv/hlbvh/refit.comp.spv", refitProgramH);
         initShaderComputeSPIRV("./shaders-spv/hlbvh/build.comp.spv", buildProgramH);
         initShaderComputeSPIRV("./shaders-spv/hlbvh/aabbmaker.comp.spv", aabbMakerProgramH);
         initShaderComputeSPIRV("./shaders-spv/hlbvh/minmax.comp.spv", minmaxProgram2);
         initShaderComputeSPIRV("./shaders-spv/tools/loader.comp.spv", geometryLoaderProgram2);
         initShaderComputeSPIRV("./shaders-spv/tools/loader-int16.comp.spv", geometryLoaderProgramI16);
-        
     }
 
     inline void SceneObject::init() {

@@ -1,8 +1,40 @@
 #pragma once
 
-#include "includes.hpp"
+#define RAY_TRACING_ENGINE
+
+#include <stdio.h>
+#include <iostream>
+#include <fstream>
+#include <cassert>
+#include <ctime>
+#include <chrono>
+#include <array>
+#include <random>
+#include <memory>
+#include <sstream>
+#include <map>
+#include <algorithm>
+#include <numeric>
+#include <list>
+
+#include "glm/glm.hpp"
+#include "glm/gtc/type_ptr.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtx/component_wise.hpp"
+#include "glm/gtx/rotate_vector.hpp"
+#include "glm/gtc/quaternion.hpp"
+#include "glm/gtx/transform.hpp"
+
+#include "glbinding/Binding.h"
+#include "glbinding/gl46ext/gl.h"
+
+#ifdef USE_FREEIMAGE
+#include "external/include/FreeImage.h"
+#endif
 
 namespace ppr {
+    using namespace gl;
+    
     class BaseClass {};
     class Dispatcher;
     class SceneObject;
@@ -57,25 +89,20 @@ namespace ppr {
 
 
     inline void initShaderComputeSPIRV(std::string path, GLuint & prog, std::string entryName = "main") {
-        //std::string str = readSource(path);
         std::vector<GLchar> str = readBinary(path);
 
         GLuint comp = glCreateShader(GL_COMPUTE_SHADER);
         {
-            const GLchar * strc = str.data();//str.c_str();
+            const GLchar * strc = str.data();
             int32_t size = str.size();
-            //glShaderSource(comp, 1, &strc, &size);
             glShaderBinary(1, &comp, GL_SHADER_BINARY_FORMAT_SPIR_V, strc, size);
             glSpecializeShader(comp, entryName.c_str(), 0, nullptr, nullptr);
-            //glCompileShader(comp);
 
             GLint status = false;
             glGetShaderiv(comp, GL_COMPILE_STATUS, &status);
             if (!status) {
                 char * log = new char[32768];
                 GLsizei len = 0;
-
-                //std::cout << str << std::endl;
 
                 glGetShaderInfoLog(comp, 32768, &len, log);
                 std::string logStr = std::string(log, len);

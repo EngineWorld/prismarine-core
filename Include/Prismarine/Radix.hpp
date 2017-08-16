@@ -1,8 +1,7 @@
 #pragma once
 
-#include "includes.hpp"
-#include "utils.hpp"
-#include "structs.hpp"
+#include "Utils.hpp"
+#include "Structs.hpp"
 
 namespace ppr {
 
@@ -24,20 +23,14 @@ namespace ppr {
     public:
 
         RadixSort() {
-            /*
-            initShaderCompute("./shaders/radix/permute.comp", permuteProgram);
-            initShaderCompute("./shaders/radix/prefix-scan.comp", prefixScanProgram);
-            initShaderCompute("./shaders/radix/histogram.comp", histogramProgram);
-            */
-
             initShaderComputeSPIRV("./shaders-spv/radix/permute.comp.spv", permuteProgram);
             initShaderComputeSPIRV("./shaders-spv/radix/prefix-scan.comp.spv", prefixScanProgram);
             initShaderComputeSPIRV("./shaders-spv/radix/histogram.comp.spv", histogramProgram);
 
-             OutKeys = allocateBuffer<uint64_t>(1024 * 1024 * 4);
-             OutValues = allocateBuffer<uint32_t>(1024 * 1024 * 4);
-             HistogramBuffer = allocateBuffer<uint32_t>(WG_COUNT * RADICES);
-             VarBuffer = allocateBuffer<Consts>(1);
+            OutKeys = allocateBuffer<uint64_t>(1024 * 1024 * 4);
+            OutValues = allocateBuffer<uint32_t>(1024 * 1024 * 4);
+            HistogramBuffer = allocateBuffer<uint32_t>(WG_COUNT * RADICES);
+            VarBuffer = allocateBuffer<Consts>(1);
         }
 
         void sort(GLuint &InKeys, GLuint &InVals, uint32_t size = 1, uint32_t descending = 0) {
