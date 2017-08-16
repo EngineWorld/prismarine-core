@@ -43,7 +43,7 @@
 <details>
 <summary>Clockwork Update (on development)</summary>
 
-### "Clockwork" Update (yet another pipeline system) planned (??.??.2017)
+### "Clockwork" Update (yet another pipeline system) planning (??.??.2017)
 
 - [ ] Multi-layered traverse support
 - [ ] Consideration of trBVH support
