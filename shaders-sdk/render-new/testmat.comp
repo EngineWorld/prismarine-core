@@ -24,7 +24,7 @@ float molif_r = 1.f;
 float mollify(in vec3 ldir, in vec3 indir, in vec3 outdir, in float dist){
     float cos_max = 1.f / sqrt(1.f + pow(molif_r/dist, 2.f));
     float lcos = dot(ldir, outdir);
-    return cos_max <= lcos ? 1.f / ( TWO_PI * (1.f - cos_max / lcos) ) : 0.f;
+    return cos_max < lcos ? 1.f / ( TWO_PI * (1.f - cos_max / lcos) ) : 0.f;
 }
 
 
