@@ -3,11 +3,10 @@ cd %~dp0
 set CFLAGS=--target-env=opengl -x glsl -Werror -DUSE_OPENGL 
 set HFLAGS=--target-env=vulkan -x hlsl -Werror 
 set INDIR=.\
-set DXDIR=..\directx-sdk\
 set OUTDIR=..\build\shaders-spv\
 set OUTSHR=..\build\shaders\
-set VXL2=tools\
-set RNDR=render-new\
+set VRTX=vertex\
+set RNDR=raytracing\
 set EXPR=experimental\
 set HLBV=hlbvh\
 set RDXI=radix\
@@ -22,14 +21,14 @@ set CMPPROFM=-e CSMain -S compute --hlsl-iomap --target-env opengl -V -D
 
 
 mkdir %OUTDIR%
-mkdir %OUTDIR%%VXL2%
+mkdir %OUTDIR%%VRTX%
 mkdir %OUTDIR%%RNDR%
 mkdir %OUTDIR%%HLBV%
 mkdir %OUTDIR%%RDXI%
 mkdir %OUTDIR%%HLBV%next-gen-sort
 
-call glslc %CFLAGS% %CMPPROF% %INDIR%%VXL2%loader.comp        -o %OUTDIR%%VXL2%loader.comp.spv -DINVERT_TX_Y
-call glslc %CFLAGS% %CMPPROF% %INDIR%%VXL2%loader.comp        -o %OUTDIR%%VXL2%loader-int16.comp.spv -DINVERT_TX_Y -DENABLE_INT16_LOADING
+call glslc %CFLAGS% %CMPPROF% %INDIR%%VRTX%loader.comp        -o %OUTDIR%%VRTX%loader.comp.spv -DINVERT_TX_Y
+call glslc %CFLAGS% %CMPPROF% %INDIR%%VRTX%loader.comp        -o %OUTDIR%%VRTX%loader-int16.comp.spv -DINVERT_TX_Y -DENABLE_INT16_LOADING
 call glslc %CFLAGS% %FRGPROF% %INDIR%%RNDR%render.frag        -o %OUTDIR%%RNDR%render.frag.spv
 call glslc %CFLAGS% %VRTPROF% %INDIR%%RNDR%render.vert        -o %OUTDIR%%RNDR%render.vert.spv
 call glslc %CFLAGS% %CMPPROF% %INDIR%%RNDR%camera.comp        -o %OUTDIR%%RNDR%camera.comp.spv
@@ -49,6 +48,9 @@ call glslc %CFLAGS% %CMPPROF% %INDIR%%RDXI%histogram.comp     -o %OUTDIR%%RDXI%h
 call glslc %CFLAGS% %CMPPROF% %INDIR%%RDXI%permute.comp       -o %OUTDIR%%RDXI%permute.comp.spv
 call glslc %CFLAGS% %CMPPROF% %INDIR%%RDXI%prefix-scan.comp   -o %OUTDIR%%RDXI%prefix-scan.comp.spv
 
+
+
+
 set OPTFLAGS= ^
 --unify-const ^
 --flatten-decorations ^
@@ -65,9 +67,8 @@ set OPTFLAGS= ^
 --eliminate-local-single-store ^
 --eliminate-local-multi-store
 
-
-call spirv-opt %OPTFLAGS% %OUTDIR%%VXL2%loader.comp.spv         -o %OUTDIR%%VXL2%loader.comp.spv
-call spirv-opt %OPTFLAGS% %OUTDIR%%VXL2%loader-int16.comp.spv   -o %OUTDIR%%VXL2%loader-int16.comp.spv
+call spirv-opt %OPTFLAGS% %OUTDIR%%VRTX%loader.comp.spv         -o %OUTDIR%%VRTX%loader.comp.spv
+call spirv-opt %OPTFLAGS% %OUTDIR%%VRTX%loader-int16.comp.spv   -o %OUTDIR%%VRTX%loader-int16.comp.spv
 
 call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%directTraverse.comp.spv -o %OUTDIR%%RNDR%directTraverse.comp.spv
 call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%surface.comp.spv       -o %OUTDIR%%RNDR%resolver.comp.spv

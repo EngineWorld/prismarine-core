@@ -4,7 +4,7 @@
 #include "../include/structs.glsl"
 //#include "../include/uniforms.glsl"
 #include "../include/vertex.glsl"
-#include "../include/STOmath.glsl"
+#include "../include/mathlib.glsl"
 
 LOCAL_SIZE_LAYOUT;
 

@@ -4,74 +4,20 @@ namespace ppr {
 
     inline void Dispatcher::initShaders() {
         
-        initShaderComputeSPIRV("./shaders-spv/render-new/surface.comp.spv", surfProgram);
-        initShaderComputeSPIRV("./shaders-spv/render-new/testmat.comp.spv", matProgram);
-        initShaderComputeSPIRV("./shaders-spv/render-new/reclaim.comp.spv", reclaimProgram);
-        initShaderComputeSPIRV("./shaders-spv/render-new/camera.comp.spv", cameraProgram);
-        initShaderComputeSPIRV("./shaders-spv/render-new/clear.comp.spv", clearProgram);
-        initShaderComputeSPIRV("./shaders-spv/render-new/sampler.comp.spv", samplerProgram);
-        initShaderComputeSPIRV("./shaders-spv/render-new/directTraverse.comp.spv", traverseDirectProgram);
-
+        initShaderComputeSPIRV("./shaders-spv/raytracing/surface.comp.spv", surfProgram);
+        initShaderComputeSPIRV("./shaders-spv/raytracing/testmat.comp.spv", matProgram);
+        initShaderComputeSPIRV("./shaders-spv/raytracing/reclaim.comp.spv", reclaimProgram);
+        initShaderComputeSPIRV("./shaders-spv/raytracing/camera.comp.spv", cameraProgram);
+        initShaderComputeSPIRV("./shaders-spv/raytracing/clear.comp.spv", clearProgram);
+        initShaderComputeSPIRV("./shaders-spv/raytracing/sampler.comp.spv", samplerProgram);
+        initShaderComputeSPIRV("./shaders-spv/raytracing/directTraverse.comp.spv", traverseDirectProgram);
 
         {
-            GLuint vert = glCreateShader(GL_VERTEX_SHADER);
-            {
-                std::string path = "./shaders/render/render.vert";
-                std::string str = readSource(path);
-
-                const char * strc = str.c_str();
-                int32_t size = str.size();
-                glShaderSource(vert, 1, &strc, &size);
-                glCompileShader(vert);
-
-                GLint status = false;
-                glGetShaderiv(vert, GL_COMPILE_STATUS, &status);
-                if (!status) {
-                    char * log = new char[1024];
-                    GLsizei len = 0;
-
-                    glGetShaderInfoLog(vert, 1024, &len, log);
-                    std::string logStr = std::string(log, len);
-                    std::cerr << logStr << std::endl;
-                }
-            }
-
-            GLuint frag = glCreateShader(GL_FRAGMENT_SHADER);
-            {
-                std::string path = "./shaders/render/render.frag";
-                std::string str = readSource(path);
-                const char * strc = str.c_str();
-                int32_t size = str.size();
-                glShaderSource(frag, 1, &strc, &size);
-                glCompileShader(frag);
-
-                GLint status = false;
-                glGetShaderiv(frag, GL_COMPILE_STATUS, &status);
-                if (!status) {
-                    char * log = new char[1024];
-                    GLsizei len = 0;
-
-                    glGetShaderInfoLog(frag, 1024, &len, log);
-                    std::string logStr = std::string(log, len);
-                    std::cerr << logStr << std::endl;
-                }
-            }
-
             renderProgram = glCreateProgram();
-            glAttachShader(renderProgram, vert);
-            glAttachShader(renderProgram, frag);
+            glAttachShader(renderProgram, loadShaderSPIRV("./shaders-spv/raytracing/render.vert.spv", GL_VERTEX_SHADER));
+            glAttachShader(renderProgram, loadShaderSPIRV("./shaders-spv/raytracing/render.frag.spv", GL_FRAGMENT_SHADER));
             glLinkProgram(renderProgram);
-
-            GLint status = false;
-            glGetProgramiv(renderProgram, GL_LINK_STATUS, &status);
-            if (!status) {
-                char * log = new char[1024];
-                GLsizei len = 0;
-
-                glGetProgramInfoLog(renderProgram, 1024, &len, log);
-                std::string logStr = std::string(log, len);
-                std::cerr << logStr << std::endl;
-            }
+            validateProgram(renderProgram);
         }
     }
 

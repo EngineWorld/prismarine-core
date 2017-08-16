@@ -3,7 +3,8 @@
 #include "../include/constants.glsl"
 #include "../include/structs.glsl"
 #include "../include/uniforms.glsl"
-#include "../include/STOmath.glsl"
+#include "../include/mathlib.glsl"
+#include "../include/ballotlib.glsl"
 #include "./includes.glsl"
 
 layout ( local_size_x = 1024 ) in;

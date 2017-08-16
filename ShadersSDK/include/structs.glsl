@@ -1,113 +1,22 @@
 #ifndef _STRUCTS_H
 #define _STRUCTS_H
 
-#define Vc1 float
-#define Vc2 vec2
-#define Vc3 Stride3f
-#define Vc4 vec4
-#define Vc4x4 mat4
-#define iVc1 int
-#define iVc2 ivec2
-#define iVc3 Stride3i
-#define iVc4 ivec4
-
-struct Stride4f {
-    float x;
-    float y;
-    float z;
-    float w;
-};
-
-struct Stride4i {
-    int x;
-    int y;
-    int z;
-    int w;
-};
-
-struct Stride2f {
-    float x;
-    float y;
-};
-
-struct Stride3f {
-    float x;
-    float y;
-    float z;
-};
-
-struct Stride3i {
-    int x;
-    int y;
-    int z;
-};
-
-vec2 toVec2(in Stride2f a){
-    return vec2(a.x, a.y);
-}
-
-vec3 toVec3(in Stride3f a){
-    return vec3(a.x, a.y, a.z);
-}
-
-vec4 toVec4(in Stride4f a){
-    return vec4(a.x, a.y, a.z, a.w);
-}
-
-ivec3 toVec3(in Stride3i a){
-    return ivec3(a.x, a.y, a.z);
-}
-
-Stride2f toStride2(in vec2 a){
-    Stride2f o;
-    o.x = a.x;
-    o.y = a.y;
-    return o;
-}
-
-Stride3f toStride3(in vec3 a){
-    Stride3f o;
-    o.x = a.x;
-    o.y = a.y;
-    o.z = a.z;
-    return o;
-}
-
-Stride4f toStride4(in vec4 a){
-    Stride4f o;
-    o.x = a.x;
-    o.y = a.y;
-    o.z = a.z;
-    o.w = a.w;
-    return o;
-}
-
-Stride4i toStride4(in ivec4 a){
-    Stride4i o;
-    o.x = a.x;
-    o.y = a.y;
-    o.z = a.z;
-    o.w = a.w;
-    return o;
-}
+#include "../include/mathlib.glsl"
 
 struct Texel {
-    Vc4 coord;
-    iVc4 EXT;
+    vec4 coord;
+    ivec4 EXT;
 };
 
 struct bbox {
 #ifdef USE_WARP_OPTIMIZED
-    Vc1 mn[4];
-    Vc1 mx[4];
+    float mn[4];
+    float mx[4];
 #else
-    Vc4 mn;
-    Vc4 mx;
+    vec4 mn;
+    vec4 mx;
 #endif
 };
-
-
-
 
 
 // ray bitfield spec
@@ -128,14 +37,21 @@ struct RayRework {
     int hit; // index of hit chain
 };
 
+struct HitRework {
+    vec4 uvt; // UV, distance, triangle
+    vec4 albedo;
+    vec4 metallicRoughness; // Y - roughtness, Z - metallic, also available other params
+    vec4 normalHeight; // normal with height mapping, will already interpolated with geometry
+    vec4 emission;
+    vec4 texcoord;
+    vec4 tangent;
+    int bitfield; 
+    int ray; // ray index
+    int materialID;
+    int next;
+};
 
-#define BFE(a,o,n) ((a >> o) & ((1 << n)-1))
 
-int BFI(in int base, in int inserts, in int offset, in int bits){
-    int mask = bits >= 32 ? 0xFFFFFFFF : (1<<bits)-1;
-    int offsetMask = mask << offset;
-    return ((base & (~offsetMask)) | ((inserts & mask) << offset));
-}
 
 
 int RayActived(in RayRework ray){
@@ -185,78 +101,26 @@ void RayBounce(inout RayRework ray, in int bn){
 
 
 
-
-
-struct HitRework {
-    vec4 uvt; // UV, distance, triangle
-    vec4 albedo;
-    vec4 metallicRoughness; // Y - roughtness, Z - metallic, also available other params
-    vec4 normalHeight; // normal with height mapping, will already interpolated with geometry
-    vec4 emission;
-    vec4 texcoord;
-    vec4 tangent;
-    int bitfield; 
-    int ray; // ray index
-    int materialID;
-    int next;
-};
-
-
-
-
-
-
-struct Ray {
-#ifdef USE_WARP_OPTIMIZED
-    Vc1 origin[4];
-    Vc1 direct[4];
-#else
-    Vc4 origin;
-    Vc4 direct;
-#endif
-    Vc4 color;
-    Vc4 final;
-    iVc4 params;
-    iVc1 idx;
-    iVc1 bounce;
-    iVc1 texel;
-    iVc1 actived;
-    // planned additional block for hit chains
-};
-
-struct Hit {
-    Vc4 normal;
-    Vc4 tangent;
-    Vc4 texcoord;
-    Vc4 vcolor;
-    Vc4 vmods;
-    Vc1 dist;
-    iVc1 triangleID;
-    iVc1 materialID;
-    iVc1 shaded;
-};
-
 struct HlbvhNode {
     bbox box;
 #ifdef USE_WARP_OPTIMIZED
-    iVc1 pdata[4];
+    int pdata[4];
 #else
-    iVc4 pdata;
+    ivec4 pdata;
 #endif
-    //iVc4 leading;
 };
 
 struct VboDataStride {
-    Vc4 vertex;
-    Vc4 normal;
-    Vc4 texcoord;
-    Vc4 color;
-    Vc4 modifiers;
+    vec4 vertex;
+    vec4 normal;
+    vec4 texcoord;
+    vec4 color;
+    vec4 modifiers;
 };
 
 struct ColorChain {
-    Vc4 color;
-    iVc4 cdata;
+    vec4 color;
+    ivec4 cdata;
 };
 
 

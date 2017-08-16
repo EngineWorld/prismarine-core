@@ -7,8 +7,8 @@ namespace ppr {
         initShaderComputeSPIRV("./shaders-spv/hlbvh/build.comp.spv", buildProgramH);
         initShaderComputeSPIRV("./shaders-spv/hlbvh/aabbmaker.comp.spv", aabbMakerProgramH);
         initShaderComputeSPIRV("./shaders-spv/hlbvh/minmax.comp.spv", minmaxProgram2);
-        initShaderComputeSPIRV("./shaders-spv/tools/loader.comp.spv", geometryLoaderProgram2);
-        initShaderComputeSPIRV("./shaders-spv/tools/loader-int16.comp.spv", geometryLoaderProgramI16);
+        initShaderComputeSPIRV("./shaders-spv/vertex/loader.comp.spv", geometryLoaderProgram2);
+        initShaderComputeSPIRV("./shaders-spv/vertex/loader-int16.comp.spv", geometryLoaderProgramI16);
     }
 
     inline void SceneObject::init() {

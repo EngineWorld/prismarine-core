@@ -1,7 +1,7 @@
 #ifndef _VERTEX_H
 #define _VERTEX_H
 
-#include "../include/STOmath.glsl"
+#include "../include/mathlib.glsl"
 
 layout ( std430, binding = 10 ) restrict buffer GeomMaterialsSSBO {int mats[];};
 
@@ -190,5 +190,23 @@ float intersectTriangle(in vec3 orig, in vec3 dir, in int tri, inout vec2 UV, in
 
     return T;
 }
+
+
+#if defined(ENABLE_AMD_INSTRUCTION_SET) || defined(ENABLE_NVIDIA_INSTRUCTION_SET)
+#define INDEX16 uint16_t
+#define M16(m, i) (m[i])
+#else
+#define INDEX16 uint
+#define M16(m, i) (BFE(m[i/2], int(16*(i%2)), 16))
+#endif
+
+#ifdef ENABLE_INT16_LOADING
+#define INDICE_T INDEX16
+#define PICK(m, i) M16(m, i)
+#else
+#define INDICE_T uint
+#define PICK(m, i) m[i]
+#endif
+
 
 #endif

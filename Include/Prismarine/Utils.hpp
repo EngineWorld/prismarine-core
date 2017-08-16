@@ -88,10 +88,10 @@ namespace ppr {
 
 
 
-    inline void initShaderComputeSPIRV(std::string path, GLuint & prog, std::string entryName = "main") {
-        std::vector<GLchar> str = readBinary(path);
 
-        GLuint comp = glCreateShader(GL_COMPUTE_SHADER);
+    inline GLuint loadShaderSPIRV(std::string path, GLenum shaderType = GL_COMPUTE_SHADER, std::string entryName = "main") {
+        std::vector<GLchar> str = readBinary(path);
+        GLuint comp = glCreateShader(shaderType);
         {
             const GLchar * strc = str.data();
             int32_t size = str.size();
@@ -109,11 +109,13 @@ namespace ppr {
                 std::cerr << logStr << std::endl;
             }
         }
+        return comp;
+    }
 
-        prog = glCreateProgram();
-        glAttachShader(prog, comp);
-        glLinkProgram(prog);
 
+
+
+    inline void validateProgram(GLuint prog) {
         GLint status = false;
         glGetProgramiv(prog, GL_LINK_STATUS, &status);
         if (!status) {
@@ -126,42 +128,11 @@ namespace ppr {
         }
     }
 
-    inline void initShaderCompute(std::string path, GLuint & prog) {
-        std::string str = readSource(path, true);
-
-        GLuint comp = glCreateShader(GL_COMPUTE_SHADER);
-        {
-            const char * strc = str.c_str();
-            int32_t size = str.size();
-            glShaderSource(comp, 1, &strc, &size);
-            glCompileShader(comp);
-
-            GLint status = false;
-            glGetShaderiv(comp, GL_COMPILE_STATUS, &status);
-            if (!status) {
-                char * log = new char[1024];
-                GLsizei len = 0;
-
-                glGetShaderInfoLog(comp, 1024, &len, log);
-                std::string logStr = std::string(log, len);
-                std::cerr << logStr << std::endl;
-            }
-        }
-
+    inline void initShaderComputeSPIRV(std::string path, GLuint & prog, std::string entryName = "main") {
         prog = glCreateProgram();
-        glAttachShader(prog, comp);
+        glAttachShader(prog, loadShaderSPIRV(path, GL_COMPUTE_SHADER, entryName));
         glLinkProgram(prog);
-
-        GLint status = false;
-        glGetProgramiv(prog, GL_LINK_STATUS, &status);
-        if (!status) {
-            char * log = new char[1024];
-            GLsizei len = 0;
-
-            glGetProgramInfoLog(prog, 1024, &len, log);
-            std::string logStr = std::string(log, len);
-            std::cerr << logStr << std::endl;
-        }
+        validateProgram(prog);
     }
 
     template<class T>

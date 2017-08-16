@@ -10,66 +10,66 @@
 //#define GEOMETRY_BLOCK 
 
 struct MaterialUniformStruct {
-    iVc1 materialID;
-    iVc1 _reserved;
-    iVc1 time;
-    iVc1 lightcount;
-    Vc4 backgroundColor; // for skybox configure
-    iVc4 iModifiers0;
-    iVc4 iModifiers1;
-    Vc4 fModifiers0;
-    Vc4 fModifiers1;
-    Vc4x4 transformModifier;
+    int materialID;
+    int _reserved;
+    int time;
+    int lightcount;
+    vec4 backgroundColor; // for skybox configure
+    ivec4 iModifiers0;
+    ivec4 iModifiers1;
+    vec4 fModifiers0;
+    vec4 fModifiers1;
+    mat4x4 transformModifier;
 };
 
 struct SamplerUniformStruct {
-    Vc2 sceneRes;
-    iVc1 samplecount;
-    iVc1 rayCount;
-    iVc1 iteration;
-    iVc1 phase;
-    iVc1 hitCount; // planned
-    iVc1 reserved0;
-    iVc1 reserved1;
-    iVc1 currentRayLimit;
+    vec2 sceneRes;
+    int samplecount;
+    int rayCount;
+    int iteration;
+    int phase;
+    int hitCount; // planned
+    int reserved0;
+    int reserved1;
+    int currentRayLimit;
 };
 
 struct LightUniformStruct {
-    Vc4 lightVector;
-    Vc4 lightColor;
-    Vc4 lightOffset;
-    Vc4 lightAmbient;
+    vec4 lightVector;
+    vec4 lightColor;
+    vec4 lightOffset;
+    vec4 lightAmbient;
 };
 
 struct GeometryUniformStruct {
-    Vc4x4 transform;
-    Vc4x4 transformInv;
+    mat4x4 transform;
+    mat4x4 transformInv;
 
-    iVc1 materialID;
-    iVc1 triangleCount;
-    iVc1 triangleOffset;
-    iVc1 clearDepth;
+    int materialID;
+    int triangleCount;
+    int triangleOffset;
+    int clearDepth;
 };
 
 struct OctreeUniformStruct {
-    Vc4x4 project;
-    Vc4x4 unproject;
+    mat4x4 project;
+    mat4x4 unproject;
 
-    iVc1 maxDepth;
-    iVc1 currentDepth;
-    iVc1 nodeCount;
-    iVc1 unk0;
+    int maxDepth;
+    int currentDepth;
+    int nodeCount;
+    int unk0;
 };
 
 struct CameraUniformStruct {
-    Vc4x4 projInv;
-    Vc4x4 camInv;
-    Vc4x4 camInv2;
+    mat4x4 projInv;
+    mat4x4 camInv;
+    mat4x4 camInv2;
 
-    Vc1 prob;
-    iVc1 enable360;
-    iVc1 interlace;
-    iVc1 interlaceStage;
+    float prob;
+    int enable360;
+    int interlace;
+    int interlaceStage;
 };
 
 layout ( std430, binding = 12 ) readonly buffer LightUniform {

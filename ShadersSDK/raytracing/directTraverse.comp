@@ -3,9 +3,9 @@
 #include "../include/constants.glsl"
 #include "../include/structs.glsl"
 #include "../include/uniforms.glsl"
-#include "../include/rays-new.glsl"
+#include "../include/rayslib.glsl"
 #include "../include/morton.glsl"
-#include "../include/STOmath.glsl"
+#include "../include/mathlib.glsl"
 #include "../include/vertex.glsl"
 
 layout ( std430, binding = 9 ) readonly buffer NodesBlock { HlbvhNode Nodes[]; };
@@ -189,6 +189,17 @@ vec3 projectVoxels(in vec3 orig) {
 vec3 unprojectVoxels(in vec3 orig) {
     return mult4(vec4(orig, 1.0f), GEOMETRY_BLOCK geometryUniform.transformInv).xyz;
 }
+
+
+
+vec3 bboxNormal(in bbox box, in vec3 hit){
+    vec3 c = (box.mn + box.mx).xyz * 0.5f;
+    vec3 p = hit - c;
+    vec3 d = abs((box.mx - box.mn).xyz * 0.5f);
+    float bias = 1.000001f;
+    return normalize(floor(p / d * bias));
+}
+
 
 TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
     TResult lastRes;

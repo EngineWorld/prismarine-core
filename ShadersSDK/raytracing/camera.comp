@@ -3,9 +3,9 @@
 #include "../include/constants.glsl"
 #include "../include/structs.glsl"
 #include "../include/uniforms.glsl"
-#include "../include/rays-new.glsl"
+#include "../include/rayslib.glsl"
 #include "../include/random.glsl"
-#include "../include/STOmath.glsl"
+#include "../include/mathlib.glsl"
 
 LOCAL_SIZE_LAYOUT;
 
