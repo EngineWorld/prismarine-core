@@ -361,23 +361,24 @@ namespace ppr {
         return 1;
     }
 
-    inline void Dispatcher::shade(MaterialSet * mat) {
-        int32_t rsize = getRayCount();
-        if (rsize <= 0) return;
-
-        mat->bindWithContext(matProgram);
-        mat->bindWithContext(surfProgram);
-
+    inline void Dispatcher::applyMaterials(MaterialSet * mat) {
         // get surface samplers
+        mat->bindWithContext(surfProgram);
         glCopyNamedBufferSubData(arcounter, rayBlockUniform, 7 * sizeof(int32_t), offsetof(RayBlockUniform, samplerUniform) + offsetof(SamplerUniformStruct, hitCount), sizeof(int32_t));
         GLuint tcount = 0; glGetNamedBufferSubData(arcounter, 7 * sizeof(int32_t), sizeof(int32_t), &tcount);
+        if (tcount <= 0) return;
         dispatch(surfProgram, tiled(tcount, worksize));
+    }
 
+    inline void Dispatcher::shade() {
         // composite and shade rays
+        int32_t rsize = getRayCount();
+        if (rsize <= 0) return;
         materialUniformData.time = rand(); this->bind();
         glBindTextureUnit(5, skybox);
         dispatch(matProgram, tiled(rsize, worksize));
     }
+
 
     inline int32_t Dispatcher::getRayCount() {
         return raycountCache >= 32 ? raycountCache : 0;

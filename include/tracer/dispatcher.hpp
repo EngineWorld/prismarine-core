@@ -154,7 +154,8 @@ namespace ppr {
         void reclaim();
         void render();
         int intersection(SceneObject * obj, const int clearDepth = 0);
-        void shade(MaterialSet * mat);
+        void shade();
+        void applyMaterials(MaterialSet * mat);
         int32_t getRayCount();
     };
 }

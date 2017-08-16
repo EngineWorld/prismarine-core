@@ -11,6 +11,17 @@
 #define phaseMie(a) (.0348151 / pow(1.5625 - 1.5*a,1.5))
 #define absorb(a) (1. - pow(atmosphereColor, vec3(1./(a))))
 
+
+
+//layout ( binding = 5 ) uniform samplerCube skybox[1];
+layout ( binding = 5 ) uniform sampler2D skybox[1];
+
+vec4 readEnv(in vec3 r) {
+    vec3 nr = normalize(r);
+    return texture(skybox[0], vec2(fma(vec2(atan(nr.z, nr.x), asin(nr.y) * 2.0f) / PI, vec2(0.5), vec2(0.5))));
+}
+
+
 float js_getThickness(in vec3 rd){
      float sr = earthRadius+atmosphereHeight;
      vec3 ro = -up*earthRadius;

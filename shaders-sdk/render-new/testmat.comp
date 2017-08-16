@@ -11,15 +11,13 @@
 #include "../include/rays-new.glsl"
 #include "../include/random.glsl"
 #include "../include/STOmath.glsl"
-#include "../include/materialFunc-new.glsl"
+#include "../include/shadinglib.glsl"
 #include "../public/environment.glsl"
-
 
 vec4 composite(in vec4 src, in vec4 dst){
     float oa = src.a + dst.a * (1.0f - src.a);
     return clamp(vec4((src.rgb * src.a + dst.rgb * dst.a * (1.0f - src.a)) / max(oa, 0.0001f), oa), vec4(0.0f), vec4(1.0f));
 }
-
 
 LOCAL_SIZE_LAYOUT;
 

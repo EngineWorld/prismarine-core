@@ -570,9 +570,9 @@ namespace PaperExample {
         rays->camera(cam->eye, cam->view);
         for (int32_t j = 0;j < depth;j++) {
             if (rays->getRayCount() <= 0) break;
-            rays->resetHits();
             rays->intersection(intersector);
-            rays->shade(materialManager);
+            rays->applyMaterials(materialManager); // low level function for getting surface materials (may have few materials)
+            rays->shade(); // low level function for change rays
             rays->reclaim();
         }
         rays->sample();
