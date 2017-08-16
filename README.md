@@ -41,7 +41,7 @@
 </details>
 
 <details>
-<summary>Clockwork Update (on development)</summary>
+<summary>Clockwork Update</summary>
 
 ### "Clockwork" Update (yet another pipeline system) planning (??.??.2017)
 
