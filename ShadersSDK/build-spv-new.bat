@@ -3,8 +3,8 @@ cd %~dp0
 set CFLAGS=--target-env=opengl -x glsl -Werror -DUSE_OPENGL 
 set HFLAGS=--target-env=vulkan -x hlsl -Werror 
 set INDIR=.\
-set OUTDIR=..\build\shaders-spv\
-set OUTSHR=..\build\shaders\
+set OUTDIR=..\Build\shaders-spv\
+set OUTSHR=..\Build\shaders\
 set VRTX=vertex\
 set RNDR=raytracing\
 set EXPR=experimental\
