@@ -25,7 +25,7 @@
 #define SUNLIGHT_CAUSTICS false
 #define REFRACTION_SKIP_SUN
 #define DIRECT_LIGHT
-#define MOTION_BLUR
+//#define MOTION_BLUR
 
 
 // enable required OpenGL extensions

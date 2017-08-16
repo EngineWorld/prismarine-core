@@ -99,6 +99,12 @@ float intersectSphere(in vec3 origin, in vec3 ray, in vec3 sphereCenter, in floa
 }
 
 
+float samplingWeight(in vec3 ldir, in vec3 ndir, in float radius, in float dist){
+    float cos_max = sqrt(1.f - (radius*radius)/(dist*dist));
+    float lcos = dot(ldir, ndir);
+    return ((1.0f - cos_max) * PI) * lcos;
+}
+
 
 RayRework directLightWhitted(in int i, in RayRework directRay, in vec3 color, in vec3 normal){
     RayActived(directRay, RayType(directRay) == 2 ? 0 : 1);
@@ -107,12 +113,10 @@ RayRework directLightWhitted(in int i, in RayRework directRay, in vec3 color, in
     RayTargetLight(directRay, i);
     RayBounce(directRay, min(1, RayBounce(directRay)));
     
-    vec3 ltr = lightCenter(i).xyz-directRay.origin.xyz;
     vec3 ldirect = normalize(sLight(i) - directRay.origin.xyz);
-    float cos_a_max = sqrt(1.f - clamp(lightUniform.lightNode[i].lightColor.w * lightUniform.lightNode[i].lightColor.w / sqlen(ltr), 0.0f, 1.0f));
-    float diffuseWeight = clamp(dot(ldirect, normal), 0.0f, 1.0f);
+    float weight = samplingWeight(ldirect, normal, lightUniform.lightNode[i].lightColor.w, length(lightCenter(i).xyz-directRay.origin.xyz));
     directRay.direct.xyz = ldirect;
-    directRay.color.xyz *= color * diffuseWeight * ((1.0f - cos_a_max) * 2.0f);
+    directRay.color.xyz *= color * weight;
     return directRay;
 }
 
@@ -123,12 +127,10 @@ RayRework directLight(in int i, in RayRework directRay, in vec3 color, in vec3 n
     RayTargetLight(directRay, i);
     RayBounce(directRay, min(1, RayBounce(directRay)));
     
-    vec3 ltr = lightCenter(i).xyz-directRay.origin.xyz;
     vec3 ldirect = normalize(sLight(i) - directRay.origin.xyz);
-    float cos_a_max = sqrt(1.f - clamp(lightUniform.lightNode[i].lightColor.w * lightUniform.lightNode[i].lightColor.w / sqlen(ltr), 0.0f, 1.0f));
-    float diffuseWeight = clamp(dot(ldirect, normal), 0.0f, 1.0f);
+    float weight = samplingWeight(ldirect, normal, lightUniform.lightNode[i].lightColor.w, length(lightCenter(i).xyz-directRay.origin.xyz));
     directRay.direct.xyz = ldirect;
-    directRay.color.xyz *= color * diffuseWeight * ((1.0f - cos_a_max) * 2.0f);
+    directRay.color.xyz *= color * weight;//diffuseWeight * ((1.0f - cos_a_max) * 2.0f);
     return directRay;
 }
 
