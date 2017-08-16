@@ -135,7 +135,6 @@ namespace ppr {
         void bindUniforms();
         void bind();
         void clearRays();
-        void resetHits();
         void sample();
         void camera(const glm::mat4 &persp, const glm::mat4 &frontSide);
         void camera(const glm::vec3 &eye, const glm::vec3 &view, const glm::mat4 &persp);

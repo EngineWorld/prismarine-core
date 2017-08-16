@@ -237,8 +237,6 @@ namespace ppr {
         }
     }
 
-    inline void Dispatcher::resetHits() {} // no more needed
-
     inline void Dispatcher::sample() {
         glBindImageTexture(0, presampled, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
         glBindImageTexture(1, sampleflags, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
