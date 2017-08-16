@@ -75,36 +75,11 @@ namespace ppr {
         }
     }
 
-    inline void Dispatcher::init() {
-        initShaders();
-        lightUniformData = new LightUniformStruct[6];
-        //sorter = new RadixSort();
 
-        for (int i = 0; i < 6;i++) {
-            lightColor[i] = glm::vec4((glm::vec3(255.f, 250.f, 244.f) / 255.f) * 500.f, 20.0f);
-            lightAmbient[i] = glm::vec4(0.0f);
-            lightVector[i] = glm::vec4(0.2f, 1.0f, 0.4f, 400.0f);
-            lightOffset[i] = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
-        }
 
-        bound.mn.x = 100000.f;
-        bound.mn.y = 100000.f;
-        bound.mn.z = 100000.f;
-        bound.mn.w = 100000.f;
-        bound.mx.x = -100000.f;
-        bound.mx.y = -100000.f;
-        bound.mx.z = -100000.f;
-        bound.mx.w = -100000.f;
 
-        resultCounters = allocateBuffer<uint32_t>(2);
-        arcounter = allocateBuffer<int32_t>(8);
-        arcounterTemp = allocateBuffer<int32_t>(1);
-        rayBlockUniform = allocateBuffer<RayBlockUniform>(1);
-        lightUniform = allocateBuffer<LightUniformStruct>(6);
-
-        glNamedBufferSubData(arcounterTemp, 0, strided<int32_t>(1), zero);
-
-        Vc2 arr[4] = { { -1.0f, -1.0f }, { 1.0f, -1.0f },{ -1.0f, 1.0f },{ 1.0f, 1.0f } };
+    inline void Dispatcher::initVAO() {
+        Vc2 arr[4] = { { -1.0f, -1.0f },{ 1.0f, -1.0f },{ -1.0f, 1.0f },{ 1.0f, 1.0f } };
         glCreateBuffers(1, &posBuf);
         glNamedBufferData(posBuf, strided<Vc2>(4), arr, GL_STATIC_DRAW);
 
@@ -118,10 +93,41 @@ namespace ppr {
         glEnableVertexArrayAttrib(vao, 0);
         glVertexArrayAttribFormat(vao, 0, 2, GL_FLOAT, GL_FALSE, 0);
         glVertexArrayVertexBuffer(vao, 0, posBuf, 0, strided<Vc2>(1));
+    }
+
+
+    inline void Dispatcher::init() {
+        initShaders();
+        initVAO();
+
+        lightUniformData = new LightUniformStruct[6];
+        for (int i = 0; i < 6;i++) {
+            lightColor[i] = glm::vec4((glm::vec3(255.f, 250.f, 244.f) / 255.f) * 500.f, 20.0f);
+            lightAmbient[i] = glm::vec4(0.0f);
+            lightVector[i] = glm::vec4(0.2f, 1.0f, 0.4f, 400.0f);
+            lightOffset[i] = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+        }
+
+        bbox bound;
+        bound.mn.x = 100000.f;
+        bound.mn.y = 100000.f;
+        bound.mn.z = 100000.f;
+        bound.mn.w = 100000.f;
+        bound.mx.x = -100000.f;
+        bound.mx.y = -100000.f;
+        bound.mx.z = -100000.f;
+        bound.mx.w = -100000.f;
+        framenum = 0;
+
+        resultCounters = allocateBuffer<uint32_t>(2);
+        arcounter = allocateBuffer<int32_t>(8);
+        arcounterTemp = allocateBuffer<int32_t>(1);
+        rayBlockUniform = allocateBuffer<RayBlockUniform>(1);
+        lightUniform = allocateBuffer<LightUniformStruct>(6);
+        glNamedBufferSubData(arcounterTemp, 0, strided<int32_t>(1), zero);
 
         materialUniformData.lightcount = 1;
         cameraUniformData.enable360 = 0;
-        framenum = 0;
         syncUniforms();
     }
 
@@ -152,12 +158,12 @@ namespace ppr {
         glTextureParameteri(presampled, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTextureParameteri(presampled, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
+        samplerUniformData.samplecount = displayWidth * displayHeight;
         clearSampler();
     }
 
     inline void Dispatcher::resizeBuffers(const uint32_t & w, const uint32_t & h) {
-        width = w;
-        height = h;
+        width = w, height = h;
 
         if (colorchains != -1) glDeleteBuffers(1, &colorchains);
         if (rays        != -1) glDeleteBuffers(1, &rays);
@@ -215,13 +221,10 @@ namespace ppr {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, hits);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, texels);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, colorchains);
-
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, activel);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, availables);
-
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, activenl);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, freedoms);
-        
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, arcounter);
 
         syncUniforms();
@@ -229,14 +232,6 @@ namespace ppr {
     }
 
     inline void Dispatcher::clearRays() {
-        bound.mn.x = 100000.f;
-        bound.mn.y = 100000.f;
-        bound.mn.z = 100000.f;
-        bound.mn.w = 100000.f;
-        bound.mx.x = -100000.f;
-        bound.mx.y = -100000.f;
-        bound.mx.z = -100000.f;
-        bound.mx.w = -100000.f;
         for (int i = 0; i < 8;i++) {
             glCopyNamedBufferSubData(arcounterTemp, arcounter, 0, sizeof(uint32_t) * i, sizeof(uint32_t));
         }
@@ -286,7 +281,6 @@ namespace ppr {
     }
 
     inline void Dispatcher::clearSampler() {
-        samplerUniformData.samplecount = displayWidth * displayHeight;
         this->bind();
 
         glBindImageTexture(0, sampleflags, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
@@ -349,9 +343,6 @@ namespace ppr {
         int32_t rsize = getRayCount();
         if (rsize <= 0) return 0;
 
-        bound.mn = glm::min(obj->bound.mn, bound.mn);
-        bound.mx = glm::max(obj->bound.mx, bound.mx);
-
         this->bind();
         obj->bindBVH();
         obj->bindLeafs();
@@ -362,7 +353,6 @@ namespace ppr {
     }
 
     inline void Dispatcher::applyMaterials(MaterialSet * mat) {
-        // get surface samplers
         mat->bindWithContext(surfProgram);
         glCopyNamedBufferSubData(arcounter, rayBlockUniform, 7 * sizeof(int32_t), offsetof(RayBlockUniform, samplerUniform) + offsetof(SamplerUniformStruct, hitCount), sizeof(int32_t));
         GLuint tcount = 0; glGetNamedBufferSubData(arcounter, 7 * sizeof(int32_t), sizeof(int32_t), &tcount);
@@ -371,7 +361,6 @@ namespace ppr {
     }
 
     inline void Dispatcher::shade() {
-        // composite and shade rays
         int32_t rsize = getRayCount();
         if (rsize <= 0) return;
         materialUniformData.time = rand(); this->bind();

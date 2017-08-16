@@ -53,29 +53,20 @@ namespace ppr {
         GLuint sampleflags = -1;
         GLuint vao = -1;
 
-        GLuint pivotTexture = -1;
-
         GLuint posBuf = -1;
         GLuint idcBuf = -1;
-        //GLuint posattr = -1;
 
         void initShaders();
+        void initVAO();
         void init();
 
         MaterialUniformStruct materialUniformData;
         SamplerUniformStruct samplerUniformData;
         CameraUniformStruct cameraUniformData;
 
-        bbox bound;
-
-
-
-
         GLuint resultCounters = -1;
         GLuint resultFounds = -1;
         GLuint givenRays = -1;
-        
-
 
     public:
 
@@ -111,7 +102,6 @@ namespace ppr {
 
             glDeleteVertexArrays(1, &vao);
 
-            glDeleteTextures(1, &pivotTexture);
             glDeleteBuffers(1, &posBuf);
             glDeleteBuffers(1, &idcBuf);
         }
