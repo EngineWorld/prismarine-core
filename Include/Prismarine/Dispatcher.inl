@@ -102,6 +102,7 @@ namespace ppr {
 
         lightUniformData = new LightUniformStruct[6];
         for (int i = 0; i < 6;i++) {
+            //lightColor[i] = glm::vec4((glm::vec3(255.f, 250.f, 244.f) / 255.f) * 100.f, 40.0f);
             lightColor[i] = glm::vec4((glm::vec3(255.f, 250.f, 244.f) / 255.f) * 100.f, 40.0f);
             lightAmbient[i] = glm::vec4(0.0f);
             lightVector[i] = glm::vec4(0.2f, 1.0f, 0.4f, 400.0f);
