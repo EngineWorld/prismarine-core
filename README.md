@@ -30,6 +30,8 @@
 - [x] (Alpha) Direct traverse variant without buffering
 - [x] (Alpha) Basic surface and environment shaders 
 - [x] (Alpha) Support of 64-bit morton code check-sums
+- [x] (Alpha) Rework of Hit/Ray structures (division to different types), create hit chains
+- [x] (Alpha) Add bitfields for Ray and Hit structures (instead of using own swizzles)
 - [ ] (WIP) Class refactoring
 - [ ] (WIP) Structural refactoring
 - [ ] (WIP) Shaders refactoring
@@ -43,8 +45,6 @@
 
 ### "Clockwork" Update (yet another pipeline system) on development (??.??.2017)
 
-- [x] (Alpha) Rework of Hit/Ray structures (division to different types), create hit chains
-- [x] (Alpha) Add bitfields for Ray and Hit structures (instead of using own swizzles)
 - [ ] Multi-layered traverse support
 - [ ] Consideration of trBVH support
 </details>
