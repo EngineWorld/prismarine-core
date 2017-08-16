@@ -19,6 +19,17 @@ vec4 composite(in vec4 src, in vec4 dst){
     return clamp(vec4((src.rgb * src.a + dst.rgb * dst.a * (1.0f - src.a)) / max(oa, 0.0001f), oa), vec4(0.0f), vec4(1.0f));
 }
 
+
+float molif_r = 1.f;
+float mollify(in vec3 ldir, in vec3 indir, in vec3 outdir, in float dist){
+    float cos_max = 1.f / sqrt(1.f + pow(molif_r/dist, 2.f));
+    float solid_angle = TWO_PI * (1.f - cos_max);
+    float lcos = dot(ldir, outdir);
+    return lcos >= cos_max ? 1.f / (solid_angle * lcos) : 0.f;
+}
+
+
+
 LOCAL_SIZE_LAYOUT;
 
 void main() {
