@@ -44,28 +44,21 @@ initAtomicIncFunction(arcounter.Ft, atomicIncFt, int);
 initAtomicIncFunction(arcounter.Gt, atomicIncGt, int);
 initAtomicIncFunction(arcounter.Ht, atomicIncHt, int);
 
-void _collect(inout RayRework ray) {
-    /*
+void _collect(inout RayRework ray){
     vec4 color = max(ray.final, vec4(0.f));
-    int idx = atomicIncCt(true);
+    int idx = atomicIncCt(true); // allocate new index
+    bool isFirst = atomicCompSwap(texelBuf.nodes[ray.texel].EXT.y, -1, idx) == -1; // link first index
+
+    // create new chain
+    ColorChain cchain = chBuf.chains[idx];
+    cchain.cdata.x = -1;
+    cchain.color = vec4(color.xyz, 1.0f);
+    chBuf.chains[idx] = cchain;
+    ray.final.xyzw = vec4(0.0f);
+
+    // link with previous (need do after)
     int prev = atomicExchange(texelBuf.nodes[ray.texel].EXT.z, idx);
-    bool isFirst = atomicCompSwap(texelBuf.nodes[ray.texel].EXT.y, -1, idx) == -1;
-    if (prev != -1) atomicExchange(chBuf.chains[prev].cdata.x, idx); // linked 
-    chBuf.chains[idx].color = vec4(color.xyz, 1.0f);
-    atomicExchange(chBuf.chains[idx].cdata.x, -1);
-    ray.final.xyzw = vec4(0.0f);
-    */
-    
-    vec4 color = max(ray.final, vec4(0.f));
-    float amplitude = mlength(color.xyz);
-    int idx = atomicIncCt(true);
-    int prev = atomicExchange(texelBuf.nodes[ray.texel].EXT.y, idx);
-    ColorChain ch = chBuf.chains[idx];
-    ch.color = vec4(color.xyz, 1.0f);
-    ch.cdata = ivec4(prev, 0, 0, 0);
-    chBuf.chains[idx] = ch;
-    ray.final.xyzw = vec4(0.0f);
-    
+    if (prev != -1) atomicCompSwap(chBuf.chains[prev].cdata.x, -1, idx); // linked 
 }
 
 int addRayToList(in RayRework ray){
@@ -178,14 +171,14 @@ int createRayIdx(inout RayRework original, in int idx, in int rayIndex) {
         RayBounce(original) <= 0 || 
         mlength(original.color.xyz) < 0.0001f);
 
-    if (mlength(original.final.xyz) >= 0.0001f) {
-        _collect(original);
-    }
-
     if (invalidRay) {
         rayIndex = -1;
     } else {
         atomicMax(arcounter.Rt, rayIndex+1);
+
+        if (mlength(original.final.xyz) >= 0.0001f || RayActived(original) == 1) {
+            _collect(original);
+        }
     }
 
     return createRayStrict(original, idx, rayIndex);

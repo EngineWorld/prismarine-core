@@ -28,10 +28,7 @@ void main()
         Texel txfi = texelBuf.nodes[idx];
         txfi.coord.x = coord.x;
         txfi.coord.y = coord.y;
-        txfi.EXT = ivec4(0);
-        txfi.EXT.x = -1; //Object-Selection
-        txfi.EXT.y = -1; // no chains
-        txfi.EXT.z = -1;
+        txfi.EXT = ivec4(-1);
         texelBuf.nodes[idx] = txfi;
 
         if (enable360 == 1) {
