@@ -32,6 +32,7 @@
 - [x] (Alpha) Support of 64-bit morton code check-sums
 - [x] (Alpha) Rework of Hit/Ray structures (division to different types), create hit chains
 - [x] (Alpha) Add bitfields for Ray and Hit structures (instead of using own swizzles)
+- [x] (Alpha) Divide Material and Texture sets
 - [ ] (WIP) Class refactoring
 - [ ] (WIP) Structural refactoring
 - [ ] (WIP) Shaders refactoring
