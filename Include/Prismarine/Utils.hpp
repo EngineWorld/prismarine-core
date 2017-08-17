@@ -2,20 +2,15 @@
 
 #define RAY_TRACING_ENGINE
 
-#include <stdio.h>
+#include <vector>
 #include <iostream>
-#include <fstream>
-#include <cassert>
-#include <ctime>
 #include <chrono>
 #include <array>
 #include <random>
-#include <memory>
-#include <sstream>
 #include <map>
-#include <algorithm>
-#include <numeric>
-#include <list>
+
+//#include <gl/all.hpp>
+#include <GL/glew.h>
 
 #include "glm/glm.hpp"
 #include "glm/gtc/type_ptr.hpp"
@@ -24,8 +19,6 @@
 #include "glm/gtx/rotate_vector.hpp"
 #include "glm/gtc/quaternion.hpp"
 #include "glm/gtx/transform.hpp"
-
-#include "GL/glew.h"
 
 #ifdef USE_FREEIMAGE
 #include "external/include/FreeImage.h"
