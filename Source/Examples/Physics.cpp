@@ -859,8 +859,7 @@ int main(const int argc, const char ** argv)
 
     glfwMakeContextCurrent(window);
     glfwSwapInterval(0);
-    glbinding::Binding::initialize();
-    //if (!gladLoadGL()) {glfwTerminate(); exit(EXIT_FAILURE);}
+    if (glewInit() != GLEW_OK) glfwTerminate();
 
     app = new PaperExample::PathTracerApplication(argc, argv, window);
     app->resizeBuffers(baseWidth * superSampling, baseHeight * superSampling);

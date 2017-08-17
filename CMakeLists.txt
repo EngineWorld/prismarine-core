@@ -53,8 +53,8 @@ find_package(OpenGL REQUIRED)
 set (LIBS 
     ${OPENGL_LIBRARIES}
     glfw3 
-    FreeImage 
-    glbinding
+    glew32 
+    FreeImage
 )
 
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -92,8 +92,8 @@ endforeach()
 set (LIBS 
     ${OPENGL_LIBRARIES}
     glfw3 
+    glew 
     FreeImage 
-    glbinding
     LinearMath_RelWithDebugInfo
     Bullet3Common_RelWithDebugInfo
     Bullet3Dynamics_RelWithDebugInfo

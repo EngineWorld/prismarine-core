@@ -25,15 +25,14 @@
 #include "glm/gtc/quaternion.hpp"
 #include "glm/gtx/transform.hpp"
 
-#include "glbinding/Binding.h"
-#include "glbinding/gl46ext/gl.h"
+#include "GL/glew.h"
 
 #ifdef USE_FREEIMAGE
 #include "external/include/FreeImage.h"
 #endif
 
 namespace ppr {
-    using namespace gl;
+    //using namespace gl;
     
     class BaseClass {};
     class Dispatcher;
