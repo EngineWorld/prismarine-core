@@ -92,7 +92,7 @@ endforeach()
 set (LIBS 
     ${OPENGL_LIBRARIES}
     glfw3 
-    glew 
+    glew32 
     FreeImage 
     LinearMath_RelWithDebugInfo
     Bullet3Common_RelWithDebugInfo
