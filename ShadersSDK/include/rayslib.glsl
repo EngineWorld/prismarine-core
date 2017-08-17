@@ -47,7 +47,7 @@ initAtomicIncFunction(arcounter.Ht, atomicIncHt, int);
 void _collect(inout RayRework ray){
     vec4 color = max(ray.final, vec4(0.f));
     int idx = atomicIncCt(true); // allocate new index
-    bool isFirst = atomicCompSwap(texelBuf.nodes[ray.texel].EXT.y, -1, idx) == -1; // link first index
+    atomicCompSwap(texelBuf.nodes[ray.texel].EXT.y, -1, idx); // link first index
 
     // create new chain
     ColorChain cchain = chBuf.chains[idx];
@@ -58,7 +58,7 @@ void _collect(inout RayRework ray){
 
     // link with previous (need do after)
     int prev = atomicExchange(texelBuf.nodes[ray.texel].EXT.z, idx);
-    if (prev != -1) atomicCompSwap(chBuf.chains[prev].cdata.x, -1, idx); // linked 
+    if (prev != -1) atomicExchange(chBuf.chains[prev].cdata.x, idx);
 }
 
 int addRayToList(in RayRework ray){
