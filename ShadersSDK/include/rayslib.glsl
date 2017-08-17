@@ -176,7 +176,7 @@ int createRayIdx(inout RayRework original, in int idx, in int rayIndex) {
     } else {
         atomicMax(arcounter.Rt, rayIndex+1);
 
-        if (mlength(original.final.xyz) >= 0.0001f || RayActived(original) == 1) {
+        if (mlength(original.final.xyz) >= 0.0001f) {
             _collect(original);
         }
     }
