@@ -9,8 +9,8 @@
 #include <random>
 #include <map>
 
-//#include <gl/all.hpp>
-#include <GL/glew.h>
+#include <gl/all.hpp>
+//#include <GL/glew.h>
 
 #include "glm/glm.hpp"
 #include "glm/gtc/type_ptr.hpp"
