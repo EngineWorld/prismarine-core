@@ -310,13 +310,16 @@ namespace PaperExample {
         loader.LoadASCIIFromFile(&gltfModel, &err, directory + "/" + model_input);
 
         // load textures (TODO - native samplers support in ray tracers)
+        ppr::TextureSet * txset = new ppr::TextureSet();
+        materialManager->setTextureSet(txset);
         for (int i = 0; i < gltfModel.textures.size(); i++) {
             tinygltf::Texture& gltfTexture = gltfModel.textures[i];
             std::string uri = directory + "/" + gltfModel.images[gltfTexture.source].uri;
-            uint32_t rtTexture = materialManager->loadTexture(uri);
+            uint32_t rtTexture = txset->loadTexture(uri);
             // todo with rtTexture processing
             rtTextures.push_back(rtTexture);
         }
+        
 
         // load materials (include PBR)
         materialManager->clearSubmats();
