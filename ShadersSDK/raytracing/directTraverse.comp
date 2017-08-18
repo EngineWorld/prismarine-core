@@ -235,9 +235,9 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
     // init state
     int idx = 0;
     bool validBox = valid && lessF(d, INFINITY) && lessF(d * dirlenInv, INFINITY) && greaterEqualF(d, 0.0f);
+    HlbvhNode node = Nodes[idx];
     for (int i=0;i<8192;i++) {
         if (allInvocations(!validBox)) break;
-        HlbvhNode node = Nodes[idx];
 
         // choice near box
         bool skip = false;
@@ -273,6 +273,7 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
                         deferredStack[L][deferredPtr++] = leftright.y;
                     }
                     idx = leftright.x;
+                    node = Nodes[idx]; // for optimized read-write operations
                 }
             }
 
@@ -296,7 +297,9 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
         // go to parent 
         if (!skip) {
             int ptr = --deferredPtr;
-            bool valid = ptr >= 0; idx = valid ? atomicExchange(deferredStack[L][ptr], -1) : -1;
+            bool valid = ptr >= 0; 
+            idx = valid ? atomicExchange(deferredStack[L][ptr], -1) : -1;
+            node = Nodes[idx]; // for optimized read-write operations
             validBox = validBox && valid && idx >= 0;
         };
     }
