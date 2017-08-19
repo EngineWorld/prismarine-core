@@ -621,7 +621,7 @@ int main(const int argc, const char ** argv)
     //int32_t baseWidth = 640;
     //int32_t baseHeight = 360;
 
-    // GTX 1070 should work fine without interlacing
+    // GTX 1070 should work fine without interlacing, VEGA 56 should work great
     //int32_t baseWidth = 400;
     //int32_t baseHeight = 300;
 
@@ -629,7 +629,7 @@ int main(const int argc, const char ** argv)
     //int32_t baseWidth = 960;
     //int32_t baseHeight = 540;
 
-    // VEGA 56 test with or without interlacing (or GTX 1070 with interlacing), with interlacing should work fine
+    // VEGA 56 test with or without interlacing (or GTX 1070 with interlacing), from VEGA 56 with interlacing should work fine
     int32_t baseWidth = 800;
     int32_t baseHeight = 450;
 
