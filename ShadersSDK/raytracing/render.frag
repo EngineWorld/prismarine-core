@@ -54,34 +54,39 @@ const ivec2 offsets[NEIGHBOURS] = {
 
 vec4 filtered(in vec2 tx){
     ivec2 center_pix = ivec2(tx * textureSize(samples, 0));
-    vec4 center_pix_cache = checkerFetch(samples, center_pix, 0);
+    vec4 color = checkerFetch(samples, center_pix, 0);
 
-    vec4 metric_reference[AXES];
-    for (int axis = 0; axis < AXES; axis++) {
-        vec4 before_pix = checkerFetch(samples, center_pix + offsets[axis], 0);
-        vec4 after_pix  = checkerFetch(samples, center_pix + offsets[SYMMETRY(axis)], 0);
-        metric_reference[axis] = GEN_METRIC (before_pix, center_pix_cache, after_pix);
-    }
+    if (RAY_BLOCK cameraUniform.interlace == 0) {
+        vec4 center_pix_cache = checkerFetch(samples, center_pix, 0);
 
-    vec4 sum = center_pix_cache;
-    vec4 cur = center_pix_cache;
-    ivec4 count = ivec4(1);
-
-    for (int direction = 0; direction < NEIGHBOURS; direction++) {
-        vec4 pix   = checkerFetch(samples, center_pix + offsets[direction], 0);
-        vec4 value = (pix + cur) * (0.5f);
-        ivec4 mask = {1, 1, 1, 0};
+        vec4 metric_reference[AXES];
         for (int axis = 0; axis < AXES; axis++) {
             vec4 before_pix = checkerFetch(samples, center_pix + offsets[axis], 0);
             vec4 after_pix  = checkerFetch(samples, center_pix + offsets[SYMMETRY(axis)], 0);
-            vec4 metric_new = GEN_METRIC (before_pix, value, after_pix);
-            mask = ivec4(BAIL_CONDITION(metric_new, metric_reference[axis])) & mask;
+            metric_reference[axis] = GEN_METRIC (before_pix, center_pix_cache, after_pix);
         }
-        sum   += mix(vec4(0.0f), value , bvec4(mask));
-        count += mix(ivec4(0), ivec4(1), bvec4(mask));
-    }
 
-    return (sum/vec4(count));
+        vec4 sum = center_pix_cache;
+        vec4 cur = center_pix_cache;
+        ivec4 count = ivec4(1);
+
+        for (int direction = 0; direction < NEIGHBOURS; direction++) {
+            vec4 pix   = checkerFetch(samples, center_pix + offsets[direction], 0);
+            vec4 value = (pix + cur) * (0.5f);
+            ivec4 mask = {1, 1, 1, 0};
+            for (int axis = 0; axis < AXES; axis++) {
+                vec4 before_pix = checkerFetch(samples, center_pix + offsets[axis], 0);
+                vec4 after_pix  = checkerFetch(samples, center_pix + offsets[SYMMETRY(axis)], 0);
+                vec4 metric_new = GEN_METRIC (before_pix, value, after_pix);
+                mask = ivec4(BAIL_CONDITION(metric_new, metric_reference[axis])) & mask;
+            }
+            sum   += mix(vec4(0.0f), value , bvec4(mask));
+            count += mix(ivec4(0), ivec4(1), bvec4(mask));
+        }
+        color = (sum/vec4(count));
+    }
+    
+    return color;
 }
 
 void main() {

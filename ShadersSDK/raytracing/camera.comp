@@ -91,10 +91,11 @@ void main()
         RayDL(ray, 0);
         RayBounce(ray, 4);
 
-        if (RAY_BLOCK cameraUniform.interlace == 1) {
+        bool interlaced = RAY_BLOCK cameraUniform.interlace == 1;
+        if (interlaced) {
             if ((abs(xy.x + xy.y) % 2) == RAY_BLOCK cameraUniform.interlaceStage) RayActived(ray, 0);
         }
         
-        createRayIdx(ray, idx, RAY_BLOCK cameraUniform.interlace == 1 ? (idx / 2) : idx);
+        createRayIdx(ray, idx, interlaced ? (idx / 2) : idx);
     }
 }

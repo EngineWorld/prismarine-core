@@ -97,12 +97,12 @@ void storeRay(in int rayIndex, inout RayRework ray) {
 }
 
 int createRayStrict(inout RayRework original, in int idx, in int rayIndex) {
-    bool invalidRay = true && // debug
+    bool invalidRay = 
         (rayIndex == -1 || 
-        rayIndex == LONGEST || 
-        rayIndex >= RAY_BLOCK samplerUniform.currentRayLimit || 
+         rayIndex == LONGEST || 
+         rayIndex >= RAY_BLOCK samplerUniform.currentRayLimit || 
 
-        RayActived(original) < 1 || 
+        RayActived(original) == 0 || 
         RayBounce(original) <= 0 || 
         mlength(original.color.xyz) < 0.0001f);
 
@@ -127,7 +127,7 @@ int createRayStrict(inout RayRework original, in int rayIndex) {
 
 int createRay(inout RayRework original, in int idx) {
     bool invalidRay = 
-        RayActived(original) < 1 || 
+        RayActived(original) == 0 || 
         RayBounce(original) <= 0 || 
         mlength(original.color.xyz) < 0.0001f;
 
@@ -166,10 +166,10 @@ int createRay(inout RayRework original, in int idx) {
 }
 
 int createRayIdx(inout RayRework original, in int idx, in int rayIndex) {
-    bool invalidRay = true && 
-        (RayActived(original) < 1 || 
-        RayBounce(original) <= 0 || 
-        mlength(original.color.xyz) < 0.0001f);
+    bool invalidRay = 
+        (RayActived(original) == 0 || 
+         RayBounce(original) <= 0 || 
+         mlength(original.color.xyz) < 0.0001f);
 
     if (invalidRay) {
         rayIndex = -1;

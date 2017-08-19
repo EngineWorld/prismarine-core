@@ -617,8 +617,21 @@ int main(const int argc, const char ** argv)
     const double measureSeconds = 2.0;
     const unsigned superSampling = 2;
 
+    // VEGA 56 should work fine without interlacing
     int32_t baseWidth = 640;
     int32_t baseHeight = 360;
+
+    // GTX 1070 should work fine without interlacing
+    //int32_t baseWidth = 400;
+    //int32_t baseHeight = 300;
+
+    // VEGA 64 (with interlacing) should work fine
+    //int32_t baseWidth = 960;
+    //int32_t baseHeight = 540;
+
+    // VEGA 56 test with or without interlacing (or GTX 1070 with interlacing), with interlacing should work fine
+    //int32_t baseWidth = 800;
+    //int32_t baseHeight = 450;
 
     GLFWwindow* window = glfwCreateWindow(baseWidth, baseHeight, "Simple example", NULL, NULL);
     if (!window) { glfwTerminate(); exit(EXIT_FAILURE); }
