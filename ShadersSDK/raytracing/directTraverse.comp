@@ -42,12 +42,18 @@ void reorderTriangles() {
 
     for (int iround = 1; iround < sharedVarsData.bakedStackCount; iround++) {
         for (int index = 0; index < sharedVarsData.bakedStackCount - iround; index++) {
-            bool lessIdx = floatBitsToInt(bakedStack[L][index].w) <= floatBitsToInt(bakedStack[L][index+1].w);
-            bool deeper = lessF(bakedStack[L][index].z, bakedStack[L][index+1].z);
-            if (lessIdx || deeper) {
-                vec4 tmp = bakedStack[L][index];
-                bakedStack[L][index] = bakedStack[L][index+1];
-                bakedStack[L][index+1] = tmp;
+            
+            // choice from both
+            vec4 bakedPair[2] = {bakedStack[L][index], bakedStack[L][index+1]}; // cache
+            bool lessIdx = floatBitsToInt(bakedPair[0].w) <= floatBitsToInt(bakedPair[1].w);
+            bool deeper = lessF(bakedPair[0].z, bakedPair[1].z);
+
+            // swap or not
+            bool swapable = (lessIdx || deeper);
+            ivec2 pairIdx = swapable ? ivec2(1, 0) : ivec2(0, 1);
+            if (swapable) {
+                bakedStack[L][index  ] = bakedPair[pairIdx.x];
+                bakedStack[L][index+1] = bakedPair[pairIdx.y];
             }
         }
     }
