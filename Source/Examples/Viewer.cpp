@@ -615,9 +615,9 @@ int main(const int argc, const char ** argv)
     
 
     const double measureSeconds = 2.0;
-    const unsigned superSampling = 2;
+    const unsigned superSampling = 2; // IT SHOULD! Should be double resolution!
 
-    // VEGA 56 should work fine without interlacing
+    // VEGA 64 should work fine without interlacing, for VEGA 56 will harder
     //int32_t baseWidth = 640;
     //int32_t baseHeight = 360;
 
