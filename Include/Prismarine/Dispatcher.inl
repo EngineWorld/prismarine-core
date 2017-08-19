@@ -10,6 +10,7 @@ namespace ppr {
         initShaderComputeSPIRV("./shaders-spv/raytracing/camera.comp.spv", cameraProgram);
         initShaderComputeSPIRV("./shaders-spv/raytracing/clear.comp.spv", clearProgram);
         initShaderComputeSPIRV("./shaders-spv/raytracing/sampler.comp.spv", samplerProgram);
+        initShaderComputeSPIRV("./shaders-spv/raytracing/filter.comp.spv", filterProgram);
         initShaderComputeSPIRV("./shaders-spv/raytracing/directTraverse.comp.spv", traverseDirectProgram);
 
         {
@@ -97,12 +98,13 @@ namespace ppr {
 
         sampleflags = allocateTexture2D<GL_R32UI>(displayWidth, displayHeight);
         presampled = allocateTexture2D<GL_RGBA32F>(displayWidth, displayHeight);
+        filtered = allocateTexture2D<GL_RGBA32F>(displayWidth, displayHeight);
         
         // set sampler of
-        glTextureParameteri(presampled, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTextureParameteri(presampled, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTextureParameteri(presampled, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTextureParameteri(presampled, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTextureParameteri(filtered, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(filtered, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(filtered, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTextureParameteri(filtered, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
         samplerUniformData.samplecount = displayWidth * displayHeight;
         clearSampler();
@@ -184,13 +186,17 @@ namespace ppr {
     }
 
     inline void Dispatcher::sample() {
+        // collect samples
         glBindImageTexture(0, presampled, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
         glBindImageTexture(1, sampleflags, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
-
         this->bind();
         dispatch(samplerProgram, tiled(displayWidth * displayHeight, worksize));
-
         currentSample = (currentSample + 1) % maxSamples;
+
+        // filter by deinterlacing, etc.
+        glBindImageTexture(0, presampled, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+        glBindImageTexture(1, filtered, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+        dispatch(filterProgram, tiled(displayWidth * displayHeight, worksize));
     }
 
     inline void Dispatcher::camera(const glm::mat4 &persp, const glm::mat4 &frontSide) {
@@ -271,7 +277,7 @@ namespace ppr {
     inline void Dispatcher::render() {
         this->bind();
         glEnable(GL_TEXTURE_2D);
-        glBindTextureUnit(5, presampled);
+        glBindTextureUnit(5, filtered);
         glScissor(0, 0, displayWidth, displayHeight);
         glViewport(0, 0, displayWidth, displayHeight);
         glUseProgram(renderProgram);

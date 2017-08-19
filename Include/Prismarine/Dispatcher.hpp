@@ -23,6 +23,7 @@ namespace ppr {
         GLuint traverseProgram = -1;
         GLuint resolverProgram = -1;
         GLuint traverseDirectProgram = -1;
+        GLuint filterProgram = -1;
 
         GLuint colorchains = -1;
         GLuint quantized = -1;
@@ -50,6 +51,7 @@ namespace ppr {
 
         GLuint presampled = -1;
         GLuint sampleflags = -1;
+        GLuint filtered = -1;
         GLuint vao = -1;
 
         GLuint posBuf = -1;
@@ -80,6 +82,7 @@ namespace ppr {
             glDeleteProgram(traverseProgram);
             glDeleteProgram(resolverProgram);
             glDeleteProgram(surfProgram);
+            glDeleteProgram(filterProgram);
 
             glDeleteBuffers(1, &colorchains);
             glDeleteBuffers(1, &quantized);
