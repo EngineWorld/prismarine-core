@@ -617,7 +617,7 @@ int main(const int argc, const char ** argv)
     // planks 
     // great around 30 (or higher) FPS
     // fine around 15 FPS
-    // "may works" around 10 FPS
+    // "may works" around 5-10 FPS
 
 
     const double measureSeconds = 2.0;
@@ -635,7 +635,7 @@ int main(const int argc, const char ** argv)
     //int32_t baseWidth = 960;
     //int32_t baseHeight = 540;
 
-    // VEGA 56 test with or without interlacing (or GTX 1070 with interlacing), from VEGA 56 with interlacing should work fine
+    // VEGA 56 test with or without interlacing (or GTX 1070 with interlacing), from VEGA 56 with interlacing should work fine, GTX 1080 Ti should work fine without interlacing in some cases
     //int32_t baseWidth = 800;
     //int32_t baseHeight = 450;
 
