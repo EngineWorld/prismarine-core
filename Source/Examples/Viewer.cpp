@@ -614,6 +614,12 @@ int main(const int argc, const char ** argv)
     glfwWindowHint(GLFW_CONTEXT_NO_ERROR, GLFW_TRUE);
     
 
+    // planks 
+    // great around 30 (or higher) FPS
+    // fine around 15 FPS
+    // "may works" around 10 FPS
+
+
     const double measureSeconds = 2.0;
     const unsigned superSampling = 2; // IT SHOULD! Should be double resolution!
 
