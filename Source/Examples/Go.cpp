@@ -659,12 +659,12 @@ namespace PaperExample {
 
         // add rigid bodies
         for (int i = 0; i < sizeof(whitePositions) / sizeof(glm::vec2); i++) {
-            addRigidObject(glm::vec3(whitePositions[i].x - 9.f, 1.f, whitePositions[i].y - 9.f) * glm::vec3(3.0f), 0);
+            addRigidObject(glm::vec3(whitePositions[i].x - 9.f, 0.5f, whitePositions[i].y - 9.f) * glm::vec3(3.0f), 0);
         }
 
         // add rigid bodies
         for (int i = 0; i < sizeof(blackPosition) / sizeof(glm::vec2); i++) {
-            addRigidObject(glm::vec3(blackPosition[i].x - 9.f, 1.f, blackPosition[i].y - 9.f) * glm::vec3(3.0f), 1);
+            addRigidObject(glm::vec3(blackPosition[i].x - 9.f, 0.5f, blackPosition[i].y - 9.f) * glm::vec3(3.0f), 1);
         }
 
         // init timing state
