@@ -70,7 +70,7 @@ void reorderTriangles() {
     }
 
     // copy last primitive
-    if (sharedVarsData.bakedStackCount > 0 && cleanBakedStackCount < bakedFragments) {
+    if (sharedVarsData.bakedStackCount > 0 && cleanBakedStackCount <= bakedFragments) {
         bakedStack[L][cleanBakedStackCount++] = bakedStack[L][sharedVarsData.bakedStackCount-1];
     }
     
