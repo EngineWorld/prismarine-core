@@ -620,6 +620,16 @@ int main(const int argc, const char ** argv)
     // "may works" around 5-10 FPS
 
 
+
+    // GPU rating (by increment)
+    // GTX 1060 
+    // GTX 1070
+    // VEGA 56
+    // VEGA 64 (nearly same line GTX 1080)
+    // GTX 1080 Ti
+    // Titan Xp
+
+
     const double measureSeconds = 2.0;
     const unsigned superSampling = 2; // IT SHOULD! Should be double resolution!
 
