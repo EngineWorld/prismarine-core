@@ -104,6 +104,7 @@ set (LIBS
     BulletSoftBody_RelWithDebugInfo
 )
 
+
 set (APPLICATION_NAME prismarine-physics)
 add_executable(${APPLICATION_NAME} Source/Examples/Physics.cpp ${RSOURCES})
 target_link_libraries(${APPLICATION_NAME} ${LIBS})
@@ -113,4 +114,17 @@ foreach(source IN LISTS RSOURCES)
     string(REPLACE "/" "\\" source_path_msvc "${source_path}")
     source_group("${source_path_msvc}" FILES "${source}")
 endforeach()
+
+
+
+set (APPLICATION_NAME prismarine-go)
+add_executable(${APPLICATION_NAME} Source/Examples/Go.cpp ${RSOURCES})
+target_link_libraries(${APPLICATION_NAME} ${LIBS})
+
+foreach(source IN LISTS RSOURCES)
+    get_filename_component(source_path "${source}" PATH)
+    string(REPLACE "/" "\\" source_path_msvc "${source_path}")
+    source_group("${source_path_msvc}" FILES "${source}")
+endforeach()
+
 
