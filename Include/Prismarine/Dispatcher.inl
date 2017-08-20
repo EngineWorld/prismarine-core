@@ -101,10 +101,12 @@ namespace ppr {
         filtered = allocateTexture2D<GL_RGBA32F>(displayWidth, displayHeight);
         
         // set sampler of
+        glTextureParameteri(presampled, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(presampled, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        // set sampler of
         glTextureParameteri(filtered, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTextureParameteri(filtered, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTextureParameteri(filtered, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTextureParameteri(filtered, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
         samplerUniformData.samplecount = displayWidth * displayHeight;
         clearSampler();
