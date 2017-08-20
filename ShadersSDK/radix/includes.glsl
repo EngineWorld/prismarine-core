@@ -6,6 +6,7 @@
 #endif
 
 #define BLOCK_SIZE 1024
+#define BLOCK_SIZE_RT (gl_WorkGroupSize.x)
 
 #ifdef AMD_SUPPORT
 #define WARP_SIZE 64

@@ -132,7 +132,7 @@ void main(){
         if (validAddress) ValueOut[outKey] = dataValue;
         memoryBarrier(); barrier();
 
-        addr += BLOCK_SIZE;
+        addr += BLOCK_SIZE_RT;
     }
 }
 

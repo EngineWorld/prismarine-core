@@ -22,7 +22,7 @@ void main(){
 
         // smaller version (generalized)
         atomicAdd(localHistogram[key], UVEC_WARP(validAddress));
-        addr += BLOCK_SIZE;
+        addr += BLOCK_SIZE_RT;
     }
 
     memoryBarrier(); barrier(); 
