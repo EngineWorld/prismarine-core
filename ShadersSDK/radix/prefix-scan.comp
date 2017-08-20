@@ -3,32 +3,34 @@
 
 shared uint local_sort[WG_COUNT];
 uint prefix_sum(uint data, inout uint total_sum) {
-    local_sort[LC_IDX] = data;
+    local_sort[LT_IDX] = data;
     memoryBarrier(); barrier();
     for (uint i = 1; i < WG_COUNT; i <<= 1) {
-        uint tmp = local_sort[LC_IDX - i] * uint(LC_IDX >= i);
+        uint tmp = local_sort[LT_IDX - i] * uint(LT_IDX >= i);
         memoryBarrier(); barrier();
-        local_sort[LC_IDX] += tmp;
+        local_sort[LT_IDX] += tmp;
         memoryBarrier(); barrier();
     }
     total_sum = local_sort[WG_COUNT - 1];
-    return local_sort[LC_IDX - 1] * uint(LC_IDX > 0);
+    return local_sort[LT_IDX - 1] * uint(LT_IDX > 0);
 }
 
-layout (local_size_x = 1, local_size_y = WG_COUNT) in; // no warp version
+//layout (local_size_x = 1, local_size_y = WG_COUNT) in; // no warp version
+//layout (local_size_x = 1024) in;
+layout (local_size_x = WG_COUNT) in;
 
 shared uint seed;
 void main() {
-    if (LC_IDX == WG_COUNT - 1) seed = 0;
+    if (LT_IDX == WG_COUNT - 1) seed = 0;
     memoryBarrier(); barrier();
     for(uint d=0;d<RADICES;d++){
         uint val = 0;
-        uint idx = d * WG_COUNT + LC_IDX;
-        if (LC_IDX < WG_COUNT) val = Histogram[idx];
+        uint idx = d * WG_COUNT + LT_IDX;
+        if (LT_IDX < WG_COUNT) val = Histogram[idx];
         uint total = 0;
         uint res = prefix_sum(val, total);
-        if (LC_IDX < WG_COUNT) Histogram[idx] = res + seed;
-        if (LC_IDX == WG_COUNT - 1) seed += res + val;
+        if (LT_IDX < WG_COUNT) Histogram[idx] = res + seed;
+        if (LT_IDX == WG_COUNT - 1) seed += res + val;
         memoryBarrier(); barrier();
     }
 }

@@ -12,7 +12,8 @@ shared uint totals[WORK_SIZE];
 shared uint bcount;
 //shared uint sum[WORK_SIZE];
 
-layout (local_size_x = WARP_SIZE, local_size_y = WORK_SIZE) in;
+//layout (local_size_x = WARP_SIZE, local_size_y = WORK_SIZE) in;
+layout (local_size_x = BLOCK_SIZE) in;
 
 // prefix scan for WARP vector
 uint prefix_scan(inout UVEC_WARP v){
@@ -27,18 +28,18 @@ uint prefix_scan(inout UVEC_WARP v){
 // WARP version of prefix_sum
 uint prefix_sum(in uint data, inout uint total_sum) {
     UVEC_WARP rsort = data;
-    for (uint i = 1; i < WORK_SIZE; i <<= 1) {
-        rsort += READ_LANE(rsort, LANE_IDX - i) * uint(LANE_IDX < WORK_SIZE);
+    for (uint i = 1; i < WORK_SIZE_RT; i <<= 1) {
+        rsort += READ_LANE(rsort, LANE_IDX - i) * uint(LANE_IDX < WORK_SIZE_RT);
     }
-    total_sum = READ_LANE(rsort, WORK_SIZE-1);
-    UVEC_WARP result = READ_LANE(rsort, LANE_IDX - 1) * uint(LANE_IDX < WORK_SIZE);
+    total_sum = READ_LANE(rsort, WORK_SIZE_RT-1);
+    UVEC_WARP result = READ_LANE(rsort, LANE_IDX - 1) * uint(LANE_IDX < WORK_SIZE_RT);
     return result;
 }
 
 
 
 void sortBits(inout UVEC64_WARP sort, inout uint sortVal){
-    UVEC_WARP addr = WARP_SIZE * LC_IDX + LANE_IDX;
+    UVEC_WARP addr = LT_IDX;
     for (int i=0;i<BITS_PER_PASS;i++) {
         BVEC_WARP cmp = BFE(sort, int(Shift) + i, 1) == 0;
         UVEC_WARP warpKey = UVEC_WARP(cmp);
@@ -52,7 +53,7 @@ void sortBits(inout UVEC64_WARP sort, inout uint sortVal){
         if (LC_IDX == 0) {
             uint warpTotal = 0;
             uint prefixSum = prefix_sum(warpPScan[LANE_IDX], warpTotal);
-            if (LANE_IDX < WORK_SIZE) {
+            if (LANE_IDX < WORK_SIZE_RT) {
                 psums [LANE_IDX] = prefixSum;
                 totals[LANE_IDX] = warpTotal;
             }
@@ -74,7 +75,7 @@ void sortBits(inout UVEC64_WARP sort, inout uint sortVal){
 }
 
 void main(){
-     UVEC_WARP localIdx = WARP_SIZE * LC_IDX + LANE_IDX;
+     UVEC_WARP localIdx = LT_IDX;
      UVEC_WARP def = 0xFFFFFFFFu;
 
     if (localIdx < RADICES) localHistogramToCarry[localIdx] = Histogram[localIdx * WG_COUNT + WG_IDX];
@@ -97,7 +98,7 @@ void main(){
         UVEC_WARP      key = k;
         UVEC_WARP  histKey = key;
         UVEC_WARP localKey = key + (LC_IDX / RADICES) * RADICES;
-        if (localIdx < WORK_SIZE) localSort[LANE_IDX] = 0;
+        if (localIdx < WORK_SIZE_RT) localSort[LANE_IDX] = 0;
         memoryBarrier(); barrier();
 
         atomicAdd(localSort[localKey], uint(validAddress));
@@ -109,7 +110,7 @@ void main(){
             UVEC_WARP warpHistogram = 0;
             UVEC_WARP sum = 0;
             if (LANE_IDX < RADICES) {
-                for (int i=0;i<WORK_SIZE/RADICES;i++) sum += localSort[i * RADICES + LANE_IDX];
+                for (int i=0;i<WORK_SIZE_RT/RADICES;i++) sum += localSort[i * RADICES + LANE_IDX];
                 if (LANE_IDX < RADICES) localHistogramToCarry[LANE_IDX] += warpHistogram = sum;
             }
 

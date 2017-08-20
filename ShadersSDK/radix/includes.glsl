@@ -5,25 +5,33 @@
 #extension GL_ARB_shader_ballot : require
 #endif
 
-#define WORK_SIZE 32
+#define BLOCK_SIZE 1024
+
+#ifdef AMD_SUPPORT
+#define WARP_SIZE 64
+#else
 #define WARP_SIZE 32
-#define BLOCK_SIZE (WORK_SIZE*WARP_SIZE)
+#endif
+
+#define WORK_SIZE (BLOCK_SIZE/WARP_SIZE)
+#define WORK_SIZE_RT (gl_WorkGroupSize.x / gl_SubGroupSizeARB)
+
 #define BITS_PER_PASS 4
 #define RADICES 16
 #define RADICES_MASK 0xf
 
-#define WG_SIZE WORK_SIZE
 #define WG_COUNT 8
 #define WG_IDX gl_WorkGroupID.x
-#define LC_IDX gl_LocalInvocationID.y
-#define LANE_IDX gl_LocalInvocationID.x
+#define LC_IDX   (gl_LocalInvocationID.x / gl_SubGroupSizeARB) //gl_LocalInvocationID.y
+#define LANE_IDX (gl_LocalInvocationID.x % gl_SubGroupSizeARB) //gl_LocalInvocationID.x
+#define LT_IDX   (gl_LocalInvocationID.x)
 
 #define UVEC_WARP uint
 #define BVEC_WARP bool
 #define UVEC64_WARP uint64_t
 
-//#define READ_LANE(V, I) ((I >= 0 && I < WARP_SIZE) ? readLane(V, I) : 0)
-#define READ_LANE(V, I) (uint(I >= 0 && I < WARP_SIZE) * readLane(V, I))
+//#define READ_LANE(V, I) ((I >= 0 && I < gl_SubGroupSizeARB) ? readLane(V, I) : 0)
+#define READ_LANE(V, I) (uint(I >= 0 && I < gl_SubGroupSizeARB) * readLane(V, I))
 
 #define BFE(a,o,n) ((a >> o) & ((1 << n)-1))
 
