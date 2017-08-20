@@ -114,6 +114,7 @@ namespace ppr {
 
     inline void Dispatcher::resizeBuffers(const uint32_t & w, const uint32_t & h) {
         width = w, height = h;
+        bool enableInterlacing = true;
 
         if (colorchains != -1) glDeleteBuffers(1, &colorchains);
         if (rays        != -1) glDeleteBuffers(1, &rays);
@@ -126,7 +127,7 @@ namespace ppr {
         if (quantized   != -1) glDeleteBuffers(1, &quantized);
 
         const int32_t wrsize = width * height;
-        currentRayLimit = std::min(wrsize * 4, 4096 * 4096);
+        currentRayLimit = std::min(wrsize * 4 / (enableInterlacing ? 2 : 1), 4096 * 4096);
 
         colorchains = allocateBuffer<ColorChain>(currentRayLimit * 4);
         rays = allocateBuffer<Ray>(currentRayLimit);
@@ -139,6 +140,7 @@ namespace ppr {
 
         samplerUniformData.sceneRes = { float(width), float(height) };
         samplerUniformData.currentRayLimit = currentRayLimit;
+        cameraUniformData.interlace = enableInterlacing ? 1 : 0;
 
         clearRays();
         syncUniforms();
@@ -207,7 +209,6 @@ namespace ppr {
         materialUniformData.time = rand();
         cameraUniformData.camInv = *(Vc4x4 *)glm::value_ptr(glm::inverse(frontSide));
         cameraUniformData.projInv = *(Vc4x4 *)glm::value_ptr(glm::inverse(persp));
-        cameraUniformData.interlace = 1;
         cameraUniformData.interlaceStage = (framenum++) % 2;
 
         this->bind();

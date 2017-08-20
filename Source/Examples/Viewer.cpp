@@ -642,16 +642,16 @@ int main(const int argc, const char ** argv)
     //int32_t baseHeight = 300;
 
     // VEGA 64 (with interlacing) should work fine, GTX 1080 Ti may works without interlacing
-    int32_t baseWidth = 960;
-    int32_t baseHeight = 540;
+    //int32_t baseWidth = 960;
+    //int32_t baseHeight = 540;
 
     // VEGA 56 test with or without interlacing (or GTX 1070 with interlacing), from VEGA 56 with interlacing should work fine, GTX 1080 Ti should work fine without interlacing in some cases
     //int32_t baseWidth = 800;
     //int32_t baseHeight = 450;
 
     // GTX 1080 Ti should work fine with interlacing (1440p)
-    //int32_t baseWidth = 1280;
-    //int32_t baseHeight = 640;
+    int32_t baseWidth = 1280;
+    int32_t baseHeight = 640;
 
 
 
