@@ -24,9 +24,8 @@ void main() {
     if (LT_IDX == WG_COUNT - 1) seed = 0;
     memoryBarrier(); barrier();
     for(uint d=0;d<RADICES;d++){
-        uint val = 0;
         uint idx = d * WG_COUNT + LT_IDX;
-        if (LT_IDX < WG_COUNT) val = Histogram[idx];
+        uint val = Histogram[idx];
         uint total = 0;
         uint res = prefix_sum(val, total);
         if (LT_IDX < WG_COUNT) Histogram[idx] = res + seed;

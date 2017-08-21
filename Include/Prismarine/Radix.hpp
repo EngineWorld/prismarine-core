@@ -6,13 +6,14 @@
 namespace ppr {
 
     class RadixSort {
-        GLuint permuteProgram;
-        GLuint prefixScanProgram;
-        GLuint histogramProgram;
+        //GLuint permuteProgram;
+        //GLuint prefixScanProgram;
+        //GLuint histogramProgram;
+        GLuint sortProgram;
         //GLuint flipProgram;
 
         struct Consts { GLuint NumKeys, Shift, Descending, IsSigned; };
-        const uint32_t WG_COUNT = 8;
+        const uint32_t WG_COUNT = 1; // planned multiply radix sort support (aka. Async Compute)
         const uint32_t RADICES = 16;
 
         GLuint OutKeys;
@@ -23,9 +24,12 @@ namespace ppr {
     public:
 
         RadixSort() {
-            initShaderComputeSPIRV("./shaders-spv/radix/permute.comp.spv", permuteProgram);
-            initShaderComputeSPIRV("./shaders-spv/radix/prefix-scan.comp.spv", prefixScanProgram);
-            initShaderComputeSPIRV("./shaders-spv/radix/histogram.comp.spv", histogramProgram);
+            //initShaderComputeSPIRV("./shaders-spv/radix/permute.comp.spv", permuteProgram);
+            //initShaderComputeSPIRV("./shaders-spv/radix/prefix-scan.comp.spv", prefixScanProgram);
+            //initShaderComputeSPIRV("./shaders-spv/radix/histogram.comp.spv", histogramProgram);
+
+            // for adopt for AMD
+            initShaderComputeSPIRV("./shaders-spv/radix/single.comp.spv", sortProgram);
 
             OutKeys = allocateBuffer<uint64_t>(1024 * 1024 * 4);
             OutValues = allocateBuffer<uint32_t>(1024 * 1024 * 4);
@@ -63,9 +67,10 @@ namespace ppr {
             //for (GLuint i = 0; i < 8;i++) { // 32-bit uint
             for (GLuint i = 0; i < 16; i++) { // 64-bit uint
                 glNamedBufferSubData(VarBuffer, 0, strided<Consts>(1), &consts[i]);
-                dispatch(histogramProgram, WG_COUNT);
-                dispatch(prefixScanProgram, 1);
-                dispatch(permuteProgram, WG_COUNT);
+                dispatch(sortProgram, 1);
+                //dispatch(histogramProgram, WG_COUNT);
+                //dispatch(prefixScanProgram, 1);
+                //dispatch(permuteProgram, WG_COUNT);
                 glCopyNamedBufferSubData(OutKeys, InKeys, 0, 0, strided<uint64_t>(size));
                 glCopyNamedBufferSubData(OutValues, InVals, 0, 0, strided<uint32_t>(size));
             }
