@@ -1,6 +1,7 @@
 cmake_minimum_required (VERSION 3.0)
 set (PROJECT_NAME prismarine-examples)
 set (APPLICATION_NAME prismarine-gltf)
+option(USE_OPENGL_45_COMPATIBLE "Enabling OpenGL 4.5 Compatibility (early AMD OpenGL 4.5)" OFF)
 
 project (${PROJECT_NAME})
 
@@ -38,6 +39,11 @@ set (DEFINES
     -DTINYGLTF_IMPLEMENTATION
     -DSTB_IMAGE_IMPLEMENTATION
 )
+
+if(USE_OPENGL_45_COMPATIBLE)
+set (DEFINES ${DEFINES} -DUSE_OPENGL_45_COMPATIBLE)
+endif()
+
 
 set (DEP_DIR "${PROJECT_SOURCE_DIR}")
 set (LIB_DIR "${DEP_DIR}/External/lib"     "${DEP_DIR}/lib"     "${CMAKE_MODULE_PATH}/lib"     "${DEP_DIR}/External/lib/bullet")

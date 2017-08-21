@@ -85,8 +85,14 @@ namespace ppr {
         {
             const GLchar * strc = str.data();
             int32_t size = str.size();
+
+#ifdef USE_OPENGL_45_COMPATIBLE
+            glShaderBinary(1, &comp, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, strc, size);
+            glSpecializeShaderARB(comp, entryName.c_str(), 0, nullptr, nullptr);
+#else
             glShaderBinary(1, &comp, GL_SHADER_BINARY_FORMAT_SPIR_V, strc, size);
             glSpecializeShader(comp, entryName.c_str(), 0, nullptr, nullptr);
+#endif
 
             GLint status = false;
             glGetShaderiv(comp, GL_COMPILE_STATUS, &status);

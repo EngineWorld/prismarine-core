@@ -609,10 +609,14 @@ int main(const int argc, const char ** argv)
     if (!glfwInit()) exit(EXIT_FAILURE);
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+#ifdef USE_OPENGL_45_COMPATIBLE
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+#else
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+#endif
+
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_CONTEXT_NO_ERROR, GLFW_TRUE);
-    
 
     // planks 
     // great around 30 (or higher) FPS
