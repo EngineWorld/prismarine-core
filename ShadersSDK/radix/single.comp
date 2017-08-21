@@ -97,12 +97,13 @@ void main(){
     blocks_info blocks = get_blocks_info(NumKeys, WG_IDX);
     UVEC_WARP localIdx = LT_IDX;
     if (localIdx < RADICES) localHistogram[localIdx] = 0;
+    if (localIdx == 0) bcount = blocks.count;
     memoryBarrier(); barrier(); 
 
     // histograms
     UVEC_WARP addr = blocks.offset + localIdx;
     for (int i=0;i<1024;i++) {
-        if (i >= blocks.count) break;
+        if (i >= bcount) break;
 
         BVEC_WARP validAddress = addr < NumKeys;
         UVEC64_WARP data = UVEC64_WARP(KeyIn[addr]);
@@ -116,51 +117,46 @@ void main(){
     
     prefix_scan();
 
-    { // permute
-        if (localIdx < RADICES) localHistogramToCarry[localIdx] = localHistogram[localIdx];
+    if (localIdx < RADICES) localHistogramToCarry[localIdx] = localHistogram[localIdx];
+    addr = blocks.offset + localIdx;
+    for ( int i_block=0; i_block < 1024 ; i_block++ ) { // permute
+        if (i_block >= bcount) break;
 
-        addr = blocks.offset + localIdx;
-        if (localIdx == 0) bcount = blocks.count;
+        BVEC_WARP validAddress = addr < NumKeys;
+        UVEC64_WARP data       = validAddress ? UVEC64_WARP(KeyIn[addr]) : 0xFFFFFFFFFFFFFFFFul;
+            UVEC_WARP dataValue  = validAddress ? ValueIn[addr] : 0u;
+        sortBits(data, dataValue); // sort inside WARP
+
+        UVEC_WARP k = UVEC_WARP(BFE(data, int(Shift*BITS_PER_PASS), BITS_PER_PASS));
+        UVEC_WARP      key = k;
+        UVEC_WARP  histKey = key;
+        UVEC_WARP localKey = key + (LT_IDX/WARP_SIZE_RT) * RADICES;
+
+        UVEC_WARP SZ = LOCAL_SORT_SIZE > 0 ? (LOCAL_SORT_SIZE - 1) / BLOCK_SIZE_RT + 1 : 0;
+        for (int i=0;i<SZ;i++) {
+            uint tid = localIdx + BLOCK_SIZE_RT*i;
+            if (tid < LOCAL_SORT_SIZE) localSort[tid] = 0;
+        }
         memoryBarrier(); barrier();
 
-        for ( int i_block=0; i_block < 1024 ; i_block++ ) {
-            if (i_block >= bcount) break;
+        if (validAddress) atomicAdd(localSort[localKey], uint(validAddress));
+        UVEC_WARP offset = localHistogramToCarry[k] + localIdx;
 
-            BVEC_WARP validAddress = addr < NumKeys;
-            UVEC64_WARP data       = validAddress ? UVEC64_WARP(KeyIn[addr]) : 0xFFFFFFFFFFFFFFFFul;
-              UVEC_WARP dataValue  = validAddress ? ValueIn[addr] : 0u;
-            sortBits(data, dataValue); // sort inside WARP
-
-            UVEC_WARP k = UVEC_WARP(BFE(data, int(Shift*BITS_PER_PASS), BITS_PER_PASS));
-            UVEC_WARP      key = k;
-            UVEC_WARP  histKey = key;
-            UVEC_WARP localKey = key + (LT_IDX/WARP_SIZE_RT) * RADICES;
-
-            UVEC_WARP SZ = LOCAL_SORT_SIZE > 0 ? (LOCAL_SORT_SIZE - 1) / BLOCK_SIZE_RT + 1 : 0;
-            for (int i=0;i<SZ;i++) {
-                uint tid = localIdx + BLOCK_SIZE_RT*i;
-                if (tid < LOCAL_SORT_SIZE) localSort[tid] = 0;
-            }
-            memoryBarrier(); barrier();
-
-            if (validAddress) atomicAdd(localSort[localKey], uint(validAddress));
-            UVEC_WARP offset = localHistogramToCarry[k] + localIdx;
-
-            memoryBarrier(); barrier();
-            UVEC_WARP sum = 0;
-            if (localIdx < RADICES) {
-                for (int i=0;i<LOCAL_SORT_SIZE/RADICES;i++) sum += localSort[i * RADICES + localIdx];
-                if (localIdx < RADICES) localHistogramToCarry[localIdx] += localHistogram[localIdx] = sum;
-            }
-
-            prefix_scan();
-
-            UVEC_WARP outKey = offset - localHistogram[histKey];
-            if (validAddress)   KeyOut[outKey] = KEYTYPE(data);
-            if (validAddress) ValueOut[outKey] = dataValue;
-            memoryBarrier(); barrier();
-
-            addr += BLOCK_SIZE_RT;
+        memoryBarrier(); barrier();
+        UVEC_WARP sum = 0;
+        if (localIdx < RADICES) {
+            for (int i=0;i<LOCAL_SORT_SIZE/RADICES;i++) sum += localSort[i * RADICES + localIdx];
+            if (localIdx < RADICES) localHistogramToCarry[localIdx] += localHistogram[localIdx] = sum;
         }
+
+        prefix_scan();
+
+        UVEC_WARP outKey = offset - localHistogram[histKey];
+        if (validAddress)   KeyOut[outKey] = KEYTYPE(data);
+        if (validAddress) ValueOut[outKey] = dataValue;
+        memoryBarrier(); barrier();
+
+        addr += BLOCK_SIZE_RT;
     }
+    
 }
