@@ -110,7 +110,7 @@ void main(){
         UVEC_WARP key = k;
 
         // smaller version (generalized)
-        atomicAdd(localHistogram[key], UVEC_WARP(validAddress));
+        if (validAddress) atomicAdd(localHistogram[key], UVEC_WARP(validAddress));
         addr += BLOCK_SIZE_RT;
     }
     
@@ -140,7 +140,7 @@ void main(){
             }
             memoryBarrier(); barrier();
 
-            atomicAdd(localSort[localKey], uint(validAddress));
+            if (validAddress) atomicAdd(localSort[localKey], uint(validAddress));
             UVEC_WARP offset = localHistogramToCarry[k] + localIdx;
 
             memoryBarrier(); barrier();
