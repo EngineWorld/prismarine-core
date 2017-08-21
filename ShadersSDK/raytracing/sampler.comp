@@ -5,7 +5,7 @@
 #include "../include/uniforms.glsl"
 #include "../include/rayslib.glsl"
 
-#define MB_PAGES 2
+#define MB_PAGES 3
 
 layout ( binding = 0, rgba32f ) uniform image2D presampled;
 layout ( binding = 1, r32ui ) uniform uimage2D sampleflags;
