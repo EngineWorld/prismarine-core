@@ -96,18 +96,23 @@ void main(){
 
     // planned 8-bit support (required parallel prefix-sum of histograms)
     { // prefix sums (offsets)
+        // loading with -1 offset
         memoryBarrier(); barrier();
-        if (localIdx == 0) {
-            uint seed = 0;
-            for (uint idx=0;idx<RADICES;idx++) {
-                uint val = localHistogram[idx];
-                localHistogram[idx] = seed;
-                seed += val;
-            }
+        uint tmp = localIdx >= 1 && localIdx < RADICES ? localHistogram[localIdx-1] : 0;
+        if (localIdx < RADICES) localHistogram[localIdx] = tmp;
+
+        // reduction prefix-scan
+        memoryBarrier(); barrier();
+        for (int i=1;i<RADICES;i<<=1) {
+            uint idx = localIdx;
+            uint off = idx >= i && idx < RADICES ? localHistogram[idx-i] : 0;
+            uint hst = localHistogram[idx];
+            if (idx < RADICES) localHistogram[idx] = off + hst;
+            memoryBarrier(); barrier();
         }
     }
 
-    memoryBarrier(); barrier();
+    //memoryBarrier(); barrier();
     { // permute
         if (localIdx < RADICES) localHistogramToCarry[localIdx] = localHistogram[localIdx];
 
