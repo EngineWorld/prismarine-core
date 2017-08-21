@@ -135,8 +135,11 @@ void main(){
             UVEC_WARP      key = k;
             UVEC_WARP  histKey = key;
             UVEC_WARP localKey = key + (LT_IDX/WARP_SIZE_RT) * RADICES;
-            for (int i=0;i<(LOCAL_SORT_SIZE/BLOCK_SIZE_RT+1);i++) {
-                localSort[localIdx + BLOCK_SIZE_RT*i] = 0;
+
+            UVEC_WARP SZ = LOCAL_SORT_SIZE > 0 ? (LOCAL_SORT_SIZE - 1) / BLOCK_SIZE_RT + 1 : 0;
+            for (int i=0;i<SZ;i++) {
+                uint tid = localIdx + BLOCK_SIZE_RT*i;
+                if (tid < LOCAL_SORT_SIZE) localSort[tid] = 0;
             }
             memoryBarrier(); barrier();
 
