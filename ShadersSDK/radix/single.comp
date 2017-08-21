@@ -41,8 +41,7 @@ void sortBits(inout UVEC64_WARP sort, inout uint sortVal){
         UVEC_WARP warpKey = UVEC_WARP(cmp);
 
         // prefix scan for WARP vector
-        uint pscan = prefix_scan(warpKey);
-        warpPScan[LC_IDX] = pscan; // cache by WARP ID
+        warpPScan[LC_IDX] = prefix_scan(warpKey); // cache by WARP ID
         
         // use LANE_IDX as LC_IDX, so we did caching, WARP size should less or equal than WORK_SIZE
         memoryBarrier(); barrier();
@@ -71,47 +70,50 @@ void sortBits(inout UVEC64_WARP sort, inout uint sortVal){
 }
 
 
+void prefix_scan(){
+    UVEC_WARP localIdx = LT_IDX;
+
+    memoryBarrier(); barrier();
+    uint tmp = localIdx >= 1 && localIdx < RADICES ? localHistogram[localIdx-1] : 0;
+    memoryBarrier(); barrier();
+    if (localIdx < RADICES) localHistogram[localIdx] = tmp;
+
+    // reduction prefix-scan
+    memoryBarrier(); barrier();
+    for (int i=1;i<RADICES;i<<=1) {
+        uint idx = localIdx;
+        uint off = idx >= i && idx < RADICES ? localHistogram[idx-i] : 0;
+        uint hst = localHistogram[idx];
+        memoryBarrier(); barrier();
+        if (idx < RADICES) localHistogram[idx] = off + hst;
+        memoryBarrier(); barrier();
+    }
+}
+
+
 void main(){
     blocks_info blocks = get_blocks_info(NumKeys, WG_IDX);
     UVEC_WARP localIdx = LT_IDX;
     if (localIdx < RADICES) localHistogram[localIdx] = 0;
     memoryBarrier(); barrier(); 
 
+    // histograms
     UVEC_WARP addr = blocks.offset + localIdx;
-    { // histograms
-        for (int i=0;i<1024;i++) {
-            if (i >= blocks.count) break;
+    for (int i=0;i<1024;i++) {
+        if (i >= blocks.count) break;
 
-            BVEC_WARP validAddress = addr < NumKeys;
-            UVEC64_WARP data = UVEC64_WARP(KeyIn[addr]);
-            UVEC_WARP k = UVEC_WARP(BFE(data, int(Shift*BITS_PER_PASS), BITS_PER_PASS));
-            UVEC_WARP key = k;
+        BVEC_WARP validAddress = addr < NumKeys;
+        UVEC64_WARP data = UVEC64_WARP(KeyIn[addr]);
+        UVEC_WARP k = UVEC_WARP(BFE(data, int(Shift*BITS_PER_PASS), BITS_PER_PASS));
+        UVEC_WARP key = k;
 
-            // smaller version (generalized)
-            atomicAdd(localHistogram[key], UVEC_WARP(validAddress));
-            addr += BLOCK_SIZE_RT;
-        }
-
+        // smaller version (generalized)
+        atomicAdd(localHistogram[key], UVEC_WARP(validAddress));
+        addr += BLOCK_SIZE_RT;
     }
     
-    { // prefix sums (offsets)
-        // loading with -1 offset
-        memoryBarrier(); barrier();
-        uint tmp = localIdx >= 1 && localIdx < RADICES ? localHistogram[localIdx-1] : 0;
-        if (localIdx < RADICES) localHistogram[localIdx] = tmp;
+    prefix_scan();
 
-        // reduction prefix-scan
-        memoryBarrier(); barrier();
-        for (int i=1;i<RADICES;i<<=1) {
-            uint idx = localIdx;
-            uint off = idx >= i && idx < RADICES ? localHistogram[idx-i] : 0;
-            uint hst = localHistogram[idx];
-            if (idx < RADICES) localHistogram[idx] = off + hst;
-            memoryBarrier(); barrier();
-        }
-    }
-
-    //memoryBarrier(); barrier();
     { // permute
         if (localIdx < RADICES) localHistogramToCarry[localIdx] = localHistogram[localIdx];
 
@@ -131,7 +133,7 @@ void main(){
             UVEC_WARP      key = k;
             UVEC_WARP  histKey = key;
             UVEC_WARP localKey = key + (LC_IDX / RADICES) * RADICES;
-            if (localIdx < WORK_SIZE_RT) localSort[LANE_IDX] = 0;
+            if (localIdx < WORK_SIZE_RT) localSort[localIdx] = 0;
             memoryBarrier(); barrier();
 
             atomicAdd(localSort[localKey], uint(validAddress));
@@ -139,29 +141,14 @@ void main(){
 
             memoryBarrier(); barrier();
             {
-                UVEC_WARP warpHistogram = 0;
                 UVEC_WARP sum = 0;
                 if (localIdx < RADICES) {
                     for (int i=0;i<WORK_SIZE_RT/RADICES;i++) sum += localSort[i * RADICES + localIdx];
-                    if (localIdx < RADICES) localHistogramToCarry[localIdx] += warpHistogram = sum;
-                }
-                //memoryBarrier(); barrier(); // TODO
-
-                // planned support of 8 bit support
-                uint tmp = 0;
-                warpHistogram = READ_LANE(warpHistogram, LANE_IDX-1);
-                tmp = READ_LANE(warpHistogram, LANE_IDX-3) + READ_LANE(warpHistogram, LANE_IDX-2) + READ_LANE(warpHistogram, LANE_IDX-1);
-                warpHistogram += tmp;
-                tmp = READ_LANE(warpHistogram, LANE_IDX-12) + READ_LANE(warpHistogram, LANE_IDX-8) + READ_LANE(warpHistogram, LANE_IDX-4);
-                warpHistogram += tmp;
-                // TODO
-            
-                //memoryBarrier(); barrier(); // TODO
-                if (localIdx < RADICES) {
-                    localHistogram[localIdx] = warpHistogram;
+                    if (localIdx < RADICES) localHistogramToCarry[localIdx] += localHistogram[localIdx] = sum;
                 }
             }
-            memoryBarrier(); barrier();
+
+            prefix_scan();
 
             UVEC_WARP outKey = offset - localHistogram[histKey];
             if (validAddress)   KeyOut[outKey] = KEYTYPE(data);
