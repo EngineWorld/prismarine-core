@@ -39,7 +39,7 @@ vec4 filtered(in vec2 tx){
     for (int y=-1;y<1;y++) {
         for (int x=-1;x<1;x++) {
             if (!(x == 0 && y == 0)) { // not center
-                ivec2 offset = O(x, y);
+                const ivec2 offset = O(x, y);
                 vec4 pix   = texelFetch(samples, center_pix + offset, 0);
                 vec4 value = (pix + cur) * (0.5f);
                 ivec4 mask = {1, 1, 1, 0};
