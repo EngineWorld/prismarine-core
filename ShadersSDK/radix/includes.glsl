@@ -21,6 +21,10 @@
 #define RADICES 16
 #define RADICES_MASK 0xf
 
+//#define BITS_PER_PASS 8
+//#define RADICES 256
+//#define RADICES_MASK 0xff
+
 #define WG_COUNT 1
 #define WG_IDX gl_WorkGroupID.x
 #define LC_IDX   (gl_LocalInvocationID.x / gl_SubGroupSizeARB) //gl_LocalInvocationID.y
@@ -47,7 +51,6 @@ layout (std430, binding = 24) restrict buffer VarsBlock {
     uint Descending;
     uint IsSigned;
 };
-layout (std430, binding = 25) restrict buffer HistogramBlock {uint Histogram[];};
 
 struct blocks_info { uint count; uint offset; };
 blocks_info get_blocks_info(in uint n, in uint wg_idx) {

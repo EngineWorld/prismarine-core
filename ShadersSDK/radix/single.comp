@@ -37,7 +37,7 @@ uint prefix_sum(in uint data, inout uint total_sum) {
 void sortBits(inout UVEC64_WARP sort, inout uint sortVal){
     UVEC_WARP addr = LT_IDX;
     for (int i=0;i<BITS_PER_PASS;i++) {
-        BVEC_WARP cmp = BFE(sort, int(Shift) + i, 1) == 0;
+        BVEC_WARP cmp = BFE(sort, int(Shift*BITS_PER_PASS) + i, 1) == 0;
         UVEC_WARP warpKey = UVEC_WARP(cmp);
 
         // prefix scan for WARP vector
@@ -84,7 +84,7 @@ void main(){
 
             BVEC_WARP validAddress = addr < NumKeys;
             UVEC64_WARP data = UVEC64_WARP(KeyIn[addr]);
-            UVEC_WARP k = UVEC_WARP(BFE(data, int(Shift), BITS_PER_PASS));
+            UVEC_WARP k = UVEC_WARP(BFE(data, int(Shift*BITS_PER_PASS), BITS_PER_PASS));
             UVEC_WARP key = k;
 
             // smaller version (generalized)
@@ -92,8 +92,6 @@ void main(){
             addr += BLOCK_SIZE_RT;
         }
 
-        memoryBarrier(); barrier(); 
-        if (localIdx < RADICES) Histogram[localIdx] = localHistogram[localIdx];
     }
 
     { // prefix sums (offsets)
@@ -101,8 +99,8 @@ void main(){
         if (localIdx == 0) {
             uint seed = 0;
             for (uint idx=0;idx<RADICES;idx++) {
-                uint val = Histogram[idx];
-                Histogram[idx] = seed;
+                uint val = localHistogram[idx];
+                localHistogram[idx] = seed;
                 seed += val;
             }
         }
@@ -110,7 +108,7 @@ void main(){
     }
 
     { // permute
-        if (localIdx < RADICES) localHistogramToCarry[localIdx] = Histogram[localIdx];
+        if (localIdx < RADICES) localHistogramToCarry[localIdx] = localHistogram[localIdx];
         memoryBarrier(); barrier();
 
         addr = blocks.offset + localIdx;
@@ -125,7 +123,7 @@ void main(){
               UVEC_WARP dataValue  = validAddress ? ValueIn[addr] : 0u;
             sortBits(data, dataValue);
 
-            UVEC_WARP k = UVEC_WARP(BFE(data, int(Shift), BITS_PER_PASS));
+            UVEC_WARP k = UVEC_WARP(BFE(data, int(Shift*BITS_PER_PASS), BITS_PER_PASS));
             UVEC_WARP      key = k;
             UVEC_WARP  histKey = key;
             UVEC_WARP localKey = key + (LC_IDX / RADICES) * RADICES;
