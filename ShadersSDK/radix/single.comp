@@ -132,6 +132,7 @@ void main(){
             UVEC_WARP k = UVEC_WARP(BFE(data, int(Shift*BITS_PER_PASS), BITS_PER_PASS));
             UVEC_WARP      key = k;
             UVEC_WARP  histKey = key;
+            //UVEC_WARP localKey = key + (localIdx / RADICES) * RADICES;
             UVEC_WARP localKey = key + (LC_IDX / RADICES) * RADICES;
             if (localIdx < WORK_SIZE_RT) localSort[localIdx] = 0;
             memoryBarrier(); barrier();
@@ -140,12 +141,11 @@ void main(){
             UVEC_WARP offset = localHistogramToCarry[k] + localIdx;
 
             memoryBarrier(); barrier();
-            {
-                UVEC_WARP sum = 0;
-                if (localIdx < RADICES) {
-                    for (int i=0;i<WORK_SIZE_RT/RADICES;i++) sum += localSort[i * RADICES + localIdx];
-                    if (localIdx < RADICES) localHistogramToCarry[localIdx] += localHistogram[localIdx] = sum;
-                }
+            UVEC_WARP sum = 0;
+            if (localIdx < RADICES) {
+                //for (int i=0;i<BLOCK_SIZE_RT/RADICES;i++) sum += localSort[i * RADICES + localIdx];
+                for (int i=0;i<WORK_SIZE_RT/RADICES;i++) sum += localSort[i * RADICES + localIdx];
+                if (localIdx < RADICES) localHistogramToCarry[localIdx] += localHistogram[localIdx] = sum;
             }
 
             prefix_scan();
