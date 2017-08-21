@@ -17,13 +17,13 @@
 #define WORK_SIZE (BLOCK_SIZE/WARP_SIZE)
 #define WORK_SIZE_RT (gl_WorkGroupSize.x / gl_SubGroupSizeARB)
 
-#define BITS_PER_PASS 4
-#define RADICES 16
-#define RADICES_MASK 0xf
+//#define BITS_PER_PASS 4
+//#define RADICES 16
+//#define RADICES_MASK 0xf
 
-//#define BITS_PER_PASS 8
-//#define RADICES 256
-//#define RADICES_MASK 0xff
+#define BITS_PER_PASS 8
+#define RADICES 256
+#define RADICES_MASK 0xff
 
 #define WG_COUNT 1
 #define WG_IDX gl_WorkGroupID.x

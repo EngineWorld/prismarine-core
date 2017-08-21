@@ -227,8 +227,8 @@ namespace ppr {
         geometryUniformData.triangleCount = triangleCount;
 
         // debug
-        std::vector<GLuint64> mortons(triangleCount);
-        glGetNamedBufferSubData(mortonBuffer, 0, strided<GLuint64>(mortons.size()), mortons.data());
+        //std::vector<GLuint64> mortons(triangleCount);
+        //glGetNamedBufferSubData(mortonBuffer, 0, strided<GLuint64>(mortons.size()), mortons.data());
 
         // bind BVH buffers
         this->syncUniforms();

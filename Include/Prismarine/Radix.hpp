@@ -39,8 +39,8 @@ namespace ppr {
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 23, OutValues);
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 24, VarBuffer);
 
-            for (GLuint i = 0; i < 16; i++) { // 64-bit uint
-            //for (GLuint i = 0; i < 8; i++) { // 64-bit uint
+            //for (GLuint i = 0; i < 16; i++) { // 64-bit uint
+            for (GLuint i = 0; i < 8; i++) { // 64-bit uint
                 Consts consts = { size, i, descending, 0 };
                 glNamedBufferSubData(VarBuffer, 0, strided<Consts>(1), &consts);
                 dispatch(sortProgram, 1);

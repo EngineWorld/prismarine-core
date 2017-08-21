@@ -4,8 +4,10 @@
 //layout (local_size_x = WARP_SIZE, local_size_y = WORK_SIZE) in;
 layout (local_size_x = BLOCK_SIZE) in;
 
+#define LOCAL_SORT_SIZE (WORK_SIZE*RADICES)
+
 shared UVEC64_WARP localSort64[BLOCK_SIZE];
-shared uint localSort[BLOCK_SIZE];
+shared uint localSort[LOCAL_SORT_SIZE];
 shared uint localSortVal[BLOCK_SIZE];
 shared uint localHistogramToCarry[RADICES];
 shared uint localHistogram[RADICES];
@@ -127,14 +129,15 @@ void main(){
             BVEC_WARP validAddress = addr < NumKeys;
             UVEC64_WARP data       = validAddress ? UVEC64_WARP(KeyIn[addr]) : 0xFFFFFFFFFFFFFFFFul;
               UVEC_WARP dataValue  = validAddress ? ValueIn[addr] : 0u;
-            sortBits(data, dataValue);
+            sortBits(data, dataValue); // sort inside WARP
 
             UVEC_WARP k = UVEC_WARP(BFE(data, int(Shift*BITS_PER_PASS), BITS_PER_PASS));
             UVEC_WARP      key = k;
             UVEC_WARP  histKey = key;
-            //UVEC_WARP localKey = key + (localIdx / RADICES) * RADICES;
-            UVEC_WARP localKey = key + (LC_IDX / RADICES) * RADICES;
-            if (localIdx < WORK_SIZE_RT) localSort[localIdx] = 0;
+            UVEC_WARP localKey = key + (LT_IDX/WORK_SIZE) * RADICES;
+            for (int i=0;i<(LOCAL_SORT_SIZE/BLOCK_SIZE_RT+1);i++) {
+                localSort[localIdx + BLOCK_SIZE_RT*i] = 0;
+            }
             memoryBarrier(); barrier();
 
             atomicAdd(localSort[localKey], uint(validAddress));
@@ -143,8 +146,7 @@ void main(){
             memoryBarrier(); barrier();
             UVEC_WARP sum = 0;
             if (localIdx < RADICES) {
-                //for (int i=0;i<BLOCK_SIZE_RT/RADICES;i++) sum += localSort[i * RADICES + localIdx];
-                for (int i=0;i<WORK_SIZE_RT/RADICES;i++) sum += localSort[i * RADICES + localIdx];
+                for (int i=0;i<LOCAL_SORT_SIZE/RADICES;i++) sum += localSort[i * RADICES + localIdx];
                 if (localIdx < RADICES) localHistogramToCarry[localIdx] += localHistogram[localIdx] = sum;
             }
 
