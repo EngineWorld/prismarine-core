@@ -93,8 +93,7 @@ void main(){
         }
 
     }
-
-    // planned 8-bit support (required parallel prefix-sum of histograms)
+    
     { // prefix sums (offsets)
         // loading with -1 offset
         memoryBarrier(); barrier();
