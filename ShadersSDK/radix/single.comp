@@ -42,10 +42,10 @@ void sortBits(inout UVEC64_WARP sort, inout uint sortVal){
 
         // prefix scan for WARP vector
         uint pscan = prefix_scan(warpKey);
-        if (LANE_IDX == 0) warpPScan[LC_IDX] = pscan; // cache by WARP ID
+        warpPScan[LC_IDX] = pscan; // cache by WARP ID
+        
+        // use LANE_IDX as LC_IDX, so we did caching, WARP size should less or equal than WORK_SIZE
         memoryBarrier(); barrier();
-
-        // use LANE_IDX as LC_IDX, so we did caching
         if (LC_IDX == 0) {
             uint warpTotal = 0;
             uint prefixSum = prefix_sum(warpPScan[LANE_IDX], warpTotal);
@@ -94,6 +94,7 @@ void main(){
 
     }
 
+    // planned 8-bit support (required parallel prefix-sum of histograms)
     { // prefix sums (offsets)
         memoryBarrier(); barrier();
         if (localIdx == 0) {
@@ -104,15 +105,14 @@ void main(){
                 seed += val;
             }
         }
-        memoryBarrier(); barrier();
     }
 
+    memoryBarrier(); barrier();
     { // permute
         if (localIdx < RADICES) localHistogramToCarry[localIdx] = localHistogram[localIdx];
-        memoryBarrier(); barrier();
 
         addr = blocks.offset + localIdx;
-        if (LANE_IDX == 0 && LC_IDX == 0) bcount = blocks.count;
+        if (localIdx == 0) bcount = blocks.count;
         memoryBarrier(); barrier();
 
         for ( int i_block=0; i_block < 1024 ; i_block++ ) {
@@ -132,26 +132,29 @@ void main(){
 
             atomicAdd(localSort[localKey], uint(validAddress));
             UVEC_WARP offset = localHistogramToCarry[k] + localIdx;
-            memoryBarrier(); barrier();
 
-            // Use LANE_IDX as LC_IDX (non-vector mode)
-            if (LC_IDX == 0) {
+            memoryBarrier(); barrier();
+            {
                 UVEC_WARP warpHistogram = 0;
                 UVEC_WARP sum = 0;
-                if (LANE_IDX < RADICES) {
-                    for (int i=0;i<WORK_SIZE_RT/RADICES;i++) sum += localSort[i * RADICES + LANE_IDX];
-                    if (LANE_IDX < RADICES) localHistogramToCarry[LANE_IDX] += warpHistogram = sum;
+                if (localIdx < RADICES) {
+                    for (int i=0;i<WORK_SIZE_RT/RADICES;i++) sum += localSort[i * RADICES + localIdx];
+                    if (localIdx < RADICES) localHistogramToCarry[localIdx] += warpHistogram = sum;
                 }
+                //memoryBarrier(); barrier(); // TODO
 
+                // planned support of 8 bit support
                 uint tmp = 0;
                 warpHistogram = READ_LANE(warpHistogram, LANE_IDX-1);
                 tmp = READ_LANE(warpHistogram, LANE_IDX-3) + READ_LANE(warpHistogram, LANE_IDX-2) + READ_LANE(warpHistogram, LANE_IDX-1);
                 warpHistogram += tmp;
                 tmp = READ_LANE(warpHistogram, LANE_IDX-12) + READ_LANE(warpHistogram, LANE_IDX-8) + READ_LANE(warpHistogram, LANE_IDX-4);
                 warpHistogram += tmp;
+                // TODO
             
-                if (LANE_IDX < RADICES) {
-                    localHistogram[LANE_IDX] = warpHistogram;
+                //memoryBarrier(); barrier(); // TODO
+                if (localIdx < RADICES) {
+                    localHistogram[localIdx] = warpHistogram;
                 }
             }
             memoryBarrier(); barrier();
