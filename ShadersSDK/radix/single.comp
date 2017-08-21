@@ -134,7 +134,7 @@ void main(){
             UVEC_WARP k = UVEC_WARP(BFE(data, int(Shift*BITS_PER_PASS), BITS_PER_PASS));
             UVEC_WARP      key = k;
             UVEC_WARP  histKey = key;
-            UVEC_WARP localKey = key + (LT_IDX/WORK_SIZE_RT) * RADICES;
+            UVEC_WARP localKey = key + (LT_IDX/WARP_SIZE_RT) * RADICES;
             for (int i=0;i<(LOCAL_SORT_SIZE/BLOCK_SIZE_RT+1);i++) {
                 localSort[localIdx + BLOCK_SIZE_RT*i] = 0;
             }

@@ -14,6 +14,8 @@
 #define WARP_SIZE 32
 #endif
 
+#define WARP_SIZE_RT gl_SubGroupSizeARB
+
 #define WORK_SIZE (BLOCK_SIZE/WARP_SIZE)
 #define WORK_SIZE_RT (gl_WorkGroupSize.x / gl_SubGroupSizeARB)
 
