@@ -29,9 +29,10 @@
 
 #define WG_COUNT 1
 #define WG_IDX gl_WorkGroupID.x
-#define LC_IDX   (gl_LocalInvocationID.x / gl_SubGroupSizeARB) //gl_LocalInvocationID.y
-#define LANE_IDX (gl_LocalInvocationID.x % gl_SubGroupSizeARB) //gl_LocalInvocationID.x
-#define LT_IDX   (gl_LocalInvocationID.x)
+
+uint LC_IDX = 0;
+uint LANE_IDX = 0;
+uint LT_IDX = 0;
 
 #define UVEC_WARP uint
 #define BVEC_WARP bool

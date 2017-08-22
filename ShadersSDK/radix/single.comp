@@ -74,7 +74,6 @@ void sortBits(inout UVEC64_WARP sort, inout uint sortVal){
 
 void prefix_scan(){
     UVEC_WARP localIdx = LT_IDX;
-
     memoryBarrier(); barrier();
     uint tmp = localIdx >= 1 && localIdx < RADICES ? localHistogram[localIdx-1] : 0;
     memoryBarrier(); barrier();
@@ -94,6 +93,10 @@ void prefix_scan(){
 
 
 void main(){
+    LT_IDX = gl_LocalInvocationID.x;
+    LC_IDX = (gl_LocalInvocationID.x / gl_SubGroupSizeARB);
+    LANE_IDX = (gl_LocalInvocationID.x % gl_SubGroupSizeARB);
+
     blocks_info blocks = get_blocks_info(NumKeys, WG_IDX);
     UVEC_WARP localIdx = LT_IDX;
     if (localIdx < RADICES) localHistogram[localIdx] = 0;
