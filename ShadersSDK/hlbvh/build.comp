@@ -11,9 +11,10 @@ layout ( local_size_x = 1024 ) in;
 
 int nlz (in uint64_t x) {
     //return 63-findMSB(x);
-    int msbFar = findMSB(uint(x >> 32));
-    int msbFinal = (msbFar == -1) ? findMSB(uint(x)) : msbFar + 32;
-    return 63-msbFinal;
+    uvec2 pair = U2P(x);
+    int msbNear = findMSB(pair.y);
+    int nlzFinal = (msbNear >= 0) ? msbNear : (32 + findMSB(pair.x));
+    return 63-nlzFinal;
 }
 
 int nlz (in uint x) {

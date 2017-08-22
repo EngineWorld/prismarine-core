@@ -61,8 +61,6 @@ int firstActive(){
 #define UVEC_BALLOT_WARP uvec2
 
 uvec2 genLtMask(){
-    //return unpackUint2x32(gl_SubGroupLtMaskARB);
-
     uvec2 mask = uvec2(0, 0);
     if (LANE_IDX >= 64) {
         mask = uvec2(0xFFFFFFFF, 0xFFFFFFFF);
@@ -97,7 +95,7 @@ int readLane(in int val, in int lane){
 }
 
 uvec2 ballotHW(in bool val) {
-    return unpackUint2x32(ballotARB(val)) & uvec2(
+    return U2P(ballotARB(val)) & uvec2(
         gl_SubGroupSizeARB >= 32 ? 0xFFFFFFFF : ((1 << gl_SubGroupSizeARB)-1), 
         gl_SubGroupSizeARB >= 64 ? 0xFFFFFFFF : ((1 << (gl_SubGroupSizeARB-32))-1)
     );

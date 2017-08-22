@@ -125,6 +125,10 @@ void intersectCubeApart(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 cu
 
 #define BFE(a,o,n) ((a >> o) & ((1 << n)-1))
 
+uvec2 U2P(in uint64_t pckg) {
+    return uvec2((pckg >> 0) & 0xFFFFFFFF, (pckg >> 32) & 0xFFFFFFFF);
+}
+
 int BFI(in int base, in int inserts, in int offset, in int bits){
     int mask = bits >= 32 ? 0xFFFFFFFF : (1<<bits)-1;
     int offsetMask = mask << offset;
