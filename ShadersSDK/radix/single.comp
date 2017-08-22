@@ -97,14 +97,14 @@ void main(){
     LC_IDX = (gl_LocalInvocationID.x / gl_SubGroupSizeARB);
     LANE_IDX = (gl_LocalInvocationID.x % gl_SubGroupSizeARB);
 
-    blocks_info blocks = get_blocks_info(NumKeys, WG_IDX);
+    blocks_info blocks = get_blocks_info(NumKeys);
     UVEC_WARP localIdx = LT_IDX;
     if (localIdx < RADICES) localHistogram[localIdx] = 0;
     if (localIdx == 0) bcount = min(blocks.count, 4096);
     memoryBarrier(); barrier(); 
 
     // histograms
-    UVEC_WARP addr = blocks.offset + localIdx;
+    UVEC_WARP addr = localIdx;
     for ( int wk = 0; wk < bcount; wk++ ) {
         BVEC_WARP validAddress = addr < NumKeys;
         UVEC64_WARP data = UVEC64_WARP(KeyIn[addr]);
@@ -119,7 +119,7 @@ void main(){
     prefix_scan();
 
     if (localIdx < RADICES) localHistogramToCarry[localIdx] = localHistogram[localIdx];
-    addr = blocks.offset + localIdx;
+    addr = localIdx;
     for ( int wk=0; wk < bcount; wk++ ) { // permute
         BVEC_WARP validAddress = addr < NumKeys;
         UVEC64_WARP data       = validAddress ? UVEC64_WARP(KeyIn[addr]) : 0xFFFFFFFFFFFFFFFFul;

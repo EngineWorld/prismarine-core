@@ -27,9 +27,6 @@
 #define RADICES 256
 #define RADICES_MASK 0xff
 
-#define WG_COUNT 1
-#define WG_IDX gl_WorkGroupID.x
-
 uint LC_IDX = 0;
 uint LANE_IDX = 0;
 uint LT_IDX = 0;
@@ -60,11 +57,9 @@ uvec2 U2P(in uint64_t pckg) {
 }
 
 struct blocks_info { uint count; uint offset; };
-blocks_info get_blocks_info(in uint n, in uint wg_idx) {
-    uint block_stride = WG_COUNT * BLOCK_SIZE;
-    uint block_count = n > 0 ? (n - 1) / block_stride + 1 : 0;
-    uint block_off = wg_idx * BLOCK_SIZE * block_count;
-    return blocks_info(block_count, block_off);
+blocks_info get_blocks_info(in uint n) {
+    uint block_count = n > 0 ? ((n - 1) / BLOCK_SIZE + 1) : 0;
+    return blocks_info(block_count, 0);
 }
 
 uint btc(in uint vlc){
