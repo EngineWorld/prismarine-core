@@ -100,14 +100,12 @@ void main(){
     blocks_info blocks = get_blocks_info(NumKeys, WG_IDX);
     UVEC_WARP localIdx = LT_IDX;
     if (localIdx < RADICES) localHistogram[localIdx] = 0;
-    if (localIdx == 0) bcount = blocks.count;
+    if (localIdx == 0) bcount = min(blocks.count, 4096);
     memoryBarrier(); barrier(); 
 
     // histograms
     UVEC_WARP addr = blocks.offset + localIdx;
-    for ( int i = 0; i < 4096; i++ ) {
-        if (i >= bcount) break;
-
+    for ( int wk = 0; wk < bcount; wk++ ) {
         BVEC_WARP validAddress = addr < NumKeys;
         UVEC64_WARP data = UVEC64_WARP(KeyIn[addr]);
         UVEC_WARP k = UVEC_WARP(BFE(data, int(Shift*BITS_PER_PASS), BITS_PER_PASS));
@@ -122,9 +120,7 @@ void main(){
 
     if (localIdx < RADICES) localHistogramToCarry[localIdx] = localHistogram[localIdx];
     addr = blocks.offset + localIdx;
-    for ( int i_block=0; i_block < 4096 ; i_block++ ) { // permute
-        if (i_block >= bcount) break;
-
+    for ( int wk=0; wk < bcount; wk++ ) { // permute
         BVEC_WARP validAddress = addr < NumKeys;
         UVEC64_WARP data       = validAddress ? UVEC64_WARP(KeyIn[addr]) : 0xFFFFFFFFFFFFFFFFul;
             UVEC_WARP dataValue  = validAddress ? ValueIn[addr] : 0u;
