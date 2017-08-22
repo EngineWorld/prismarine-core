@@ -90,7 +90,9 @@ void storeRay(in int rayIndex, inout RayRework ray) {
     if (rayIndex == -1 || rayIndex == LONGEST || rayIndex >= RAY_BLOCK samplerUniform.currentRayLimit) {
         RayActived(ray, 0);
     } else {
-        _collect(ray);
+        if (RayActived(ray) == 0) {
+            _collect(ray);
+        }
         ray.idx = rayIndex;
         rayBuf.nodes[rayIndex] = ray;
     }
@@ -131,7 +133,7 @@ int createRay(inout RayRework original, in int idx) {
         RayBounce(original) <= 0 || 
         mlength(original.color.xyz) < 0.0001f;
 
-    if (mlength(original.final.xyz) >= 0.0001f) {
+    if (mlength(original.final.xyz) >= 0.0001f && RayActived(original) == 0) {
         _collect(original);
     }
 
@@ -176,7 +178,7 @@ int createRayIdx(inout RayRework original, in int idx, in int rayIndex) {
     } else {
         atomicMax(arcounter.Rt, rayIndex+1);
 
-        if (mlength(original.final.xyz) >= 0.0001f) {
+        if (mlength(original.final.xyz) >= 0.0001f && RayActived(original) == 0) {
             _collect(original);
         }
     }
