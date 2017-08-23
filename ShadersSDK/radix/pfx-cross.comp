@@ -1,0 +1,46 @@
+#version 460 core
+#include "./includes.glsl"
+
+//layout (local_size_x = WARP_SIZE, local_size_y = WORK_SIZE) in;
+layout (local_size_x = BLOCK_SIZE) in;
+
+#define LOCAL_SORT_SIZE (WORK_SIZE*RADICES)
+
+shared uint localHistogram[RADICES];
+shared uint bcount;
+
+void prefixScan(){
+    UVEC_WARP localIdx = LT_IDX;
+    memoryBarrier(); barrier();
+    uint tmp = localIdx >= 1 && localIdx < gl_NumWorkGroups.x ? localHistogram[localIdx-1] : 0;
+    memoryBarrier(); barrier();
+    if (localIdx < gl_NumWorkGroups.x) localHistogram[localIdx] = tmp;
+
+    // reduction prefix-scan
+    for (int i=1;i<gl_NumWorkGroups.x;i<<=1) {
+        memoryBarrier(); barrier();
+        uint idx = localIdx;
+        uint off = idx >= i && idx < gl_NumWorkGroups.x ? localHistogram[idx-i] : 0;
+        uint hst = idx < gl_NumWorkGroups.x ? localHistogram[idx] : 0;
+        memoryBarrier(); barrier();
+        if (idx < gl_NumWorkGroups.x) localHistogram[idx] = off + hst;
+    }
+    memoryBarrier(); barrier();
+}
+
+void main(){
+    LT_IDX = gl_LocalInvocationID.x;
+    LC_IDX = (gl_LocalInvocationID.x / gl_SubGroupSizeARB);
+    LANE_IDX = (gl_LocalInvocationID.x % gl_SubGroupSizeARB);
+
+    // get prefix counts of work groups
+    localHistogram[LT_IDX] = LT_IDX > 0 ? Histogram[LT_IDX * RADICES-1] : 0;
+
+    // do prefix scan of work groups
+    prefixScan();
+
+    // add prefix scans to histograms
+    for (int i=0;i<RADICES;i++) {
+        Histogram[LT_IDX * RADICES + i] += localHistogram[LT_IDX];
+    }
+}

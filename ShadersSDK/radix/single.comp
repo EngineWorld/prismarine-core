@@ -166,8 +166,8 @@ void main(){
             prefixScan();
 
             UVEC_WARP outKey = offset - localHistogram[histKey];
-            if (validAddress)   KeyOut[outKey] = KEYTYPE(data);
-            if (validAddress) ValueOut[outKey] = dataValue;
+            if (validAddress)   KeyIn[outKey] = KEYTYPE(data);
+            if (validAddress) ValueIn[outKey] = dataValue;
             memoryBarrier(); barrier();
 
             addr += BLOCK_SIZE_RT;

@@ -6,72 +6,10 @@ layout (local_size_x = BLOCK_SIZE) in;
 
 #define LOCAL_SORT_SIZE (WORK_SIZE*RADICES)
 
-shared UVEC64_WARP localSort64[BLOCK_SIZE];
 shared uint localSort[LOCAL_SORT_SIZE];
-shared uint localSortVal[BLOCK_SIZE];
 shared uint localHistogramToCarry[RADICES];
 shared uint localHistogram[RADICES];
-shared uint warpPScan[WORK_SIZE];
-shared uint psums[WORK_SIZE];
-shared uint totals[WORK_SIZE];
 shared uint bcount;
-
-// prefix scan for WARP vector
-uint prefixScanWarp(inout UVEC_WARP v){
-    BVEC_WARP btf = (v == 1);
-    UVEC_BALLOT_WARP bits = ballotHW(btf);
-    UVEC_WARP sum = bitCount64(bits);
-    v = bitCount64(bits & genLtMask());
-    return sum;
-}
-
-// WARP version of prefix_sum
-uint prefixSum(in uint data, inout uint total_sum) {
-    UVEC_WARP rsort = data;
-    for (uint i = 1; i < WORK_SIZE_RT; i <<= 1) {
-        rsort += READ_LANE(rsort, LANE_IDX - i) * uint(LANE_IDX < WORK_SIZE_RT);
-    }
-    total_sum = READ_LANE(rsort, WORK_SIZE_RT-1);
-    UVEC_WARP result = READ_LANE(rsort, LANE_IDX - 1) * uint(LANE_IDX < WORK_SIZE_RT);
-    return result;
-}
-
-void sortWork(inout UVEC64_WARP sort, inout uint sortVal, in bool valids){
-    UVEC_WARP addr = LT_IDX;
-    for (int i=0;i<BITS_PER_PASS;i++) {
-        BVEC_WARP cmp = BFE(sort, int(Shift*BITS_PER_PASS) + i, 1) == 0;
-        UVEC_WARP warpKey = UVEC_WARP(cmp);
-
-        // prefix scan for WARP (sum)
-        warpPScan[LC_IDX] = anyInvocation(valids) ? prefixScanWarp(warpKey) : 0; // cache by WARP ID
-        
-        // use LANE_IDX as LC_IDX, so we did caching, WARP size should less or equal than WORK_SIZE
-        // calculate prefix scans per WARP works
-        memoryBarrier(); barrier();
-        if (LC_IDX == 0) {
-            uint warpTotal = 0;
-            uint prefixSum = prefixSum(warpPScan[LANE_IDX], warpTotal);
-            if (LANE_IDX < WORK_SIZE_RT) {
-                psums [LANE_IDX] = prefixSum;
-                totals[LANE_IDX] = warpTotal;
-            }
-        }
-        memoryBarrier(); barrier();
-        
-        // use generalized local indexing (incl. warps)
-        warpKey += psums[LC_IDX];
-
-        UVEC_WARP destAddr = cmp ? warpKey : (addr - warpKey + totals[LC_IDX]);
-        localSort64 [destAddr] = sort;
-        localSortVal[destAddr] = sortVal;
-        memoryBarrier(); barrier();
-
-        sort    = localSort64 [addr];
-        sortVal = localSortVal[addr];
-        memoryBarrier(); barrier();
-    }
-}
-
 
 void prefixScan(){
     UVEC_WARP localIdx = LT_IDX;
@@ -92,7 +30,6 @@ void prefixScan(){
     memoryBarrier(); barrier();
 }
 
-
 void main(){
     LT_IDX = gl_LocalInvocationID.x;
     LC_IDX = (gl_LocalInvocationID.x / gl_SubGroupSizeARB);
@@ -111,8 +48,6 @@ void main(){
         if (anyInvocation(wk >= bcount)) break;
         if (wk < bcount) {
             BVEC_WARP validAddress = addr < NumKeys;
-            //UVEC64_WARP data       = validAddress ? UVEC64_WARP(KeyIn[addr]) : 0xFFFFFFFFFFFFFFFFul;
-            //UVEC_WARP dataValue    = validAddress ? ValueIn[addr] : 0u;
             UVEC64_WARP data       = validAddress ? UVEC64_WARP(KeyTmp[addr]) : 0xFFFFFFFFFFFFFFFFul;
             UVEC_WARP dataValue    = validAddress ? ValueTmp[addr] : 0u;
 
@@ -141,8 +76,8 @@ void main(){
             prefixScan();
 
             UVEC_WARP outKey = offset - localHistogram[histKey];
-            if (validAddress)   KeyOut[outKey] = KEYTYPE(data);
-            if (validAddress) ValueOut[outKey] = dataValue;
+            if (validAddress)   KeyIn[outKey] = KEYTYPE(data);
+            if (validAddress) ValueIn[outKey] = dataValue;
             memoryBarrier(); barrier();
 
             addr += BLOCK_SIZE_RT * gl_NumWorkGroups.x;

@@ -1,0 +1,48 @@
+#version 460 core
+#include "./includes.glsl"
+
+//layout (local_size_x = WARP_SIZE, local_size_y = WORK_SIZE) in;
+layout (local_size_x = BLOCK_SIZE) in;
+
+#define LOCAL_SORT_SIZE (WORK_SIZE*RADICES)
+
+shared uint localHistogram[RADICES];
+shared uint bcount;
+
+void prefixScan(){
+    UVEC_WARP localIdx = LT_IDX;
+    memoryBarrier(); barrier();
+    uint tmp = localIdx >= 1 && localIdx < RADICES ? localHistogram[localIdx-1] : 0;
+    memoryBarrier(); barrier();
+    if (localIdx < RADICES) localHistogram[localIdx] = tmp;
+
+    // reduction prefix-scan
+    for (int i=1;i<RADICES;i<<=1) {
+        memoryBarrier(); barrier();
+        uint idx = localIdx;
+        uint off = idx >= i && idx < RADICES ? localHistogram[idx-i] : 0;
+        uint hst = idx < RADICES ? localHistogram[idx] : 0;
+        memoryBarrier(); barrier();
+        if (idx < RADICES) localHistogram[idx] = off + hst;
+    }
+    memoryBarrier(); barrier();
+}
+
+
+void main(){
+    LT_IDX = gl_LocalInvocationID.x;
+    LC_IDX = (gl_LocalInvocationID.x / gl_SubGroupSizeARB);
+    LANE_IDX = (gl_LocalInvocationID.x % gl_SubGroupSizeARB);
+
+    blocks_info blocks = get_blocks_info(NumKeys);
+    UVEC_WARP localIdx = LT_IDX;
+    if (localIdx < RADICES) localHistogram[localIdx] = 0;
+    if (localIdx == 0) bcount = min(blocks.count, 4096);
+    memoryBarrier(); barrier(); 
+
+    // prefix scans of worker histograms
+    if (localIdx < RADICES) localHistogram[localIdx] = Histogram[localIdx + gl_WorkGroupID.x * RADICES];
+    prefixScan();
+    if (localIdx < RADICES) Histogram[localIdx + gl_WorkGroupID.x * RADICES] = localHistogram[localIdx];
+    
+}
