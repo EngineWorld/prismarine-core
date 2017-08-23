@@ -13,6 +13,8 @@ namespace ppr {
 
         GLuint OutKeys = -1;
         GLuint OutValues = -1;
+        GLuint TmpKeys = -1;
+        GLuint TmpValues = -1;
         GLuint VarBuffer = -1;
 
     public:
@@ -23,6 +25,8 @@ namespace ppr {
 
             OutKeys = allocateBuffer<uint64_t>(1024 * 1024 * 4);
             OutValues = allocateBuffer<uint32_t>(1024 * 1024 * 4);
+            TmpKeys = allocateBuffer<uint64_t>(1024 * 1024 * 4);
+            TmpValues = allocateBuffer<uint32_t>(1024 * 1024 * 4);
             VarBuffer = allocateBuffer<Consts>(1);
         }
 
@@ -35,12 +39,15 @@ namespace ppr {
         void sort(GLuint &InKeys, GLuint &InVals, uint32_t size = 1, uint32_t descending = 0) {
             bool swapness = true;
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 24, VarBuffer);
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 25, TmpKeys);
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 26, TmpValues);
 
             for (GLuint i = 0; i < 8; i++) { // 64-bit uint
                 glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 20, swapness ? InKeys : OutKeys);
                 glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 21, swapness ? InVals : OutValues);
                 glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 22, swapness ? OutKeys : InKeys);
                 glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 23, swapness ? OutValues : InVals);
+                
 
                 Consts consts = { size, i, descending, 0 };
                 glNamedBufferSubData(VarBuffer, 0, strided<Consts>(1), &consts);

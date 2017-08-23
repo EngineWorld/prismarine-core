@@ -51,6 +51,8 @@ layout (std430, binding = 24) restrict buffer VarsBlock {
     uint Descending;
     uint IsSigned;
 };
+layout (std430, binding = 25) restrict buffer KeyTmpBlock {KEYTYPE KeyTmp[];};
+layout (std430, binding = 26) restrict buffer ValueTmpBlock {uint ValueTmp[];};
 
 uvec2 U2P(in uint64_t pckg) {
     return uvec2((pckg >> 0) & 0xFFFFFFFF, (pckg >> 32) & 0xFFFFFFFF);
