@@ -37,6 +37,7 @@ namespace ppr {
         GLuint arcounter = -1;
         GLuint arcounterTemp = -1;
         GLuint hitChains = -1;
+        GLuint deferredStack = -1;
 
         GLuint lightUniform = -1;
         GLuint rayBlockUniform = -1;

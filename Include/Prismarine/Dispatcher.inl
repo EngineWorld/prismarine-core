@@ -114,17 +114,18 @@ namespace ppr {
 
     inline void Dispatcher::resizeBuffers(const uint32_t & w, const uint32_t & h) {
         width = w, height = h;
-        bool enableInterlacing = true;
+        bool enableInterlacing = false;
 
-        if (colorchains != -1) glDeleteBuffers(1, &colorchains);
-        if (rays        != -1) glDeleteBuffers(1, &rays);
-        if (hits        != -1) glDeleteBuffers(1, &hits);
-        if (activel     != -1) glDeleteBuffers(1, &activel);
-        if (activenl    != -1) glDeleteBuffers(1, &activenl);
-        if (texels      != -1) glDeleteBuffers(1, &texels);
-        if (freedoms    != -1) glDeleteBuffers(1, &freedoms);
-        if (availables  != -1) glDeleteBuffers(1, &availables);
-        if (quantized   != -1) glDeleteBuffers(1, &quantized);
+        if (colorchains   != -1) glDeleteBuffers(1, &colorchains);
+        if (rays          != -1) glDeleteBuffers(1, &rays);
+        if (hits          != -1) glDeleteBuffers(1, &hits);
+        if (activel       != -1) glDeleteBuffers(1, &activel);
+        if (activenl      != -1) glDeleteBuffers(1, &activenl);
+        if (texels        != -1) glDeleteBuffers(1, &texels);
+        if (freedoms      != -1) glDeleteBuffers(1, &freedoms);
+        if (availables    != -1) glDeleteBuffers(1, &availables);
+        if (quantized     != -1) glDeleteBuffers(1, &quantized);
+        if (deferredStack != -1) glDeleteBuffers(1, &deferredStack);
 
         const int32_t wrsize = width * height;
         currentRayLimit = std::min(wrsize * 4 / (enableInterlacing ? 2 : 1), 4096 * 4096);
@@ -137,6 +138,7 @@ namespace ppr {
         texels = allocateBuffer<Texel>(wrsize);
         freedoms = allocateBuffer<int32_t>(currentRayLimit);
         availables = allocateBuffer<int32_t>(currentRayLimit);
+        deferredStack = allocateBuffer<int32_t>(currentRayLimit * 32);
 
         samplerUniformData.sceneRes = { float(width), float(height) };
         samplerUniformData.currentRayLimit = currentRayLimit;
@@ -300,6 +302,8 @@ namespace ppr {
         obj->bindBVH();
         obj->bindLeafs();
         obj->bind();
+
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 19, deferredStack);
         dispatch(traverseDirectProgram, tiled(rsize, worksize));
         
         return 1;

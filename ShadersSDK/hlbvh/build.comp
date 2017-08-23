@@ -181,7 +181,8 @@ void main() {
                 // reform range
                 ivec2 range = childNode.pdata.xy;
                 childNode.pdata.xy = range.yy; // leaf end (for identify that is leaf)
-                childNode.pdata.w  = range.x;  // leaf index (except morton-code) is primitive
+                //childNode.pdata.w = range.x; // leaf index (except morton-code) is primitive
+                childNode.pdata.w = Leafs[MortoncodesIndices[range.x]].pdata.w;
 
                 Nodes[hid] = childNode;
             }
