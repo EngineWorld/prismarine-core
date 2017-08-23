@@ -28,13 +28,13 @@ bbox getMinMaxPrimitive(in uint idx){
 
 #ifdef ENABLE_AMD_INSTRUCTION_SET
     return bbox(
-        min3(triverts[0], triverts[1], triverts[2]) - 0.00001f, 
-        max3(triverts[0], triverts[1], triverts[2]) + 0.00001f
+        min3(triverts[0], triverts[1], triverts[2]) - 0.0001f, 
+        max3(triverts[0], triverts[1], triverts[2]) + 0.0001f
     );
 #else 
     return bbox(
-        min(min(triverts[0], triverts[1]), triverts[2]) - 0.00001f, 
-        max(max(triverts[0], triverts[1]), triverts[2]) + 0.00001f
+        min(min(triverts[0], triverts[1]), triverts[2]) - 0.0001f, 
+        max(max(triverts[0], triverts[1]), triverts[2]) + 0.0001f
     );
 #endif
 }

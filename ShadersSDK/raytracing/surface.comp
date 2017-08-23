@@ -13,27 +13,27 @@
 #include "../include/mathlib.glsl"
 
 struct Material {
-    vec4 diffuse;
-    vec4 specular;
-    vec4 transmission;
-    vec4 emissive;
+    highp vec4 diffuse;
+    highp vec4 specular;
+    highp vec4 transmission;
+    highp vec4 emissive;
 
-    float ior;
-    float roughness;
-    float alpharef;
-    float unk0f;
+    highp float ior;
+    highp float roughness;
+    highp float alpharef;
+    highp float unk0f;
 
-    uint diffusePart;
-    uint specularPart;
-    uint bumpPart;
-    uint emissivePart;
+    highp uint diffusePart;
+    highp uint specularPart;
+    highp uint bumpPart;
+    highp uint emissivePart;
 
-    int flags;
-    int alphafunc;
-    int binding;
-    int unk0i;
+    highp int flags;
+    highp int alphafunc;
+    highp int binding;
+    highp int unk0i;
 
-    ivec4 iModifiers0;
+    highp ivec4 iModifiers0;
 };
 
 

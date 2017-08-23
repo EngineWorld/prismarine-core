@@ -4,17 +4,17 @@
 #include "../include/mathlib.glsl"
 
 struct Texel {
-    vec4 coord;
-    ivec4 EXT;
+    highp vec4 coord;
+    highp ivec4 EXT;
 };
 
 struct bbox {
 #ifdef USE_WARP_OPTIMIZED
-    float mn[4];
-    float mx[4];
+    highp float mn[4];
+    highp float mx[4];
 #else
-    vec4 mn;
-    vec4 mx;
+    highp vec4 mn;
+    highp vec4 mx;
 #endif
 };
 
@@ -27,34 +27,34 @@ struct bbox {
 // {8 ..11}[4] - bounce index
 
 struct RayRework {
-    vec4 origin;
-    vec4 direct;
-    vec4 color;
-    vec4 final;
-    int bitfield; // up to 32-bits
-    int idx; // ray index itself
-    int texel; // texel index
-    int hit; // index of hit chain
+    highp vec4 origin;
+    highp vec4 direct;
+    highp vec4 color;
+    highp vec4 final;
+    highp int bitfield; // up to 32-bits
+    highp int idx; // ray index itself
+    highp int texel; // texel index
+    highp int hit; // index of hit chain
 };
 
 struct HitRework {
-    vec4 uvt; // UV, distance, triangle
-    vec4 normalHeight; // normal with height mapping, will already interpolated with geometry
-    vec4 tangent; // also have 4th extra slot
-    vec4 texcoord; // critical texcoords 
+    highp vec4 uvt; // UV, distance, triangle
+    highp vec4 normalHeight; // normal with height mapping, will already interpolated with geometry
+    highp vec4 tangent; // also have 4th extra slot
+    highp vec4 texcoord; // critical texcoords 
 
     // low four 16 bit - texcoords
-    uvec4 metallicRoughness; // 8 of 16-bit float, you can pack non-critical surface data
+    highp uvec4 metallicRoughness; // 8 of 16-bit float, you can pack non-critical surface data
 
     // color parameters
-    vec4 emission;
-    vec4 albedo;
+    highp vec4 emission;
+    highp vec4 albedo;
 
     // integer metadata
-    int bitfield; 
-    int ray; // ray index
-    int materialID;
-    int next;
+    highp int bitfield; 
+    highp int ray; // ray index
+    highp int materialID;
+    highp int next;
 };
 
 
@@ -108,60 +108,60 @@ void RayBounce(inout RayRework ray, in int bn){
 
 
 struct HlbvhNode {
-    bbox box;
+    highp bbox box;
 #ifdef USE_WARP_OPTIMIZED
-    int pdata[4];
+    highp int pdata[4];
 #else
-    ivec4 pdata;
+    highp ivec4 pdata;
 #endif
 };
 
 struct VboDataStride {
-    vec4 vertex;
-    vec4 normal;
-    vec4 texcoord;
-    vec4 color;
-    vec4 modifiers;
+    highp vec4 vertex;
+    highp vec4 normal;
+    highp vec4 texcoord;
+    highp vec4 color;
+    highp vec4 modifiers;
 };
 
 struct ColorChain {
-    vec4 color;
-    ivec4 cdata;
+    highp vec4 color;
+    highp ivec4 cdata;
 };
 
 
 
 struct GroupFoundResult {
-    int nextResult;
-    float boxDistance;
-    ivec2 range;
+    highp int nextResult;
+    highp float boxDistance;
+    highp ivec2 range;
 };
 
 struct MeshUniformStruct {
-    int vertexAccessor;
-    int normalAccessor;
-    int texcoordAccessor;
-    int modifierAccessor;
+    highp int vertexAccessor;
+    highp int normalAccessor;
+    highp int texcoordAccessor;
+    highp int modifierAccessor;
 
-    mat4 transform;
-    mat4 transformInv;
+    highp mat4 transform;
+    highp mat4 transformInv;
 
-    int materialID;
-    int isIndexed;
-    int nodeCount;
-    int primitiveType;
+    highp int materialID;
+    highp int isIndexed;
+    highp int nodeCount;
+    highp int primitiveType;
 
-    int loadingOffset;
-    int storingOffset;
-    int _reserved0;
-    int _reserved1;
+    highp int loadingOffset;
+    highp int storingOffset;
+    highp int _reserved0;
+    highp int _reserved1;
 };
 
 struct VirtualAccessor {
-    int offset;
-    int stride;
-    int components;
-    int type; // 0 is float, 1 is uint, 2 is 16bit uint
+    highp int offset;
+    highp int stride;
+    highp int components;
+    highp int type; // 0 is float, 1 is uint, 2 is 16bit uint
 };
 
 

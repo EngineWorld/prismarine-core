@@ -16,23 +16,21 @@
 
 vec4 composite(in vec4 src, in vec4 dst){
     float oa = src.a + dst.a * (1.0f - src.a);
-    return clamp(vec4((src.rgb * src.a + dst.rgb * dst.a * (1.0f - src.a)) / max(oa, 0.0001f), oa), vec4(0.0f), vec4(1.0f));
+    return clamp(vec4((src.rgb * src.a + dst.rgb * dst.a * (1.0f - src.a)) / max(oa, 0.00001f), oa), vec4(0.0f), vec4(1.0f));
 }
 
 
 
 
 struct SurfaceUnpacked {
-    vec4 uvt; // UV, distance, triangle
-    vec4 normalHeight; // normal with height mapping, will already interpolated with geometry
-    //vec4 tangent; // also have 4th extra slot
-
-    vec4 texcoord;
-    vec4 metallicRoughness;
+    highp vec4 uvt; // UV, distance, triangle
+    highp vec4 normalHeight; // normal with height mapping, will already interpolated with geometry
+    highp vec4 texcoord;
+    highp vec4 metallicRoughness;
 
     // color parameters
-    vec4 emission;
-    vec4 albedo;
+    highp vec4 emission;
+    highp vec4 albedo;
 };
 
 
