@@ -32,14 +32,12 @@ uint L = 0;
 int deferredPtr = 0;
 SharedVarsData sharedVarsData;
 
-const int STACK_SIZE = 16;
-const int GLOBAL_STACK_SIZE = 32;
-//const int GLOBAL_STACK_SIZE = 0;
-
-const int bakedFragments = 8;
+const int STACK_SIZE = 8;
+const int GLOBAL_STACK_SIZE = 32;// in VEGA can be effective, in Pascal not
+const int BAKED_STACK_SIZE = 16;
 
 shared int deferredStack[WORK_SIZE][STACK_SIZE];
-shared vec4 bakedStack[WORK_SIZE][bakedFragments];
+shared vec4 bakedStack[WORK_SIZE][BAKED_STACK_SIZE];
 
 
 
@@ -69,7 +67,7 @@ void storeStack(in int STI, in int VALUE){
 
 
 void reorderTriangles() {
-    sharedVarsData.bakedStackCount = min(sharedVarsData.bakedStackCount, bakedFragments);
+    sharedVarsData.bakedStackCount = min(sharedVarsData.bakedStackCount, BAKED_STACK_SIZE);
 
     for (int iround = 1; iround < sharedVarsData.bakedStackCount; iround++) {
         for (int index = 0; index < sharedVarsData.bakedStackCount - iround; index++) {
@@ -93,7 +91,7 @@ void reorderTriangles() {
     int cleanBakedStackCount = 0;
 
     // select only unique triangle ID's
-    for (int iround = 0; iround < bakedFragments; iround++) {
+    for (int iround = 0; iround < BAKED_STACK_SIZE; iround++) {
         if (iround >= sharedVarsData.bakedStackCount-1) break;
         if (floatBitsToInt(bakedStack[L][iround+1].w) != floatBitsToInt(bakedStack[L][iround].w)) {
             bakedStack[L][cleanBakedStackCount++] = bakedStack[L][iround];
@@ -101,7 +99,7 @@ void reorderTriangles() {
     }
 
     // copy last primitive
-    if (sharedVarsData.bakedStackCount > 0 && cleanBakedStackCount <= bakedFragments) {
+    if (sharedVarsData.bakedStackCount > 0 && cleanBakedStackCount <= BAKED_STACK_SIZE) {
         bakedStack[L][cleanBakedStackCount++] = bakedStack[L][sharedVarsData.bakedStackCount-1];
     }
     
@@ -257,7 +255,7 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
     deferredStack[L][0] = -1;
     sharedVarsData.chainID = -1;
     sharedVarsData.bakedStackCount = 0;
-    for (int i=0;i<bakedFragments;i++) {bakedStack[L][i] = vec4(vec2(0.0f), INFINITY, LONGEST);}
+    for (int i=0;i<BAKED_STACK_SIZE;i++) {bakedStack[L][i] = vec4(vec2(0.0f), INFINITY, LONGEST);}
 
     // something fix
     direct = normalize(direct);
