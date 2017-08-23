@@ -117,8 +117,8 @@ HitRework interpolateMeshData(inout HitRework res) {
         if (validInterpolant) {
             res.normalHeight = vec4(normal, 0.0f);
             res.tangent = vec4(normalize(tan - normal * sign(dot(tan, nor))), 0.0f);
-            res.texcoord.x = packHalf2x16(fma(texcoords[0].xy, vec2(1.0f - uv.x - uv.y), fma(texcoords[1].xy, vec2(uv.x), texcoords[2].xy * vec2(uv.y))));
-            res.texcoord.y = packHalf2x16(fma(texcoords[0].zw, vec2(1.0f - uv.x - uv.y), fma(texcoords[1].zw, vec2(uv.x), texcoords[2].zw * vec2(uv.y))));
+            res.texcoord.xy =  fma(texcoords[0].xy, vec2(1.0f - uv.x - uv.y), fma(texcoords[1].xy, vec2(uv.x), texcoords[2].xy * vec2(uv.y))) ;
+            res.texcoord.zw =  fma(texcoords[0].zw, vec2(1.0f - uv.x - uv.y), fma(texcoords[1].zw, vec2(uv.x), texcoords[2].zw * vec2(uv.y))) ;
             res.albedo = fma(colors[0], vec4(1.0f - uv.x - uv.y), fma(colors[1], vec4(uv.x), colors[2] * vec4(uv.y)));
             res.materialID = mats[tri];
         }

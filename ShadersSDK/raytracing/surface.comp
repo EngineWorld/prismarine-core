@@ -11,8 +11,6 @@
 #include "../include/rayslib.glsl"
 #include "../include/random.glsl"
 #include "../include/mathlib.glsl"
-#include "../include/vertex.glsl"
-
 
 struct Material {
     vec4 diffuse;
@@ -154,7 +152,7 @@ void main() {
     vec3 normal = normalize(hit.normalHeight.xyz);
     vec3 tangent = normalize(hit.tangent.xyz);
     mat3 tbn = mat3(tangent, normalize(cross(normal, tangent)), normal);
-    vec2 texcoord = unpackHalf2x16(hit.texcoord.x);
+    vec2 texcoord = hit.texcoord.xy;
 
     hit.albedo = fetchDiffuse(material, texcoord);
     hit.normalHeight.xyz = normalize(tbn * normalize(getNormalMapping(material, texcoord).xyz));
