@@ -9,13 +9,14 @@ namespace ppr {
         GLuint sortProgram;
 
         struct Consts { GLuint NumKeys, Shift, Descending, IsSigned; };
-        const uint32_t WG_COUNT = 1; // planned multiply radix sort support (aka. Async Compute)
+        const uint32_t WG_COUNT = 2; // planned multiply radix sort support (aka. Async Compute)
 
         GLuint OutKeys = -1;
         GLuint OutValues = -1;
         GLuint TmpKeys = -1;
         GLuint TmpValues = -1;
         GLuint VarBuffer = -1;
+        GLuint Histograms = -1;
 
     public:
 
@@ -27,6 +28,7 @@ namespace ppr {
             OutValues = allocateBuffer<uint32_t>(1024 * 1024 * 4);
             TmpKeys = allocateBuffer<uint64_t>(1024 * 1024 * 4);
             TmpValues = allocateBuffer<uint32_t>(1024 * 1024 * 4);
+            Histograms = allocateBuffer<uint32_t>(WG_COUNT * 256);
             VarBuffer = allocateBuffer<Consts>(1);
         }
 
@@ -41,6 +43,7 @@ namespace ppr {
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 24, VarBuffer);
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 25, TmpKeys);
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 26, TmpValues);
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 27, Histograms);
 
             for (GLuint i = 0; i < 8; i++) { // 64-bit uint
                 glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 20, swapness ? InKeys : OutKeys);

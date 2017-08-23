@@ -5,6 +5,8 @@
 #extension GL_ARB_shader_ballot : require
 #endif
 
+#define WG_COUNT 1
+
 #define BLOCK_SIZE 1024
 #define BLOCK_SIZE_RT (gl_WorkGroupSize.x)
 
@@ -60,7 +62,7 @@ uvec2 U2P(in uint64_t pckg) {
 
 struct blocks_info { uint count; uint offset; };
 blocks_info get_blocks_info(in uint n) {
-    uint block_count = n > 0 ? ((n - 1) / BLOCK_SIZE + 1) : 0;
+    uint block_count = n > 0 ? ((n - 1) / (BLOCK_SIZE * gl_NumWorkGroups.x) + 1) : 0;
     return blocks_info(block_count, 0);
 }
 
