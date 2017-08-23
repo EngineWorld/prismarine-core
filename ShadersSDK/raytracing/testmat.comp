@@ -22,6 +22,19 @@ vec4 composite(in vec4 src, in vec4 dst){
 
 
 
+struct SurfaceUnpacked {
+    vec4 uvt; // UV, distance, triangle
+    vec4 normalHeight; // normal with height mapping, will already interpolated with geometry
+    //vec4 tangent; // also have 4th extra slot
+
+    vec4 texcoord;
+    vec4 metallicRoughness;
+
+    // color parameters
+    vec4 emission;
+    vec4 albedo;
+};
+
 
 
 LOCAL_SIZE_LAYOUT;
@@ -38,17 +51,21 @@ void main() {
     int layers = 1; // support only one layer
     int currentLayer = 0;
 
-    HitRework compositedHit[1];
-    compositedHit[0] = hitBuf.nodes[ray.hit];
-    
+    SurfaceUnpacked compositedHit[1];
     if (ray.hit == -1) {
         compositedHit[0].uvt = vec4(vec2(0.f), INFINITY, intBitsToFloat(-1));
-        compositedHit[0].next = -1;
+    } else {
+        HitRework firstHit = hitBuf.nodes[ray.hit];
+        compositedHit[0].uvt = firstHit.uvt;
+        compositedHit[0].albedo = firstHit.albedo;
+        compositedHit[0].emission = firstHit.emission;
+        compositedHit[0].metallicRoughness.yz = unpackHalf2x16(firstHit.metallicRoughness.x);
+        compositedHit[0].normalHeight = firstHit.normalHeight;
     }
 
     // layers composition
     int searchLayer = 0;
-    int hitID = compositedHit[0].next;
+    int hitID = hitBuf.nodes[ray.hit].next;
     for (int i=0;i<8;i++) {
         if (hitID == -1) break;
         HitRework hit = hitBuf.nodes[hitID];
@@ -61,7 +78,7 @@ void main() {
         compositedHit[searchLayer].uvt = hit.uvt;
         compositedHit[searchLayer].albedo = composite(compositedHit[searchLayer].albedo, hit.albedo);
         compositedHit[searchLayer].normalHeight = mix(compositedHit[searchLayer].normalHeight, hit.normalHeight, hit.albedo.w);
-        compositedHit[searchLayer].metallicRoughness = composite(compositedHit[searchLayer].metallicRoughness, vec4(hit.metallicRoughness.xyz, hit.metallicRoughness.w) * hit.albedo.w);
+        compositedHit[searchLayer].metallicRoughness.yz = mix(compositedHit[searchLayer].metallicRoughness.yz, unpackHalf2x16(hit.metallicRoughness.x), hit.albedo.w);
 
         // already filled layer
         if (compositedHit[searchLayer].albedo.a > 0.99999f) continue;

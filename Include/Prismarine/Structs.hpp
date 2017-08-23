@@ -94,12 +94,21 @@ namespace ppr {
 
     struct Hit {
         glm::vec4 uvt; // UV, distance, triangle
-        glm::vec4 albedo;
-        glm::vec4 metallicRoughness; // Y - roughtness, Z - metallic, also available other params
         glm::vec4 normalHeight; // normal with height mapping, will already interpolated with geometry
+        glm::vec4 tangent; // also have 4th extra slot
+
+        //vec4 metallicRoughness; // Y - roughtness, Z - metallic, also available other params
+        //vec4 texcoord;
+
+        // low four 16 bit - texcoords
+        glm::uvec2 texcoord; // four 16-bit float
+        glm::uvec2 metallicRoughness; // four 16-bit float
+
+        // color parameters
         glm::vec4 emission;
-        glm::vec4 texcoord;
-        glm::vec4 tangent;
+        glm::vec4 albedo;
+
+        // integer metadata
         int bitfield;
         int ray; // ray index
         int materialID;

@@ -37,6 +37,7 @@ struct RayRework {
     int hit; // index of hit chain
 };
 
+/*
 struct HitRework {
     vec4 uvt; // UV, distance, triangle
     vec4 albedo;
@@ -45,6 +46,31 @@ struct HitRework {
     vec4 emission;
     vec4 texcoord;
     vec4 tangent;
+    int bitfield; 
+    int ray; // ray index
+    int materialID;
+    int next;
+};
+*/
+
+
+struct HitRework {
+    vec4 uvt; // UV, distance, triangle
+    vec4 normalHeight; // normal with height mapping, will already interpolated with geometry
+    vec4 tangent; // also have 4th extra slot
+
+    //vec4 metallicRoughness; // Y - roughtness, Z - metallic, also available other params
+    //vec4 texcoord;
+
+    // low four 16 bit - texcoords
+    uvec2 texcoord; // four 16-bit float
+    uvec2 metallicRoughness; // four 16-bit float
+
+    // color parameters
+    vec4 emission;
+    vec4 albedo;
+
+    // integer metadata
     int bitfield; 
     int ray; // ray index
     int materialID;
