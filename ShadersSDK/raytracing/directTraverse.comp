@@ -282,7 +282,8 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
             bool anyLeaf = anyB(overlapsGeneral); skipIntersection = skipIntersection || anyLeaf; // if any leaf found, skipping
             
             // intersect triangles when accumulate WARP's
-            if (anyInvocation(skipIntersection || !validBox)) {
+            if (anyInvocation(skipIntersection)) {
+            //if (allInvocations(skipIntersection || !validBox)) {
                 bvec2 overlaps = cI2(overlapsGeneral);
                 overlaps = leftOrder ? overlaps : overlaps.yx;
                 
@@ -294,6 +295,7 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
             // choice child nodes by nears
             bool anyOverlap = anyB(overlaps);
             if (anyInvocation(anyOverlap)) {
+            //if (allInvocations(anyOverlap || !validBox)) {
                 bvec2 overlapsBool = cI2(overlaps);
                 ivec2 leftright = mix(ivec2(-1), node.pdata.xy, overlapsBool);
                 leftright = leftOrder ? leftright : leftright.yx;
@@ -305,9 +307,9 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
                     idx = leftright.x;
                     node = Nodes[idx]; // for optimized read-write operations
                 }
-
-                skipUpstream = skipUpstream || anyOverlap;
             }
+
+            skipUpstream = skipUpstream || anyOverlap;
         }
 
         // go to parent 
