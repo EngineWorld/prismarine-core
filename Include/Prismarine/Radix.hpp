@@ -7,7 +7,6 @@ namespace ppr {
 
     class RadixSort {
         GLuint sortProgram = -1;
-
         GLuint permuteProgram = -1;
         GLuint histogramProgram = -1;
         GLuint pfxWorkProgram = -1;
@@ -15,8 +14,6 @@ namespace ppr {
         struct Consts { GLuint NumKeys, Shift, Descending, IsSigned; };
         const uint32_t WG_COUNT = 8; // planned multiply radix sort support (aka. Async Compute)
 
-        //GLuint OutKeys = -1;
-        //GLuint OutValues = -1;
         GLuint TmpKeys = -1;
         GLuint TmpValues = -1;
         GLuint VarBuffer = -1;
@@ -28,14 +25,10 @@ namespace ppr {
         RadixSort() {
             // for adopt for AMD
             initShaderComputeSPIRV("./shaders-spv/radix/single.comp.spv", sortProgram);
-
             initShaderComputeSPIRV("./shaders-spv/radix/permute.comp.spv", permuteProgram);
             initShaderComputeSPIRV("./shaders-spv/radix/histogram.comp.spv", histogramProgram);
             initShaderComputeSPIRV("./shaders-spv/radix/pfx-work.comp.spv", pfxWorkProgram);
 
-
-            //OutKeys = allocateBuffer<uint64_t>(1024 * 1024 * 4);
-            //OutValues = allocateBuffer<uint32_t>(1024 * 1024 * 4);
             TmpKeys = allocateBuffer<uint64_t>(1024 * 1024 * 4);
             TmpValues = allocateBuffer<uint32_t>(1024 * 1024 * 4);
             Histograms = allocateBuffer<uint32_t>(WG_COUNT * 256);
@@ -59,23 +52,16 @@ namespace ppr {
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 27, Histograms);
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 28, PrefixSums);
             
-            //for (GLuint i = 0; i < 16; i++) { // 64-bit uint
             for (GLuint i = 0; i < 8; i++) { // 64-bit uint
                 Consts consts = { size, i, descending, 0 };
                 glNamedBufferSubData(VarBuffer, 0, strided<Consts>(1), &consts);
 
-                //dispatch(sortProgram, 1);
                 dispatch(histogramProgram, WG_COUNT);
                 dispatch(pfxWorkProgram, 1);
-                //dispatch(pfxWorkProgram, WG_COUNT);
-                //dispatch(pfxCrossProgram, 1);
                 dispatch(permuteProgram, WG_COUNT);
 
                 swapness = !swapness;
             }
-
-            //if (!swapness) glCopyNamedBufferSubData(OutKeys, InKeys, 0, 0, strided<uint64_t>(size));
-            //if (!swapness) glCopyNamedBufferSubData(OutValues, InVals, 0, 0, strided<uint32_t>(size));
         }
 
     };

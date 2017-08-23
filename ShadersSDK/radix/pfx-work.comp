@@ -3,37 +3,56 @@
 
 #define WG_COUNT 8
 
-shared uint localSort[WG_COUNT];
-uint prefixSum(uint data, inout uint total_sum) {
-    localSort[LT_IDX] = data;
+shared uint localHistogram[WG_COUNT];
+void prefixScan() {
+    UVEC_WARP localIdx = LT_IDX;
     memoryBarrier(); barrier();
-    for (uint i = 1; i < WG_COUNT; i <<= 1) {
-        uint tmp = localSort[LT_IDX - i] * uint(LT_IDX >= i && LT_IDX < WG_COUNT);
+    uint tmp = localIdx >= 1 && localIdx < RADICES ? localHistogram[localIdx-1] : 0;
+    memoryBarrier(); barrier();
+    if (localIdx < RADICES) localHistogram[localIdx] = tmp;
+
+    // reduction prefix-scan
+    for (int i=1;i<RADICES;i<<=1) {
         memoryBarrier(); barrier();
-        localSort[LT_IDX] += tmp;
+        uint idx = localIdx;
+        uint off = idx >= i && idx < RADICES ? localHistogram[idx-i] : 0;
+        uint hst = idx < RADICES ? localHistogram[idx] : 0;
         memoryBarrier(); barrier();
+        if (idx < RADICES) localHistogram[idx] = off + hst;
     }
-    total_sum = localSort[WG_COUNT - 1];
-    return localSort[LT_IDX - 1] * uint(LT_IDX > 0);
+    memoryBarrier(); barrier();
 }
 
-layout (local_size_x = WG_COUNT) in;
+layout (local_size_x = RADICES) in;
 
-shared uint seed;
+shared uint seed[RADICES];
 void main() {
     LT_IDX = gl_LocalInvocationID.x;
     LC_IDX = (gl_LocalInvocationID.x / gl_SubGroupSizeARB);
     LANE_IDX = (gl_LocalInvocationID.x % gl_SubGroupSizeARB);
 
-    if (LT_IDX == WG_COUNT - 1) seed = 0;
+    // prefix scans of workers for every radice
+    uint prv = LT_IDX;
+    for (uint wk=0;wk<WG_COUNT;wk++) {
+        uint idx = LT_IDX + wk * RADICES;
+        uint pfx = LT_IDX < RADICES && wk > 0 ? Histogram[prv] : 0;
+        uint val = LT_IDX < RADICES && wk > 0 ? PrefixSum[prv] : 0;
+        if (LT_IDX < RADICES) Histogram[idx] = val + pfx;
+        prv = idx;
+    }
     memoryBarrier(); barrier();
-    for(uint d=0;d<RADICES;d++){
-        uint idx = d + LT_IDX * RADICES; //d * WG_COUNT + LT_IDX;
-        uint val = LT_IDX < WG_COUNT ? PrefixSum[idx] : 0;
-        uint total = 0;
-        uint res = prefixSum(val, total);
-        if (LT_IDX < WG_COUNT) PrefixSum[idx] = res + seed;
-        if (LT_IDX == WG_COUNT - 1) seed += res + val;
-        memoryBarrier(); barrier();
+
+    // collect pre-seeds
+    if (LT_IDX < RADICES) {
+        localHistogram[LT_IDX] = Histogram[LT_IDX + (WG_COUNT-1) * RADICES] + PrefixSum[LT_IDX + (WG_COUNT-1) * RADICES];
+    }
+
+    // prefix scan of seeds
+    prefixScan();
+
+    // apply prefix scans
+    for (uint wk=0;wk<WG_COUNT;wk++) {
+        uint idx = LT_IDX + wk * RADICES;
+        if (LT_IDX < RADICES) PrefixSum[idx] = Histogram[idx] + localHistogram[LT_IDX];
     }
 }
