@@ -17,7 +17,7 @@ shared uint totals[WORK_SIZE];
 shared uint bcount;
 
 // prefix scan for WARP vector
-uint prefix_scan(inout UVEC_WARP v){
+uint prefixScan(inout UVEC_WARP v){
     BVEC_WARP btf = (v == 1);
     UVEC_BALLOT_WARP bits = ballotHW(btf);
     UVEC_WARP sum = bitCount64(bits);
@@ -26,7 +26,7 @@ uint prefix_scan(inout UVEC_WARP v){
 }
 
 // WARP version of prefix_sum
-uint prefix_sum(in uint data, inout uint total_sum) {
+uint prefixSum(in uint data, inout uint total_sum) {
     UVEC_WARP rsort = data;
     for (uint i = 1; i < WORK_SIZE_RT; i <<= 1) {
         rsort += READ_LANE(rsort, LANE_IDX - i) * uint(LANE_IDX < WORK_SIZE_RT);
@@ -36,20 +36,21 @@ uint prefix_sum(in uint data, inout uint total_sum) {
     return result;
 }
 
-void sortBits(inout UVEC64_WARP sort, inout uint sortVal){
+void sortBits(inout UVEC64_WARP sort, inout uint sortVal, in bool valids){
     UVEC_WARP addr = LT_IDX;
     for (int i=0;i<BITS_PER_PASS;i++) {
         BVEC_WARP cmp = BFE(sort, int(Shift*BITS_PER_PASS) + i, 1) == 0;
         UVEC_WARP warpKey = UVEC_WARP(cmp);
 
         // prefix scan for WARP vector
-        warpPScan[LC_IDX] = prefix_scan(warpKey); // cache by WARP ID
+        warpPScan[LC_IDX] = anyInvocation(valids) ? prefixScan(warpKey) : 0; // cache by WARP ID
         
         // use LANE_IDX as LC_IDX, so we did caching, WARP size should less or equal than WORK_SIZE
+        // calculate prefix scans per WARP
         memoryBarrier(); barrier();
         if (LC_IDX == 0) {
             uint warpTotal = 0;
-            uint prefixSum = prefix_sum(warpPScan[LANE_IDX], warpTotal);
+            uint prefixSum = prefixSum(warpPScan[LANE_IDX], warpTotal);
             if (LANE_IDX < WORK_SIZE_RT) {
                 psums [LANE_IDX] = prefixSum;
                 totals[LANE_IDX] = warpTotal;
@@ -128,8 +129,10 @@ void main(){
         if (wk < bcount) {
             BVEC_WARP validAddress = addr < NumKeys;
             UVEC64_WARP data       = validAddress ? UVEC64_WARP(KeyIn[addr]) : 0xFFFFFFFFFFFFFFFFul;
-                UVEC_WARP dataValue  = validAddress ? ValueIn[addr] : 0u;
-            sortBits(data, dataValue); // sort inside WARP
+            UVEC_WARP dataValue    = validAddress ? ValueIn[addr] : 0u;
+
+            // sort inside WARP and WARP groups itself
+            sortBits(data, dataValue, validAddress);
 
             UVEC_WARP k = UVEC_WARP(BFE(data, int(Shift*BITS_PER_PASS), BITS_PER_PASS));
             UVEC_WARP      key = k;
