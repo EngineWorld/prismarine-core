@@ -5,8 +5,6 @@
 #extension GL_ARB_shader_ballot : require
 #endif
 
-#define WG_COUNT 1
-
 #define BLOCK_SIZE 1024
 #define BLOCK_SIZE_RT (gl_WorkGroupSize.x)
 
@@ -45,8 +43,6 @@ uint LT_IDX = 0;
 #define KEYTYPE UVEC64_WARP
 layout (std430, binding = 20) restrict buffer KeyInBlock {KEYTYPE KeyIn[];};
 layout (std430, binding = 21) restrict buffer ValueInBlock {uint ValueIn[];};
-//layout (std430, binding = 22) restrict buffer KeyOutBlock {KEYTYPE KeyOut[];};
-//layout (std430, binding = 23) restrict buffer ValueOutBlock {uint ValueOut[];};
 layout (std430, binding = 24) restrict buffer VarsBlock {
     uint NumKeys;
     uint Shift;
@@ -56,6 +52,7 @@ layout (std430, binding = 24) restrict buffer VarsBlock {
 layout (std430, binding = 25) restrict buffer KeyTmpBlock {KEYTYPE KeyTmp[];};
 layout (std430, binding = 26) restrict buffer ValueTmpBlock {uint ValueTmp[];};
 layout (std430, binding = 27) restrict buffer HistogramBlock {uint Histogram[];};
+layout (std430, binding = 28) restrict buffer PrefixBlock {uint PrefixSum[];};
 
 uvec2 U2P(in uint64_t pckg) {
     return uvec2((pckg >> 0) & 0xFFFFFFFF, (pckg >> 32) & 0xFFFFFFFF);
@@ -64,7 +61,7 @@ uvec2 U2P(in uint64_t pckg) {
 struct blocks_info { uint count; uint offset; };
 blocks_info get_blocks_info(in uint n) {
     uint block_count = n > 0 ? ((n - 1) / (BLOCK_SIZE * gl_NumWorkGroups.x) + 1) : 0;
-    return blocks_info(block_count, gl_WorkGroupID.x * BLOCK_SIZE);
+    return blocks_info(block_count, gl_WorkGroupID.x * BLOCK_SIZE * block_count);
 }
 
 uint btc(in uint vlc){

@@ -6,10 +6,14 @@
 namespace ppr {
 
     class RadixSort {
-        GLuint sortProgram;
+        GLuint sortProgram = -1;
+
+        GLuint permuteProgram = -1;
+        GLuint histogramProgram = -1;
+        GLuint pfxWorkProgram = -1;
 
         struct Consts { GLuint NumKeys, Shift, Descending, IsSigned; };
-        const uint32_t WG_COUNT = 2; // planned multiply radix sort support (aka. Async Compute)
+        const uint32_t WG_COUNT = 8; // planned multiply radix sort support (aka. Async Compute)
 
         //GLuint OutKeys = -1;
         //GLuint OutValues = -1;
@@ -17,6 +21,7 @@ namespace ppr {
         GLuint TmpValues = -1;
         GLuint VarBuffer = -1;
         GLuint Histograms = -1;
+        GLuint PrefixSums = -1;
 
     public:
 
@@ -24,11 +29,17 @@ namespace ppr {
             // for adopt for AMD
             initShaderComputeSPIRV("./shaders-spv/radix/single.comp.spv", sortProgram);
 
+            initShaderComputeSPIRV("./shaders-spv/radix/permute.comp.spv", permuteProgram);
+            initShaderComputeSPIRV("./shaders-spv/radix/histogram.comp.spv", histogramProgram);
+            initShaderComputeSPIRV("./shaders-spv/radix/pfx-work.comp.spv", pfxWorkProgram);
+
+
             //OutKeys = allocateBuffer<uint64_t>(1024 * 1024 * 4);
             //OutValues = allocateBuffer<uint32_t>(1024 * 1024 * 4);
             TmpKeys = allocateBuffer<uint64_t>(1024 * 1024 * 4);
             TmpValues = allocateBuffer<uint32_t>(1024 * 1024 * 4);
             Histograms = allocateBuffer<uint32_t>(WG_COUNT * 256);
+            PrefixSums = allocateBuffer<uint32_t>(WG_COUNT * 256);
             VarBuffer = allocateBuffer<Consts>(1);
         }
 
@@ -46,12 +57,20 @@ namespace ppr {
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 25, TmpKeys);
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 26, TmpValues);
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 27, Histograms);
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 28, PrefixSums);
             
-
+            //for (GLuint i = 0; i < 16; i++) { // 64-bit uint
             for (GLuint i = 0; i < 8; i++) { // 64-bit uint
                 Consts consts = { size, i, descending, 0 };
                 glNamedBufferSubData(VarBuffer, 0, strided<Consts>(1), &consts);
-                dispatch(sortProgram, 1);
+
+                //dispatch(sortProgram, 1);
+                dispatch(histogramProgram, WG_COUNT);
+                dispatch(pfxWorkProgram, 1);
+                //dispatch(pfxWorkProgram, WG_COUNT);
+                //dispatch(pfxCrossProgram, 1);
+                dispatch(permuteProgram, WG_COUNT);
+
                 swapness = !swapness;
             }
 

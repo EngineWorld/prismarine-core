@@ -1,48 +1,39 @@
 #version 460 core
 #include "./includes.glsl"
 
-//layout (local_size_x = WARP_SIZE, local_size_y = WORK_SIZE) in;
-layout (local_size_x = BLOCK_SIZE) in;
+#define WG_COUNT 8
 
-#define LOCAL_SORT_SIZE (WORK_SIZE*RADICES)
-
-shared uint localHistogram[RADICES];
-shared uint bcount;
-
-void prefixScan(){
-    UVEC_WARP localIdx = LT_IDX;
+shared uint localSort[WG_COUNT];
+uint prefixSum(uint data, inout uint total_sum) {
+    localSort[LT_IDX] = data;
     memoryBarrier(); barrier();
-    uint tmp = localIdx >= 1 && localIdx < RADICES ? localHistogram[localIdx-1] : 0;
-    memoryBarrier(); barrier();
-    if (localIdx < RADICES) localHistogram[localIdx] = tmp;
-
-    // reduction prefix-scan
-    for (int i=1;i<RADICES;i<<=1) {
+    for (uint i = 1; i < WG_COUNT; i <<= 1) {
+        uint tmp = localSort[LT_IDX - i] * uint(LT_IDX >= i && LT_IDX < WG_COUNT);
         memoryBarrier(); barrier();
-        uint idx = localIdx;
-        uint off = idx >= i && idx < RADICES ? localHistogram[idx-i] : 0;
-        uint hst = idx < RADICES ? localHistogram[idx] : 0;
+        localSort[LT_IDX] += tmp;
         memoryBarrier(); barrier();
-        if (idx < RADICES) localHistogram[idx] = off + hst;
     }
-    memoryBarrier(); barrier();
+    total_sum = localSort[WG_COUNT - 1];
+    return localSort[LT_IDX - 1] * uint(LT_IDX > 0);
 }
 
+layout (local_size_x = WG_COUNT) in;
 
-void main(){
+shared uint seed;
+void main() {
     LT_IDX = gl_LocalInvocationID.x;
     LC_IDX = (gl_LocalInvocationID.x / gl_SubGroupSizeARB);
     LANE_IDX = (gl_LocalInvocationID.x % gl_SubGroupSizeARB);
 
-    blocks_info blocks = get_blocks_info(NumKeys);
-    UVEC_WARP localIdx = LT_IDX;
-    if (localIdx < RADICES) localHistogram[localIdx] = 0;
-    if (localIdx == 0) bcount = min(blocks.count, 4096);
-    memoryBarrier(); barrier(); 
-
-    // prefix scans of worker histograms
-    if (localIdx < RADICES) localHistogram[localIdx] = Histogram[localIdx + gl_WorkGroupID.x * RADICES];
-    prefixScan();
-    if (localIdx < RADICES) Histogram[localIdx + gl_WorkGroupID.x * RADICES] = localHistogram[localIdx];
-    
+    if (LT_IDX == WG_COUNT - 1) seed = 0;
+    memoryBarrier(); barrier();
+    for(uint d=0;d<RADICES;d++){
+        uint idx = d + LT_IDX * RADICES; //d * WG_COUNT + LT_IDX;
+        uint val = LT_IDX < WG_COUNT ? PrefixSum[idx] : 0;
+        uint total = 0;
+        uint res = prefixSum(val, total);
+        if (LT_IDX < WG_COUNT) PrefixSum[idx] = res + seed;
+        if (LT_IDX == WG_COUNT - 1) seed += res + val;
+        memoryBarrier(); barrier();
+    }
 }

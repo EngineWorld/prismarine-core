@@ -37,7 +37,7 @@ void main(){
 
     blocks_info blocks = get_blocks_info(NumKeys);
     UVEC_WARP localIdx = LT_IDX;
-    if (localIdx < RADICES) localHistogram[localIdx] = Histogram[localIdx + gl_WorkGroupID.x * RADICES];
+    if (localIdx < RADICES) localHistogram[localIdx] = PrefixSum[localIdx + gl_WorkGroupID.x * RADICES];
     if (localIdx == 0) bcount = min(blocks.count, 4096);
     memoryBarrier(); barrier(); 
     
@@ -80,7 +80,7 @@ void main(){
             if (validAddress) ValueIn[outKey] = dataValue;
             memoryBarrier(); barrier();
 
-            addr += BLOCK_SIZE_RT * gl_NumWorkGroups.x;
+            addr += BLOCK_SIZE_RT;
         }
     }
     

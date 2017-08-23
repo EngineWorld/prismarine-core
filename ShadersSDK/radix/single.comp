@@ -136,8 +136,6 @@ void main(){
         if (anyInvocation(wk >= bcount)) break;
         if (wk < bcount) {
             BVEC_WARP validAddress = addr < NumKeys;
-            //UVEC64_WARP data       = validAddress ? UVEC64_WARP(KeyIn[addr]) : 0xFFFFFFFFFFFFFFFFul;
-            //UVEC_WARP dataValue    = validAddress ? ValueIn[addr] : 0u;
             UVEC64_WARP data       = validAddress ? UVEC64_WARP(KeyTmp[addr]) : 0xFFFFFFFFFFFFFFFFul;
             UVEC_WARP dataValue    = validAddress ? ValueTmp[addr] : 0u;
 

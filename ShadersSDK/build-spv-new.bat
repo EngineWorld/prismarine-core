@@ -51,11 +51,8 @@ call glslc %CFLAGS% %CMPPROF% %INDIR%%HLBV%refit.comp         -o %OUTDIR%%HLBV%r
 ::call glslc %CFLAGS% %CMPPROF% %INDIR%%RDXI%prefix-scan.comp   -o %OUTDIR%%RDXI%prefix-scan.comp.spv
 call glslc %CFLAGS% %CMPPROF% %INDIR%%RDXI%single.comp        -o %OUTDIR%%RDXI%single.comp.spv
 
-
-
 call glslc %CFLAGS% %CMPPROF% %INDIR%%RDXI%permute.comp    -o %OUTDIR%%RDXI%permute.comp.spv
 call glslc %CFLAGS% %CMPPROF% %INDIR%%RDXI%histogram.comp  -o %OUTDIR%%RDXI%histogram.comp.spv
-call glslc %CFLAGS% %CMPPROF% %INDIR%%RDXI%pfx-cross.comp  -o %OUTDIR%%RDXI%pfx-cross.comp.spv
 call glslc %CFLAGS% %CMPPROF% %INDIR%%RDXI%pfx-work.comp   -o %OUTDIR%%RDXI%pfx-work.comp.spv
 
 

@@ -82,7 +82,7 @@ void main(){
     memoryBarrier(); barrier(); 
     
     // histograms and local sorting
-    UVEC_WARP addr = localIdx;
+    UVEC_WARP addr = blocks.offset + localIdx;
     for ( int wk = 0; wk < bcount; wk++ ) {
         if (anyInvocation(wk >= bcount)) break;
         if (wk < bcount) {
@@ -99,11 +99,14 @@ void main(){
             if (validAddress) atomicAdd(localHistogram[key], UVEC_WARP(validAddress));
             if (validAddress) KeyTmp[addr] = KEYTYPE(data);
             if (validAddress) ValueTmp[addr] = dataValue;
-            addr += BLOCK_SIZE_RT * gl_NumWorkGroups.x;
+            addr += BLOCK_SIZE_RT;
         }
     }
 
     memoryBarrier(); barrier(); 
-    Histogram[localIdx + RADICES * gl_WorkGroupID.x] = localHistogram[localIdx];
+    if (localIdx < RADICES) {
+        PrefixSum[localIdx + RADICES * gl_WorkGroupID.x] = localHistogram[localIdx];
+        Histogram[localIdx + RADICES * gl_WorkGroupID.x] = localHistogram[localIdx];
+    }
     
 }
