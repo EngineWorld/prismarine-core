@@ -382,7 +382,6 @@ namespace PaperExample {
 
 
         BufferViewSet * bfvi = new BufferViewSet();
-
         for (auto const &bv : gltfModel.bufferViews) {
             VirtualBufferView bfv;
             bfv.offset4 = bv.byteOffset / 4;

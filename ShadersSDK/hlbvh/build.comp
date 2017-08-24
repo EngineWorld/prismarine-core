@@ -164,19 +164,16 @@ void main() {
                 childNode.box.mn = ( 100000.f).xxxx;
                 childNode.box.mx = (-100000.f).xxxx;
                 
-                // ranged child
-                for (int l=childNode.pdata.x;l<=childNode.pdata.y;l++) {
-                    uint leafID = MortoncodesIndices[l];
+                uint leafID = MortoncodesIndices[childNode.pdata.x];
 
-                    // make leafs links
-                    atomicExchange(Leafs[leafID].pdata.z, int(hid));
+                // make leafs links
+                atomicExchange(Leafs[leafID].pdata.z, int(hid));
 
-                    // fit bounding box
-                    bbox lbound = Leafs[leafID].box;
-                    bbox bound = childNode.box;
-                    childNode.box.mn = min(bound.mn, lbound.mn);
-                    childNode.box.mx = max(bound.mx, lbound.mx);
-                }
+                // fit bounding box
+                bbox lbound = Leafs[leafID].box;
+                bbox bound = childNode.box;
+                childNode.box.mn = min(bound.mn, lbound.mn);
+                childNode.box.mx = max(bound.mx, lbound.mx);
 
                 // reform range
                 ivec2 range = childNode.pdata.xy;

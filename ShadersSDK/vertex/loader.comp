@@ -28,16 +28,17 @@ layout ( std430, binding = 0 ) restrict buffer TCounterSSBO {int tcounter[];};
 // tools
 vec4 readByAccessor(in uint accessorID, in uint idx){
     VirtualAccessor accessors = meshAccessors[accessorID];
+    VirtualBufferView bufferView = bufferViews[accessors.bufferView];
+    uint cmps = aComponents(accessors);
+    uint stride4 = bufferView.stride4 > 0 ? bufferView.stride4 : (cmps+1);
 
     // get buffer view
-    VirtualBufferView bufferView = bufferViews[accessors.bufferView];
-    uint generalOffset = idx * bufferView.stride4 + bufferView.offset4;
+    uint generalOffset = idx * stride4 + bufferView.offset4;
 
     // get accessor structure offset
     uint componentOffset = generalOffset + accessors.offset4;
 
     // get components
-    uint cmps = aComponents(accessors);
     vec4 data = vec4(
         cmps >= 0 ? iverts[componentOffset + 0] : 0,
         cmps >= 1 ? iverts[componentOffset + 1] : 0,
