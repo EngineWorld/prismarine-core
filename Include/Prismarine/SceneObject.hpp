@@ -12,7 +12,7 @@ namespace ppr {
 
         bool dirty = false;
         uint32_t maxt = 1024 * 1024 * 1;
-        uint32_t worksize = 128;
+        uint32_t worksize = 256;
 
         GLuint geometryLoaderProgramI16 = -1;
         GLuint geometryLoaderProgram2 = -1;
