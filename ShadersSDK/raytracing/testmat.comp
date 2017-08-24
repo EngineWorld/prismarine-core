@@ -77,6 +77,7 @@ void main() {
         compositedHit[searchLayer].albedo = composite(compositedHit[searchLayer].albedo, hit.albedo);
         compositedHit[searchLayer].normalHeight = mix(compositedHit[searchLayer].normalHeight, hit.normalHeight, hit.albedo.w);
         compositedHit[searchLayer].metallicRoughness.yz = mix(compositedHit[searchLayer].metallicRoughness.yz, unpackHalf2x16(hit.metallicRoughness.x), hit.albedo.w);
+        compositedHit[searchLayer].emission = mix(compositedHit[searchLayer].emission, hit.emission, hit.albedo.w);
 
         // already filled layer
         if (compositedHit[searchLayer].albedo.a > 0.99999f) continue;
@@ -167,7 +168,7 @@ void main() {
         reflectionRay = reflection(reflectionRay, clamp(sc.xyz / spca, 0.0f, 1.0f), normal, refly);
         reflectionRay.color.xyz *= (1.0f - prom);
         
-        emissiveRay = emissive(emissiveRay, emi.xyz / min(emis, 1.0f), normal);
+        emissiveRay = emissive(emissiveRay, emi.xyz, normal);
         emissiveRay.color.xyz *= (1.0f - prom);
         emissiveRay.final.xyz *= (1.0f - prom);
 
