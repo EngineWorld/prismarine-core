@@ -7,16 +7,24 @@
 
 layout ( std430, binding = 0 ) restrict buffer RaysSSBO { RayRework nodes[]; } rayBuf;
 layout ( std430, binding = 1 ) restrict buffer HitsSSBO { HitRework nodes[]; } hitBuf;
+
+#ifndef SIMPLIFIED_RAY_MANAGMENT
 layout ( std430, binding = 2 ) restrict buffer TexelsSSBO { Texel nodes[]; } texelBuf;
 layout ( std430, binding = 3 ) restrict buffer ColorChainBlock { ColorChain chains[]; } chBuf;
+#endif
 
 // current list
 layout ( std430, binding = 4 ) readonly buffer ActivedIndicesSSBO { int indc[]; } activedBuf;
+
+#ifndef SIMPLIFIED_RAY_MANAGMENT
 layout ( std430, binding = 5 ) readonly buffer AvailablesIndicesSSBO { int indc[]; } availBuf;
+#endif
 
 // new list
+#ifndef SIMPLIFIED_RAY_MANAGMENT
 layout ( std430, binding = 6 ) restrict buffer CollectedActivesSSBO { int indc[]; } collBuf;
 layout ( std430, binding = 7 ) restrict buffer FreedomIndicesSSBO { int indc[]; } freedBuf;
+#endif
 
 // counters
 layout ( std430, binding = 8 ) restrict buffer CounterBlock { 
@@ -45,6 +53,7 @@ initAtomicIncFunction(arcounter.Gt, atomicIncGt, int);
 initAtomicIncFunction(arcounter.Ht, atomicIncHt, int);
 
 void _collect(inout RayRework ray){
+#ifndef SIMPLIFIED_RAY_MANAGMENT
     vec4 color = max(ray.final, vec4(0.f));
     int idx = atomicIncCt(true); // allocate new index
     atomicCompSwap(texelBuf.nodes[ray.texel].EXT.y, -1, idx); // link first index
@@ -59,12 +68,14 @@ void _collect(inout RayRework ray){
     // link with previous (need do after)
     int prev = atomicExchange(texelBuf.nodes[ray.texel].EXT.z, idx);
     if (prev != -1) atomicExchange(chBuf.chains[prev].cdata.x, idx);
+#endif
 }
 
 int addRayToList(in RayRework ray){
     int rayIndex = ray.idx;
     int actived = -1;
 
+#ifndef SIMPLIFIED_RAY_MANAGMENT
     // ordered form list
     if (RayActived(ray) == 1) {
         int act = atomicIncAt(true);
@@ -73,6 +84,7 @@ int addRayToList(in RayRework ray){
         int freed = atomicIncQt(true);
         freedBuf.indc[freed] = rayIndex;
     }
+#endif
 
     return actived;
 }
@@ -80,9 +92,11 @@ int addRayToList(in RayRework ray){
 int addRayToList(in RayRework ray, in int act){
     int rayIndex = ray.idx;
     int actived = -1;
+#ifndef SIMPLIFIED_RAY_MANAGMENT
     if (RayActived(ray) == 1) {
         collBuf.indc[act] = rayIndex; actived = act;
     }
+#endif
     return actived;
 }
 
@@ -98,6 +112,13 @@ void storeRay(in int rayIndex, inout RayRework ray) {
     }
 }
 
+void storeRay(inout RayRework ray) {
+    storeRay(ray.idx, ray);
+}
+
+
+
+#ifndef SIMPLIFIED_RAY_MANAGMENT
 int createRayStrict(inout RayRework original, in int idx, in int rayIndex) {
     bool invalidRay = 
         (rayIndex == -1 || 
@@ -186,10 +207,6 @@ int createRayIdx(inout RayRework original, in int idx, in int rayIndex) {
     return createRayStrict(original, idx, rayIndex);
 }
 
-void storeRay(inout RayRework ray) {
-    storeRay(ray.idx, ray);
-}
-
 int createRay(in RayRework original) {
     return createRay(original, original.texel);
 }
@@ -198,5 +215,9 @@ int createRay(in int idx) {
     RayRework ray;
     return createRay(ray, idx);
 }
+
+#endif
+
+
 
 #endif

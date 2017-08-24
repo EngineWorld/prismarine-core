@@ -1,6 +1,7 @@
 #version 460 core
 
 #define FRAGMENT_SHADER
+#define SIMPLIFIED_RAY_MANAGMENT
 
 #include "../include/constants.glsl"
 #include "../include/structs.glsl"

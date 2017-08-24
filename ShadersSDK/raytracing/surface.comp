@@ -1,5 +1,7 @@
 #version 460 core
 
+#define SIMPLIFIED_RAY_MANAGMENT
+
 #include "../include/constants.glsl"
 
 #ifdef USE_BINDLESS
