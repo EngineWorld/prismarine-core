@@ -139,6 +139,8 @@ namespace ppr {
 
         this->bind();
         gobject->bind();
+        if (gobject->accessorSet) gobject->accessorSet->bind();
+        if (gobject->bufferViewSet) gobject->bufferViewSet->bind();
 
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 10, mat_triangle_ssbo_upload);
 

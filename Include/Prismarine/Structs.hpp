@@ -228,11 +228,28 @@ namespace ppr {
     };
 
 
+    struct VirtualBufferView {
+        GLint offset4 = 0;
+        GLint stride4 = 1;
+    };
+
     struct VirtualAccessor {
-        GLint offset = 0;
-        GLint stride = 1;
-        GLint components = 1;
-        GLint type = 0; // 0 is float, 1 is uint, 2 is 16bit uint
+        GLint offset4 = 0;
+        GLint bitfield = 0;
+        GLint bufferView = -1;
+        //GLint reserved = 0;
+
+        void components(GLint a) {
+            bitfield = glm::bitfieldInsert(bitfield, a-1, 0, 2);
+        }
+
+        void type(GLint a) {
+            bitfield = glm::bitfieldInsert(bitfield, a, 2, 4);
+        }
+
+        void normalized(GLint a) {
+            bitfield = glm::bitfieldInsert(bitfield, a, 6, 1);
+        }
     };
 
 

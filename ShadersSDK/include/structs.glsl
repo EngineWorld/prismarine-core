@@ -157,12 +157,28 @@ struct MeshUniformStruct {
     highp int _reserved1;
 };
 
-struct VirtualAccessor {
-    highp int offset;
-    highp int stride;
-    highp int components;
-    highp int type; // 0 is float, 1 is uint, 2 is 16bit uint
+struct VirtualBufferView {
+    highp int offset4;
+    highp int stride4;
 };
+
+struct VirtualAccessor {
+    highp int offset4;
+    highp int bitfield;
+    highp int bufferView;
+};
+
+int aComponents(in VirtualAccessor vac) {
+    return BFE(vac.bitfield, 0, 2);
+}
+
+int aType(in VirtualAccessor vac) {
+    return BFE(vac.bitfield, 2, 4);
+}
+
+int aNormalized(in VirtualAccessor vac) {
+    return BFE(vac.bitfield, 6, 1);
+}
 
 
 

@@ -264,29 +264,38 @@ namespace PaperExample {
                 glNamedBufferData(glBuf, rawMeshData.size() * sizeof(float), rawMeshData.data(), GL_STATIC_DRAW);
 
 
+                
+
+
+
                 // virtual accessor template
                 ppr::VirtualAccessor vattr;
-                vattr.offset = 0;
-                vattr.stride = 8;
+                vattr.offset4 = 0;
 
-
+                ppr::VirtualBufferView bfv;
+                bfv.stride4 = 8;
+                bfv.offset4 = 0;
 
                 uint32_t stride = 8;
                 deviceHandle = new ppr::VertexInstance();
 
                 AccessorSet * acs = new AccessorSet();
+                BufferViewSet * bfvi = new BufferViewSet();
+                vattr.bufferView = bfvi->addBufferView(bfv);
+
+                deviceHandle->setBufferViewSet(bfvi);
                 deviceHandle->setAccessorSet(acs);
 
-                vattr.offset = 0;
-                vattr.components = 3;
+                vattr.offset4 = 0;
+                vattr.components(3);
                 deviceHandle->setVertexAccessor(acs->addVirtualAccessor(vattr));
 
-                vattr.offset = 3;
-                vattr.components = 3;
+                vattr.offset4 = 3;
+                vattr.components(3);
                 deviceHandle->setNormalAccessor(acs->addVirtualAccessor(vattr));
 
-                vattr.offset = 6;
-                vattr.components = 2;
+                vattr.offset4 = 6;
+                vattr.components(2);
                 deviceHandle->setTexcoordAccessor(acs->addVirtualAccessor(vattr));
 
                 deviceHandle->setIndexed(false);

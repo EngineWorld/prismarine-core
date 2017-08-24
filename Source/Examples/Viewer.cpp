@@ -380,6 +380,16 @@ namespace PaperExample {
             glBuffers.push_back(glBuf);
         }
 
+
+        BufferViewSet * bfvi = new BufferViewSet();
+
+        for (auto const &bv : gltfModel.bufferViews) {
+            VirtualBufferView bfv;
+            bfv.offset4 = bv.byteOffset / 4;
+            bfv.stride4 = bv.byteStride / 4;
+            bfvi->addBufferView(bfv);
+        }
+
         // load mesh templates (better view objectivity)
         for (int m = 0; m < gltfModel.meshes.size();m++) {
             std::vector<ppr::VertexInstance *> primitiveVec = std::vector<ppr::VertexInstance *>();
@@ -390,6 +400,7 @@ namespace PaperExample {
                 ppr::VertexInstance * geom = new ppr::VertexInstance();
                 AccessorSet * acs = new AccessorSet();
                 geom->setAccessorSet(acs);
+                geom->setBufferViewSet(bfvi);
 
                 // make attributes
                 std::map<std::string, int>::const_iterator it(prim.attributes.begin());
@@ -402,33 +413,31 @@ namespace PaperExample {
 
                     // virtual accessor template
                     ppr::VirtualAccessor vattr;
-                    vattr.offset = (accessor.byteOffset + bufferView.byteOffset) / 4;
-                    vattr.stride = (bufferView.byteStride / 4);
+                    vattr.offset4 = accessor.byteOffset / 4;
+                    vattr.bufferView = accessor.bufferView;
 
                     // vertex
                     if (it.first.compare("POSITION") == 0) { // vertices
-                        vattr.components = 3;
-                        if (vattr.stride == 0) vattr.stride = 3;
+                        vattr.components(3);
                         geom->setVertices(glBuffers[bufferView.buffer]);
                         geom->setVertexAccessor(acs->addVirtualAccessor(vattr));
                     } else
                     
                     // normal
                     if (it.first.compare("NORMAL") == 0) {
-                        vattr.components = 3;
-                        if (vattr.stride == 0) vattr.stride = 3;
+                        vattr.components(3);
                         geom->setNormalAccessor(acs->addVirtualAccessor(vattr));
                     } else
                     
                     // texcoord
                     if (it.first.compare("TEXCOORD_0") == 0) {
-                        vattr.components = 2;
-                        if (vattr.stride == 0) vattr.stride = 2;
+                        vattr.components(2);
                         geom->setTexcoordAccessor(acs->addVirtualAccessor(vattr));
                     }
                 }
 
                 // indices
+                // planned of support accessors there
                 if (prim.indices >= 0) {
                     tinygltf::Accessor &idcAccessor = gltfModel.accessors[prim.indices];
                     auto& bufferView = gltfModel.bufferViews[idcAccessor.bufferView];

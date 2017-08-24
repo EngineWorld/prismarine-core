@@ -32,6 +32,34 @@ namespace ppr {
     };
 
 
+
+    class BufferViewSet : public BaseClass {
+    public:
+        BufferViewSet() {
+            glCreateBuffers(1, &bViewBuffer);
+        }
+        friend SceneObject;
+        friend VertexInstance;
+
+        int32_t addBufferView(VirtualBufferView accessorDesc) {
+            int32_t accessorPtr = bufferViews.size();
+            bufferViews.push_back(accessorDesc);
+            glNamedBufferData(bViewBuffer, bufferViews.size() * sizeof(VirtualBufferView), bufferViews.data(), GL_STATIC_DRAW);
+            return accessorPtr;
+        }
+
+        void bind() {
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, bViewBuffer != -1 ? bViewBuffer : 0);
+        }
+
+    private:
+        std::vector<VirtualBufferView> bufferViews;
+        GLuint bViewBuffer = -1;
+    };
+
+
+
+
     class VertexInstance : public BaseClass {
     public:
         VertexInstance() {
@@ -87,6 +115,10 @@ namespace ppr {
             this->accessorSet = accessorSet;
         }
 
+        void setBufferViewSet(BufferViewSet * bufferViewSet) {
+            this->bufferViewSet = bufferViewSet;
+        }
+
     private:
         bool index16bit = false;
 
@@ -95,12 +127,12 @@ namespace ppr {
         GLuint vebo_triangle_ssbo = -1;
         GLuint indirect_dispatch_buffer = -1;
         
+        BufferViewSet * bufferViewSet;
         AccessorSet * accessorSet;
         MeshUniformStruct meshUniformData;
         GLuint meshUniformBuffer = -1;
 
         void syncUniform() {
-            if (accessorSet) accessorSet->bind();
             glNamedBufferData(meshUniformBuffer, sizeof(MeshUniformStruct), &meshUniformData, GL_STATIC_DRAW);
         }
     };
