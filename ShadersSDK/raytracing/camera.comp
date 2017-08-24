@@ -9,6 +9,14 @@
 
 LOCAL_SIZE_LAYOUT;
 
+vec3 rotate_vector( in vec4 quat, in vec3 vec ) {
+    return vec + 2.0 * cross( cross( vec, quat.xyz ) + quat.w * vec, quat.xyz );
+}
+
+vec4 rotation_quat( in vec3 axis, in float half_angle ) {
+    return vec4(axis * sin(half_angle), cos(half_angle));
+}
+
 void main()
 {
     int enable360 = RAY_BLOCK cameraUniform.enable360;
@@ -31,33 +39,22 @@ void main()
         txfi.EXT = ivec4(-1);
         texelBuf.nodes[idx] = txfi;
 
-        if (enable360 == 1) {
-            coord.x = 1.f - coord.x;
-            if (coord.x > 0.5f) {
-                coord.y = 1.f - coord.y;
-            }
-        }
-
-        float fov_x = PI;
-        float fov_y = PI;
-
-        vec4 ray_rot = vec4(0.0f, 0.0f, (mod(coord.x * 2.0f, 1.0f) * fov_x) - fov_x/2, (coord.y * fov_y) - fov_y/2);
-        vec4 rot_sin = sin(ray_rot), rot_cos = cos(ray_rot);
-        vec4 n = vec4(rot_cos.w * rot_sin.z, -rot_sin.w, rot_cos.w * rot_cos.z, 0.0f);
-        vec4 v = vec4(
-            n.x*rot_cos.x + n.y*rot_sin.x*rot_sin.y + n.z*rot_sin.x*rot_cos.y,
-            n.y*rot_cos.y - n.z*rot_sin.y,
-            -n.x*rot_sin.x + n.y*rot_cos.x*rot_sin.y + n.z*rot_cos.x*rot_cos.y,
-            0.0f
-        );
-
-        vec4 orig;
-        vec4 dir;
+        vec4 orig = vec4(0.f, 0.0f, 0.f, 1.0f);
+        vec4 dir = vec4(0.f);
         vec4 eye = vec4(vec3(0.0f), 1.0f);
         eye = mult4(RAY_BLOCK cameraUniform.camInv, eye);
         if (enable360 == 1) {
+            vec2 pic = ((coord.xy * 2.0f - 1.0f) * vec2(-1.f, 0.5f)) * PI;
+            vec3 vctr = vec3(
+                cos(pic.y) * cos(pic.x),
+                cos(pic.y) * sin(pic.x),
+                sin(pic.y)
+            );
+            vctr = rotate_vector(rotation_quat(vec3(0.f, 0.f, -1.f), PI / 4.f), vctr);
+            vctr = rotate_vector(rotation_quat(vec3(1.f, 0.f,  0.f), PI / 4.f), vctr);
+
             orig = mult4(RAY_BLOCK cameraUniform.camInv, vec4(0.0f, 0.0f, 0.0f, 1.0f));
-             dir = mult4(RAY_BLOCK cameraUniform.camInv, (coord.x > 0.5f ? v : -v));
+             dir = mult4(RAY_BLOCK cameraUniform.camInv, vec4(vctr, 0.f));
         } else {
             vec4 co = divW(mult4(RAY_BLOCK cameraUniform.camInv, mult4(RAY_BLOCK cameraUniform.projInv, vec4(coord * 2.0f - 1.0f, 0.999f, 1.0f))));
                orig = divW(mult4(RAY_BLOCK cameraUniform.camInv, mult4(RAY_BLOCK cameraUniform.projInv, vec4(coord * 2.0f - 1.0f, 0.0f, 1.0f))));
