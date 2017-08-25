@@ -1,7 +1,7 @@
 #version 460 core
 
 //#define USE_SIMPLIFIED_MODEL
-
+#define USE_NOISE_LESS_BRDF
 
 #include "../include/constants.glsl"
 
@@ -200,8 +200,11 @@ void main() {
         emitRay(diffuseRay, normal, 1.0f);
         emitRay(emissiveRay, normal, clamp(emis, 0.0f, 1.0f));
 #else
-        //mixed(diffuseRay.color.xyz, reflectionRay.color.xyz, clamp(float(random() < spca), 0.0f, 1.0f));
+#ifdef USE_NOISE_LESS_BRDF
         mixed(diffuseRay.color.xyz, reflectionRay.color.xyz, clamp(spca, 0.0f, 1.0f));
+#else 
+        mixed(diffuseRay.color.xyz, reflectionRay.color.xyz, clamp(float(random() < spca), 0.0f, 1.0f));
+#endif
         emitRay(reflectionRay, normal, 1.0f);
         applyLight(directLight(0, diffuseRay, vec3(1.0f), normal), diffuseRay, surfacenormal); // push shadow
         emitRay(diffuseRay, normal, 1.0f);
