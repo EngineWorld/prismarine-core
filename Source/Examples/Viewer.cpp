@@ -647,16 +647,16 @@ int main(const int argc, const char ** argv)
     const unsigned superSampling = 2; // IT SHOULD! Should be double resolution!
 
     // VEGA 64 should work fine without interlacing, for VEGA 56 will harder, GTX 1080 Ti should work great, GTX 1070 should also work great with interlacing
-    int32_t baseWidth = 640;
-    int32_t baseHeight = 360;
+    //int32_t baseWidth = 640;
+    //int32_t baseHeight = 360;
 
     // GTX 1070 should work fine without interlacing, VEGA 64 should work great, GTX 1060 with interlacing also should work great
     //int32_t baseWidth = 400;
     //int32_t baseHeight = 300;
 
     // VEGA 64 (with interlacing) should work fine, GTX 1080 Ti may works without interlacing
-    //int32_t baseWidth = 960;
-    //int32_t baseHeight = 540;
+    int32_t baseWidth = 960;
+    int32_t baseHeight = 540;
 
     // VEGA 56 test with or without interlacing (or GTX 1070 with interlacing), from VEGA 56 with interlacing should work fine, GTX 1080 Ti should work fine without interlacing in some cases
     //int32_t baseWidth = 800;

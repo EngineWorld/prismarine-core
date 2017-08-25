@@ -100,7 +100,7 @@ float intersectSphere(in vec3 origin, in vec3 ray, in vec3 sphereCenter, in floa
 
 
 float samplingWeight(in vec3 ldir, in vec3 ndir, in float radius, in float dist) {
-    return (1.f - sqrt(1.f - clamp(dot(ldir, ndir) * (radius*radius*E) / (dist*dist), 0.0f, 1.0f)));
+    return dot(ldir, ndir) * (pow(radius * 2.f / 3.f, 2.f)*PI) / (dist*dist);
 }
 
 
