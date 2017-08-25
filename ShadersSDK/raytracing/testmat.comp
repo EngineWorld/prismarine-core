@@ -1,5 +1,8 @@
 #version 460 core
 
+//#define USE_SIMPLIFIED_MODEL
+
+
 #include "../include/constants.glsl"
 
 #ifdef USE_BINDLESS
@@ -161,11 +164,18 @@ void main() {
     if (RayActived(ray) > 0 && !skipping) {
         ray.final.xyz *= 0.0f;
 
+#ifdef USE_SIMPLIFIED_MODEL
+        diffuseRay = emissive(emissiveRay, mix(vec3(0.1f), tx.xyz, max(dot( normalize(lightCenter(0).xyz - ray.origin.xyz) , normal), 0.0f)), normal);
+        diffuseRay.color.xyz *= (1.0f - prom);
+        diffuseRay.final.xyz *= (1.0f - prom);
+        reflectionRay = reflection(reflectionRay, clamp(sc.xyz / spca, 0.0f, 1.0f), normal, 0.f);
+#else
         diffuseRay = diffuse(diffuseRay, tx.xyz, normal);
         diffuseRay.color.xyz *= (1.0f - prom);
         diffuseRay.color.xyz *= clamp(1.0f - emis, 0.0f, 1.0f);
-
         reflectionRay = reflection(reflectionRay, clamp(sc.xyz / spca, 0.0f, 1.0f), normal, refly);
+#endif
+
         reflectionRay.color.xyz *= (1.0f - prom);
         
         emissiveRay = emissive(emissiveRay, emi.xyz, normal);
@@ -178,18 +188,27 @@ void main() {
         reflectionRay.color.xyz *= 0.0f;
         emissiveRay.color.xyz *= 0.0f;
         diffuseRay.color.xyz *= 0.0f;
+        diffuseRay.final.xyz *= 0.0f;
     }
 
     // emit rays
     if (!overflow && !skipping) {
 
-        //mixed(diffuseRay.color.xyz, reflectionRay.color.xyz, clamp(spic, 0.0f, 1.0f));
-        mixed(diffuseRay.color.xyz, reflectionRay.color.xyz, clamp(float(random() < spca), 0.0f, 1.0f));
+#ifdef USE_SIMPLIFIED_MODEL
+        mixed(diffuseRay.final.xyz, reflectionRay.color.xyz, clamp(spca, 0.0f, 1.0f));
+        emitRay(reflectionRay, normal, 1.0f);
+        emitRay(diffuseRay, normal, 1.0f);
+        emitRay(emissiveRay, normal, clamp(emis, 0.0f, 1.0f));
+#else
+        //mixed(diffuseRay.color.xyz, reflectionRay.color.xyz, clamp(float(random() < spca), 0.0f, 1.0f));
+        mixed(diffuseRay.color.xyz, reflectionRay.color.xyz, clamp(spca, 0.0f, 1.0f));
         emitRay(reflectionRay, normal, 1.0f);
         applyLight(directLight(0, diffuseRay, vec3(1.0f), normal), diffuseRay, surfacenormal); // push shadow
         emitRay(diffuseRay, normal, 1.0f);
-
         emitRay(emissiveRay, normal, clamp(emis, 0.0f, 1.0f));
+#endif
+
+        
     }
 
     // re-store current

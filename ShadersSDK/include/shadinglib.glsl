@@ -172,6 +172,7 @@ RayRework emissive(in RayRework ray, in vec3 color, in vec3 normal){
     ray.origin.xyz = fma(ray.direct.xyz, vec3(GAP), ray.origin.xyz);
     //ray.origin.xyz = fma(faceforward(normal, ray.direct.xyz, -normal), vec3(GAP), ray.origin.xyz); // padding
 
+    RayBounce(ray, 0);
     RayActived(ray, 0);
     RayDL(ray, 0);
     

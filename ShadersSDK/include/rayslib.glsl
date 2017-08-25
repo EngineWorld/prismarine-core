@@ -132,13 +132,16 @@ int createRayStrict(inout RayRework original, in int idx, in int rayIndex) {
     if (!invalidRay) {
         RayRework ray = original;
         int bounce = RayBounce(ray)-1;
-        RayBounce(ray, bounce > 0 ? bounce : 0);
-        if (bounce < 0) RayActived(ray, 0); 
-        ray.idx = rayIndex;
-        ray.texel = idx;
-        ray.hit = -1;
-        rayBuf.nodes[rayIndex] = ray;
-        addRayToList(ray);
+        if (bounce < 0) {
+            RayActived(ray, 0); 
+        } else {
+            RayBounce(ray, bounce >= 0 ? bounce : 0);
+            ray.idx = rayIndex;
+            ray.texel = idx;
+            ray.hit = -1;
+            rayBuf.nodes[rayIndex] = ray;
+            addRayToList(ray);
+        }
     }
 
     return rayIndex;
@@ -160,7 +163,7 @@ int createRay(inout RayRework original, in int idx) {
 
     int rayIndex = -1;
     if (!invalidRay) {
-        int iterations = 1;
+        int iterations = 0;
         int freed = 0;
         
         while (freed >= 0 && iterations >= 0) {
