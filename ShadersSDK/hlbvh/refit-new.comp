@@ -1,0 +1,77 @@
+#version 460 core
+
+#include "../include/constants.glsl"
+#include "../include/structs.glsl"
+#include "../include/uniforms.glsl"
+#include "../include/mathlib.glsl"
+#include "../include/ballotlib.glsl"
+#include "./includes.glsl"
+
+const int work_size = 1024;
+layout ( local_size_x = work_size ) in;
+
+void main() {
+    int globalID = int(gl_GlobalInvocationID.x);
+    if (globalID < Range[0]) {
+        int idx = atomicExchange(LeafIndices[globalID], -1);
+        if (idx >= 0) {
+            // link childrens
+            {
+                HlbvhNode childNode = Nodes[idx];
+                childNode.box.mn = ( 100000.f).xxxx;
+                childNode.box.mx = (-100000.f).xxxx;
+                
+                // make leafs links
+                uint leafID = MortoncodesIndices[childNode.pdata.x];
+                atomicExchange(Leafs[leafID].pdata.z, int(idx));
+
+                // fit bounding box
+                bbox lbound = Leafs[leafID].box;
+                bbox bound = childNode.box;
+                childNode.box.mn = min(bound.mn, lbound.mn);
+                childNode.box.mx = max(bound.mx, lbound.mx);
+
+                // reform range
+                ivec2 range = childNode.pdata.xy;
+                childNode.pdata.xy = range.yy; // leaf end (for identify that is leaf)
+                //childNode.pdata.w = range.x; // leaf index (except morton-code) is primitive
+                childNode.pdata.w = Leafs[MortoncodesIndices[range.x]].pdata.w;
+
+                Nodes[idx] = childNode;
+            }
+
+            // fit BVH parent nodes
+            idx = Nodes[idx].pdata.z;
+            bool validParent = true;
+            for (int l=0;l<256;l++) {
+                // if parent node is not occupy
+                validParent = validParent && idx >= 0;
+                if (validParent) validParent = atomicCompSwap(Flags[idx], 0, 1) == 1;
+
+                if (validParent) {
+                    HlbvhNode nd = Nodes[idx];
+
+                    // process unifying boxes
+                    if (nd.pdata.x != nd.pdata.y && idx >= 0) {
+                        // get nodes
+                        HlbvhNode ln = Nodes[nd.pdata.x];
+                        HlbvhNode rn = Nodes[nd.pdata.y];
+
+                        // unify bounding box
+                        bbox bound = nd.box;
+                        bound.mn = min(ln.box.mn, rn.box.mn);
+                        bound.mx = max(ln.box.mx, rn.box.mx);
+                        nd.box = bound;
+
+                        // store if valid
+                        Nodes[idx] = nd;
+                    }
+
+                    idx = nd.pdata.z;
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+}

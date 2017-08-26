@@ -44,6 +44,7 @@ call glslc %CFLAGS% %CMPPROF% %INDIR%%HLBV%aabbmaker.comp     -o %OUTDIR%%HLBV%a
 call glslc %CFLAGS% %CMPPROF% %INDIR%%HLBV%build.comp         -o %OUTDIR%%HLBV%build.comp.spv
 call glslc %CFLAGS% %CMPPROF% %INDIR%%HLBV%minmax.comp        -o %OUTDIR%%HLBV%minmax.comp.spv
 call glslc %CFLAGS% %CMPPROF% %INDIR%%HLBV%refit.comp         -o %OUTDIR%%HLBV%refit.comp.spv
+call glslc %CFLAGS% %CMPPROF% %INDIR%%HLBV%refit-new.comp         -o %OUTDIR%%HLBV%refit-new.comp.spv
 
 
 ::call glslc %CFLAGS% %CMPPROF% %INDIR%%RDXI%histogram.comp     -o %OUTDIR%%RDXI%histogram.comp.spv
@@ -87,6 +88,8 @@ call spirv-opt %OPTFLAGS% %OUTDIR%%HLBV%aabbmaker.comp.spv      -o %OUTDIR%%HLBV
 call spirv-opt %OPTFLAGS% %OUTDIR%%HLBV%build.comp.spv          -o %OUTDIR%%HLBV%build.comp.spv
 call spirv-opt %OPTFLAGS% %OUTDIR%%HLBV%minmax.comp.spv         -o %OUTDIR%%HLBV%minmax.comp.spv
 call spirv-opt %OPTFLAGS% %OUTDIR%%HLBV%refit.comp.spv          -o %OUTDIR%%HLBV%refit.comp.spv
+call spirv-opt %OPTFLAGS% %OUTDIR%%HLBV%refit-new.comp.spv          -o %OUTDIR%%HLBV%refit-new.comp.spv
+
 
 call spirv-opt %OPTFLAGS% %OUTDIR%%RDXI%single.comp.spv         -o %OUTDIR%%RDXI%single.comp.spv
 
