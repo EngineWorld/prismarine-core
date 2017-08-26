@@ -837,8 +837,11 @@ int main(const int argc, const char ** argv)
     const double measureSeconds = 2.0;
     const unsigned superSampling = 2;
 
-    int32_t baseWidth = 640;
-    int32_t baseHeight = 360;
+    //int32_t baseWidth = 640;
+    //int32_t baseHeight = 360;
+
+    int32_t baseWidth = 960;
+    int32_t baseHeight = 540;
 
     //int32_t baseWidth = 800;
     //int32_t baseHeight = 450;
