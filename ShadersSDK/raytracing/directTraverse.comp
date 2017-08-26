@@ -318,8 +318,8 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
             bool anyLeaf = anyB(overlapsGeneral); skipIntersection = skipIntersection || anyLeaf; // if any leaf found, skipping
             
             // intersect triangles when accumulate WARP's
-            if (anyInvocation(skipIntersection)) {
             //if (allInvocations(skipIntersection || !validBox)) {
+            if (skipIntersection) {
                 bvec2 overlaps = cI2(overlapsGeneral);
                 overlaps = leftOrder ? overlaps : overlaps.yx;
                 
