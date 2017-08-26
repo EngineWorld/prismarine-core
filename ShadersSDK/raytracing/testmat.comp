@@ -1,7 +1,7 @@
 #version 460 core
 
 // use whitted ray tracing model (no shadows support), which simulate hybrid methods
-#define USE_SIMPLIFIED_MODEL
+//#define USE_SIMPLIFIED_MODEL
 
 // can take huge damage to performance, but getting much better quality
 //#define USE_NOISE_LESS_BRDF
@@ -168,22 +168,14 @@ void main() {
         ray.final.xyz *= 0.0f;
 
 #ifdef USE_SIMPLIFIED_MODEL
-        diffuseRay = emissive(emissiveRay, mix(vec3(0.1f), tx.xyz, max(dot( normalize(lightCenter(0).xyz - ray.origin.xyz) , normal), 0.0f)), normal);
-        diffuseRay.color.xyz *= (1.0f - prom);
-        diffuseRay.final.xyz *= (1.0f - prom);
+        diffuseRay = emissive(emissiveRay, tx.xyz * mix(vec3(0.1f), vec3(1.f), max(dot( normalize(lightCenter(0).xyz - ray.origin.xyz) , normal), 0.0f)), normal);
         reflectionRay = reflection(reflectionRay, clamp(sc.xyz / spca, 0.0f, 1.0f), normal, 0.f);
 #else
         diffuseRay = diffuse(diffuseRay, tx.xyz, normal);
-        diffuseRay.color.xyz *= (1.0f - prom);
-        diffuseRay.color.xyz *= clamp(1.0f - emis, 0.0f, 1.0f);
         reflectionRay = reflection(reflectionRay, clamp(sc.xyz / spca, 0.0f, 1.0f), normal, refly);
 #endif
 
-        reflectionRay.color.xyz *= (1.0f - prom);
-        
         emissiveRay = emissive(emissiveRay, emi.xyz, normal);
-        emissiveRay.color.xyz *= (1.0f - prom);
-        emissiveRay.final.xyz *= (1.0f - prom);
 
         ray = promised(ray, normal);
         ray.color.xyz *= prom;
@@ -196,25 +188,30 @@ void main() {
 
     // emit rays
     if (!overflow && !skipping) {
+        diffuseRay.color.xyz *= 1.0f - prom;
+        reflectionRay.color.xyz *= 1.0f - prom;
+        emissiveRay.final.xyz *= (1.0f - prom) * (1.0f - clamp(spca, 0.0f, 1.0f));
 
 #ifdef USE_SIMPLIFIED_MODEL
-        mixed(diffuseRay.final.xyz, reflectionRay.color.xyz, clamp(spca, 0.0f, 1.0f));
-        emitRay(reflectionRay, normal, 1.0f);
-        emitRay(diffuseRay, normal, 1.0f);
-        emitRay(emissiveRay, normal, clamp(emis, 0.0f, 1.0f));
+        {
+            mixed(diffuseRay.final.xyz, reflectionRay.color.xyz, clamp(spca, 0.0f, 1.0f));
+            emitRay(reflectionRay, normal, 1.0f);
+            emitRay(diffuseRay, normal, 1.0f);
+            emitRay(emissiveRay, normal, clamp(emis, 0.0f, 1.0f));
+        }
 #else
-#ifdef USE_NOISE_LESS_BRDF
-        mixed(diffuseRay.color.xyz, reflectionRay.color.xyz, clamp(spca, 0.0f, 1.0f));
-#else 
-        mixed(diffuseRay.color.xyz, reflectionRay.color.xyz, clamp(float(random() < spca), 0.0f, 1.0f));
+        {
+    #ifdef USE_NOISE_LESS_BRDF
+            mixed(diffuseRay.color.xyz, reflectionRay.color.xyz, clamp(spca, 0.0f, 1.0f));
+    #else 
+            mixed(diffuseRay.color.xyz, reflectionRay.color.xyz, clamp(float(random() < spca), 0.0f, 1.0f));
+    #endif
+            emitRay(reflectionRay, normal, 1.0f);
+            applyLight(directLight(0, diffuseRay, vec3(1.0f), normal), diffuseRay, surfacenormal); // push shadow
+            emitRay(diffuseRay, normal, 1.0f);
+            emitRay(emissiveRay, normal, clamp(emis, 0.0f, 1.0f));
+        }
 #endif
-        emitRay(reflectionRay, normal, 1.0f);
-        applyLight(directLight(0, diffuseRay, vec3(1.0f), normal), diffuseRay, surfacenormal); // push shadow
-        emitRay(diffuseRay, normal, 1.0f);
-        emitRay(emissiveRay, normal, clamp(emis, 0.0f, 1.0f));
-#endif
-
-        
     }
 
     // re-store current
