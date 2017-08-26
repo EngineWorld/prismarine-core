@@ -1,7 +1,10 @@
 #version 460 core
 
+// use whitted ray tracing model (no shadows support), which simulate hybrid methods
 //#define USE_SIMPLIFIED_MODEL
-#define USE_NOISE_LESS_BRDF
+
+// can take huge damage to performance, but getting much better quality
+//#define USE_NOISE_LESS_BRDF
 
 #include "../include/constants.glsl"
 

@@ -109,12 +109,13 @@ RayRework directLightWhitted(in int i, in RayRework directRay, in vec3 color, in
     RayDL(directRay, 1);
     RayType(directRay, 2);
     RayTargetLight(directRay, i);
-    RayBounce(directRay, min(1, RayBounce(directRay)));
+    RayBounce(directRay, 1);
     
     vec3 ldirect = normalize(sLight(i) - directRay.origin.xyz);
     float weight = samplingWeight(ldirect, normal, lightUniform.lightNode[i].lightColor.w, length(lightCenter(i).xyz-directRay.origin.xyz));
     directRay.direct.xyz = ldirect;
     directRay.color.xyz *= color * weight;
+    directRay.final.xyz *= 0.f;
     return directRay;
 }
 
@@ -123,24 +124,25 @@ RayRework directLight(in int i, in RayRework directRay, in vec3 color, in vec3 n
     RayDL(directRay, 1);
     RayType(directRay, 2);
     RayTargetLight(directRay, i);
-    RayBounce(directRay, min(1, RayBounce(directRay)));
+    RayBounce(directRay, 1);
     
     vec3 ldirect = normalize(sLight(i) - directRay.origin.xyz);
     float weight = samplingWeight(ldirect, normal, lightUniform.lightNode[i].lightColor.w, length(lightCenter(i).xyz-directRay.origin.xyz));
     directRay.direct.xyz = ldirect;
-    directRay.color.xyz *= color * weight;//diffuseWeight * ((1.0f - cos_a_max) * 2.0f);
+    directRay.color.xyz *= color * weight;
+    directRay.final.xyz *= 0.f;
     return directRay;
 }
 
 
 RayRework ambient(in RayRework ray, in vec3 color, in vec3 normal){
-    ray.final.xyz = color * ray.color.xyz;
+    ray.final.xyz = max(ray.color.xyz * color, vec3(0.0f));
+    ray.final = RayType(ray) == 1 ? vec4(0.0f) : max(ray.final, vec4(0.0f));
     ray.direct.xyz = normalize(randomCosine(normal));
-    ray.origin.xyz = ray.origin.xyz = fma(ray.direct.xyz, vec3(GAP), ray.origin.xyz);
-    //ray.origin.xyz = fma(faceforward(normal, ray.direct.xyz, -normal), vec3(GAP), ray.origin.xyz); // padding
+    ray.origin.xyz = fma(ray.direct.xyz, vec3(GAP), ray.origin.xyz);
+    RayBounce(ray, 0);
     RayActived(ray, 0);
-    RayType(ray, 1);
-    RayDL(ray, 1);
+    RayDL(ray, 0);
     return ray;
 }
 
@@ -170,12 +172,9 @@ RayRework emissive(in RayRework ray, in vec3 color, in vec3 normal){
     ray.color.xyz *= 0.0f;
     ray.direct.xyz = normalize(randomCosine(normal));
     ray.origin.xyz = fma(ray.direct.xyz, vec3(GAP), ray.origin.xyz);
-    //ray.origin.xyz = fma(faceforward(normal, ray.direct.xyz, -normal), vec3(GAP), ray.origin.xyz); // padding
-
     RayBounce(ray, 0);
     RayActived(ray, 0);
     RayDL(ray, 0);
-    
     return ray;
 }
 
