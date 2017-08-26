@@ -179,6 +179,7 @@ void main() {
 
         ray = promised(ray, normal);
         ray.color.xyz *= prom;
+        ray.final.xyz *= prom;
     } else {
         reflectionRay.color.xyz *= 0.0f;
         emissiveRay.color.xyz *= 0.0f;
