@@ -235,21 +235,15 @@ namespace ppr {
 
     struct VirtualAccessor {
         GLint offset4 = 0;
-        GLint bitfield = 0;
+        //GLint bitfield = 0;
+
+        GLint components : 2;
+        GLint type : 4;
+        GLint normalized : 1;
+        GLint reservedBits : 25;
+
         GLint bufferView = -1;
         //GLint reserved = 0;
-
-        void components(GLint a) {
-            bitfield = glm::bitfieldInsert(bitfield, a-1, 0, 2);
-        }
-
-        void type(GLint a) {
-            bitfield = glm::bitfieldInsert(bitfield, a, 2, 4);
-        }
-
-        void normalized(GLint a) {
-            bitfield = glm::bitfieldInsert(bitfield, a, 6, 1);
-        }
     };
 
 
