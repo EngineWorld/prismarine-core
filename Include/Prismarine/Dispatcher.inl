@@ -114,8 +114,7 @@ namespace ppr {
 
     inline void Dispatcher::resizeBuffers(const uint32_t & w, const uint32_t & h) {
         width = w, height = h;
-        //bool enableInterlacing = true;
-        bool enableInterlacing = false;
+        bool enableInterlacing = true;
 
         if (colorchains   != -1) glDeleteBuffers(1, &colorchains);
         if (rays          != -1) glDeleteBuffers(1, &rays);
