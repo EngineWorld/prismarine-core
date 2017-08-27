@@ -165,7 +165,7 @@ void main() {
     hit.albedo = fetchDiffuse(material, texcoord);
     hit.normalHeight.xyz = normalize(tbn * normalize(getNormalMapping(material, texcoord).xyz));
     hit.normalHeight.w = 1.0f; // height
-    hit.emission = vec4(fetchEmissive(material, texcoord).xyz * 1.f, 1.0f);
+    hit.emission = vec4(fetchEmissive(material, texcoord).xyz * 2.f, 1.0f);
 
     vec4 spc = fetchSpecular(material, texcoord);
     hit.metallicRoughness.x = packHalf2x16(spc.yz);
