@@ -141,10 +141,11 @@ void main() {
     vec3 normal = faceforward(surfacenormal, ray.direct.xyz, surfacenormal);
 
     // get texture composition data
+    float IOR = 1.400f;
     vec4 tx = compositedHit[currentLayer].albedo;
     vec4 emi = compositedHit[currentLayer].emission;
     float refly = compositedHit[currentLayer].metallicRoughness.y; // roughness
-    vec3 dielectric = vec3(clamp(0.04f + pow(1.0f - abs(dot(ray.direct.xyz, normal)), 5.0f), 0.0f, 1.0f));
+    vec3 dielectric = mix(vec3(1.f), vec3(0.05f), clamp(pow(abs(dot(ray.direct.xyz, normal)), IOR - 1.f), 0.0f, 1.0f));
     vec3 sc = mix(dielectric, tx.xyz, sqrt(compositedHit[currentLayer].metallicRoughness.z));
 
     // we coming to PBR model
