@@ -124,7 +124,7 @@ RayRework directLight(in int i, in RayRework directRay, in vec3 color, in vec3 n
     RayDL(directRay, 1);
     RayType(directRay, 2);
     RayTargetLight(directRay, i);
-    RayBounce(directRay, 1);
+    RayBounce(directRay, min(1, RayBounce(directRay)));
     
     vec3 ldirect = normalize(sLight(i) - directRay.origin.xyz);
     float weight = samplingWeight(ldirect, normal, lightUniform.lightNode[i].lightColor.w, length(lightCenter(i).xyz-directRay.origin.xyz));
