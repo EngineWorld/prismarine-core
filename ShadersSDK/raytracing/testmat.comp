@@ -1,7 +1,7 @@
 #version 460 core
 
 // use whitted ray tracing model (no shadows support), which simulate hybrid methods
-//#define USE_SIMPLIFIED_MODEL
+#define USE_SIMPLIFIED_MODEL
 
 // can take huge damage to performance, but getting much better quality
 //#define USE_NOISE_LESS_BRDF
@@ -170,7 +170,7 @@ void main() {
 
 #ifdef USE_SIMPLIFIED_MODEL
         diffuseRay = emissive(emissiveRay, tx.xyz * mix(vec3(0.1f), vec3(1.f), max(dot( normalize(lightCenter(0).xyz - ray.origin.xyz) , normal), 0.0f)), normal);
-        reflectionRay = reflection(reflectionRay, clamp(sc.xyz / spca, 0.0f, 1.0f), normal, 0.f);
+        reflectionRay = reflection(reflectionRay, clamp(sc.xyz / spca, 0.0f, 1.0f), normal, refly);
 #else
         diffuseRay = diffuse(diffuseRay, tx.xyz, normal);
         reflectionRay = reflection(reflectionRay, clamp(sc.xyz / spca, 0.0f, 1.0f), normal, refly);
