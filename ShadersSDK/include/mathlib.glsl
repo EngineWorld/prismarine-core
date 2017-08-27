@@ -175,4 +175,49 @@ bool allB2(in int a){
 
 
 
+
+vec4 cubic(in float x) // cubic_catmullrom(float x)
+{
+    const float s = 1.0f; // potentially adjustable parameter
+    float x2 = x * x;
+    float x3 = x2 * x;
+    vec4 w;
+    w.x =    -s*x3 +     2*s*x2 - s*x + 0;
+    w.y = (2-s)*x3 +   (s-3)*x2       + 1;
+    w.z = (s-2)*x3 + (3-2*s)*x2 + s*x + 0;
+    w.w =     s*x3 -       s*x2       + 0;
+    return w;
+}
+
+vec4 textureBicubic(in sampler2D sampler, in vec2 texCoords)
+{
+    vec2 texSize = textureSize(sampler, 0);
+    vec2 invTexSize = 1.0 / texSize;
+
+    texCoords = texCoords * texSize;
+    vec2 fxy = fract(texCoords);
+    texCoords = floor(texCoords);
+
+    vec4 xcubic = cubic(fxy.x);
+    vec4 ycubic = cubic(fxy.y);
+
+    vec4 c = texCoords.xxyy + vec2(-0.5, +1.5).xyxy;
+    vec4 s = vec4(xcubic.xz + xcubic.yw, ycubic.xz + ycubic.yw);
+    vec4 offset = (c + vec4(xcubic.yw, ycubic.yw) / s) * invTexSize.xxyy;
+
+    vec4 sample0 = texture(sampler, offset.xz);
+    vec4 sample1 = texture(sampler, offset.yz);
+    vec4 sample2 = texture(sampler, offset.xw);
+    vec4 sample3 = texture(sampler, offset.yw);
+
+    float sx = s.x / (s.x + s.y);
+    float sy = s.z / (s.z + s.w);
+
+    return mix(
+       mix(sample3, sample2, sx), mix(sample1, sample0, sx)
+    , sy);
+}
+
+
+
 #endif

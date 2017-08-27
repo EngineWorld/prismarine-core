@@ -835,13 +835,13 @@ int main(const int argc, const char ** argv)
     glfwWindowHint(GLFW_CONTEXT_NO_ERROR, GLFW_TRUE);
 
     const double measureSeconds = 2.0;
-    const unsigned superSampling = 2;
+    const double superSampling = 2.0;
 
-    //int32_t baseWidth = 640;
-    //int32_t baseHeight = 360;
+    int32_t baseWidth = 640;
+    int32_t baseHeight = 360;
 
-    int32_t baseWidth = 960;
-    int32_t baseHeight = 540;
+    //int32_t baseWidth = 960;
+    //int32_t baseHeight = 540;
 
     //int32_t baseWidth = 800;
     //int32_t baseHeight = 450;
@@ -877,7 +877,7 @@ int main(const int argc, const char ** argv)
     if (glewInit() != GLEW_OK) glfwTerminate();
 
     app = new PaperExample::PathTracerApplication(argc, argv, window);
-    app->resizeBuffers(baseWidth * superSampling, baseHeight * superSampling);
+    app->resizeBuffers(int(double(baseWidth) * double(superSampling)), int(double(baseHeight) * double(superSampling)));
     app->resize(canvasWidth, canvasHeight);
 
     glfwSetKeyCallback(window, key_callback);

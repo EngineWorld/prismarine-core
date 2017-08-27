@@ -114,7 +114,8 @@ namespace ppr {
 
     inline void Dispatcher::resizeBuffers(const uint32_t & w, const uint32_t & h) {
         width = w, height = h;
-        bool enableInterlacing = true;
+        //bool enableInterlacing = true;
+        bool enableInterlacing = false;
 
         if (colorchains   != -1) glDeleteBuffers(1, &colorchains);
         if (rays          != -1) glDeleteBuffers(1, &rays);
@@ -127,8 +128,9 @@ namespace ppr {
         if (quantized     != -1) glDeleteBuffers(1, &quantized);
         if (deferredStack != -1) glDeleteBuffers(1, &deferredStack);
 
+        const int32_t cmultiplier = 4;
         const int32_t wrsize = width * height;
-        currentRayLimit = std::min(wrsize * 8 / (enableInterlacing ? 2 : 1), 4096 * 4096);
+        currentRayLimit = std::min(wrsize * cmultiplier / (enableInterlacing ? 2 : 1), 4096 * 4096);
 
         colorchains = allocateBuffer<ColorChain>(currentRayLimit * 4);
         rays = allocateBuffer<Ray>(currentRayLimit);
