@@ -283,15 +283,15 @@ namespace PaperExample {
                 deviceHandle->setAccessorSet(acs);
 
                 vattr.offset4 = 0;
-                vattr.components = 3;
+                vattr.components = 3 - 1;
                 deviceHandle->setVertexAccessor(acs->addVirtualAccessor(vattr));
 
                 vattr.offset4 = 3;
-                vattr.components = 3;
+                vattr.components = 3 - 1;
                 deviceHandle->setNormalAccessor(acs->addVirtualAccessor(vattr));
 
                 vattr.offset4 = 6;
-                vattr.components = 2;
+                vattr.components = 2 - 1;
                 deviceHandle->setTexcoordAccessor(acs->addVirtualAccessor(vattr));
 
                 deviceHandle->setIndexed(false);

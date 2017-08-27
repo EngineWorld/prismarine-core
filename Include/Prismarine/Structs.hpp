@@ -235,15 +235,8 @@ namespace ppr {
 
     struct VirtualAccessor {
         GLint offset4 = 0;
-        //GLint bitfield = 0;
-
-        GLint components : 2;
-        GLint type : 4;
-        GLint normalized : 1;
-        GLint reservedBits : 25;
-
+        GLint components : 2, type : 4, normalized : 1;
         GLint bufferView = -1;
-        //GLint reserved = 0;
     };
 
 
