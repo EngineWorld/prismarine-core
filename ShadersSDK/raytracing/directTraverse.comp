@@ -42,19 +42,6 @@ shared int deferredStack[WORK_SIZE][STACK_SIZE];
 shared vec4 bakedStack[WORK_SIZE][BAKED_STACK_SIZE];
 
 
-//const uint WARP_SIZE = 32;
-
-// triangle bins
-shared int triangleStack[WORK_SIZE][8];
-shared vec4 triangleStackIntersection[WORK_SIZE][8];
-shared int triangleStackCounter[WORK_SIZE];
-
-// per WARP bins
-shared int triangleStackIndices[WORK_SIZE/WARP_SIZE][WARP_SIZE * 2];
-shared int tStackIndicesCounter[WARP_SIZE];
-
-
-
 
 int loadStack(in int STI){
     int value = 0;
