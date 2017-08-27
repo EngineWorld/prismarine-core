@@ -4,7 +4,7 @@
 //#define USE_SIMPLIFIED_MODEL
 
 // can take huge damage to performance, but getting much better quality
-//#define USE_NOISE_LESS_BRDF
+#define USE_NOISE_LESS_BRDF
 
 #include "../include/constants.glsl"
 

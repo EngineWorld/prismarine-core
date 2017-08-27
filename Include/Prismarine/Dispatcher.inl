@@ -128,7 +128,7 @@ namespace ppr {
         if (deferredStack != -1) glDeleteBuffers(1, &deferredStack);
 
         const int32_t wrsize = width * height;
-        currentRayLimit = std::min(wrsize * 4 / (enableInterlacing ? 2 : 1), 4096 * 4096);
+        currentRayLimit = std::min(wrsize * 8 / (enableInterlacing ? 2 : 1), 4096 * 4096);
 
         colorchains = allocateBuffer<ColorChain>(currentRayLimit * 4);
         rays = allocateBuffer<Ray>(currentRayLimit);
@@ -138,7 +138,7 @@ namespace ppr {
         texels = allocateBuffer<Texel>(wrsize);
         freedoms = allocateBuffer<int32_t>(currentRayLimit);
         availables = allocateBuffer<int32_t>(currentRayLimit);
-        deferredStack = allocateBuffer<int32_t>(currentRayLimit * 32);
+        deferredStack = allocateBuffer<int32_t>(currentRayLimit * 16);
 
         samplerUniformData.sceneRes = { float(width), float(height) };
         samplerUniformData.currentRayLimit = currentRayLimit;
