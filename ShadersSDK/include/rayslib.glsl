@@ -54,7 +54,7 @@ initAtomicIncFunction(arcounter.Ht, atomicIncHt, int);
 
 void _collect(inout RayRework ray){
 #ifndef SIMPLIFIED_RAY_MANAGMENT
-    vec4 color = min(max(ray.final, vec4(0.f)), vec4(100.f));
+    vec4 color = min(max(ray.final, vec4(0.f)), vec4(1000.f));
     int idx = atomicIncCt(true); // allocate new index
     atomicCompSwap(texelBuf.nodes[ray.texel].EXT.y, -1, idx); // link first index
 
