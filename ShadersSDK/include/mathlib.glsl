@@ -220,4 +220,13 @@ vec4 textureBicubic(in sampler2D sampler, in vec2 texCoords)
 
 
 
+vec4 unpackHalf(in uvec2 halfs){
+    return vec4(unpackHalf2x16(halfs.x), unpackHalf2x16(halfs.y));
+}
+
+uvec2 packHalf(in vec4 floats){
+    return uvec2(packHalf2x16(floats.xy), packHalf2x16(floats.zw));
+}
+
+
 #endif

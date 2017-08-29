@@ -102,8 +102,9 @@ namespace ppr {
         glm::uvec4 metallicRoughness; // four 16-bit float
 
         // color parameters
-        glm::vec4 emission;
-        glm::vec4 albedo;
+        glm::uvec4 emission_albedo;
+        //glm::vec4 emission;
+        //glm::vec4 albedo;
 
         // integer metadata
         int bitfield;

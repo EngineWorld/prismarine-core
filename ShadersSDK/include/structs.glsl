@@ -47,8 +47,10 @@ struct HitRework {
     highp uvec4 metallicRoughness; // 8 of 16-bit float, you can pack non-critical surface data
 
     // color parameters
-    highp vec4 emission;
-    highp vec4 albedo;
+    //highp vec4 emission;
+    //highp vec4 albedo;
+    highp uvec2 emission;
+    highp uvec2 albedo;
 
     // integer metadata
     highp int bitfield; 

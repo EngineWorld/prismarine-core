@@ -162,10 +162,10 @@ void main() {
     mat3 tbn = mat3(tangent, normalize(cross(normal, tangent)), normal);
     vec2 texcoord = hit.texcoord.xy;
 
-    hit.albedo = fetchDiffuse(material, texcoord);
     hit.normalHeight.xyz = normalize(tbn * normalize(getNormalMapping(material, texcoord).xyz));
     hit.normalHeight.w = 1.0f; // height
-    hit.emission = vec4(fetchEmissive(material, texcoord).xyz * 2.f, 1.0f);
+    hit.emission = packHalf(vec4(fetchEmissive(material, texcoord).xyz * 2.f, 1.0f));
+    hit.albedo = packHalf(fetchDiffuse(material, texcoord));
 
     vec4 spc = fetchSpecular(material, texcoord);
     hit.metallicRoughness.x = packHalf2x16(spc.yz);
