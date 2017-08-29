@@ -468,7 +468,7 @@ namespace PaperExample {
 
         // create geometry intersector
         intersector = new ppr::SceneObject();
-        intersector->allocate(1024 * 1024);
+        intersector->allocate(1024 * 2048);
 
         // init timing state
         time = glfwGetTime() * 1000.f;
