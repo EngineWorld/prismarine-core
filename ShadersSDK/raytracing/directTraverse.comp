@@ -252,11 +252,13 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
     lastRes.materialID = LONGEST;
     lastRes.normal = vec4(0.f);
 
+
     // deferred stack
     deferredPtr = 0;
     deferredStack[L][0] = -1;
     sharedVarsData.chainID = -1;
     sharedVarsData.bakedStackCount = 0;
+    sharedVarsData.prevHt = -1; // reset previous for avoid depth bug (multi-BVH)
     for (int i=0;i<BAKED_STACK_SIZE;i++) {bakedStack[L][i] = vec4(vec2(0.0f), INFINITY, LONGEST);}
 
     // something fix
@@ -379,8 +381,15 @@ void main() {
     overflow = RayActived(ray) == 0 || overflow;
     if (allInvocations(overflow)) return;
 
+    // traverse
     sharedVarsData.prevHt = ray.hit;
     traverse(ray.origin.xyz, ray.direct.xyz, !overflow);
-    ray.hit = sharedVarsData.chainID;
-    if (!overflow) rayBuf.nodes[t] = ray; // avoid invalids
+    
+    // check nearest
+    float olddist = ray.hit != -1 ? hitBuf.nodes[ray.hit].uvt.z : INFINITY;
+    float newdist = sharedVarsData.chainID != -1 ? hitBuf.nodes[sharedVarsData.chainID].uvt.z : INFINITY;
+    if (lessEqualF(newdist, olddist) && lessF(newdist, INFINITY)) {
+        ray.hit = sharedVarsData.chainID;
+        if (!overflow) rayBuf.nodes[t] = ray; // avoid invalids
+    }
 }
