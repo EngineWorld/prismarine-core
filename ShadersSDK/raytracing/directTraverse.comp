@@ -321,7 +321,7 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
             
             // intersect triangles when accumulate WARP's
             //if (allInvocations(skipIntersection || !validBox)) {
-            if (skipIntersection) {
+            if (anyInvocation(anyLeaf)) {
                 bvec2 overlaps = cI2(overlapsGeneral);
                 overlaps = leftOrder ? overlaps : overlaps.yx;
                 
