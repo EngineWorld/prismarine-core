@@ -212,10 +212,10 @@ namespace PaperExample {
             }
             
             // convert as 48 bits
-            btm = FreeImage_ConvertToRGBF(btm);
+            //btm = FreeImage_ConvertToRGBF(btm);
 
             // save HDR
-            FreeImage_Save(FIF_HDR, btm, name.c_str(), HDR_DEFAULT);
+            FreeImage_Save(FIF_EXR, btm, name.c_str(), EXR_FLOAT);
             FreeImage_Unload(btm);
         }
 
@@ -537,7 +537,7 @@ namespace PaperExample {
             keys[kK] = false;
         }
         if (key == GLFW_KEY_L) {
-            saveHdr("snapshots/hdr_snapshot_" + std::to_string(img_counter++) + ".hdr");
+            saveHdr("snapshots/hdr_snapshot_" + std::to_string(img_counter++) + ".exr");
             keys[kL] = false;
         }
     }
