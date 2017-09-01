@@ -10,8 +10,11 @@ See `Projects`.
 <summary>9/2/2017 (1280x720)</summary>
 
 City rendered real-time with 5 fps. 
+
 Chess with 18 fps. 
+
 Microphone with 22 fps. 
+
 Helpment with ~22 fps too. 
 
 <img src="Screenshots/dm0.jpg" width="640"/>
