@@ -215,7 +215,7 @@ namespace PaperExample {
             //btm = FreeImage_ConvertToRGBF(btm);
 
             // save HDR
-            FreeImage_Save(FIF_EXR, btm, name.c_str(), EXR_FLOAT);
+            FreeImage_Save(FIF_EXR, btm, name.c_str(), EXR_FLOAT | EXR_PIZ);
             FreeImage_Unload(btm);
         }
 
