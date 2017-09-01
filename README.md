@@ -6,7 +6,21 @@ See `Projects`.
 
 ## Screenshots
 
+City rendered real-time with 5 fps. 
+Chess with 18 fps. 
+Microphone with 22 fps. 
+Helpment with ~22 fps too. 
+
 <details>
+<summary>9/2/2017 (1280x720)</summary>
+
+<img src="Screenshots/dm0.jpg" width="640"/>
+<img src="Screenshots/dm1.jpg" width="640"/>
+<img src="Screenshots/dm2.jpg" width="640"/>
+<img src="Screenshots/dm3.jpg" width="640"/>
+<img src="Screenshots/dm4.jpg" width="640"/>
+<img src="Screenshots/dm5.jpg" width="640"/>
+<img src="Screenshots/dm6.jpg" width="640"/>
 
 </details>
 
