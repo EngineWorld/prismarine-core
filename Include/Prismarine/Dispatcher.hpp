@@ -71,6 +71,10 @@ namespace ppr {
         GLuint resultFounds = -1;
         GLuint givenRays = -1;
 
+
+        
+
+
     public:
 
         Dispatcher() { init(); }
@@ -134,6 +138,15 @@ namespace ppr {
         glm::vec4 lightAmbient[6];
         glm::vec4 lightVector[6];
         glm::vec4 lightOffset[6];
+
+        struct HdrImage {
+            float * image = nullptr;
+            int width = 1;
+            int height = 1;
+        };
+
+        HdrImage snapHdr();
+        HdrImage snapRawHdr();
 
         void setLightCount(size_t lightcount);
         void bindUniforms();

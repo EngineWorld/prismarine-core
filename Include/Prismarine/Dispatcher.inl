@@ -339,6 +339,26 @@ namespace ppr {
     }
 
 
+    inline Dispatcher::HdrImage Dispatcher::snapRawHdr() {
+        HdrImage img;
+        img.width = displayWidth;
+        img.height = displayHeight;
+        img.image = new float[displayWidth * displayHeight * 4];
+        glGetTextureSubImage(filtered, 0, 0, 0, 0, displayWidth, displayHeight, 1, GL_RGBA, GL_FLOAT, displayWidth * displayHeight * 4 * sizeof(float), img.image);
+        return img;
+    }
+
+    inline Dispatcher::HdrImage Dispatcher::snapHdr() {
+        HdrImage img;
+        img.width = displayWidth;
+        img.height = displayHeight;
+        img.image = new float[displayWidth * displayHeight * 4];
+        glGetTextureSubImage(presampled, 0, 0, 0, 0, displayWidth, displayHeight, 1, GL_RGBA, GL_FLOAT, displayWidth * displayHeight * 4 * sizeof(float), img.image);
+        return img;
+    }
+
+
+
     inline int32_t Dispatcher::getRayCount() {
         return raycountCache >= 32 ? raycountCache : 0;
     }

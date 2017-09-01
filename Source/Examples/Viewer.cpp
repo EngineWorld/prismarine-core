@@ -38,7 +38,7 @@ namespace PaperExample {
     const int32_t kC = 8;
     const int32_t kK = 9;
     const int32_t kM = 10;
-
+    const int32_t kL = 11;
 
 
 
@@ -196,8 +196,38 @@ namespace PaperExample {
         void resize(const int32_t& width, const int32_t& height);
         void resizeBuffers(const int32_t& width, const int32_t& height);
 
+
+
+        void saveHdr(std::string name = "") {
+            ppr::Dispatcher::HdrImage image = rays->snapRawHdr();
+
+            // allocate RGBAF
+            FIBITMAP * btm = FreeImage_AllocateT(FIT_RGBAF, image.width, image.height);
+
+            // copy HDR data
+            int ti = 0;
+            for (int r = 0; r < image.height; r++) {
+                auto row = FreeImage_GetScanLine(btm, r);
+                memcpy(row, image.image + r * 4 * image.width, image.width * sizeof(float) * 4);
+            }
+            
+            // convert as 48 bits
+            btm = FreeImage_ConvertToRGBF(btm);
+
+            // save HDR
+            FreeImage_Save(FIF_HDR, btm, name.c_str(), HDR_DEFAULT);
+            FreeImage_Unload(btm);
+        }
+
+
+
     private:
         
+
+
+
+
+
         GLFWwindow * window;
         ppr::Dispatcher * rays;
         ppr::SceneObject * intersector;
@@ -210,8 +240,9 @@ namespace PaperExample {
         double mscale = 1.0f;
         int32_t depth = 16;
         int32_t switch360key = false;
+        int32_t img_counter = 0;
         bool lbutton = false;
-        bool keys[10] = { false , false , false , false , false , false , false, false, false };
+        bool keys[12] = { false , false , false , false , false , false , false, false, false, false, false };
 
 #ifdef EXPERIMENTAL_GLTF
         tinygltf::Model gltfModel;
@@ -487,6 +518,7 @@ namespace PaperExample {
         if (key == GLFW_KEY_SPACE) keys[kSpc] = true;
         if (key == GLFW_KEY_LEFT_SHIFT) keys[kSft] = true;
         if (key == GLFW_KEY_K) keys[kK] = true;
+        if (key == GLFW_KEY_L) keys[kL] = true;
     }
 
     // key release
@@ -503,6 +535,10 @@ namespace PaperExample {
         if (key == GLFW_KEY_K) {
             if (keys[kK]) switch360key = true;
             keys[kK] = false;
+        }
+        if (key == GLFW_KEY_L) {
+            saveHdr("snapshots/hdr_snapshot_" + std::to_string(img_counter++) + ".hdr");
+            keys[kL] = false;
         }
     }
 
