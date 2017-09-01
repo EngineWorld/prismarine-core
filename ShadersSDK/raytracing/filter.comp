@@ -8,6 +8,7 @@
 
 layout ( binding = 0, rgba32f ) uniform image2D presampled;
 layout ( binding = 1, rgba32f ) uniform image2D prefiltered;
+layout ( binding = 2, rgba32f ) uniform image2D prevsample;
 LOCAL_SIZE_LAYOUT;
 
 void mediumSwap(inout vec4 c0, inout vec4 c1){
@@ -17,7 +18,8 @@ void mediumSwap(inout vec4 c0, inout vec4 c1){
     c1 = mx;
 }
 
-vec4 median(in vec4 cl[3], in int n){
+vec4 median(in vec4 cl[3]){
+    const int n = 3;
     for(int i=0;i<n-1;i++){
         for(int j=i+1;j<n;j++){
             mediumSwap(cl[i], cl[j]);
@@ -27,13 +29,21 @@ vec4 median(in vec4 cl[3], in int n){
 }
 
 vec4 checkerFetch(in ivec2 tx, in int lod){ 
-    vec4 t00 = imageLoad(presampled, tx);//texelFetch(samples, tx, lod);
+    vec4 t00 = imageLoad(presampled, tx);
+
+    // mix with previous frame for better sampling
+    vec4 c00 = mix(imageLoad(prevsample, tx), t00, 0.5f);
+
+    // deinterlace
     if (RAY_BLOCK cameraUniform.interlace == 1){
-        vec4 t10 = imageLoad(presampled, tx + ivec2(1, 0));//texelFetch(samples, tx + ivec2(1, 0), lod);
-        vec4 t01 = imageLoad(presampled, tx + ivec2(0, 1));//texelFetch(samples, tx + ivec2(0, 1), lod);
+        vec4 p00 = imageLoad(prevsample, tx);
+        vec4 t10 = mix(imageLoad(presampled, tx + ivec2(1, 0)), t00, 0.5f);
+        vec4 t01 = mix(imageLoad(presampled, tx + ivec2(0, 1)), t00, 0.5f);
         vec4 xyf[3] = {t10, t00, t01};
-        t00 = median(xyf, 3) * 0.5f + t00 * 0.5f;
+        c00 = median(xyf);
     }
+
+    t00 = c00;
     return t00;
 }
 

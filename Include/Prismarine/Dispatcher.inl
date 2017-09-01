@@ -199,8 +199,7 @@ namespace ppr {
 
     inline void Dispatcher::sample() {
         // save previous frame
-        //glCopyImageSubData(presampled, GL_TEXTURE_2D, 0, 0, 0, 0, prevsampled, GL_TEXTURE_2D, 0, 0, 0, 0, displayWidth, displayHeight, 1);
-        glCopyImageSubData(filtered, GL_TEXTURE_2D, 0, 0, 0, 0, prevsampled, GL_TEXTURE_2D, 0, 0, 0, 0, displayWidth, displayHeight, 1);
+        glCopyImageSubData(presampled, GL_TEXTURE_2D, 0, 0, 0, 0, prevsampled, GL_TEXTURE_2D, 0, 0, 0, 0, displayWidth, displayHeight, 1);
 
         // collect samples
         glBindImageTexture(0, presampled, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
