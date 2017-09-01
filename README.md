@@ -15,7 +15,7 @@ Chess with 18 fps.
 
 Microphone with 22 fps. 
 
-Helment with ~22 fps too. 
+Helment with 25 fps too. 
 
 <img src="Screenshots/dm0.jpg" width="640"/>
 <img src="Screenshots/dm1.jpg" width="640"/>
