@@ -98,11 +98,16 @@ namespace ppr {
 
         sampleflags = allocateTexture2D<GL_R32UI>(displayWidth, displayHeight);
         presampled = allocateTexture2D<GL_RGBA32F>(displayWidth, displayHeight);
+        prevsampled = allocateTexture2D<GL_RGBA32F>(displayWidth, displayHeight);
         filtered = allocateTexture2D<GL_RGBA32F>(displayWidth, displayHeight);
         
         // set sampler of
         glTextureParameteri(presampled, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTextureParameteri(presampled, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        // previous frame for temporal AA
+        glTextureParameteri(prevsampled, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(prevsampled, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
         // set sampler of
         glTextureParameteri(filtered, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -193,6 +198,10 @@ namespace ppr {
     }
 
     inline void Dispatcher::sample() {
+        // save previous frame
+        //glCopyImageSubData(presampled, GL_TEXTURE_2D, 0, 0, 0, 0, prevsampled, GL_TEXTURE_2D, 0, 0, 0, 0, displayWidth, displayHeight, 1);
+        glCopyImageSubData(filtered, GL_TEXTURE_2D, 0, 0, 0, 0, prevsampled, GL_TEXTURE_2D, 0, 0, 0, 0, displayWidth, displayHeight, 1);
+
         // collect samples
         glBindImageTexture(0, presampled, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
         glBindImageTexture(1, sampleflags, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
@@ -203,7 +212,10 @@ namespace ppr {
         // filter by deinterlacing, etc.
         glBindImageTexture(0, presampled, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
         glBindImageTexture(1, filtered, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+        glBindImageTexture(2, prevsampled, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
         dispatch(filterProgram, tiled(displayWidth * displayHeight, worksize));
+
+        
     }
 
     inline void Dispatcher::camera(const glm::mat4 &persp, const glm::mat4 &frontSide) {
@@ -284,6 +296,7 @@ namespace ppr {
         this->bind();
         glEnable(GL_TEXTURE_2D);
         glBindTextureUnit(5, filtered);
+        glBindTextureUnit(6, prevsampled);
         glScissor(0, 0, displayWidth, displayHeight);
         glViewport(0, 0, displayWidth, displayHeight);
         glUseProgram(renderProgram);

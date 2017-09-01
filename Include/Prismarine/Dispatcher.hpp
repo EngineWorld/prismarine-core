@@ -50,6 +50,7 @@ namespace ppr {
         int32_t currentRayLimit = 0;
         int32_t worksize = 128;
 
+        GLuint prevsampled = -1;
         GLuint presampled = -1;
         GLuint sampleflags = -1;
         GLuint filtered = -1;
