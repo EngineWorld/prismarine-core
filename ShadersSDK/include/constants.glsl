@@ -64,7 +64,7 @@
 #define COMPATIBLE_PRECISION 8388608.0
 
 // Compute Shaders Definitions
-#define WORK_SIZE 256
+#define WORK_SIZE 128
 #define LOCAL_SIZE_LAYOUT layout ( local_size_x = WORK_SIZE ) in
 
 // Math Constants
