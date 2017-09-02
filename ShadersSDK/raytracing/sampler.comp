@@ -87,13 +87,19 @@ void main(){
         {
             float next = xsample.w + float(samplecount);
             float prev = xsample.w;
-#ifdef MOTION_BLUR
-            float divisor = min(prev / next, 1.0f - 1.0f / SAMPLES_LOCK);
-#else
-            float divisor = min(prev / next, 1.0f);
-#endif
+            float divisor = prev / next;
+
+//#ifdef MOTION_BLUR
+//            float divisor = min(prev / next, 1.0f - 1.0f / SAMPLES_LOCK);
+//#else
+//            float divisor = min(prev / next, 1.0f);
+//#endif
             xsample.xyz = fma(xsample.xyz, vec3(divisor), newc.xyz * (1.0f - divisor));
-            xsample.w += float(samplecount);
+#ifdef MOTION_BLUR
+            xsample.w = min(next, SAMPLES_LOCK-1);
+#else
+            xsample.w = next;
+#endif
         }
         imageStore(presampled, xyl.xy, vec4(xsample)); // store in current projection
     }
