@@ -12,7 +12,7 @@ layout ( binding = 2, rgba32f ) uniform image2D prevsample;
 LOCAL_SIZE_LAYOUT;
 
 
-
+/*
 vec3 encodePalYuv(in vec3 rgb)
 {
     rgb = pow(rgb, vec3(2.0)); // gamma correction
@@ -84,6 +84,12 @@ vec4 checkerFetch(in ivec2 tx, in int lod){
     
     antialiased = decodePalYuv(antialiased);
     return vec4(antialiased, mixRate);
+}*/
+
+
+vec4 checkerFetch(in ivec2 tx, in int lod){ 
+    vec4 lastColor = imageLoad(presampled, tx);
+    return lastColor;
 }
 
 void main(){
