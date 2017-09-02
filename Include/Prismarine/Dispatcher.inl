@@ -343,8 +343,8 @@ namespace ppr {
         HdrImage img;
         img.width = displayWidth;
         img.height = displayHeight;
-        img.image = new float[displayWidth * displayHeight * 4];
-        glGetTextureSubImage(filtered, 0, 0, 0, 0, displayWidth, displayHeight, 1, GL_RGBA, GL_FLOAT, displayWidth * displayHeight * 4 * sizeof(float), img.image);
+        img.image = new GLfloat[displayWidth * displayHeight * 4];
+        glGetTextureSubImage(filtered, 0, 0, 0, 0, displayWidth, displayHeight, 1, GL_RGBA, GL_FLOAT, displayWidth * displayHeight * 4 * sizeof(GLfloat), img.image);
         return img;
     }
 
@@ -352,8 +352,8 @@ namespace ppr {
         HdrImage img;
         img.width = displayWidth;
         img.height = displayHeight;
-        img.image = new float[displayWidth * displayHeight * 4];
-        glGetTextureSubImage(presampled, 0, 0, 0, 0, displayWidth, displayHeight, 1, GL_RGBA, GL_FLOAT, displayWidth * displayHeight * 4 * sizeof(float), img.image);
+        img.image = new GLfloat[displayWidth * displayHeight * 4];
+        glGetTextureSubImage(presampled, 0, 0, 0, 0, displayWidth, displayHeight, 1, GL_RGBA, GL_FLOAT, displayWidth * displayHeight * 4 * sizeof(GLfloat), img.image);
         return img;
     }
 

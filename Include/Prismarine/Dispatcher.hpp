@@ -140,7 +140,7 @@ namespace ppr {
         glm::vec4 lightOffset[6];
 
         struct HdrImage {
-            float * image = nullptr;
+            GLfloat * image = nullptr;
             int width = 1;
             int height = 1;
         };
