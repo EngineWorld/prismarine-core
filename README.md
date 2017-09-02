@@ -17,13 +17,12 @@ Microphone with 22 fps.
 
 Helment with 25 fps. 
 
-<img src="Screenshots/dm0.jpg" width="640"/>
-<img src="Screenshots/dm1.jpg" width="640"/>
-<img src="Screenshots/dm2.jpg" width="640"/>
-<img src="Screenshots/dm3.jpg" width="640"/>
-<img src="Screenshots/dm4.jpg" width="640"/>
-<img src="Screenshots/dm5.jpg" width="640"/>
-<img src="Screenshots/dm6.jpg" width="640"/>
+<img src="Screenshots/dm0.png" width="640"/>
+<img src="Screenshots/dm1.png" width="640"/>
+<img src="Screenshots/dm2.png" width="640"/>
+<img src="Screenshots/dm3.png" width="640"/>
+<img src="Screenshots/dm4.png" width="640"/>
+<img src="Screenshots/dm5.png" width="640"/>
 
 </details>
 
