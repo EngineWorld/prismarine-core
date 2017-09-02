@@ -12,6 +12,8 @@ namespace ppr {
         initShaderComputeSPIRV("./shaders-spv/raytracing/sampler.comp.spv", samplerProgram);
         initShaderComputeSPIRV("./shaders-spv/raytracing/filter.comp.spv", filterProgram);
         initShaderComputeSPIRV("./shaders-spv/raytracing/directTraverse.comp.spv", traverseDirectProgram);
+        initShaderComputeSPIRV("./shaders-spv/raytracing/deinterlace.comp.spv", deinterlaceProgram);
+        
 
         {
             renderProgram = glCreateProgram();
@@ -119,7 +121,7 @@ namespace ppr {
 
     inline void Dispatcher::resizeBuffers(const uint32_t & w, const uint32_t & h) {
         width = w, height = h;
-        bool enableInterlacing = true;
+        bool enableInterlacing = false;
 
         if (colorchains   != -1) glDeleteBuffers(1, &colorchains);
         if (rays          != -1) glDeleteBuffers(1, &rays);
@@ -198,8 +200,7 @@ namespace ppr {
     }
 
     inline void Dispatcher::sample() {
-        // save previous frame
-        glCopyImageSubData(presampled, GL_TEXTURE_2D, 0, 0, 0, 0, prevsampled, GL_TEXTURE_2D, 0, 0, 0, 0, displayWidth, displayHeight, 1);
+        
 
         // collect samples
         glBindImageTexture(0, presampled, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
@@ -212,8 +213,15 @@ namespace ppr {
         glBindImageTexture(0, presampled, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
         glBindImageTexture(1, filtered, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
         glBindImageTexture(2, prevsampled, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+
+        // deinterlace if need
+        dispatch(deinterlaceProgram, tiled(displayWidth * displayHeight, worksize));
+
+        // use temporal AA
         dispatch(filterProgram, tiled(displayWidth * displayHeight, worksize));
 
+        // save previous frame
+        glCopyImageSubData(filtered, GL_TEXTURE_2D, 0, 0, 0, 0, prevsampled, GL_TEXTURE_2D, 0, 0, 0, 0, displayWidth, displayHeight, 1);
         
     }
 

@@ -25,6 +25,9 @@ const ivec2 axes[AXES] = {O(-1, -1), O( 0, -1), O( 1, -1), O(-1,  0)};
 vec4 filtered(in vec2 tx){
     ivec2 center_pix = ivec2(tx * textureSize(samples, 0));
     vec4 center_pix_cache = texelFetch(samples, center_pix, 0);
+    return center_pix_cache;
+
+    /*
     vec4 metric_reference[AXES];
 
     for (int axis = 0; axis < AXES; axis++) {
@@ -56,7 +59,7 @@ vec4 filtered(in vec2 tx){
         }
     }
 
-    return (sum/vec4(count));
+    return (sum/vec4(count));*/
 }
 
 void main() {

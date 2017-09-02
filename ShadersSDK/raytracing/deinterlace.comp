@@ -1,0 +1,72 @@
+#version 460 core
+
+#include "../include/constants.glsl"
+#include "../include/structs.glsl"
+#include "../include/uniforms.glsl"
+
+#define MB_PAGES 3
+
+layout ( binding = 0, rgba32f ) uniform image2D presampled;
+layout ( binding = 1, rgba32f ) uniform image2D prefiltered;
+layout ( binding = 2, rgba32f ) uniform image2D prevsample;
+LOCAL_SIZE_LAYOUT;
+
+void incremental(inout vec4 c0, inout vec4 c1){
+    vec4 mn = mix(c0, c1, lessThanEqual(c0, c1));
+    vec4 mx = mix(c0, c1, greaterThanEqual(c0, c1));
+    c0 = mn;
+    c1 = mx;
+}
+
+vec4 midof(in vec4 a, in vec4 b, in vec4 c){
+    incremental(a, b);
+    incremental(a, c);
+    incremental(b, c);
+    return b;
+}
+
+vec4 checkerFetch(in ivec2 tx, in int lod){ 
+    // center of pixels
+    vec4 ct = imageLoad(presampled, tx);
+
+/*
+    // median of axis
+    vec4 px1 = imageLoad(presampled, tx + ivec2( 1, 0));
+    vec4 nx1 = imageLoad(presampled, tx + ivec2(-1, 0));
+    vec4 hz = midof(px1, nx1, ct);
+
+    vec4 py1 = imageLoad(presampled, tx + ivec2(0,  1));
+    vec4 ny1 = imageLoad(presampled, tx + ivec2(0, -1));
+    vec4 hvr = midof(py1, ny1, hz);
+*/
+
+/*
+    // median of diagonals
+    vec4 px1py1 = imageLoad(presampled, tx + ivec2( 1,  1));
+    vec4 nx1ny1 = imageLoad(presampled, tx + ivec2(-1, -1));
+    vec4 dg1 = midof(px1py1, nx1ny1, ct);
+
+    vec4 px1ny1 = imageLoad(presampled, tx + ivec2( 1, -1));
+    vec4 nx1py1 = imageLoad(presampled, tx + ivec2(-1,  1));
+    vec4 dgs = midof(px1ny1, nx1py1, dg1);
+*/
+
+    // combine filters
+    //return midof(dgs, hvr, ct);
+
+
+    // interlacing filter
+    vec4 px1 = imageLoad(presampled, tx + ivec2(1, 0));
+    vec4 py1 = imageLoad(presampled, tx + ivec2(0, 1));
+    vec4 mif = midof(px1, py1, ct);
+    return (RAY_BLOCK cameraUniform.interlace == 1 ? mix(mif, ct, 0.5f) : ct);
+}
+
+void main(){
+    int it = int(gl_GlobalInvocationID.x);
+    ivec2 wh = ivec2(RAY_BLOCK samplerUniform.sceneRes.xy);
+    ivec2 whs = ivec2(imageSize(presampled).xy);
+    ivec3 xyl = ivec3(it % whs.x, it / whs.x, 0);
+
+    imageStore(prefiltered, xyl.xy, checkerFetch(xyl.xy, 0));
+}
