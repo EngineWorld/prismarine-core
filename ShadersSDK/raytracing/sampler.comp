@@ -5,7 +5,6 @@
 #include "../include/uniforms.glsl"
 #include "../include/rayslib.glsl"
 
-#define SAMPLES_LOCK 8
 
 layout ( binding = 0, rgba32f ) uniform image2D presampled;
 layout ( binding = 1, r32ui ) uniform uimage2D sampleflags;
