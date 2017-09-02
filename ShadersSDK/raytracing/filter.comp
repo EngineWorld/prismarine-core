@@ -11,43 +11,55 @@ layout ( binding = 1, rgba32f ) uniform image2D prefiltered;
 layout ( binding = 2, rgba32f ) uniform image2D prevsample;
 LOCAL_SIZE_LAYOUT;
 
-void mediumSwap(inout vec4 c0, inout vec4 c1){
+void incremental(inout vec4 c0, inout vec4 c1){
     vec4 mn = mix(c0, c1, lessThanEqual(c0, c1));
     vec4 mx = mix(c0, c1, greaterThanEqual(c0, c1));
     c0 = mn;
     c1 = mx;
 }
 
-vec4 median(in vec4 cl[3]){
-    const int n = 3;
-    for(int i=0;i<n-1;i++){
-        for(int j=i+1;j<n;j++){
-            mediumSwap(cl[i], cl[j]);
-        }
-    }
-    return cl[n >> 1];
+vec4 midof(in vec4 a, in vec4 b, in vec4 c){
+    incremental(a, b);
+    incremental(a, c);
+    incremental(b, c);
+    return b;
 }
 
 vec4 checkerFetch(in ivec2 tx, in int lod){ 
-    vec4 t00 = imageLoad(presampled, tx);
+    // center of pixels
+    vec4 ct = imageLoad(presampled, tx);
 
-    // mix with previous frame for better sampling
-    //vec4 c00 = mix(imageLoad(prevsample, tx), t00, 0.5f);
+/*
+    // median of axis
+    vec4 px1 = imageLoad(presampled, tx + ivec2( 1, 0));
+    vec4 nx1 = imageLoad(presampled, tx + ivec2(-1, 0));
+    vec4 hz = midof(px1, nx1, ct);
 
-    // use sample as is
-    vec4 c00 = t00;
+    vec4 py1 = imageLoad(presampled, tx + ivec2(0,  1));
+    vec4 ny1 = imageLoad(presampled, tx + ivec2(0, -1));
+    vec4 hvr = midof(py1, ny1, hz);
+*/
 
-    // deinterlace
-    if (RAY_BLOCK cameraUniform.interlace == 1){
-        vec4 p00 = imageLoad(prevsample, tx);
-        vec4 t10 = mix(imageLoad(presampled, tx + ivec2(1, 0)), t00, 0.5f);
-        vec4 t01 = mix(imageLoad(presampled, tx + ivec2(0, 1)), t00, 0.5f);
-        vec4 xyf[3] = {t10, t00, t01};
-        c00 = median(xyf);
-    }
+/*
+    // median of diagonals
+    vec4 px1py1 = imageLoad(presampled, tx + ivec2( 1,  1));
+    vec4 nx1ny1 = imageLoad(presampled, tx + ivec2(-1, -1));
+    vec4 dg1 = midof(px1py1, nx1ny1, ct);
 
-    t00 = c00;
-    return t00;
+    vec4 px1ny1 = imageLoad(presampled, tx + ivec2( 1, -1));
+    vec4 nx1py1 = imageLoad(presampled, tx + ivec2(-1,  1));
+    vec4 dgs = midof(px1ny1, nx1py1, dg1);
+*/
+
+    // combine filters
+    //return midof(dgs, hvr, ct);
+
+
+    // interlacing filter
+    vec4 px1 = imageLoad(presampled, tx + ivec2(1, 0));
+    vec4 py1 = imageLoad(presampled, tx + ivec2(0, 1));
+    vec4 mif = midof(px1, py1, ct);
+    return (RAY_BLOCK cameraUniform.interlace == 1 ? mix(mif, ct, 0.5f) : ct);
 }
 
 void main(){

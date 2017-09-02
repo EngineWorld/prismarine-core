@@ -8,6 +8,10 @@
 #include "../include/uniforms.glsl"
 #include "../include/rayslib.glsl"
 
+layout ( location = 0 ) out vec4 outFragColor;
+layout ( location = 0 ) in vec2 texcoord;
+layout ( binding = 5 ) uniform sampler2D samples;
+
 #define NEIGHBOURS 8
 #define AXES 4
 #define POW2(a) ((a)*(a))
@@ -15,10 +19,6 @@
 #define BAIL_CONDITION(new,original) (lessThanEqual(new, original))
 #define SYMMETRY(a) (-a)
 #define O(u,v) (ivec2(u, v))
-
-layout ( location = 0 ) out vec4 outFragColor;
-layout ( location = 0 ) in vec2 texcoord;
-layout ( binding = 5 ) uniform sampler2D samples;
 
 const ivec2 axes[AXES] = {O(-1, -1), O( 0, -1), O( 1, -1), O(-1,  0)};
 

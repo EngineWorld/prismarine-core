@@ -199,7 +199,7 @@ namespace PaperExample {
 
 
         void saveHdr(std::string name = "") {
-            ppr::Dispatcher::HdrImage image = rays->snapRawHdr();
+            ppr::Dispatcher::HdrImage image = rays->snapHdr();
 
             // allocate RGBAF
             FIBITMAP * btm = FreeImage_AllocateT(FIT_RGBAF, image.width, image.height);

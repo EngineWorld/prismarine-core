@@ -119,7 +119,7 @@ namespace ppr {
 
     inline void Dispatcher::resizeBuffers(const uint32_t & w, const uint32_t & h) {
         width = w, height = h;
-        bool enableInterlacing = false;
+        bool enableInterlacing = true;
 
         if (colorchains   != -1) glDeleteBuffers(1, &colorchains);
         if (rays          != -1) glDeleteBuffers(1, &rays);
@@ -344,7 +344,7 @@ namespace ppr {
         img.width = displayWidth;
         img.height = displayHeight;
         img.image = new GLfloat[displayWidth * displayHeight * 4];
-        glGetTextureSubImage(filtered, 0, 0, 0, 0, displayWidth, displayHeight, 1, GL_RGBA, GL_FLOAT, displayWidth * displayHeight * 4 * sizeof(GLfloat), img.image);
+        glGetTextureSubImage(presampled, 0, 0, 0, 0, displayWidth, displayHeight, 1, GL_RGBA, GL_FLOAT, displayWidth * displayHeight * 4 * sizeof(GLfloat), img.image);
         return img;
     }
 
@@ -353,7 +353,7 @@ namespace ppr {
         img.width = displayWidth;
         img.height = displayHeight;
         img.image = new GLfloat[displayWidth * displayHeight * 4];
-        glGetTextureSubImage(presampled, 0, 0, 0, 0, displayWidth, displayHeight, 1, GL_RGBA, GL_FLOAT, displayWidth * displayHeight * 4 * sizeof(GLfloat), img.image);
+        glGetTextureSubImage(filtered, 0, 0, 0, 0, displayWidth, displayHeight, 1, GL_RGBA, GL_FLOAT, displayWidth * displayHeight * 4 * sizeof(GLfloat), img.image);
         return img;
     }
 
