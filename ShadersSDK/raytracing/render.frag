@@ -27,7 +27,7 @@ vec4 filtered(in vec2 tx){
     vec4 center_pix_cache = texelFetch(samples, center_pix, 0);
     return center_pix_cache;
 
-    /*
+/*
     vec4 metric_reference[AXES];
 
     for (int axis = 0; axis < AXES; axis++) {
