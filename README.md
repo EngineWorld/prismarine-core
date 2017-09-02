@@ -7,7 +7,7 @@ See `Projects`.
 ## Screenshots
 
 <details>
-<summary>9/2/2017 (1280x720)</summary>
+<summary>9/3/2017 (1280x720)</summary>
 
 <img src="Screenshots/dm0.png" width="640"/>
 <img src="Screenshots/dm1.png" width="640"/>
