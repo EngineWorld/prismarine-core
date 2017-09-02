@@ -64,7 +64,7 @@ struct OctreeUniformStruct {
 struct CameraUniformStruct {
     mat4x4 projInv;
     mat4x4 camInv;
-    mat4x4 camInv2;
+    mat4x4 prevCamInv;
 
     float prob;
     int enable360;

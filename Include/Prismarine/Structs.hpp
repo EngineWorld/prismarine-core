@@ -186,7 +186,7 @@ namespace ppr {
     struct CameraUniformStruct {
         Vc4x4 projInv = mat4r;
         Vc4x4 camInv = mat4r;
-        Vc4x4 camInv2 = mat4r;
+        Vc4x4 prevCamInv = mat4r;
 
         Vc1 prob;
         iVc1 enable360;
