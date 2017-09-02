@@ -5,7 +5,7 @@
 #include "../include/uniforms.glsl"
 #include "../include/rayslib.glsl"
 
-#define MB_PAGES 8
+#define SAMPLES_LOCK 8
 
 layout ( binding = 0, rgba32f ) uniform image2D presampled;
 layout ( binding = 1, r32ui ) uniform uimage2D sampleflags;
@@ -83,20 +83,18 @@ void main(){
         }
 #endif
 
-        vec4 xsample = imageLoad(presampled, xyl.xy);
+        vec4 xsample = imageLoad(presampled, xyl.xy); // get previous (reprojected) sample
         {
-#ifdef MOTION_BLUR
-            float inpage = 1.0f / MB_PAGES;
-            float outpage = 1.0f - inpage;
-            xsample = fma(imageLoad(presampled, xyl.xy), vec4(outpage), newc * inpage);
-#else
             float next = xsample.w + float(samplecount);
             float prev = xsample.w;
-            float divisor = prev / next;
+#ifdef MOTION_BLUR
+            float divisor = min(prev / next, 1.0f - 1.0f / SAMPLES_LOCK);
+#else
+            float divisor = min(prev / next, 1.0f);
+#endif
             xsample.xyz = fma(xsample.xyz, vec3(divisor), newc.xyz * (1.0f - divisor));
             xsample.w += float(samplecount);
-#endif
         }
-        imageStore(presampled, xyl.xy, vec4(xsample));
+        imageStore(presampled, xyl.xy, vec4(xsample)); // store in current projection
     }
 }
