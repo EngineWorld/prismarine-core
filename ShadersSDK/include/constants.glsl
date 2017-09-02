@@ -25,7 +25,10 @@
 #define SUNLIGHT_CAUSTICS false
 #define REFRACTION_SKIP_SUN
 #define DIRECT_LIGHT
+
+// sampling options
 #define MOTION_BLUR
+#define SAMPLES_LOCK 8 // required when using motion blur
 
 
 // enable required OpenGL extensions

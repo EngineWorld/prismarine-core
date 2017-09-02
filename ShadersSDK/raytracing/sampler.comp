@@ -89,11 +89,6 @@ void main(){
             float prev = xsample.w;
             float divisor = prev / next;
 
-//#ifdef MOTION_BLUR
-//            float divisor = min(prev / next, 1.0f - 1.0f / SAMPLES_LOCK);
-//#else
-//            float divisor = min(prev / next, 1.0f);
-//#endif
             xsample.xyz = fma(xsample.xyz, vec3(divisor), newc.xyz * (1.0f - divisor));
 #ifdef MOTION_BLUR
             xsample.w = min(next, SAMPLES_LOCK-1);
