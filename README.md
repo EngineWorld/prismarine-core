@@ -9,14 +9,6 @@ See `Projects`.
 <details>
 <summary>9/2/2017 (1280x720)</summary>
 
-City rendered real-time with 5 fps. 
-
-Chess with 18 fps. 
-
-Microphone with 22 fps. 
-
-Helment with 25 fps. 
-
 <img src="Screenshots/dm0.png" width="640"/>
 <img src="Screenshots/dm1.png" width="640"/>
 <img src="Screenshots/dm2.png" width="640"/>
