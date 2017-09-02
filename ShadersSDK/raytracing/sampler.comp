@@ -50,8 +50,8 @@ void main(){
     ivec2 basis = ivec2(vec2(xyl.xy) * aspect);
     vec4 newc = vec4(0.0f);
     vec2 screen = vec2(xyl.xy);
-    for(int x=-1;x<=scl.x;x++){
-        for(int y=-1;y<=scl.y;y++){
+    for(int x=-1;x<scl.x;x++){
+        for(int y=-1;y<scl.y;y++){
             ivec2 cmp = basis + ivec2(x, y);
             if (
                 cmp.x >= 0 && cmp.x < wh.x && 
