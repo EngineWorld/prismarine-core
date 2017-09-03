@@ -51,8 +51,12 @@ namespace ppr {
         int32_t currentRayLimit = 0;
         int32_t worksize = 128;
 
+        // position texture
+        GLuint positionimg = -1;
+
         GLuint prevsampled = -1;
         GLuint presampled = -1;
+        GLuint reprojected = -1;
         GLuint sampleflags = -1;
         GLuint filtered = -1;
         GLuint vao = -1;

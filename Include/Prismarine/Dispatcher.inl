@@ -97,6 +97,12 @@ namespace ppr {
 
         if (sampleflags != -1) glDeleteTextures(1, &sampleflags);
         if (presampled  != -1) glDeleteTextures(1, &presampled);
+        if (filtered != -1) glDeleteTextures(1, &filtered);
+        if (prevsampled != -1) glDeleteTextures(1, &prevsampled);
+        if (positionimg != -1) glDeleteTextures(1, &positionimg);
+
+        reprojected = allocateTexture2D<GL_RGBA32F>(displayWidth, displayHeight);
+        positionimg = allocateTexture2D<GL_RGBA32F>(displayWidth, displayHeight);
 
         sampleflags = allocateTexture2D<GL_R32UI>(displayWidth, displayHeight);
         presampled = allocateTexture2D<GL_RGBA32F>(displayWidth, displayHeight);
