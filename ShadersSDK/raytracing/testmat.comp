@@ -218,8 +218,21 @@ void main() {
 #endif
     }
 
+    // register reprojection coordinate
+    if (RayBasis(ray) == 1 && prom < 0.1f) {
+        Texel txfi = texelBuf.nodes[ray.texel];
+        txfi.last3d = vec4(ray.origin.xyz, 1.0f);
+        texelBuf.nodes[ray.texel] = txfi;
+        RayBasis(ray, 0);
+    }
+
     // re-store current
     if (!overflow) {
         storeRay(t, ray);
     }
+
+
+
+
+
 }

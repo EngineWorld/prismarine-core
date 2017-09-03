@@ -188,6 +188,8 @@ int createRay(inout RayRework original, in int idx) {
             rayIndex = atomicIncRt(true);
         }
     }
+
+    RayBasis(original, 0); // is not basis ray
     return createRayStrict(original, idx, rayIndex);
 }
 

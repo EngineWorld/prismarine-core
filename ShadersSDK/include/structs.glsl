@@ -5,6 +5,7 @@
 
 struct Texel {
     highp vec4 coord;
+    highp vec4 last3d;
     highp ivec4 EXT;
 };
 
@@ -106,6 +107,14 @@ void RayBounce(inout RayRework ray, in int bn){
     ray.bitfield = BFI(ray.bitfield, bn, 8, 4);
 }
 
+
+int RayBasis(in RayRework ray){
+    return BFE(ray.bitfield, 12, 1);
+}
+
+void RayBasis(inout RayRework ray, in int basis){
+    ray.bitfield = BFI(ray.bitfield, basis, 12, 1);
+}
 
 
 

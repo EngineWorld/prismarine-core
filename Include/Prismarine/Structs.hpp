@@ -116,6 +116,7 @@ namespace ppr {
 
     struct Texel {
         Vc4 coord;
+        Vc4 last3d;
         iVc4 EXT;
     };
 

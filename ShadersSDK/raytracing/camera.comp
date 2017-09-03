@@ -87,6 +87,7 @@ void main()
         RayType(ray, 0); // specular
         RayDL(ray, 0);
         RayBounce(ray, 4);
+        RayBasis(ray, 1); // is basis ray
 
         bool interlaced = RAY_BLOCK cameraUniform.interlace == 1;
         if (interlaced) {
