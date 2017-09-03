@@ -9,11 +9,7 @@ See `Projects`.
 <details>
 <summary>9/3/2017 (1280x720)</summary>
 
-<img src="Screenshots/dml0.png" width="640"/>
-<img src="Screenshots/dml1.png" width="640"/>
-<img src="Screenshots/dml2.png" width="640"/>
-<img src="Screenshots/dml3.png" width="640"/>
-<img src="Screenshots/dml4.png" width="640"/>
+<img src="Screenshots/dms0.png" width="640"/>
 
 </details>
 
