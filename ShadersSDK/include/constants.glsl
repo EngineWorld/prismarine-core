@@ -28,7 +28,7 @@
 
 // sampling options
 #define MOTION_BLUR
-#define SAMPLES_LOCK 8 // required when using motion blur
+#define SAMPLES_LOCK 4 // required when using motion blur
 
 
 // enable required OpenGL extensions
