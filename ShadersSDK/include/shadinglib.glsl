@@ -100,7 +100,7 @@ float intersectSphere(in vec3 origin, in vec3 ray, in vec3 sphereCenter, in floa
 
 
 float samplingWeight(in vec3 ldir, in vec3 ndir, in float radius, in float dist) {
-    return dot(ldir, ndir) * (pow(radius * 2.f / 3.f, 2.f)*PI) / (dist*dist);
+    return (1.0f - sqrt(1.0f - clamp(dot(ldir, ndir) * (radius*radius*E) / (dist*dist), 0.f, 1.f)));
 }
 
 
@@ -111,8 +111,11 @@ RayRework directLightWhitted(in int i, in RayRework directRay, in vec3 color, in
     RayTargetLight(directRay, i);
     RayBounce(directRay, 1);
     
-    vec3 ldirect = normalize(sLight(i) - directRay.origin.xyz);
-    float weight = samplingWeight(ldirect, normal, lightUniform.lightNode[i].lightColor.w, length(lightCenter(i).xyz-directRay.origin.xyz));
+    vec3 lpath = sLight(i) - directRay.origin.xyz;
+    vec3 ldirect = normalize(lpath);
+    //float dist = length(lpath);
+    float dist = length(lightCenter(i).xyz - directRay.origin.xyz);
+    float weight = samplingWeight(ldirect, normal, lightUniform.lightNode[i].lightColor.w, dist);
     directRay.direct.xyz = ldirect;
     directRay.color.xyz *= color * weight;
     directRay.final.xyz *= 0.f;
@@ -126,8 +129,11 @@ RayRework directLight(in int i, in RayRework directRay, in vec3 color, in vec3 n
     RayTargetLight(directRay, i);
     RayBounce(directRay, min(1, RayBounce(directRay)));
     
-    vec3 ldirect = normalize(sLight(i) - directRay.origin.xyz);
-    float weight = samplingWeight(ldirect, normal, lightUniform.lightNode[i].lightColor.w, length(lightCenter(i).xyz-directRay.origin.xyz));
+    vec3 lpath = sLight(i) - directRay.origin.xyz;
+    vec3 ldirect = normalize(lpath);
+    //float dist = length(lpath);
+    float dist = length(lightCenter(i).xyz - directRay.origin.xyz);
+    float weight = samplingWeight(ldirect, normal, lightUniform.lightNode[i].lightColor.w, dist);
     directRay.direct.xyz = ldirect;
     directRay.color.xyz *= color * weight;
     directRay.final.xyz *= 0.f;
