@@ -9,7 +9,7 @@ See `Projects`.
 <details>
 <summary>9/3/2017 (1280x720)</summary>
 
-<img src="Screenshots/dms0.png" width="640"/>
+<img src="Screenshots/dms1.png" width="640"/>
 
 </details>
 
