@@ -66,7 +66,7 @@ vec3 lightCenter(in int i){
 }
 
 vec3 sLight(in int i){
-    return fma(randomDirectionInSphere(), vec3(lightUniform.lightNode[i].lightColor.w), lightCenter(i));
+    return fma(randomDirectionInSphere(), vec3(lightUniform.lightNode[i].lightColor.w - 0.0001f), lightCenter(i));
 }
 
 int applyLight(in RayRework directRay, inout RayRework ray, in vec3 normal) {
@@ -100,7 +100,7 @@ float intersectSphere(in vec3 origin, in vec3 ray, in vec3 sphereCenter, in floa
 
 
 float samplingWeight(in vec3 ldir, in vec3 ndir, in float radius, in float dist) {
-    return (1.0f - sqrt(1.0f - max(dot(ldir, ndir), 0.f) * clamp(pow(radius / dist, 2.f) * E, 0.f, 1.f)));
+    return (1.0f - sqrt(1.0f - clamp(dot(ldir, ndir) * 2.f * pow(radius / dist, 2.f), 0.f, 1.f)));
 }
 
 
@@ -116,9 +116,12 @@ RayRework directLightWhitted(in int i, in RayRework directRay, in vec3 color, in
     //float dist = length(lpath);
     float dist = length(lightCenter(i).xyz - directRay.origin.xyz);
     float weight = samplingWeight(ldirect, normal, lightUniform.lightNode[i].lightColor.w, dist);
+
+    directRay.origin.xyz = fma(directRay.direct.xyz, -vec3(GAP), directRay.origin.xyz); // unshift ray from original direction
     directRay.direct.xyz = ldirect;
     directRay.color.xyz *= color * weight;
     directRay.final.xyz *= 0.f;
+    directRay.origin.xyz = fma(directRay.direct.xyz, vec3(GAP), directRay.origin.xyz);
     return directRay;
 }
 
@@ -134,9 +137,12 @@ RayRework directLight(in int i, in RayRework directRay, in vec3 color, in vec3 n
     //float dist = length(lpath);
     float dist = length(lightCenter(i).xyz - directRay.origin.xyz);
     float weight = samplingWeight(ldirect, normal, lightUniform.lightNode[i].lightColor.w, dist);
+
+    directRay.origin.xyz = fma(directRay.direct.xyz, -vec3(GAP), directRay.origin.xyz); // unshift ray from original direction
     directRay.direct.xyz = ldirect;
     directRay.color.xyz *= color * weight;
     directRay.final.xyz *= 0.f;
+    directRay.origin.xyz = fma(directRay.direct.xyz, vec3(GAP), directRay.origin.xyz);
     return directRay;
 }
 
