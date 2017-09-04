@@ -181,30 +181,44 @@ TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
     return res;
 }
 
-TResult testIntersection(inout TResult res, in vec3 orig, in vec3 dir, in int tri, in bool isValid) {
-    bool validTriangle = 
-        isValid && 
-        tri >= 0 && 
-        tri != LONGEST && 
-        tri != res.triangleID;
 
-    if (anyInvocation(validTriangle)) {
-        vec2 uv = vec2(0.0f);
-        float _d = intersectTriangle(orig, dir, tri, uv, validTriangle);
-        bool near = validTriangle && lessF(_d, INFINITY) && lessEqualF(_d, res.predist) && greaterEqualF(_d, 0.0f);
+TResult testIntersectionPacked(inout TResult res, in vec3 orig, in vec3 dir, in ivec2 tri, in bvec2 isValid) {
+    bvec2 validTriangles = and2(and2(greaterThanEqual(tri, ivec2(0)), and2(notEqual(tri, ivec2(LONGEST)), notEqual(tri, ivec2(res.triangleID)))), isValid);
+    validTriangles.y = validTriangles.y && tri.x != tri.y; // should not be same
 
+    if (anyInvocation(any(validTriangles))) {
+
+        // planned packed math
+        vec4 uv2 = vec4(0.0f);
+        vec2 _d2 = vec2(INFINITY);
+        _d2.x = intersectTriangle(orig, dir, tri.x, uv2.xy, validTriangles.x);
+        _d2.y = intersectTriangle(orig, dir, tri.y, uv2.zw, validTriangles.y);
+
+        bool near = validTriangles.x && lessF(_d2.x, INFINITY) && lessEqualF(_d2.x, res.predist) && greaterEqualF(_d2.x, 0.0f);
         if (near) {
-            if (!equalF(_d, res.predist)) { // if distance not equal, reset baked storage counting
+            if (!equalF(_d2.x, res.predist)) { // if distance not equal, reset baked storage counting
                 sharedVarsData.bakedStackCount = 0;
             }
-            res.predist = _d;
-            res.triangleID = tri;
-            bakedStack[L][add(sharedVarsData.bakedStackCount, 1)] = vec4(uv, _d, intBitsToFloat(tri));
+            res.predist = _d2.x;
+            res.triangleID = tri.x;
+            bakedStack[L][add(sharedVarsData.bakedStackCount, 1)] = vec4(uv2.xy, _d2.x, intBitsToFloat(tri.x));
+        }
+
+        near = validTriangles.y && lessF(_d2.y, INFINITY) && lessEqualF(_d2.y, res.predist) && greaterEqualF(_d2.y, 0.0f);
+        if (near) {
+            if (!equalF(_d2.y, res.predist)) { // if distance not equal, reset baked storage counting
+                sharedVarsData.bakedStackCount = 0;
+            }
+            res.predist = _d2.y;
+            res.triangleID = tri.y;
+            bakedStack[L][add(sharedVarsData.bakedStackCount, 1)] = vec4(uv2.zw, _d2.y, intBitsToFloat(tri.y));
         }
     }
 
     return res;
 }
+
+
 
 const int groupSize = 1;
 
@@ -220,8 +234,7 @@ void includeLeaf(in vec3 origin, in vec3 direct, in bool validBox, in HlbvhNode 
 void includeLeaf2(in vec3 origin, in vec3 direct, in bvec2 valids, in HlbvhNode lnode, in HlbvhNode rnode, in vec3 boxHit, inout TResult lastRes){
     if (anyInvocation(any(valids))) {
         // planned dual intersection (for VEGA GPU, which 128 ops per WARP, aka. two float per thread)
-        testIntersection(lastRes, origin.xyz, direct.xyz, lnode.pdata.w, valids.x);
-        testIntersection(lastRes, origin.xyz, direct.xyz, rnode.pdata.w, valids.y);
+        testIntersectionPacked(lastRes, origin.xyz, direct.xyz, ivec2(lnode.pdata.w, rnode.pdata.w), valids);
     }
 }
 
