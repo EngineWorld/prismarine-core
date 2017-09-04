@@ -222,15 +222,6 @@ TResult testIntersectionPacked(inout TResult res, in vec3 orig, in vec3 dir, in 
 
 const int groupSize = 1;
 
-/*
-void includeLeaf(in vec3 origin, in vec3 direct, in bool validBox, in HlbvhNode node, in vec3 boxHit, inout TResult lastRes){
-    bool isLeaf = validBox;
-    if (anyInvocation(isLeaf)) {
-        testIntersection(lastRes, origin.xyz, direct.xyz, node.pdata.w, isLeaf);
-    }
-}
-*/
-
 void includeLeaf2(in vec3 origin, in vec3 direct, in bvec2 valids, in HlbvhNode lnode, in HlbvhNode rnode, in vec3 boxHit, inout TResult lastRes){
     if (anyInvocation(any(valids))) {
         // planned dual intersection (for VEGA GPU, which 128 ops per WARP, aka. two float per thread)
