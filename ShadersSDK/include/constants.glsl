@@ -41,8 +41,6 @@
 
 #ifdef ENABLE_NVIDIA_INSTRUCTION_SET
 #extension GL_NV_gpu_shader5 : require
-#extension GL_NV_shader_atomic_float : require
-#extension GL_NV_shader_atomic_fp16_vector : require
 #endif
 
 #ifdef USE_INT64
