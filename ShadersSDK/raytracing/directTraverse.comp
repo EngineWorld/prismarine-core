@@ -190,9 +190,10 @@ TResult testIntersectionPacked(inout TResult res, in vec3 orig, in vec3 dir, in 
 
         // planned packed math
         vec4 uv2 = vec4(0.0f);
-        vec2 _d2 = vec2(INFINITY);
-        _d2.x = intersectTriangle(orig, dir, tri.x, uv2.xy, validTriangles.x);
-        _d2.y = intersectTriangle(orig, dir, tri.y, uv2.zw, validTriangles.y);
+        //vec2 _d2 = vec2(INFINITY);
+        //_d2.x = intersectTriangle(orig, dir, tri.x, uv2.xz, validTriangles.x);
+        //_d2.y = intersectTriangle(orig, dir, tri.y, uv2.yw, validTriangles.y);
+        vec2 _d2 = intersectTriangle2(orig, dir, tri, uv2, validTriangles);
 
         bool near = validTriangles.x && lessF(_d2.x, INFINITY) && lessEqualF(_d2.x, res.predist) && greaterEqualF(_d2.x, 0.0f);
         if (near) {
@@ -201,7 +202,7 @@ TResult testIntersectionPacked(inout TResult res, in vec3 orig, in vec3 dir, in 
             }
             res.predist = _d2.x;
             res.triangleID = tri.x;
-            bakedStack[L][add(sharedVarsData.bakedStackCount, 1)] = vec4(uv2.xy, _d2.x, intBitsToFloat(tri.x));
+            bakedStack[L][add(sharedVarsData.bakedStackCount, 1)] = vec4(uv2.xz, _d2.x, intBitsToFloat(tri.x));
         }
 
         near = validTriangles.y && lessF(_d2.y, INFINITY) && lessEqualF(_d2.y, res.predist) && greaterEqualF(_d2.y, 0.0f);
@@ -211,7 +212,7 @@ TResult testIntersectionPacked(inout TResult res, in vec3 orig, in vec3 dir, in 
             }
             res.predist = _d2.y;
             res.triangleID = tri.y;
-            bakedStack[L][add(sharedVarsData.bakedStackCount, 1)] = vec4(uv2.zw, _d2.y, intBitsToFloat(tri.y));
+            bakedStack[L][add(sharedVarsData.bakedStackCount, 1)] = vec4(uv2.yw, _d2.y, intBitsToFloat(tri.y));
         }
     }
 

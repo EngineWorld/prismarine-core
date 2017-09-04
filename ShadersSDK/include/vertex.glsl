@@ -44,104 +44,114 @@ ivec2 getUniformCoord(in uint indice){
 }
 
 
-/// LEGACY
-float intersectTriangle4(in vec3 orig, in vec3 dir, in ivec4 tri, inout vec2 UV, inout int triID) {
-    UV = vec2(0.f);
-    triID = LONGEST;
-    float t = INFINITY;
 
-    // check valid triangles
-    bvec4 valid = bvec4(notEqual(tri, ivec4(LONGEST)));
+vec2 intersectTriangle2(in vec3 orig, in vec3 dir, inout ivec2 tri, inout vec4 UV, in bvec2 valid) {
+    UV = vec4(0.f);
 
-    // storing triangles in vector components
-    mat3x4 v012x = transpose(mat4x3(
-        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.x)), 0).wzx, // triangle 0, verts 0, 1, 2
-        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.y)), 0).wzx, // triangle 1
-        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.z)), 0).wzx, // triangle 2
-        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.w)), 0).wzx  // triangle 3
-    ));
-    mat3x4 v012y = transpose(mat4x3(
-        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.x)), 1).wzx,
-        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.y)), 1).wzx,
-        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.z)), 1).wzx,
-        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.w)), 1).wzx
-    ));
-    mat3x4 v012z = transpose(mat4x3(
-        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.x)), 2).wzx,
-        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.y)), 2).wzx,
-        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.z)), 2).wzx,
-        gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.w)), 2).wzx
-    ));
+    vec2 t2 = vec2(INFINITY);
+    if (anyInvocation(any(valid))) {
 
-    // gather e1, e2
-    vec4 e1x = v012x[1] - v012x[0];
-    vec4 e1y = v012y[1] - v012y[0];
-    vec4 e1z = v012z[1] - v012z[0];
-    vec4 e2x = v012x[2] - v012x[0];
-    vec4 e2y = v012y[2] - v012y[0];
-    vec4 e2z = v012z[2] - v012z[0];
+/*
+        // does not work (broken OpenGL support)
+        mat3x2 v012x = transpose(mat2x3(
+            gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.x)), 0).wzx, // triangle 0, verts 0, 1, 2
+            gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.y)), 0).wzx  // triangle 1
+        ));
+        mat3x2 v012y = transpose(mat2x3(
+            gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.x)), 1).wzx,
+            gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.y)), 1).wzx
+        ));
+        mat3x2 v012z = transpose(mat2x3(
+            gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.x)), 2).wzx,
+            gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.y)), 2).wzx
+        ));
+*/
 
-    // get ray dir
-    vec4 dir4x = dir.xxxx;
-    vec4 dir4y = dir.yyyy;
-    vec4 dir4z = dir.zzzz;
+        mat3 ve0 = mat3(
+            fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri.x)), 0).xyz, 
+            fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri.x)), 1).xyz, 
+            fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri.x)), 2).xyz
+        );
 
-    // division (det)
-    vec4 pvecx = fma(dir4y, e2z, -dir4z*e2y);
-    vec4 pvecy = fma(dir4z, e2x, -dir4x*e2z);
-    vec4 pvecz = fma(dir4x, e2y, -dir4y*e2x);
-    vec4 divisor = fma(pvecx, e1x, fma(pvecy, e1y, pvecz*e1z));
-    valid = and(valid, greaterThan(abs(divisor), vec4(0.f)));
-    if (all(not(valid))) return t;
-    vec4 invDivisor = vec4(1) / divisor;
+        mat3 ve1 = mat3(
+            fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri.y)), 0).xyz, 
+            fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri.y)), 1).xyz, 
+            fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri.y)), 2).xyz
+        );
 
-    // get ray orig
-    vec4 orig4x = orig.xxxx;
-    vec4 orig4y = orig.yyyy;
-    vec4 orig4z = orig.zzzz;
+        mat3x2 v012x = mat3x2(
+            vec2(ve0[0].x, ve1[0].x),
+            vec2(ve0[1].x, ve1[1].x),
+            vec2(ve0[2].x, ve1[2].x)
+        );
 
-    // U
-    vec4 tvecx = orig4x - v012x[0];
-    vec4 tvecy = orig4y - v012y[0];
-    vec4 tvecz = orig4z - v012z[0];
-    vec4 u4;
-    u4 = fma(tvecx, pvecx, fma(tvecy, pvecy, tvecz*pvecz));
-    u4 = u4 * invDivisor;
-    valid = and(valid, and(greaterThanEqual(u4, vec4(0.f)), lessThan(u4, vec4(1.f))));
-    if (all(not(valid))) return t;
+        mat3x2 v012y = mat3x2(
+            vec2(ve0[0].y, ve1[0].y),
+            vec2(ve0[1].y, ve1[1].y),
+            vec2(ve0[2].y, ve1[2].y)
+        );
 
-    // V
-    vec4 qvecx = fma(tvecy, e1z, -tvecz*e1y);
-    vec4 qvecy = fma(tvecz, e1x, -tvecx*e1z);
-    vec4 qvecz = fma(tvecx, e1y, -tvecy*e1x);
-    vec4 v4;
-    v4 = fma(dir4x, qvecx, fma(dir4y, qvecy, dir4z*qvecz));
-    v4 = v4 * invDivisor;
-    valid = and(valid, and(greaterThanEqual(v4, vec4(0.f)), lessThan(u4+v4, vec4(1.f))));
-    if (all(not(valid))) return t;
+        mat3x2 v012z = mat3x2(
+            vec2(ve0[0].z, ve1[0].z),
+            vec2(ve0[1].z, ve1[1].z),
+            vec2(ve0[2].z, ve1[2].z)
+        );
 
-    // distance
-    vec4 t4;
-    t4 = fma(e2x, qvecx, fma(e2y, qvecy, e2z*qvecz));
-    t4 = t4 * invDivisor;
-    valid = and(valid, lessThan(t4, vec4(INFINITY - PZERO)));
-    if (all(not(valid))) return t;
+        mat3x2 e1 = mat3x2(v012x[1] - v012x[0], v012y[1] - v012y[0], v012z[1] - v012z[0]);
+        mat3x2 e2 = mat3x2(v012x[2] - v012x[0], v012y[2] - v012y[0], v012z[2] - v012z[0]);
+        mat3x2 dir2 = mat3x2(dir.xx, dir.yy, dir.zz);
+        mat3x2 orig2 = mat3x2(orig.xx, orig.yy, orig.zz);
 
-    // ordered resulting
-    if ((equalF(t4.x, t) ? tri.x < triID : lessEqualF(t4.x, t)) && greaterEqualF(t4.x, 0))
-    if (valid.x) { t = t4.x; triID = tri.x; UV.xy = vec2(u4.x, v4.x); }
+        mat3x2 pvec = mat3x2(
+            dir2[1] * e2[2] - dir2[2] * e2[1], 
+            dir2[2] * e2[0] - dir2[0] * e2[2], 
+            dir2[0] * e2[1] - dir2[1] * e2[0]
+        );
 
-    if ((equalF(t4.y, t) ? tri.y < triID : lessEqualF(t4.y, t)) && greaterEqualF(t4.y, 0))
-    if (valid.y) { t = t4.y; triID = tri.y; UV.xy = vec2(u4.y, v4.y); }
+        vec2 det = pvec[0]*e1[0] + pvec[1]*e1[1] + pvec[2]*e1[2];
+        valid = and2(valid, greaterThan(abs(det), vec2(0.f)));
+        if (anyInvocation(any(valid))) {
+            vec2 invDev = 1.f / (max(abs(det), 0.000001f) * sign(det));
+            mat3x2 tvec = mat3x2(
+                orig2[0] - v012x[0],
+                orig2[1] - v012y[0], 
+                orig2[2] - v012z[0]
+            );
 
-    if ((equalF(t4.z, t) ? tri.z < triID : lessEqualF(t4.z, t)) && greaterEqualF(t4.z, 0))
-    if (valid.z) { t = t4.z; triID = tri.z; UV.xy = vec2(u4.z, v4.z); }
+            vec2 u = vec2(0.f);
+            u = (tvec[0]*pvec[0] + tvec[1]*pvec[1] + tvec[2]*pvec[2]) * invDev;
+            valid = and2(valid, and2(greaterThanEqual(u, vec2(0.f)), lessThan(u, vec2(1.f))));
+            if (anyInvocation(any(valid))) {
+                mat3x2 qvec = mat3x2(
+                    tvec[1] * e1[2] - tvec[2] * e1[1],
+                    tvec[2] * e1[0] - tvec[0] * e1[2],
+                    tvec[0] * e1[1] - tvec[1] * e1[0]
+                );
 
-    if ((equalF(t4.w, t) ? tri.w < triID : lessEqualF(t4.w, t)) && greaterEqualF(t4.w, 0))
-    if (valid.w) { t = t4.w; triID = tri.w; UV.xy = vec2(u4.w, v4.w); }
+                vec2 v = vec2(0.f);
+                v = (dir2[0]*qvec[0] + dir2[1]*qvec[1] + dir2[2]*qvec[2]) * invDev;
+                valid = and2(valid, and2(greaterThanEqual(v, vec2(0.f)), lessThan(u+v, vec2(1.f))));
+                if (anyInvocation(any(valid))) {
+                    // distance
+                    t2 = (e2[0]*qvec[0] + e2[1]*qvec[1] + e2[2]*qvec[2]) * invDev;
+                    valid = and2(valid, lessThan(t2, vec2(INFINITY - PZERO)));
+                    valid = and2(valid, greaterThan(t2, vec2(0.0f - PZERO)));
 
-    return t;
+                    UV = vec4(u, v);
+                }
+            }
+        }
+    }
+
+    return mix(vec2(INFINITY), t2, valid);
 }
+
+
+
+
+
+
+
 
 // WARP optimized triangle intersection
 float intersectTriangle(in vec3 orig, in vec3 dir, in int tri, inout vec2 UV, in bool valid) {

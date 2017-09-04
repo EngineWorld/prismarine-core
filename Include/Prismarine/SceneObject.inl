@@ -52,6 +52,7 @@ namespace ppr {
         vbo_texcoords_textrue_upload = allocateTexture2D<GL_RGBA32F>(6144, height);
         vbo_modifiers_textrue_upload = allocateTexture2D<GL_RGBA32F>(6144, height);
 
+
         glCreateSamplers(1, &vbo_sampler);
         glSamplerParameteri(vbo_sampler, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glSamplerParameteri(vbo_sampler, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
