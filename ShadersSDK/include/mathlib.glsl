@@ -111,20 +111,21 @@ vec2 intersectCubeDual(
     inout vec2 near, inout vec2 far
 ) {
     vec3 dr = 1.0f / ray;
-
+    mat3x2 dr2 = mat3x2(dr.xx, dr.yy, dr.zz);
+    mat3x2 origin2 = mat3x2(origin.xx, origin.yy, origin.zz);
     mat4x2 cubeMin2 = transpose(cubeMin);
     mat4x2 cubeMax2 = transpose(cubeMax);
 
     mat3x2 tMin = mat3x2(
-        (cubeMin2[0] - origin.xx) * dr.xx, 
-        (cubeMin2[1] - origin.yy) * dr.yy, 
-        (cubeMin2[2] - origin.zz) * dr.zz
+        (cubeMin2[0] - origin2[0]) * dr2[0], 
+        (cubeMin2[1] - origin2[1]) * dr2[1], 
+        (cubeMin2[2] - origin2[2]) * dr2[2]
     );
 
     mat3x2 tMax = mat3x2(
-        (cubeMax2[0] - origin.xx) * dr.xx, 
-        (cubeMax2[1] - origin.yy) * dr.yy, 
-        (cubeMax2[2] - origin.zz) * dr.zz
+        (cubeMax2[0] - origin2[0]) * dr2[0], 
+        (cubeMax2[1] - origin2[1]) * dr2[1], 
+        (cubeMax2[2] - origin2[2]) * dr2[2]
     );
 
     mat3x2 t1 = mat3x2(
