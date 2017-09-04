@@ -294,7 +294,7 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
             HlbvhNode rnode = Nodes[node.pdata.y];
 
             vec2 inf2 = vec2(INFINITY), nears = inf2, fars = inf2;
-            vec2 hits = intersectCubeDual(torig, dirproj, vec4[2](lnode.box.mn, rnode.box.mn), vec4[2](lnode.box.mx, rnode.box.mx), nears, fars);
+            vec2 hits = intersectCubeDual(torig, dirproj, mat2x4(lnode.box.mn, rnode.box.mn), mat2x4(lnode.box.mx, rnode.box.mx), nears, fars);
 
             int overlapsGeneral = (notLeaf ? 3 : 0) & 
                 cB2(lessThanEqual(hits, vec2(INFINITY-PZERO))) & 
