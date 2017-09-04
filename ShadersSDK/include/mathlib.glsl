@@ -104,20 +104,51 @@ float intersectCubeSingle(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 
     return (isCube ? (lessF(near, 0.0f) ? far : near) : inf);
 }
 
-void intersectCubeApart(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 cubeMax, inout float near, inout float far) {
+
+vec2 intersectCubeDual(
+    in vec3 origin, in vec3 ray, 
+    in vec4 cubeMin[2], in vec4 cubeMax[2],
+    inout vec2 near, inout vec2 far
+) {
     vec3 dr = 1.0f / ray;
-    vec3 tMin = (cubeMin.xyz - origin) * dr;
-    vec3 tMax = (cubeMax.xyz - origin) * dr;
-    vec3 t1 = min(tMin, tMax);
-    vec3 t2 = max(tMin, tMax);
+
+    vec2 cubeMin_x = vec2(cubeMin[0].x, cubeMin[1].x);
+    vec2 cubeMin_y = vec2(cubeMin[0].y, cubeMin[1].y);
+    vec2 cubeMin_z = vec2(cubeMin[0].z, cubeMin[1].z);
+    vec2 cubeMax_x = vec2(cubeMax[0].x, cubeMax[1].x);
+    vec2 cubeMax_y = vec2(cubeMax[0].y, cubeMax[1].y);
+    vec2 cubeMax_z = vec2(cubeMax[0].z, cubeMax[1].z);
+
+    vec2 tMin_x = (cubeMin_x - origin.xx) * dr.xx;
+    vec2 tMin_y = (cubeMin_y - origin.yy) * dr.yy;
+    vec2 tMin_z = (cubeMin_z - origin.zz) * dr.zz;
+    vec2 tMax_x = (cubeMax_x - origin.xx) * dr.xx;
+    vec2 tMax_y = (cubeMax_y - origin.yy) * dr.yy;
+    vec2 tMax_z = (cubeMax_z - origin.zz) * dr.zz;
+
+    vec2 t1_x = min(tMin_x, tMax_x);
+    vec2 t1_y = min(tMin_y, tMax_y);
+    vec2 t1_z = min(tMin_z, tMax_z);
+
+    vec2 t2_x = max(tMin_x, tMax_x);
+    vec2 t2_y = max(tMin_y, tMax_y);
+    vec2 t2_z = max(tMin_z, tMax_z);
+
 #ifdef ENABLE_AMD_INSTRUCTION_SET
-    near = max3(t1.x, t1.y, t1.z);
-    far  = min3(t2.x, t2.y, t2.z);
+    vec2 tNear = max3(t1_x, t1_y, t1_z);
+    vec2 tFar  = min3(t2_x, t2_y, t2_z);
 #else
-    near = max(max(t1.x, t1.y), t1.z);
-    far  = min(min(t2.x, t2.y), t2.z);
+    vec2 tNear = max(max(t1_x, t1_y), t1_z);
+    vec2 tFar  = min(min(t2_x, t2_y), t2_z);
 #endif
+
+    vec2 inf = vec2(INFINITY);
+    bvec2 isCube = and2(greaterThanEqual(tFar+PZERO, tNear), greaterThanEqual(tFar+PZERO, vec2(0.0f)));
+    near = mix(inf, min(tNear, tFar), isCube);
+    far  = mix(inf, max(tNear, tFar), isCube);
+    return mix(near, far, lessThanEqual(near + PZERO, vec2(0.0f)));
 }
+
 
 
 
