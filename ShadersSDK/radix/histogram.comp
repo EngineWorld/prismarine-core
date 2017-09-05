@@ -84,23 +84,20 @@ void main(){
     // histograms and local sorting
     UVEC_WARP addr = blocks.offset + localIdx;
     for ( int wk = 0; wk < bcount; wk++ ) {
-        if (anyInvocation(wk >= bcount)) break;
-        if (wk < bcount) {
-            BVEC_WARP validAddress = addr < NumKeys;
-            UVEC64_WARP data = validAddress ? UVEC64_WARP(KeyIn[addr]) : 0xFFFFFFFFFFFFFFFFul;
-            UVEC_WARP dataValue = validAddress ? ValueIn[addr] : 0u;
+        BVEC_WARP validAddress = addr < NumKeys;
+        UVEC64_WARP data = validAddress ? UVEC64_WARP(KeyIn[addr]) : 0xFFFFFFFFFFFFFFFFul;
+        UVEC_WARP dataValue = validAddress ? ValueIn[addr] : 0u;
 
-            sortWork(data, dataValue, validAddress);
+        sortWork(data, dataValue, validAddress);
 
-            UVEC_WARP k = UVEC_WARP(BFE(data, int(Shift*BITS_PER_PASS), BITS_PER_PASS));
-            UVEC_WARP key = k;
+        UVEC_WARP k = UVEC_WARP(BFE(data, int(Shift*BITS_PER_PASS), BITS_PER_PASS));
+        UVEC_WARP key = k;
 
-            // smaller version (generalized)
-            if (validAddress) atomicAdd(localHistogram[key], UVEC_WARP(validAddress));
-            if (validAddress) KeyTmp[addr] = KEYTYPE(data);
-            if (validAddress) ValueTmp[addr] = dataValue;
-            addr += BLOCK_SIZE_RT;
-        }
+        // smaller version (generalized)
+        if (validAddress) atomicAdd(localHistogram[key], UVEC_WARP(validAddress));
+        if (validAddress) KeyTmp[addr] = KEYTYPE(data);
+        if (validAddress) ValueTmp[addr] = dataValue;
+        addr += BLOCK_SIZE_RT;
     }
 
     memoryBarrier(); barrier(); 
