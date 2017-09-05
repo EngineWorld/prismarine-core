@@ -49,6 +49,8 @@ vec2 intersectTriangle2(in vec3 orig, in vec3 dir, inout ivec2 tri, inout vec4 U
     UV = vec4(0.f);
 
     vec2 t2 = vec2(INFINITY);
+
+    valid = and2(valid, notEqual(tri, ivec2(LONGEST)));
     if (anyInvocation(any(valid))) {
 
 /*
