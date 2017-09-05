@@ -195,7 +195,7 @@ bool allB2(in int a){
 
 vec4 cubic(in float x) // cubic_catmullrom(float x)
 {
-    const float s = 1.0f; // potentially adjustable parameter
+    const float s = 0.5f; // potentially adjustable parameter
     float x2 = x * x;
     float x3 = x2 * x;
     vec4 w;
