@@ -1,5 +1,10 @@
 # OpenGL Ray Tracer (aka. "Prismarine")
 
+
+[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](capitalknew@gmail.com)
+[![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/capitalknew/prismarine)
+
+
 ## Updates
 
 See `Projects`. 
