@@ -2,7 +2,7 @@
 
 
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](capitalknew@gmail.com)
-[![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/capitalknew/prismarine)
+[![Gitter chat](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/capitalknew/prismarine)
 
 
 ## Updates
