@@ -72,11 +72,13 @@ bool validateTexture(in uint binding){
 }
 
 vec4 fetchTexture(in uint binding, in vec2 texcoord){
-    return textureBicubic(samplers[binding], texcoord);
+    //return textureBicubic(samplers[binding], texcoord);
+    return texture(samplers[binding], texcoord);
 }
 
 vec4 fetchTexture(in uint binding, in vec2 texcoord, in ivec2 offset){
-    return textureBicubic(samplers[binding], texcoord + vec2(offset) / textureSize(samplers[binding], 0));
+    //return textureBicubic(samplers[binding], texcoord + vec2(offset) / textureSize(samplers[binding], 0));
+    return texture(samplers[binding], texcoord + vec2(offset) / textureSize(samplers[binding], 0));
 }
 
 
