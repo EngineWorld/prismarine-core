@@ -7,7 +7,7 @@
 namespace ppr {
 
     class SceneObject : public BaseClass {
-    private:
+    protected:
         RadixSort * sorter = nullptr;
 
         bool dirty = false;
@@ -25,6 +25,7 @@ namespace ppr {
         GLuint mat_triangle_ssbo_upload = -1;
         GLuint mat_triangle_ssbo = -1;
 
+        GLuint vbo_sampler = -1;
         GLuint vbo_vertex_textrue = -1;
         GLuint vbo_normal_textrue = -1;
         GLuint vbo_texcoords_textrue = -1;
@@ -34,9 +35,7 @@ namespace ppr {
         GLuint vbo_normal_textrue_upload = -1;
         GLuint vbo_texcoords_textrue_upload = -1;
         GLuint vbo_modifiers_textrue_upload = -1;
-
-
-        GLuint vbo_sampler = -1;
+        
 
         // uniform buffer
         GLuint geometryBlockUniform = -1;
@@ -70,34 +69,7 @@ namespace ppr {
     public:
 
         SceneObject() { init(); }
-        ~SceneObject() {
-            glDeleteProgram(geometryLoaderProgramI16);
-            glDeleteProgram(geometryLoaderProgram2);
-            glDeleteProgram(buildProgramH);
-            glDeleteProgram(aabbMakerProgramH);
-            glDeleteProgram(refitProgramH);
-            glDeleteProgram(resortProgramH);
-            glDeleteProgram(minmaxProgram2);
-
-            glDeleteBuffers(1, &mat_triangle_ssbo);
-            glDeleteTextures(1, &vbo_vertex_textrue);
-            glDeleteTextures(1, &vbo_normal_textrue);
-            glDeleteTextures(1, &vbo_texcoords_textrue);
-            glDeleteTextures(1, &vbo_modifiers_textrue);
-            glDeleteSamplers(1, &vbo_sampler);
-
-            glDeleteBuffers(1, &geometryBlockUniform);
-            glDeleteBuffers(1, &aabbCounter);
-            glDeleteBuffers(1, &leafBuffer);
-            glDeleteBuffers(1, &bvhnodesBuffer);
-            glDeleteBuffers(1, &mortonBuffer);
-            glDeleteBuffers(1, &mortonBufferIndex);
-            glDeleteBuffers(1, &bvhflagsBuffer);
-            glDeleteBuffers(1, &lscounterTemp);
-            glDeleteBuffers(1, &minmaxBufRef);
-            glDeleteBuffers(1, &tcounter);
-            glDeleteBuffers(1, &minmaxBuf);
-        }
+        ~SceneObject();
 
         int32_t materialID = 0;
         size_t triangleCount = 0;
@@ -118,5 +90,3 @@ namespace ppr {
         void configureIntersection(bool clearDepth);
     };
 }
-
-#include "./SceneObject.inl"

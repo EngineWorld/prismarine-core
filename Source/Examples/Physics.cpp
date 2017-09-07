@@ -20,12 +20,7 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
 
-#include "Prismarine/Utils.hpp"
-#include "Prismarine/Dispatcher.hpp"
-#include "Prismarine/SceneObject.hpp"
-#include "Prismarine/VertexInstance.hpp"
-#include "Prismarine/MaterialSet.hpp"
-#include "Prismarine/Radix.hpp"
+#include "Prismarine/Prismarine.hpp"
 #include <functional>
 
 #include "bullet/btBulletCollisionCommon.h"
@@ -281,22 +276,22 @@ namespace PaperExample {
 
                 AccessorSet * acs = new AccessorSet();
                 BufferViewSet * bfvi = new BufferViewSet();
-                vattr.bufferView = bfvi->addBufferView(bfv);
+                vattr.bufferView = bfvi->addElement(bfv);
 
                 deviceHandle->setBufferViewSet(bfvi);
                 deviceHandle->setAccessorSet(acs);
 
                 vattr.offset4 = 0;
                 vattr.components = 3 - 1;
-                deviceHandle->setVertexAccessor(acs->addVirtualAccessor(vattr));
+                deviceHandle->setVertexAccessor(acs->addElement(vattr));
 
                 vattr.offset4 = 3;
                 vattr.components = 3 - 1;
-                deviceHandle->setNormalAccessor(acs->addVirtualAccessor(vattr));
+                deviceHandle->setNormalAccessor(acs->addElement(vattr));
 
                 vattr.offset4 = 6;
                 vattr.components = 2 - 1;
-                deviceHandle->setTexcoordAccessor(acs->addVirtualAccessor(vattr));
+                deviceHandle->setTexcoordAccessor(acs->addElement(vattr));
 
                 deviceHandle->setIndexed(false);
                 deviceHandle->setVertices(glBuf);

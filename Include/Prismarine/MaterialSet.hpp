@@ -7,7 +7,7 @@
 namespace ppr {
     class MaterialSet : public BaseClass {
 
-    private:
+    protected:
         
         TextureSet * texset = nullptr;
         GLuint mats = -1;
@@ -16,33 +16,17 @@ namespace ppr {
 
     public:
 
-        MaterialSet() {
-			submats = std::vector<VirtualMaterial>(0); // init
-            init();
-        }
+        MaterialSet() {init();}
 
         void setTextureSet(TextureSet *txs) { texset = txs; }
         void setTextureSet(TextureSet &txs) { texset = &txs; }
         void clearSubmats() { submats.resize(0); }
 
-        size_t addSubmat(const VirtualMaterial * submat) {
-            size_t idx = submats.size();
-            submats.push_back(*submat);
-            return idx;
-        }
-
-        size_t addSubmat(const VirtualMaterial &submat) {
-            return this->addSubmat(&submat);
-        }
-
-        void setSumbat(const size_t& i, const VirtualMaterial &submat) {
-            if (submats.size() <= i) submats.resize(i+1);
-            submats[i] = submat;
-        }
+        size_t addSubmat(const VirtualMaterial * submat) ;
+        size_t addSubmat(const VirtualMaterial &submat);
+        void setSumbat(const size_t& i, const VirtualMaterial &submat);
 
         void loadToVGA();
         void bindWithContext(GLuint & prog);
     };
 }
-
-#include "MaterialSet.inl"

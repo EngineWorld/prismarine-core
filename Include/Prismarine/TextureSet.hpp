@@ -6,10 +6,9 @@
 namespace ppr {
     class TextureSet : public BaseClass {
 
-    private:
+    protected:
         GLuint firstBind = 6;
         GLuint texturesBuffer = -1;
-        //std::vector<uint64_t> vctr;
         std::vector<GLint> vctr;
         void init();
 
@@ -19,14 +18,7 @@ namespace ppr {
         std::vector<uint32_t> freedomTextures;
         std::map<std::string, uint32_t> texnames;
 
-        TextureSet() {
-            textures = std::vector<uint32_t>(0);
-            textures.push_back(-1);
-            freedomTextures = std::vector<uint32_t>(0);
-            texnames = std::map<std::string, uint32_t>();
-            init();
-        }
-
+        TextureSet() {init();};
         void loadToVGA();
         void bindWithContext(GLuint & prog);
 		void freeTextureByGL(const GLuint& idx);
@@ -40,5 +32,3 @@ namespace ppr {
         uint32_t getTexture(const GLuint & idx);
     };
 }
-
-#include "TextureSet.inl"

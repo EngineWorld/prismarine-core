@@ -2,6 +2,41 @@
 
 namespace ppr {
 
+    inline Dispatcher::~Dispatcher(){
+        
+        glDeleteProgram(renderProgram);
+        glDeleteProgram(matProgram);
+        glDeleteProgram(reclaimProgram);
+        glDeleteProgram(cameraProgram);
+        glDeleteProgram(clearProgram);
+        glDeleteProgram(samplerProgram);
+        glDeleteProgram(traverseProgram);
+        glDeleteProgram(resolverProgram);
+        glDeleteProgram(surfProgram);
+        glDeleteProgram(filterProgram);
+
+        glDeleteBuffers(1, &colorchains);
+        glDeleteBuffers(1, &quantized);
+        glDeleteBuffers(1, &rays);
+        glDeleteBuffers(1, &hits);
+        glDeleteBuffers(1, &texels);
+        glDeleteBuffers(1, &activenl);
+        glDeleteBuffers(1, &activel);
+        glDeleteBuffers(1, &freedoms);
+        glDeleteBuffers(1, &availables);
+        glDeleteBuffers(1, &arcounter);
+        glDeleteBuffers(1, &arcounterTemp);
+
+        glDeleteBuffers(1, &lightUniform);
+        glDeleteBuffers(1, &rayBlockUniform);
+
+        glDeleteTextures(1, &presampled);
+        glDeleteTextures(1, &sampleflags);
+
+        glDeleteVertexArrays(1, &vao);
+        
+    }
+
     inline void Dispatcher::initShaders() {
         
         initShaderComputeSPIRV("./shaders-spv/raytracing/surface.comp.spv", surfProgram);
@@ -29,6 +64,9 @@ namespace ppr {
 
     inline void Dispatcher::initVAO() {
         Vc2 arr[4] = { { -1.0f, -1.0f },{ 1.0f, -1.0f },{ -1.0f, 1.0f },{ 1.0f, 1.0f } };
+
+		GLuint posBuf, idcBuf;
+
         glCreateBuffers(1, &posBuf);
         glNamedBufferData(posBuf, strided<Vc2>(4), arr, GL_STATIC_DRAW);
 
@@ -207,13 +245,11 @@ namespace ppr {
 
     inline void Dispatcher::sample() {
         
-
         // collect samples
         glBindImageTexture(0, presampled, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
         glBindImageTexture(1, sampleflags, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
         this->bind();
         dispatch(samplerProgram, tiled(displayWidth * displayHeight, worksize));
-        currentSample = (currentSample + 1) % maxSamples;
 
         // filter by deinterlacing, etc.
         glBindImageTexture(0, presampled, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);

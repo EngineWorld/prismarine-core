@@ -8,7 +8,7 @@
 namespace ppr {
 
     class Dispatcher : public BaseClass {
-    private:
+    protected:
         RadixSort * sorter = nullptr;
 
         GLuint skybox = -1;
@@ -45,24 +45,22 @@ namespace ppr {
         RayBlockUniform rayBlockData;
 
         size_t framenum = 0;
-        int32_t currentSample = 0;
-        int32_t maxSamples = 4;
-        int32_t maxFilters = 1;
         int32_t currentRayLimit = 0;
         int32_t worksize = 128;
 
         // position texture
         GLuint positionimg = -1;
-
         GLuint prevsampled = -1;
+
+        // frame buffers
         GLuint presampled = -1;
         GLuint reprojected = -1;
         GLuint sampleflags = -1;
         GLuint filtered = -1;
-        GLuint vao = -1;
 
-        GLuint posBuf = -1;
-        GLuint idcBuf = -1;
+        GLuint vao = -1;
+        //GLuint posBuf = -1;
+        //GLuint idcBuf = -1;
 
         void initShaders();
         void initVAO();
@@ -76,47 +74,10 @@ namespace ppr {
         GLuint resultFounds = -1;
         GLuint givenRays = -1;
 
-
-        
-
     public:
 
         Dispatcher() { init(); }
-        ~Dispatcher() {
-            glDeleteProgram(renderProgram);
-            glDeleteProgram(matProgram);
-            glDeleteProgram(reclaimProgram);
-            glDeleteProgram(cameraProgram);
-            glDeleteProgram(clearProgram);
-            glDeleteProgram(samplerProgram);
-            glDeleteProgram(traverseProgram);
-            glDeleteProgram(resolverProgram);
-            glDeleteProgram(surfProgram);
-            glDeleteProgram(filterProgram);
-
-            glDeleteBuffers(1, &colorchains);
-            glDeleteBuffers(1, &quantized);
-            glDeleteBuffers(1, &rays);
-            glDeleteBuffers(1, &hits);
-            glDeleteBuffers(1, &texels);
-            glDeleteBuffers(1, &activenl);
-            glDeleteBuffers(1, &activel);
-            glDeleteBuffers(1, &freedoms);
-            glDeleteBuffers(1, &availables);
-            glDeleteBuffers(1, &arcounter);
-            glDeleteBuffers(1, &arcounterTemp);
-
-            glDeleteBuffers(1, &lightUniform);
-            glDeleteBuffers(1, &rayBlockUniform);
-
-            glDeleteTextures(1, &presampled);
-            glDeleteTextures(1, &sampleflags);
-
-            glDeleteVertexArrays(1, &vao);
-
-            glDeleteBuffers(1, &posBuf);
-            glDeleteBuffers(1, &idcBuf);
-        }
+        ~Dispatcher();
 
         uint32_t width = 256;
         uint32_t height = 256;
@@ -169,5 +130,3 @@ namespace ppr {
         int32_t getRayCount();
     };
 }
-
-#include "./Dispatcher.inl"

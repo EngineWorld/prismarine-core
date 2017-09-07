@@ -16,12 +16,7 @@
 #include <GLFW/glfw3native.h>
 #include <tiny_gltf.h>
 
-#include "Prismarine/Utils.hpp"
-#include "Prismarine/Dispatcher.hpp"
-#include "Prismarine/SceneObject.hpp"
-#include "Prismarine/VertexInstance.hpp"
-#include "Prismarine/MaterialSet.hpp"
-#include "Prismarine/Radix.hpp"
+#include "Prismarine/Prismarine.hpp"
 #include <functional>
 
 namespace PaperExample {
@@ -417,7 +412,7 @@ namespace PaperExample {
             VirtualBufferView bfv;
             bfv.offset4 = bv.byteOffset / 4;
             bfv.stride4 = bv.byteStride / 4;
-            bfvi->addBufferView(bfv);
+            bfvi->addElement(bfv);
         }
 
         // load mesh templates (better view objectivity)
@@ -450,19 +445,19 @@ namespace PaperExample {
                     if (it.first.compare("POSITION") == 0) { // vertices
                         vattr.components = 3 - 1;
                         geom->setVertices(glBuffers[bufferView.buffer]);
-                        geom->setVertexAccessor(acs->addVirtualAccessor(vattr));
+                        geom->setVertexAccessor(acs->addElement(vattr));
                     } else
                     
                     // normal
                     if (it.first.compare("NORMAL") == 0) {
                         vattr.components = 3 - 1;
-                        geom->setNormalAccessor(acs->addVirtualAccessor(vattr));
+                        geom->setNormalAccessor(acs->addElement(vattr));
                     } else
                     
                     // texcoord
                     if (it.first.compare("TEXCOORD_0") == 0) {
                         vattr.components = 2 - 1;
-                        geom->setTexcoordAccessor(acs->addVirtualAccessor(vattr));
+                        geom->setTexcoordAccessor(acs->addElement(vattr));
                     }
                 }
 

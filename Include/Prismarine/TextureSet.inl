@@ -3,6 +3,10 @@
 namespace ppr {
 
     inline void TextureSet::init(){
+        textures = std::vector<uint32_t>(0);
+        textures.push_back(-1);
+        freedomTextures = std::vector<uint32_t>(0);
+        texnames = std::map<std::string, uint32_t>();
         glCreateBuffers(1, &texturesBuffer);
     }
 
