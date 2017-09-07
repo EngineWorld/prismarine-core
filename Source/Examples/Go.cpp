@@ -592,7 +592,7 @@ namespace PaperExample {
 
 
         auto textureSet = new ppr::TextureSet();
-        int texturePart = textureSet->loadTexture("wood.jpg");
+        int texturePart = textureSet->loadTexture("wood.png");
 
         materialManager = new ppr::MaterialSet();
         materialManager->setTextureSet(textureSet);
