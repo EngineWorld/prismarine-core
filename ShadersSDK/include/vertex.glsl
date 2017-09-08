@@ -34,6 +34,14 @@ ivec2 getUniformCoord(in uint indice){
 
 
 
+vec2 dot2(in mat3x2 a, in mat3x2 b){
+    return fma(a[0],b[0], fma(a[1],b[1], a[2]*b[2]));
+    //mat2x3 at = transpose(a);
+    //mat2x3 bt = transpose(b);
+    //return vec2(dot(at[0], bt[0]), dot(at[1], bt[1]));
+}
+
+
 vec2 intersectTriangle2(in vec3 orig, in vec3 dir, inout ivec2 tri, inout vec4 UV, in bvec2 valid) {
     UV = vec4(0.f);
 
@@ -92,7 +100,7 @@ vec2 intersectTriangle2(in vec3 orig, in vec3 dir, inout ivec2 tri, inout vec4 U
             fma(dir2[0], e2[1], - dir2[1] * e2[0])
         );
 
-        vec2 det = fma(pvec[0],e1[0], fma(pvec[1],e1[1], pvec[2]*e1[2]));
+        vec2 det = dot2(pvec, e1);
         valid = and2(valid, greaterThan(abs(det), vec2(0.f)));
         if (anyInvocation(any(valid))) {
             vec2 invDev = 1.f / (max(abs(det), 0.000001f) * sign(det));
@@ -103,7 +111,7 @@ vec2 intersectTriangle2(in vec3 orig, in vec3 dir, inout ivec2 tri, inout vec4 U
             );
 
             vec2 u = vec2(0.f);
-            u = fma(tvec[0],pvec[0], fma(tvec[1],pvec[1], tvec[2]*pvec[2])) * invDev;
+            u = dot2(tvec, pvec) * invDev;
             valid = and2(valid, and2(greaterThanEqual(u, vec2(0.f)), lessThan(u, vec2(1.f))));
             if (anyInvocation(any(valid))) {
                 mat3x2 qvec = mat3x2(
@@ -113,11 +121,11 @@ vec2 intersectTriangle2(in vec3 orig, in vec3 dir, inout ivec2 tri, inout vec4 U
                 );
 
                 vec2 v = vec2(0.f);
-                v = fma(dir2[0],qvec[0], fma(dir2[1],qvec[1], dir2[2]*qvec[2])) * invDev;
+                v = dot2(dir2, qvec) * invDev;
                 valid = and2(valid, and2(greaterThanEqual(v, vec2(0.f)), lessThan(u+v, vec2(1.f))));
                 if (anyInvocation(any(valid))) {
                     // distance
-                    t2 = fma(e2[0],qvec[0], fma(e2[1],qvec[1], e2[2]*qvec[2])) * invDev;
+                    t2 = dot2(e2, qvec) * invDev;
                     valid = and2(valid, lessThan(t2, vec2(INFINITY - PZERO)));
                     valid = and2(valid, greaterThan(t2, vec2(0.0f - PZERO)));
 
