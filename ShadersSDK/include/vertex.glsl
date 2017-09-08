@@ -22,7 +22,7 @@ ivec2 gatherMosaic(in ivec2 uniformCoord){
 
 vec4 gatherMosaicCompDyn(in sampler2D vertices, in ivec2 mosaicCoord, const uint comp){
     vec4 components = vec4(0.0f);
-    vec2 iTexSize = 1.0f / textureSize(vertices, 0);
+    vec2 iTexSize = 1.0f / vec2(textureSize(vertices, 0));
     if (comp == 0) components = textureGather(vertices, (vec2(mosaicCoord) + 0.5f) * iTexSize, 0); else 
     if (comp == 1) components = textureGather(vertices, (vec2(mosaicCoord) + 0.5f) * iTexSize, 1); else 
     if (comp == 2) components = textureGather(vertices, (vec2(mosaicCoord) + 0.5f) * iTexSize, 2); else 
@@ -52,9 +52,9 @@ vec2 intersectTriangle2(in vec3 orig, in vec3 dir, inout ivec2 tri, inout vec4 U
 
     valid = and2(valid, notEqual(tri, ivec2(LONGEST)));
     if (anyInvocation(any(valid))) {
-
-/*
+        
         // does not work (broken OpenGL support)
+/*
         mat3x2 v012x = transpose(mat2x3(
             gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.x)), 0).wzx, // triangle 0, verts 0, 1, 2
             gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.y)), 0).wzx  // triangle 1
@@ -69,35 +69,21 @@ vec2 intersectTriangle2(in vec3 orig, in vec3 dir, inout ivec2 tri, inout vec4 U
         ));
 */
 
-        mat3 ve0 = mat3(
+        mat3 ve0xyz = transpose(mat3(
             fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri.x)), 0).xyz, 
             fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri.x)), 1).xyz, 
             fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri.x)), 2).xyz
-        );
+        ));
 
-        mat3 ve1 = mat3(
+        mat3 ve1xyz = transpose(mat3(
             fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri.y)), 0).xyz, 
             fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri.y)), 1).xyz, 
             fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri.y)), 2).xyz
-        );
+        ));
 
-        mat3x2 v012x = mat3x2(
-            vec2(ve0[0].x, ve1[0].x),
-            vec2(ve0[1].x, ve1[1].x),
-            vec2(ve0[2].x, ve1[2].x)
-        );
-
-        mat3x2 v012y = mat3x2(
-            vec2(ve0[0].y, ve1[0].y),
-            vec2(ve0[1].y, ve1[1].y),
-            vec2(ve0[2].y, ve1[2].y)
-        );
-
-        mat3x2 v012z = mat3x2(
-            vec2(ve0[0].z, ve1[0].z),
-            vec2(ve0[1].z, ve1[1].z),
-            vec2(ve0[2].z, ve1[2].z)
-        );
+        mat3x2 v012x = transpose(mat2x3(ve0xyz[0], ve1xyz[0]));
+        mat3x2 v012y = transpose(mat2x3(ve0xyz[1], ve1xyz[1]));
+        mat3x2 v012z = transpose(mat2x3(ve0xyz[2], ve1xyz[2]));
 
         mat3x2 e1 = mat3x2(v012x[1] - v012x[0], v012y[1] - v012y[0], v012z[1] - v012z[0]);
         mat3x2 e2 = mat3x2(v012x[2] - v012x[0], v012y[2] - v012y[0], v012z[2] - v012z[0]);

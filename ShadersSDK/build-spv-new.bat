@@ -78,7 +78,7 @@ call spirv-opt %OPTFLAGS% %OUTDIR%%VRTX%loader.comp.spv         -o %OUTDIR%%VRTX
 call spirv-opt %OPTFLAGS% %OUTDIR%%VRTX%loader-int16.comp.spv   -o %OUTDIR%%VRTX%loader-int16.comp.spv
 
 call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%directTraverse.comp.spv -o %OUTDIR%%RNDR%directTraverse.comp.spv
-call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%surface.comp.spv       -o %OUTDIR%%RNDR%resolver.comp.spv
+call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%surface.comp.spv        -o %OUTDIR%%RNDR%resolver.comp.spv
 call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%reclaim.comp.spv        -o %OUTDIR%%RNDR%reclaim.comp.spv
 call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%testmat.comp.spv        -o %OUTDIR%%RNDR%testmat.comp.spv
 call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%camera.comp.spv         -o %OUTDIR%%RNDR%camera.comp.spv
@@ -89,7 +89,7 @@ call spirv-opt %OPTFLAGS% %OUTDIR%%HLBV%aabbmaker.comp.spv      -o %OUTDIR%%HLBV
 call spirv-opt %OPTFLAGS% %OUTDIR%%HLBV%build.comp.spv          -o %OUTDIR%%HLBV%build.comp.spv
 call spirv-opt %OPTFLAGS% %OUTDIR%%HLBV%minmax.comp.spv         -o %OUTDIR%%HLBV%minmax.comp.spv
 call spirv-opt %OPTFLAGS% %OUTDIR%%HLBV%refit.comp.spv          -o %OUTDIR%%HLBV%refit.comp.spv
-call spirv-opt %OPTFLAGS% %OUTDIR%%HLBV%refit-new.comp.spv          -o %OUTDIR%%HLBV%refit-new.comp.spv
+call spirv-opt %OPTFLAGS% %OUTDIR%%HLBV%refit-new.comp.spv      -o %OUTDIR%%HLBV%refit-new.comp.spv
 
 
 call spirv-opt %OPTFLAGS% %OUTDIR%%RDXI%single.comp.spv         -o %OUTDIR%%RDXI%single.comp.spv
