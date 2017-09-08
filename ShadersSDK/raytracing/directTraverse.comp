@@ -337,39 +337,47 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
             vec2 inf2 = vec2(INFINITY), nears = inf2, fars = inf2;
             vec2 hits = intersectCubeDual(torig, dirproj, mat2x4(lnode.box.mn, rnode.box.mn), mat2x4(lnode.box.mx, rnode.box.mx), nears, fars);
 
-            int overlapsGeneral = (notLeaf ? 3 : 0) & 
-                cB2(lessThanEqual(hits, vec2(INFINITY-PZERO))) & 
-                cB2(lessThanEqual(hits * dirlenInv, vec2(INFINITY-PZERO))) & 
-                cB2(greaterThan(hits, -vec2(PZERO))) & 
-                cB2(lessThanEqual(nears, vec2(lastRes.predist+PZERO) * dirlen)) & 
-                cB2(bvec2(node.pdata.x != -1, node.pdata.y != -1)) & 
-                cB2(bvec2(node.pdata.x != node.pdata.y));
+            bvec2 overlapsGeneral = and2(bvec2(notLeaf),
+                and2(
+                    and2(
+                        and2(lessThanEqual(hits, vec2(INFINITY-PZERO)), lessThanEqual(hits * dirlenInv, vec2(INFINITY-PZERO))),
+                        greaterThan(hits, -vec2(PZERO))
+                    ),
+                    and2(
+                        and2(
+                            and2(lessThanEqual(nears, vec2(INFINITY-PZERO)), lessThanEqual(nears * dirlenInv, vec2(INFINITY-PZERO))),
+                            lessThanEqual(nears, vec2(lastRes.predist+PZERO) * dirlen)
+                        ),
+                        and2(bvec2(node.pdata.x != -1, node.pdata.y != -1), bvec2(node.pdata.x != node.pdata.y))
+                    )
+                )
+            );
 
-            bool leftOrder = allB2(overlapsGeneral) ? lessEqualF(nears.x, nears.y) : ((overlapsGeneral & bx) > 0);
 
-            int overlaps = overlapsGeneral & cB2(bvec2(lnode.pdata.x != lnode.pdata.y, rnode.pdata.x != rnode.pdata.y)); // is nodes
-            overlapsGeneral &= cB2(bvec2(lnode.pdata.x == lnode.pdata.y, rnode.pdata.x == rnode.pdata.y)); // is leafs
+            bool leftOrder = all(overlapsGeneral) ? lessEqualF(nears.x, nears.y) : overlapsGeneral.x;
+            bvec2 overlaps = and2(overlapsGeneral, bvec2(lnode.pdata.x != lnode.pdata.y, rnode.pdata.x != rnode.pdata.y)); // is nodes
+            overlapsGeneral = and2(overlapsGeneral, bvec2(lnode.pdata.x == lnode.pdata.y, rnode.pdata.x == rnode.pdata.y)); // is leafs
 
             // reorder distances
             nears = leftOrder ? nears : nears.yx;
             hits = leftOrder ? hits : hits.yx;
 
             // any leafs - delay
-            bool anyLeaf = anyB(overlapsGeneral); skipIntersection = skipIntersection || anyLeaf; // if any leaf found, skipping
+            bool anyLeaf = any(overlapsGeneral); skipIntersection = skipIntersection || anyLeaf; // if any leaf found, skipping
             
             // intersect triangles when accumulate WARP's
             if (anyInvocation(anyLeaf)) {
-                bvec2 overlaps = cI2(overlapsGeneral);
+                bvec2 overlaps = overlapsGeneral;
                 overlaps = leftOrder ? overlaps : overlaps.yx;
                 includeLeaf2(origin, direct, overlaps, leftOrder ? lnode : rnode, leftOrder ? rnode : lnode, dirproj * hits.y + torig, lastRes);
                 skipIntersection = false;
             }
 
             // choice child nodes by nears
-            bool anyOverlap = anyB(overlaps);
+            bool anyOverlap = any(overlaps);
             if (anyInvocation(anyOverlap)) {
             //if (allInvocations(anyOverlap || !validBox)) {
-                bvec2 overlapsBool = cI2(overlaps);
+                bvec2 overlapsBool = overlaps;
                 ivec2 leftright = mix(ivec2(-1), node.pdata.xy, overlapsBool);
                 leftright = leftOrder ? leftright : leftright.yx;
 
