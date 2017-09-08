@@ -155,7 +155,7 @@ HitRework interpolateMeshData(inout HitRework res) {
         vec3 deltaPos1 = triverts[1] - triverts[0];
         vec3 deltaPos2 = triverts[2] - triverts[0];
         vec3 nor = normalize(cross(deltaPos1, deltaPos2));
-        vec3 normal = vec3(dot(trinorms[0], vs), dot(trinorms[1], vs), dot(trinorms[2], vs));
+        vec3 normal = vs * trinorms; // mult matrix
         normal = lessF(length(normal), 0.f) ? nor : normalize(normal);
         normal = normal * sign(dot(normal, nor));
 
@@ -174,9 +174,8 @@ HitRework interpolateMeshData(inout HitRework res) {
         if (validInterpolant) {
             res.normalHeight = vec4(normal, 0.0f);
             res.tangent = vec4(normalize(tang - normal * sign(dot(tang, nor))), 0.0f);
-            res.texcoord.xy = vec2(dot(texcoords[0], vs), dot(texcoords[1], vs));
-            res.texcoord.zw = vec2(dot(texcoords[2], vs), dot(texcoords[3], vs));
-            res.albedo = packHalf(vec4(dot(colors[0], vs), dot(colors[1], vs), dot(colors[2], vs), dot(colors[3], vs)));
+            res.texcoord = vs * texcoords; // mult matrix
+            res.albedo = packHalf(vs * colors); // mult matrix
             res.materialID = mats[tri];
         }
     }
@@ -259,11 +258,9 @@ const int groupSize = 1;
 
 void includeLeaf2(in vec3 origin, in vec3 direct, in bvec2 valids, in HlbvhNode lnode, in HlbvhNode rnode, in vec3 boxHit, inout TResult lastRes){
     if (anyInvocation(any(valids))) {
-        // planned dual intersection (for VEGA GPU, which 128 ops per WARP, aka. two float per thread)
         testIntersectionPacked(lastRes, origin.xyz, direct.xyz, ivec2(lnode.pdata.w, rnode.pdata.w), valids);
     }
 }
-
 
 
 vec3 projectVoxels(in vec3 orig) {
@@ -272,16 +269,6 @@ vec3 projectVoxels(in vec3 orig) {
 
 vec3 unprojectVoxels(in vec3 orig) {
     return mult4(vec4(orig, 1.0f), GEOMETRY_BLOCK geometryUniform.transformInv).xyz;
-}
-
-
-
-vec3 bboxNormal(in bbox box, in vec3 hit){
-    vec3 c = (box.mn + box.mx).xyz * 0.5f;
-    vec3 p = hit - c;
-    vec3 d = abs((box.mx - box.mn).xyz * 0.5f);
-    float bias = 1.000001f;
-    return normalize(floor(p / d * bias));
 }
 
 
