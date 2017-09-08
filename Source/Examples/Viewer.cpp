@@ -669,7 +669,7 @@ int main(const int argc, const char ** argv)
     // GTX 1060 
     // GTX 1070
     // VEGA 56
-    // VEGA 64 (nearly same line GTX 1080)
+    // VEGA 64
     // GTX 1080 Ti
     // Titan Xp
 
