@@ -27,7 +27,7 @@
 #include "bullet/btBulletDynamicsCommon.h"
 
 namespace PaperExample {
-    using namespace ppr;
+    using namespace NSM;
 
     const int32_t kW = 0;
     const int32_t kA = 1;
@@ -51,7 +51,7 @@ namespace PaperExample {
         glm::dvec3 eye = glm::dvec3(0.0f, 6.0f, 6.0f);
         glm::dvec3 view = glm::dvec3(0.0f, 2.0f, 0.0f);
         glm::dvec2 mposition;
-        ppr::Dispatcher * raysp;
+        psm::Dispatcher * raysp;
 
         glm::dmat4 project() {
 #ifdef USE_CAD_SYSTEM
@@ -63,7 +63,7 @@ namespace PaperExample {
 #endif
         }
 
-        void setRays(ppr::Dispatcher * r) {
+        void setRays(psm::Dispatcher * r) {
             raysp = r;
         }
 
@@ -243,7 +243,7 @@ namespace PaperExample {
     class MeshTemplate {
     public:
 
-        ppr::VertexInstance * deviceHandle = nullptr;
+        psm::VertexInstance * deviceHandle = nullptr;
         std::vector<float> rawMeshData;
         std::vector<tinyobj::material_t> materials;
         std::vector<tinyobj::shape_t> shapes; 
@@ -264,15 +264,15 @@ namespace PaperExample {
 
 
                 // virtual accessor template
-                ppr::VirtualAccessor vattr;
+                psm::VirtualAccessor vattr;
                 vattr.offset4 = 0;
 
-                ppr::VirtualBufferView bfv;
+                psm::VirtualBufferView bfv;
                 bfv.stride4 = 8;
                 bfv.offset4 = 0;
 
                 uint32_t stride = 8;
-                deviceHandle = new ppr::VertexInstance();
+                deviceHandle = new psm::VertexInstance();
 
                 AccessorSet * acs = new AccessorSet();
                 BufferViewSet * bfvi = new BufferViewSet();
@@ -354,10 +354,10 @@ namespace PaperExample {
         btDiscreteDynamicsWorld* dynamicsWorld;
 
         GLFWwindow * window;
-        ppr::Dispatcher * rays;
-        ppr::SceneObject * intersector;
+        psm::Dispatcher * rays;
+        psm::SceneObject * intersector;
         Controller * cam;
-        ppr::MaterialSet * materialManager;
+        psm::MaterialSet * materialManager;
         
         double time = 0;
         double diff = 0;
@@ -572,10 +572,10 @@ namespace PaperExample {
 
 
         // init material system
-        materialManager = new ppr::MaterialSet();
+        materialManager = new psm::MaterialSet();
 
         // init ray tracer
-        rays = new ppr::Dispatcher();
+        rays = new psm::Dispatcher();
         rays->setSkybox(loadCubemap());
         
         // camera contoller
@@ -583,7 +583,7 @@ namespace PaperExample {
         cam->setRays(rays);
 
         // create geometry intersector
-        intersector = new ppr::SceneObject();
+        intersector = new psm::SceneObject();
         intersector->allocate(1024 * 1024);
         
 
@@ -591,7 +591,7 @@ namespace PaperExample {
 
         // yellow plastic
         {
-            ppr::VirtualMaterial submat;
+            psm::VirtualMaterial submat;
             submat.diffuse = glm::vec4(1.0f, 0.9f, 0.6f, 1.f);
             submat.specular = glm::vec4(0.0f, 0.0f, 0.00f, 1.0f);
             submat.emissive = glm::vec4(0.0f);
@@ -600,7 +600,7 @@ namespace PaperExample {
 
         // red platic
         {
-            ppr::VirtualMaterial submat;
+            psm::VirtualMaterial submat;
             submat.diffuse = glm::vec4(1.0f, 0.6f, 0.6f, 1.f);
             submat.specular = glm::vec4(0.0f, 0.0f, 0.00f, 1.0f);
             submat.emissive = glm::vec4(0.0f);
@@ -609,7 +609,7 @@ namespace PaperExample {
 
         // blue (slightly purple) plastic
         {
-            ppr::VirtualMaterial submat;
+            psm::VirtualMaterial submat;
             submat.diffuse = glm::vec4(0.6f, 0.7f, 1.0f, 1.f);
             submat.specular = glm::vec4(0.0f, 0.0f, 0.00f, 1.0f);
             submat.emissive = glm::vec4(0.0f);
@@ -618,7 +618,7 @@ namespace PaperExample {
 
         // green plastic
         {
-            ppr::VirtualMaterial submat;
+            psm::VirtualMaterial submat;
             submat.diffuse = glm::vec4(0.6f, 1.0f, 0.6f, 1.0f);
             submat.specular = glm::vec4(0.0f, 0.0f, 0.00f, 1.0f);
             submat.emissive = glm::vec4(0.0f);
@@ -627,7 +627,7 @@ namespace PaperExample {
 
         // fully metallic
         {
-            ppr::VirtualMaterial submat;
+            psm::VirtualMaterial submat;
             submat.diffuse = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
             submat.specular = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
             submat.emissive = glm::vec4(0.0f);
@@ -636,7 +636,7 @@ namespace PaperExample {
 
         // copper
         {
-            ppr::VirtualMaterial submat;
+            psm::VirtualMaterial submat;
             submat.diffuse = glm::vec4(1.0f, 0.7f, 0.6f, 1.0f);
             submat.specular = glm::vec4(0.0f, 0.4f, 1.0f, 1.0f);
             submat.emissive = glm::vec4(0.0f);
@@ -645,7 +645,7 @@ namespace PaperExample {
 
         // blue metallic
         {
-            ppr::VirtualMaterial submat;
+            psm::VirtualMaterial submat;
             submat.diffuse = glm::vec4(0.6f, 0.6f, 1.0f, 1.0f);
             submat.specular = glm::vec4(0.0f, 0.05f, 1.0f, 1.0f);
             submat.emissive = glm::vec4(0.0f);
@@ -654,7 +654,7 @@ namespace PaperExample {
 
         // gold
         {
-            ppr::VirtualMaterial submat;
+            psm::VirtualMaterial submat;
             submat.diffuse = glm::vec4(1.0f, 0.95f, 0.6f, 1.0f);
             submat.specular = glm::vec4(0.0f, 0.4f, 1.0f, 1.0f);
             submat.emissive = glm::vec4(0.0f);

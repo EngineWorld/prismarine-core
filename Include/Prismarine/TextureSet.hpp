@@ -3,7 +3,7 @@
 #include "Utils.hpp"
 #include "Structs.hpp"
 
-namespace ppr {
+namespace NSM {
     class TextureSet : public BaseClass {
 
     protected:

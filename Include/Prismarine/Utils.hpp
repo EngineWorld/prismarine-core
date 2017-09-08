@@ -22,7 +22,9 @@
 #include "external/include/FreeImage.h"
 #endif
 
-namespace ppr {
+#define NSM psm
+
+namespace NSM {
     //using namespace gl;
     
     class BaseClass {};

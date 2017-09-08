@@ -1,6 +1,6 @@
 #include "MaterialSet.hpp"
 
-namespace ppr {
+namespace NSM {
 
     inline void MaterialSet::init(){
         submats = std::vector<VirtualMaterial>(0); // init

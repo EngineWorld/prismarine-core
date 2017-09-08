@@ -1,6 +1,6 @@
 #include "TextureSet.hpp"
 
-namespace ppr {
+namespace NSM {
 
     inline void TextureSet::init(){
         textures = std::vector<uint32_t>(0);

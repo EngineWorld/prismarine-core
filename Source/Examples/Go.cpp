@@ -27,7 +27,7 @@
 #include "bullet/btBulletDynamicsCommon.h"
 
 namespace PaperExample {
-    using namespace ppr;
+    using namespace NSM;
 
     const int32_t kW = 0;
     const int32_t kA = 1;
@@ -51,7 +51,7 @@ namespace PaperExample {
         glm::dvec3 eye = glm::dvec3(0.0f, 6.0f, 6.0f);
         glm::dvec3 view = glm::dvec3(0.0f, 2.0f, 0.0f);
         glm::dvec2 mposition;
-        ppr::Dispatcher * raysp;
+        psm::Dispatcher * raysp;
 
         glm::dmat4 project() {
 #ifdef USE_CAD_SYSTEM
@@ -63,7 +63,7 @@ namespace PaperExample {
 #endif
         }
 
-        void setRays(ppr::Dispatcher * r) {
+        void setRays(psm::Dispatcher * r) {
             raysp = r;
         }
 
@@ -243,7 +243,7 @@ namespace PaperExample {
     class MeshTemplate {
     public:
 
-        ppr::VertexInstance * deviceHandle = nullptr;
+        psm::VertexInstance * deviceHandle = nullptr;
         std::vector<float> rawMeshData;
         std::vector<tinyobj::material_t> materials;
         std::vector<tinyobj::shape_t> shapes;
@@ -260,15 +260,15 @@ namespace PaperExample {
 
 
                 // virtual accessor template
-                ppr::VirtualAccessor vattr;
+                psm::VirtualAccessor vattr;
                 vattr.offset4 = 0;
 
-                ppr::VirtualBufferView bfv;
+                psm::VirtualBufferView bfv;
                 bfv.stride4 = 8;
                 bfv.offset4 = 0;
 
                 uint32_t stride = 8;
-                deviceHandle = new ppr::VertexInstance();
+                deviceHandle = new psm::VertexInstance();
 
                 AccessorSet * acs = new AccessorSet();
                 BufferViewSet * bfvi = new BufferViewSet();
@@ -343,10 +343,10 @@ namespace PaperExample {
         btDiscreteDynamicsWorld* dynamicsWorld;
 
         GLFWwindow * window;
-        ppr::Dispatcher * rays;
-        ppr::SceneObject * intersector;
+        psm::Dispatcher * rays;
+        psm::SceneObject * intersector;
         Controller * cam;
-        ppr::MaterialSet * materialManager;
+        psm::MaterialSet * materialManager;
 
         double time = 0;
         double diff = 0;
@@ -586,14 +586,14 @@ namespace PaperExample {
         // init material system
 
 
-        auto textureSet = new ppr::TextureSet();
+        auto textureSet = new psm::TextureSet();
         int texturePart = textureSet->loadTexture("wood.png");
 
-        materialManager = new ppr::MaterialSet();
+        materialManager = new psm::MaterialSet();
         materialManager->setTextureSet(textureSet);
 
         // init ray tracer
-        rays = new ppr::Dispatcher();
+        rays = new psm::Dispatcher();
         rays->setSkybox(loadCubemap());
         
         // camera contoller
@@ -601,7 +601,7 @@ namespace PaperExample {
         cam->setRays(rays);
 
         // create geometry intersector
-        intersector = new ppr::SceneObject();
+        intersector = new psm::SceneObject();
         intersector->allocate(1024 * 1024);
         
 
@@ -609,7 +609,7 @@ namespace PaperExample {
 
         // black plastic
         {
-            ppr::VirtualMaterial submat;
+            psm::VirtualMaterial submat;
             submat.diffuse = glm::vec4(0.1f, 0.1f, 0.1f, 1.f);
             submat.specular = glm::vec4(0.0f, 0.4f, 0.00f, 1.0f);
             submat.emissive = glm::vec4(0.0f);
@@ -618,7 +618,7 @@ namespace PaperExample {
 
         // white plastic
         {
-            ppr::VirtualMaterial submat;
+            psm::VirtualMaterial submat;
             submat.diffuse = glm::vec4(0.9f, 0.9f, 0.9f, 1.f);
             submat.specular = glm::vec4(0.0f, 0.4f, 0.00f, 1.0f);
             submat.emissive = glm::vec4(0.0f);
@@ -628,7 +628,7 @@ namespace PaperExample {
 
         // go dock floor
         {
-            ppr::VirtualMaterial submat;
+            psm::VirtualMaterial submat;
             submat.diffusePart = texturePart;
             submat.diffuse = glm::vec4(0.9f, 0.9f, 0.9f, 1.f);
             submat.specular = glm::vec4(0.0f, 0.1f, 0.00f, 1.0f);

@@ -5,7 +5,7 @@
 #include "SceneObject.hpp"
 #include "MaterialSet.hpp"
 
-namespace ppr {
+namespace NSM {
 
     class Dispatcher : public BaseClass {
     protected:

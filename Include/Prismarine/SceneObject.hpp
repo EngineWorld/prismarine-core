@@ -4,7 +4,7 @@
 #include "VertexInstance.hpp"
 #include "Radix.hpp"
 
-namespace ppr {
+namespace NSM {
 
     class SceneObject : public BaseClass {
     protected:

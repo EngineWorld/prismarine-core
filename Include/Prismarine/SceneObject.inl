@@ -1,6 +1,6 @@
 #include "SceneObject.hpp"
 
-namespace ppr {
+namespace NSM {
 
     inline SceneObject::~SceneObject() {
         glDeleteProgram(geometryLoaderProgramI16);

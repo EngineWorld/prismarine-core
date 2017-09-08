@@ -1,6 +1,6 @@
 #include "VertexInstance.hpp"
 
-namespace ppr {
+namespace NSM {
 
 
 

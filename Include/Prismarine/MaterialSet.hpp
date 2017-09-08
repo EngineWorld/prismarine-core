@@ -4,7 +4,7 @@
 #include "Structs.hpp"
 #include "TextureSet.hpp"
 
-namespace ppr {
+namespace NSM {
     class MaterialSet : public BaseClass {
 
     protected:

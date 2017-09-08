@@ -2,7 +2,7 @@
 
 #include "Utils.hpp"
 
-namespace ppr {
+namespace NSM {
     
     typedef float Vc1;
     typedef int32_t iVc1;
