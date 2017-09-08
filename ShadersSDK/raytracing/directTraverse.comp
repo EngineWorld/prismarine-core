@@ -115,42 +115,68 @@ HitRework interpolateMeshData(inout HitRework res) {
 
     bool validInterpolant = greaterEqualF(res.uvt.z, 0.0f) && lessF(res.uvt.z, INFINITY) && tri != LONGEST;
     if (anyInvocation(validInterpolant)) {
-        vec3 trinorms[3];
-        vec3 triverts[3];
-        vec4 texcoords[3];
-        vec4 colors[3];
-        vec4 mods[3];
+        ivec2 triv = gatherMosaic(getUniformCoord(tri));
+        vec2 sz = 1.f / textureSize(vertex_texture, 0);
+        vec2 hs = sz * 0.5f;
+        vec2 trig = fma(vec2(triv), sz, hs);
 
-        for (int x=0;x<3;x++) {
-            ivec2 mos = gatherMosaic(getUniformCoord(tri));
-            triverts[x] = fetchMosaic(vertex_texture, mos, x).xyz;
-            trinorms[x] = fetchMosaic(normal_texture, mos, x).xyz;
-            texcoords[x] = fetchMosaic(texcoords_texture, mos, x);
-            colors[x] = vec4(1.0f);
-            mods[x] = fetchMosaic(modifiers_texture, mos, x);
-        }
+        // transposed
+        mat3x3 triverts = mat3x3(
+            fetchMosaic(vertex_texture, triv, 0).xyz, 
+            fetchMosaic(vertex_texture, triv, 1).xyz, 
+            fetchMosaic(vertex_texture, triv, 2).xyz
+        );
+
+        mat3x3 trinorms = mat3x3(
+            textureGather(normal_texture, trig, 0).wzx,
+            textureGather(normal_texture, trig, 1).wzx,
+            textureGather(normal_texture, trig, 2).wzx
+        );
+
+        mat4x3 texcoords = mat4x3(
+            textureGather(texcoords_texture, trig, 0).wzx,
+            textureGather(texcoords_texture, trig, 1).wzx,
+            textureGather(texcoords_texture, trig, 2).wzx,
+            textureGather(texcoords_texture, trig, 3).wzx
+        );
+
+        mat4x3 colors = mat4x3(vec3(1.f), vec3(1.f), vec3(1.f), vec3(1.f));
+
+        mat4x3 mods = mat4x3(
+            textureGather(modifiers_texture, trig, 0).wzx,
+            textureGather(modifiers_texture, trig, 1).wzx,
+            textureGather(modifiers_texture, trig, 2).wzx,
+            textureGather(modifiers_texture, trig, 3).wzx
+        );
+
+        vec2 uv = res.uvt.xy;
+        vec3 vs = vec3(1.0f - uv.x - uv.y, uv);
 
         vec3 deltaPos1 = triverts[1] - triverts[0];
         vec3 deltaPos2 = triverts[2] - triverts[0];
-        vec2 uv = res.uvt.xy;
         vec3 nor = normalize(cross(deltaPos1, deltaPos2));
-        vec3 normal = fma(trinorms[0], vec3(1.0f - uv.x - uv.y), fma(trinorms[1], vec3(uv.x), trinorms[2] * vec3(uv.y)));
+        vec3 normal = vec3(dot(trinorms[0], vs), dot(trinorms[1], vs), dot(trinorms[2], vs));
         normal = lessF(length(normal), 0.f) ? nor : normalize(normal);
         normal = normal * sign(dot(normal, nor));
 
-        bool delta = all(equal(texcoords[0].xy, texcoords[1].xy)) && all(equal(texcoords[0].xy, texcoords[2].xy));
-        vec2 deltaUV1 = delta ? vec2(1.0f, 0.0f) : texcoords[1].xy - texcoords[0].xy;
-        vec2 deltaUV2 = delta ? vec2(0.0f, 1.0f) : texcoords[2].xy - texcoords[0].xy;
+        mat2x2 deltas = transpose(mat2x2(
+            texcoords[0].yz - texcoords[0].x,
+            texcoords[1].yz - texcoords[1].x
+        ));
+
+        bvec2 delta = bvec2(and2(equal(deltas[0], vec2(0.f)), equal(deltas[1], vec2(0.f))));
+        vec2 deltaUV1 = mix(deltas[0].xy, vec2(1.0f, 0.0f), delta);
+        vec2 deltaUV2 = mix(deltas[1].xy, vec2(0.0f, 1.0f), delta);
 
         float f = 1.0f / fma(deltaUV1.x, deltaUV2.y, -deltaUV1.y * deltaUV2.x);
-        vec3 tan = fma(deltaPos1, vec3(deltaUV2.y), -deltaPos2 * deltaUV1.y) * f;
+        vec3 tang = fma(deltaPos1, vec3(deltaUV2.y), -deltaPos2 * deltaUV1.y) * f;
 
         if (validInterpolant) {
             res.normalHeight = vec4(normal, 0.0f);
-            res.tangent = vec4(normalize(tan - normal * sign(dot(tan, nor))), 0.0f);
-            res.texcoord.xy =  fma(texcoords[0].xy, vec2(1.0f - uv.x - uv.y), fma(texcoords[1].xy, vec2(uv.x), texcoords[2].xy * vec2(uv.y))) ;
-            res.texcoord.zw =  fma(texcoords[0].zw, vec2(1.0f - uv.x - uv.y), fma(texcoords[1].zw, vec2(uv.x), texcoords[2].zw * vec2(uv.y))) ;
-            res.albedo = packHalf(fma(colors[0], vec4(1.0f - uv.x - uv.y), fma(colors[1], vec4(uv.x), colors[2] * vec4(uv.y))));
+            res.tangent = vec4(normalize(tang - normal * sign(dot(tang, nor))), 0.0f);
+            res.texcoord.xy = vec2(dot(texcoords[0], vs), dot(texcoords[1], vs));
+            res.texcoord.zw = vec2(dot(texcoords[2], vs), dot(texcoords[3], vs));
+            res.albedo = packHalf(vec4(dot(colors[0], vs), dot(colors[1], vs), dot(colors[2], vs), dot(colors[3], vs)));
             res.materialID = mats[tri];
         }
     }
