@@ -23,10 +23,11 @@ ivec2 gatherMosaic(in ivec2 uniformCoord){
 vec4 gatherMosaicCompDyn(in sampler2D vertices, in ivec2 mosaicCoord, const uint comp){
     vec4 components = vec4(0.0f);
     vec2 iTexSize = 1.0f / vec2(textureSize(vertices, 0));
-    if (comp == 0) components = textureGather(vertices, (vec2(mosaicCoord) + 0.5f) * iTexSize, 0); else 
-    if (comp == 1) components = textureGather(vertices, (vec2(mosaicCoord) + 0.5f) * iTexSize, 1); else 
-    if (comp == 2) components = textureGather(vertices, (vec2(mosaicCoord) + 0.5f) * iTexSize, 2); else 
-    if (comp == 3) components = textureGather(vertices, (vec2(mosaicCoord) + 0.5f) * iTexSize, 3); else 
+    vec2 coord = (vec2(mosaicCoord) + 0.5f) * iTexSize;
+    if (comp == 0) components = textureGather(vertices, coord, 0); else 
+    if (comp == 1) components = textureGather(vertices, coord, 1); else 
+    if (comp == 2) components = textureGather(vertices, coord, 2); else 
+    if (comp == 3) components = textureGather(vertices, coord, 3); else 
     return components;
 }
 
@@ -53,37 +54,44 @@ vec2 intersectTriangle2(in vec3 orig, in vec3 dir, inout ivec2 tri, inout vec4 U
     valid = and2(valid, notEqual(tri, ivec2(LONGEST)));
     if (anyInvocation(any(valid))) {
         
-        // does not work (broken OpenGL support)
-/*
+        ivec2 tri0 = gatherMosaic(getUniformCoord(tri.x));
+        ivec2 tri1 = gatherMosaic(getUniformCoord(tri.y));
+
+        vec2 sz = 1.f / textureSize(vertex_texture, 0);
+        vec2 hs = sz * 0.5f;
+        vec2 ntri0 = fma(vec2(tri0), sz, hs);
+        vec2 ntri1 = fma(vec2(tri1), sz, hs);
+
         mat3x2 v012x = transpose(mat2x3(
-            gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.x)), 0).wzx, // triangle 0, verts 0, 1, 2
-            gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.y)), 0).wzx  // triangle 1
+            textureGather(vertex_texture, ntri0, 0).wzx,
+            textureGather(vertex_texture, ntri1, 0).wzx
         ));
         mat3x2 v012y = transpose(mat2x3(
-            gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.x)), 1).wzx,
-            gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.y)), 1).wzx
+            textureGather(vertex_texture, ntri0, 1).wzx,
+            textureGather(vertex_texture, ntri1, 1).wzx
         ));
         mat3x2 v012z = transpose(mat2x3(
-            gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.x)), 2).wzx,
-            gatherMosaicCompDyn(vertex_texture, gatherMosaic(getUniformCoord(tri.y)), 2).wzx
+            textureGather(vertex_texture, ntri0, 2).wzx,
+            textureGather(vertex_texture, ntri1, 2).wzx
         ));
-*/
 
+/*
         mat3 ve0xyz = transpose(mat3(
-            fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri.x)), 0).xyz, 
-            fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri.x)), 1).xyz, 
-            fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri.x)), 2).xyz
+            fetchMosaic(vertex_texture, tri0, 0).xyz, 
+            fetchMosaic(vertex_texture, tri0, 1).xyz, 
+            fetchMosaic(vertex_texture, tri0, 2).xyz
         ));
 
         mat3 ve1xyz = transpose(mat3(
-            fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri.y)), 0).xyz, 
-            fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri.y)), 1).xyz, 
-            fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri.y)), 2).xyz
+            fetchMosaic(vertex_texture, tri1, 0).xyz, 
+            fetchMosaic(vertex_texture, tri1, 1).xyz, 
+            fetchMosaic(vertex_texture, tri1, 2).xyz
         ));
 
         mat3x2 v012x = transpose(mat2x3(ve0xyz[0], ve1xyz[0]));
         mat3x2 v012y = transpose(mat2x3(ve0xyz[1], ve1xyz[1]));
         mat3x2 v012z = transpose(mat2x3(ve0xyz[2], ve1xyz[2]));
+*/
 
         mat3x2 e1 = mat3x2(v012x[1] - v012x[0], v012y[1] - v012y[0], v012z[1] - v012z[0]);
         mat3x2 e2 = mat3x2(v012x[2] - v012x[0], v012y[2] - v012y[0], v012z[2] - v012z[0]);

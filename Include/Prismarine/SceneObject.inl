@@ -126,10 +126,10 @@ namespace ppr {
         glBindImageTexture(3, vbo_modifiers_textrue_upload, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 
         // use mosaic sampler
-        //glBindSampler(0, vbo_sampler);
-        //glBindSampler(1, vbo_sampler);
-        //glBindSampler(2, vbo_sampler);
-        //glBindSampler(3, vbo_sampler);
+        glBindSampler(0, vbo_sampler);
+        glBindSampler(1, vbo_sampler);
+        glBindSampler(2, vbo_sampler);
+        glBindSampler(3, vbo_sampler);
 
         // mosaic buffer
         glBindTextureUnit(0, vbo_vertex_textrue);
