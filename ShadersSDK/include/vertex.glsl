@@ -20,18 +20,6 @@ ivec2 gatherMosaic(in ivec2 uniformCoord){
     return ivec2(uniformCoord.x * 3 + uniformCoord.y % 3, uniformCoord.y);
 }
 
-vec4 gatherMosaicCompDyn(in sampler2D vertices, in ivec2 mosaicCoord, const uint comp){
-    vec4 components = vec4(0.0f);
-    vec2 iTexSize = 1.0f / vec2(textureSize(vertices, 0));
-    vec2 coord = (vec2(mosaicCoord) + 0.5f) * iTexSize;
-    if (comp == 0) components = textureGather(vertices, coord, 0); else 
-    if (comp == 1) components = textureGather(vertices, coord, 1); else 
-    if (comp == 2) components = textureGather(vertices, coord, 2); else 
-    if (comp == 3) components = textureGather(vertices, coord, 3); else 
-    return components;
-}
-
-
 vec4 fetchMosaic(in sampler2D vertices, in ivec2 mosaicCoord, in uint idc){
     return texelFetch(vertices, mosaicCoord + mit[idc], 0);
 }
