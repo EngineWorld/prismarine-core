@@ -86,8 +86,9 @@ uint btc(in uint vlc){
 
 float intersectCubeSingle(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 cubeMax, inout float near, inout float far) {
     vec3 dr = 1.0f / ray;
-    vec3 tMin = (cubeMin.xyz - origin) * dr;
-    vec3 tMax = (cubeMax.xyz - origin) * dr;
+    vec3 norig = -origin*dr;
+    vec3 tMin = fma(cubeMin.xyz, dr, norig);
+    vec3 tMax = fma(cubeMax.xyz, dr, norig);
     vec3 t1 = min(tMin, tMax);
     vec3 t2 = max(tMin, tMax);
 #ifdef ENABLE_AMD_INSTRUCTION_SET
@@ -117,8 +118,18 @@ vec2 intersectCubeDual(
     mat4x2 cubeMin2 = transpose(cubeMin);
     mat4x2 cubeMax2 = transpose(cubeMax);
 
-    mat3x2 tMin = mat3x2((cubeMin2[0] - origin2[0]) * dr2[0], (cubeMin2[1] - origin2[1]) * dr2[1], (cubeMin2[2] - origin2[2]) * dr2[2]);
-    mat3x2 tMax = mat3x2((cubeMax2[0] - origin2[0]) * dr2[0], (cubeMax2[1] - origin2[1]) * dr2[1], (cubeMax2[2] - origin2[2]) * dr2[2]);
+    mat3x2 norig = mat3x2(-origin2[0]*dr2[0], -origin2[1]*dr2[1], -origin2[2]*dr2[2]);
+    mat3x2 tMin = mat3x2(
+        fma(cubeMin2[0], dr2[0], norig[0]), 
+        fma(cubeMin2[1], dr2[1], norig[1]), 
+        fma(cubeMin2[2], dr2[2], norig[2])
+    );
+    mat3x2 tMax = mat3x2(
+        fma(cubeMax2[0], dr2[0], norig[0]), 
+        fma(cubeMax2[1], dr2[1], norig[1]), 
+        fma(cubeMax2[2], dr2[2], norig[2])
+    );
+
     mat3x2 t1 = mat3x2(min(tMin[0], tMax[0]), min(tMin[1], tMax[1]), min(tMin[2], tMax[2]));
     mat3x2 t2 = mat3x2(max(tMin[0], tMax[0]), max(tMin[1], tMax[1]), max(tMin[2], tMax[2]));
 #ifdef ENABLE_AMD_INSTRUCTION_SET
