@@ -12,9 +12,12 @@ See `Projects`.
 ## Screenshots
 
 <details>
-<summary>9/3/2017 (1280x720)</summary>
+<summary>9/10/2017 (1280x720)</summary>
 
-<img src="Screenshots/dms1.png" width="640"/>
+<img src="Screenshots/dyn1.png" width="640"/>
+<img src="Screenshots/dyn2.png" width="640"/>
+<img src="Screenshots/dyn3.png" width="640"/>
+<img src="Screenshots/dyn4.png" width="640"/>
 
 </details>
 
