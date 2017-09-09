@@ -5,7 +5,6 @@
 *.slo
 *.lo
 *.o
-*.obj
 
 # Precompiled Headers
 *.gch
@@ -34,7 +33,6 @@ build*/
 shaders/
 Chess_Set_Obj/
 Chess_Textures/
-phantom/
 stb/
 cub/
 x64/
