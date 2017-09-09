@@ -171,6 +171,8 @@ void main() {
     hit.emission = packHalf(vec4(fetchEmissive(material, texcoord).xyz * 2.f, 1.0f));
     hit.albedo = packHalf(fetchDiffuse(material, texcoord));
 
+    HitActived(hit, 1);
+
     vec4 spc = fetchSpecular(material, texcoord);
     hit.metallicRoughness.x = packHalf2x16(spc.yz);
 

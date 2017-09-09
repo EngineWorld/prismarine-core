@@ -65,6 +65,14 @@ struct HitRework {
 };
 
 
+int HitActived(in HitRework hit){
+    return BFE(hit.bitfield, 0, 1);
+}
+
+void HitActived(inout HitRework hit, in int actived){
+    hit.bitfield = BFI(hit.bitfield, actived, 0, 1);
+}
+
 
 
 int RayActived(in RayRework ray){

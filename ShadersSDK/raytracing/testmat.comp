@@ -58,26 +58,43 @@ void main() {
     int currentLayer = 0;
 
     SurfaceUnpacked compositedHit[1];
+    HitRework firstHit;
+    firstHit.next = -1;
     if (ray.hit == -1) {
         compositedHit[0].uvt = vec4(vec2(0.f), INFINITY, intBitsToFloat(-1));
     } else {
-        HitRework firstHit = hitBuf.nodes[ray.hit];
-        compositedHit[0].uvt = firstHit.uvt;
-        compositedHit[0].albedo = unpackHalf(firstHit.albedo);
-        compositedHit[0].emission = unpackHalf(firstHit.emission);
-        compositedHit[0].metallicRoughness.yz = unpackHalf2x16(firstHit.metallicRoughness.x);
-        compositedHit[0].normalHeight = firstHit.normalHeight;
+        firstHit = hitBuf.nodes[ray.hit];
+
+        int i = 0;
+        while (HitActived(firstHit) == 0 && i < 8 && firstHit.next != -1) { // search possible layer
+            firstHit = hitBuf.nodes[firstHit.next];
+        }
+
+        if (HitActived(firstHit) == 0) {
+            compositedHit[0].uvt = vec4(vec2(0.f), INFINITY, intBitsToFloat(-1));
+        } else {
+            compositedHit[0].uvt = firstHit.uvt;
+            compositedHit[0].albedo = unpackHalf(firstHit.albedo);
+            compositedHit[0].emission = unpackHalf(firstHit.emission);
+            compositedHit[0].metallicRoughness.yz = unpackHalf2x16(firstHit.metallicRoughness.x);
+            compositedHit[0].normalHeight = firstHit.normalHeight;
+        }
     }
 
     // layers composition
     int searchLayer = 0;
-    int hitID = hitBuf.nodes[ray.hit].next;
+    int hitID = firstHit.next;
     for (int i=0;i<8;i++) {
         if (hitID == -1) break;
         HitRework hit = hitBuf.nodes[hitID];
         if (!equalF(compositedHit[searchLayer].uvt.z, hit.uvt.z)) {
             searchLayer = layers++;
             break; // unsupported
+        }
+
+        if (HitActived(hit) == 0) {
+            hitID = hit.next;
+            continue; // if not actived 
         }
 
         // composite decals
@@ -89,8 +106,7 @@ void main() {
         compositedHit[searchLayer].emission = mix(compositedHit[searchLayer].emission, unpackHalf(hit.emission), albedo.w);
 
         // already filled layer
-        if (compositedHit[searchLayer].albedo.a > 0.99999f) continue;
-
+        if (compositedHit[searchLayer].albedo.a > 0.99999f) break;
         hitID = hit.next;
     }
 
