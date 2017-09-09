@@ -1,4 +1,4 @@
-# Prismarine Core (basic OpenGL ray tracing render engine)
+# Prismarine CORE (basic OpenGL ray tracing render engine)
 
 
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=UDAMVM6T3G4YC)
