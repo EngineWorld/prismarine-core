@@ -26,61 +26,7 @@ int nlz (in int x) {
     return 31-findMSB(uint(x));
 }
 
-
-int delta( in uint i1, in uint i2) {
-    uint left = min(i1, i2);
-    uint right = max(i1, i2);
-    int dlt = -1;
-    if (left >= 0 && right < Range[0]) {
-        MORTONTYPE leftcode = Mortoncodes[left];
-        MORTONTYPE rightcode = Mortoncodes[right];
-#ifdef INT64_MORTON
-        dlt = leftcode != rightcode ? nlz(leftcode ^ rightcode) : (64 + nlz(left ^ right));
-#else
-        dlt = leftcode != rightcode ? nlz(leftcode ^ rightcode) : (32 + nlz(left ^ right));
-#endif
-    }
-    return dlt;
-}
-
-ivec2 findSpan(in int idx){
-    int d = sign(delta(idx, idx+1) - delta(idx, idx-1));
-    int delta_min = delta(idx, idx-d);
-    int lmax = 2;
-    while (delta(idx,idx + lmax * d) > delta_min) lmax *= 2;
-
-    int l = 0;
-    int t = lmax;
-    do {
-        t >>= 1;
-        if (delta(idx, idx + (l + t)*d) > delta_min) {
-            l = l + t;
-        }
-    }
-    while (t > 1);
-
-    ivec2 span;
-    span.x = min(idx, idx + l*d);
-    span.y = max(idx, idx + l*d);
-    return clamp(span, ivec2(0), ivec2(Range[0]-1));
-}
-
 int findSplit( int first, int last, uint SIMDThread) {
-    int left = first;
-    int right = last;
-    int numidentical = delta(left, right);
-    do {
-        int newsplit = (right + left) >> 1;
-        if (delta(left, newsplit) > numidentical) {
-            left = newsplit; 
-        } else {
-            right = newsplit;
-        }
-    }
-    while (right > left + 1);
-    return clamp(left, first, last-1);
-    
-    /*
     MORTONTYPE firstCode = Mortoncodes[first];
     MORTONTYPE lastCode = Mortoncodes[last];
 
@@ -103,22 +49,7 @@ int findSplit( int first, int last, uint SIMDThread) {
         }
     }
     return clamp(split, first, last-1);
-    */
 }
-
-
-int leafIdx(in int idx){
-    return (Range[0]-1) + idx;
-}
-
-uint leafIdx(in uint idx){
-    return (Range[0]-1) + idx;
-}
-
-//int nodeIdx(int idx){
-//    return idx;
-//}
-
 
 shared int cCounter;
 shared int lCounter;
@@ -130,46 +61,6 @@ initAtomicIncFunction(aCounter, aCounterInc, int);
 initAtomicIncFunction(cCounter, cCounterInc, int);
 
 void main() {
-
-/*
-    uint gid = uint(gl_GlobalInvocationID.x);
-    if (gid < Range[0]) {
-        uint cid = leafIdx(gid);
-        Nodes[cid].box.mn = ( 0.0f).xxxx;
-        Nodes[cid].box.mx = (-0.0f).xxxx;
-        Nodes[cid].pdata.xy = ivec2(gid.xx);
-        Nodes[cid].pdata.w = -1;
-        Flags[cid] = 0;
-        LeafIndices[gid] = int(cid);
-        Actives[gid] = -1;
-    }
-
-    // if first node, set parent -1
-    if (gid == 0) {
-        atomicExchange(Nodes[gid].pdata.z, -1);
-    }
-
-    if (gid < Range[0]-1) {
-        ivec2 span = findSpan(int(gid));
-        int split = findSplit(span.x, span.y, 0);
-
-        int leftIdx = split+0;
-        int rightIdx = split+1;
-
-        int leftIdxI  = leftIdx  == span.x ? leafIdx(leftIdx) : leftIdx;
-        int rightIdxI = rightIdx == span.y ? leafIdx(rightIdx) : rightIdx;
-
-        // link nodes
-        Nodes[gid].pdata.xy = ivec2(leftIdxI, rightIdxI);
-        Nodes[gid].pdata.w = -1;
-        Nodes[gid].box.mn = ( 0.0f).xxxx;
-        Nodes[gid].box.mx = (-0.0f).xxxx;
-        Flags[gid] = 0;
-        atomicExchange(Nodes[leftIdxI].pdata.z, int(gid));
-        atomicExchange(Nodes[rightIdxI].pdata.z, int(gid));
-    }
-*/
-
     uint threadID = uint(gl_LocalInvocationID.x);
 
     // set leaf indices to initial
@@ -180,6 +71,7 @@ void main() {
         atomicExchange(Actives[trID], -1);
     }
 
+    // create initial (root) node
     if (threadID == 0) {
         lCounter = 0, aCounter = 0, cCounter = 0;
         aRange[0] = 0, aRange[1] = 0;
@@ -197,7 +89,7 @@ void main() {
         Flags[hid] = 0;
     }
 
-    // construct BVH
+    // construct BVH by work queues
     for (int h=0;h<256;h++) { // every level of BVH
 
         // synchronize, and make next work view
@@ -207,10 +99,11 @@ void main() {
             aRange[1] = aCounter;
         }
 
-        // begin work on splitting
+        // synchronize or finalize splitting
         memoryBarrier(); barrier(); 
         if (aRange[1] <= aRange[0]) break; // no work, break
 
+        // begin work on splitting
         uint workSize = min((aRange[1] <= aRange[0]) ? 0 : (((aRange[1] - aRange[0]) - 1) / (int(gl_WorkGroupSize.x) / 2) + 1), 8192);
         for (int i=0;i<workSize;i++) {
             int trID = aRange[0] + ((int(gl_WorkGroupSize.x) / 2) * i + (int(threadID) / 2));
@@ -237,7 +130,6 @@ void main() {
                     childNode.pdata.xy = chID == 0 ? ivec2(parentNode.pdata.x, split+0) : ivec2(split+1, parentNode.pdata.y);
 
                     // is leaf?
-                    //if (childNode.pdata.x == childNode.pdata.y) {
                     bool isLeaf = (childNode.pdata.y - childNode.pdata.x) < 1;
                     if (isLeaf) {
                         atomicExchange(LeafIndices[cCounterInc(true)], hid);
