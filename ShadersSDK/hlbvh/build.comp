@@ -10,7 +10,6 @@
 layout ( local_size_x = 1024 ) in;
 
 int nlz (in uint64_t x) {
-    //return 63-findMSB(x);
     uvec2 pair = U2P(x);
     int msbNear = findMSB(pair.y);
     int nlzFinal = (msbNear >= 0) ? msbNear : (32 + findMSB(pair.x));
@@ -33,7 +32,11 @@ int delta( in uint i1, in uint i2) {
     if (left >= 0 && right < Range[0]) {
         MORTONTYPE leftcode = Mortoncodes[left];
         MORTONTYPE rightcode = Mortoncodes[right];
+#ifdef INT64_MORTON
         dlt = leftcode != rightcode ? nlz(leftcode ^ rightcode) : (64 + nlz(left ^ right));
+#else
+        dlt = leftcode != rightcode ? nlz(leftcode ^ rightcode) : (32 + nlz(left ^ right));
+#endif
     }
     return dlt;
 }
@@ -74,6 +77,31 @@ int findSplit( int first, int last, uint SIMDThread) {
     }
     while (right > left + 1);
     return clamp(left, first, last-1);
+    
+    /*
+    MORTONTYPE firstCode = Mortoncodes[first];
+    MORTONTYPE lastCode = Mortoncodes[last];
+
+    int split = (first + last) >> 1;
+    if (firstCode != lastCode) {
+        split = first;
+        int commonPrefix = nlz(firstCode ^ lastCode);
+        int step = last - first;
+        for (int i=0;i<8192;i++) {
+            step = (step + 1) >> 1;
+            int newSplit = split + step;
+            if (newSplit < last) {
+                MORTONTYPE splitCode = Mortoncodes[newSplit];
+                int splitPrefix = nlz(firstCode ^ splitCode);
+                if (splitPrefix > commonPrefix) {
+                    split = newSplit;
+                }
+            }
+            if (step <= 1) break; 
+        }
+    }
+    return clamp(split, first, last-1);
+    */
 }
 
 
@@ -109,10 +137,9 @@ void main() {
         Nodes[cid].box.mx = (-0.0f).xxxx;
         Nodes[cid].pdata.xy = ivec2(gid.xx);
         Nodes[cid].pdata.w = -1;
-        atomicExchange(Flags[cid], 0);
-        atomicExchange(LeafIndices[gid], int(cid));
-        atomicExchange(Actives[gid], -1);
-        atomicExchange(Actives[leafIdx(gid)], -1);
+        Flags[cid] = 0;
+        LeafIndices[gid] = int(cid);
+        Actives[gid] = -1;
     }
 
     // if first node, set parent -1
@@ -135,7 +162,7 @@ void main() {
         Nodes[gid].pdata.w = -1;
         Nodes[gid].box.mn = ( 0.0f).xxxx;
         Nodes[gid].box.mx = (-0.0f).xxxx;
-        atomicExchange(Flags[gid], 0);
+        Flags[gid] = 0;
         atomicExchange(Nodes[leftIdxI].pdata.z, int(gid));
         atomicExchange(Nodes[rightIdxI].pdata.z, int(gid));
     }
