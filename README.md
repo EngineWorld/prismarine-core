@@ -69,3 +69,7 @@ ${ApplicationName}.exe -m sponza.obj -s 1.0
 - [Something from Shadertoy](https://www.shadertoy.com/)
 - [Radix Sort by CiNoNim](https://github.com/cNoNim/radix-sort)
 - Other functions and modifications from few resources
+
+## License additional limitations
+
+Dependencies such as GLM, tinygltf, tinyobjloader, Bullet, etc. DOES NOT APPLYING OUR LICENSE. See license of original dependencies. 
