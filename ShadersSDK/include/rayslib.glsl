@@ -173,9 +173,10 @@ int createRay(inout RayRework original, in int idx) {
         while (freed >= 0 && iterations >= 0) {
             iterations--;
 
-            atomicMax(arcounter.Ut, 0); // prevent most decreasing
+            int activeLane = firstActive();
+            if (LANE_IDX == activeLane) atomicMax(arcounter.Ut, 0);
             int freed = max(atomicDecUt(true)-1, -1);
-            atomicMax(arcounter.Ut, 0); // prevent most decreasing
+            if (LANE_IDX == activeLane) atomicMax(arcounter.Ut, 0);
 
             if (
                 freed >= 0 && 
