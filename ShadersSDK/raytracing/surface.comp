@@ -134,7 +134,7 @@ vec3 getNormalMapping(in Material mat, vec2 texcoordi) {
         vec3 p00 = vec3(0.0f, 0.0f, fetchNormal(mat, texcoordi, off.yy).x * pike);
         vec3 p01 = vec3(size, 0.0f, fetchNormal(mat, texcoordi, off.zy).x * pike);
         vec3 p10 = vec3(0.0f, size, fetchNormal(mat, texcoordi, off.yz).x * pike);
-        normal = normalize(cross(p10 - p00, p01 - p00));
+        normal = normalize(cross(p01 - p00, p10 - p00));
     } else {
         normal = normalize(mix(vec3(0.0f, 0.0f, 1.0f), fma(tc, vec3(2.0f), vec3(-1.0f)), vec3(1.0f)));
     }
