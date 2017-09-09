@@ -47,9 +47,11 @@ void main() {
                 // if parent node is not occupy
                 validParent = validParent && idx >= 0;
                 if (validParent) validParent = atomicCompSwap(Flags[idx], 0, 1) == 1;
+                //if (validParent) validParent = atomicExchange(Flags[idx], 1) == 1;
 
                 if (validParent) {
                     HlbvhNode nd = Nodes[idx];
+                    //atomicExchange(Flags[idx], 0);
 
                     // process unifying boxes
                     if (nd.pdata.x != nd.pdata.y && idx >= 0) {
