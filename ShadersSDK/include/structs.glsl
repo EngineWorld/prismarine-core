@@ -1,3 +1,7 @@
+
+// Readme license https://github.com/AwokenGraphics/prismarine-core/blob/master/LICENSE.md
+
+
 #ifndef _STRUCTS_H
 #define _STRUCTS_H
 

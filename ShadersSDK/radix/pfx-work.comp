@@ -1,4 +1,7 @@
 #version 460 core
+
+// Readme license https://github.com/AwokenGraphics/prismarine-core/blob/master/LICENSE.md
+
 #include "./includes.glsl"
 
 #define WG_COUNT 8

@@ -1,3 +1,7 @@
+
+// Readme license https://github.com/AwokenGraphics/prismarine-core/blob/master/LICENSE.md
+
+
 #ifndef _CONSTANTS_H
 #define _CONSTANTS_H
 

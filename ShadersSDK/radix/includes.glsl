@@ -1,4 +1,6 @@
-//#define EMULATE_BALLOT
+
+// Readme license https://github.com/AwokenGraphics/prismarine-core/blob/master/LICENSE.md
+
 
 #ifndef EMULATE_BALLOT
 #extension GL_ARB_gpu_shader_int64 : require

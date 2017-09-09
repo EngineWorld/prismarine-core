@@ -1,3 +1,4 @@
+:: It is helper for compilation shaders to SPIR-V
 
 cd %~dp0
 set CFLAGS=--target-env=opengl -x glsl -Werror -DUSE_OPENGL 

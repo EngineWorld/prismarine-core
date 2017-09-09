@@ -1,5 +1,7 @@
 #pragma once
 
+// Readme license https://github.com/AwokenGraphics/prismarine-core/blob/master/LICENSE.md
+
 #include "Utils.hpp"
 #include "Structs.hpp"
 #include "SceneObject.hpp"

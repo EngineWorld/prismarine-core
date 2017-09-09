@@ -1,3 +1,7 @@
+
+// Readme license https://github.com/AwokenGraphics/prismarine-core/blob/master/LICENSE.md
+
+
 #ifndef _RANDOM_H
 #define _RANDOM_H
 

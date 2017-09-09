@@ -1,3 +1,7 @@
+
+// Readme license https://github.com/AwokenGraphics/prismarine-core/blob/master/LICENSE.md
+
+
 // ordered increment
 #if (!defined(FRAGMENT_SHADER) && !defined(ORDERING_NOT_REQUIRED))
 

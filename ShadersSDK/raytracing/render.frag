@@ -1,5 +1,7 @@
 #version 460 core
 
+// Readme license https://github.com/AwokenGraphics/prismarine-core/blob/master/LICENSE.md
+
 #define FRAGMENT_SHADER
 #define SIMPLIFIED_RAY_MANAGMENT
 

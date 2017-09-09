@@ -1,5 +1,7 @@
 #version 460 core
 
+// Readme license https://github.com/AwokenGraphics/prismarine-core/blob/master/LICENSE.md
+
 #define SIMPLIFIED_RAY_MANAGMENT
 
 #include "../include/constants.glsl"

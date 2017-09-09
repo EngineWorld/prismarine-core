@@ -1,4 +1,7 @@
 #version 460 core
+
+// Readme license https://github.com/AwokenGraphics/prismarine-core/blob/master/LICENSE.md
+
 #include "./includes.glsl"
 
 //layout (local_size_x = WARP_SIZE, local_size_y = WORK_SIZE) in;

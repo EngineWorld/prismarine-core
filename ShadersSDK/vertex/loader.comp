@@ -1,5 +1,7 @@
 #version 460 core
 
+// Readme license https://github.com/AwokenGraphics/prismarine-core/blob/master/LICENSE.md
+
 #include "../include/constants.glsl"
 #include "../include/structs.glsl"
 //#include "../include/uniforms.glsl"

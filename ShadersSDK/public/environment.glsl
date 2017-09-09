@@ -1,3 +1,7 @@
+
+// Readme license https://github.com/AwokenGraphics/prismarine-core/blob/master/LICENSE.md
+
+
 /* Atmosphere sky functions and parameters */
 #define up vec3(0.0f, 1.0f, 0.0f)
 #define atmosphereColor vec3(0.18, 0.49, 0.66)

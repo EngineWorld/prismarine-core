@@ -1,5 +1,7 @@
 #include "MaterialSet.hpp"
 
+// Readme license https://github.com/AwokenGraphics/prismarine-core/blob/master/LICENSE.md
+
 namespace NSM {
 
     inline void MaterialSet::init(){

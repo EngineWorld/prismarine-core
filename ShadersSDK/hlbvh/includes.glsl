@@ -1,3 +1,7 @@
+
+// Readme license https://github.com/AwokenGraphics/prismarine-core/blob/master/LICENSE.md
+
+
 // Morton codes and geometry counters
 layout ( std430, binding = 0 ) restrict buffer MortoncodesBlock {
     MORTONTYPE Mortoncodes[];

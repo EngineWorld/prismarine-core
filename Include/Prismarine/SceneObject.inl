@@ -1,5 +1,7 @@
 #include "SceneObject.hpp"
 
+// Readme license https://github.com/AwokenGraphics/prismarine-core/blob/master/LICENSE.md
+
 namespace NSM {
 
     inline SceneObject::~SceneObject() {

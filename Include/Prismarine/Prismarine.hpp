@@ -1,3 +1,4 @@
+// Readme license https://github.com/AwokenGraphics/prismarine-core/blob/master/LICENSE.md
 
 #include "Prismarine/Utils.hpp"
 #include "Prismarine/Radix.hpp"

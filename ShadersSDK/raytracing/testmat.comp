@@ -1,5 +1,7 @@
 #version 460 core
 
+// Readme license https://github.com/AwokenGraphics/prismarine-core/blob/master/LICENSE.md
+
 // use whitted ray tracing model (no shadows support), which simulate hybrid methods
 //#define USE_SIMPLIFIED_MODEL
 
