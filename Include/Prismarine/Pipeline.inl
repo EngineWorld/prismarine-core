@@ -338,13 +338,13 @@ namespace NSM {
     }
 
     inline void Pipeline::reclaim() {
-        int32_t rsize = getRayCount();
-        if (rsize <= 0) return;
+        //int32_t rsize = getRayCount();
+        //if (rsize <= 0) return;
 
-        this->bind();
+        //this->bind();
 
-        dispatch(reclaimProgram, tiled(rsize, worksize));
-        reloadQueuedRays(true);
+        //dispatch(reclaimProgram, tiled(rsize, worksize));
+        //reloadQueuedRays(true);
     }
 
     inline void Pipeline::render() {
@@ -392,6 +392,7 @@ namespace NSM {
         materialUniformData.time = rand(); this->bind();
         glBindTextureUnit(5, skybox);
         dispatch(matProgram, tiled(rsize, worksize));
+		reloadQueuedRays(true); // you can at now
     }
 
 
