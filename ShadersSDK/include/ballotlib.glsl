@@ -10,7 +10,7 @@
 #ifdef EMULATE_BALLOT
 
 #define   LC_IDX (gl_LocalInvocationID.x / WARP_SIZE)
-#define LANE_IDX (gl_LocalInvocationID.x % WARP_SIZE)
+#define LANE_IDX (gl_SubGroupInvocationARB)
 #define UVEC_BALLOT_WARP uint
 
 shared uint ballotCache[WORK_SIZE];
