@@ -142,9 +142,9 @@ void main() {
 
                     // if SIMD thread is left, use left lane of parent node, else right lane
                     if (chID == 0) {
-                        atomicExchange(Nodes[prID].pdata.x, hid);
+                        Nodes[prID].pdata.x = hid;
                     } else {
-                        atomicExchange(Nodes[prID].pdata.y, hid);
+                        Nodes[prID].pdata.y = hid;
                     }
                 }
             }
