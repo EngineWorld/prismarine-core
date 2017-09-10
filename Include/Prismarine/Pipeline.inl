@@ -180,11 +180,11 @@ namespace NSM {
         if (quantized     != -1) glDeleteBuffers(1, &quantized);
         if (deferredStack != -1) glDeleteBuffers(1, &deferredStack);
 
-        const int32_t cmultiplier = 4;
+        const int32_t cmultiplier = 6;
         const int32_t wrsize = width * height;
         currentRayLimit = std::min(wrsize * cmultiplier / (enableInterlacing ? 2 : 1), 4096 * 4096);
 
-        colorchains = allocateBuffer<ColorChain>(currentRayLimit * 4);
+        colorchains = allocateBuffer<ColorChain>(wrsize * 8);
         rays = allocateBuffer<Ray>(currentRayLimit);
         hits = allocateBuffer<Hit>(currentRayLimit);
         activel = allocateBuffer<int32_t>(currentRayLimit);
@@ -192,7 +192,7 @@ namespace NSM {
         texels = allocateBuffer<Texel>(wrsize);
         freedoms = allocateBuffer<int32_t>(currentRayLimit);
         availables = allocateBuffer<int32_t>(currentRayLimit);
-        deferredStack = allocateBuffer<int32_t>(currentRayLimit * 16);
+        deferredStack = allocateBuffer<int32_t>(currentRayLimit * 8);
 
         samplerUniformData.sceneRes = { float(width), float(height) };
         samplerUniformData.currentRayLimit = currentRayLimit;
