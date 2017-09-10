@@ -307,12 +307,14 @@ namespace NSM {
     }
 
     inline void Pipeline::reloadQueuedRays(bool doSort, bool sortMortons) {
-        glGetNamedBufferSubData(arcounter, 0 * sizeof(uint32_t), sizeof(uint32_t), &raycountCache);
-        samplerUniformData.rayCount = raycountCache;
-        syncUniforms();
+		int32_t counters[8];
+		glGetNamedBufferSubData(arcounter, 0 * sizeof(uint32_t), 8 * sizeof(uint32_t), counters);
 
-        uint32_t availableCount = 0;
-        glGetNamedBufferSubData(arcounter, 2 * sizeof(int32_t), sizeof(int32_t), &availableCount);
+		raycountCache = counters[0];
+        samplerUniformData.rayCount = raycountCache;
+        //syncUniforms(); // no need extra loud
+
+        uint32_t availableCount = counters[2];
         glCopyNamedBufferSubData(arcounter, arcounter, 2 * sizeof(int32_t), 3 * sizeof(int32_t), sizeof(int32_t));
 
         // set to zeros
@@ -322,12 +324,14 @@ namespace NSM {
 
         // copy active collection
         if (raycountCache > 0) {
-            glCopyNamedBufferSubData(activenl, activel, 0, 0, strided<uint32_t>(raycountCache));
+            //glCopyNamedBufferSubData(activenl, activel, 0, 0, strided<uint32_t>(raycountCache));
+			SWAP(activenl, activel);
         }
 
         // copy collection of available ray memory 
         if (availableCount > 0) {
-            glCopyNamedBufferSubData(freedoms, availables, 0, 0, strided<uint32_t>(availableCount));
+            //glCopyNamedBufferSubData(freedoms, availables, 0, 0, strided<uint32_t>(availableCount));
+			SWAP(freedoms, availables);
         }
 
         glMemoryBarrier(GL_ALL_BARRIER_BITS);

@@ -168,6 +168,11 @@ namespace NSM {
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
     }
 
+	void SWAP(GLuint& buf1, GLuint& buf2) {
+		GLuint tmp = buf1;
+		buf1 = buf2;
+		buf2 = tmp;
+	}
 
     const int32_t zero[1] = { 0 };
 
