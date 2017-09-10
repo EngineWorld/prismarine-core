@@ -15,7 +15,6 @@ namespace NSM {
         BufferComposer() {
             glCreateBuffers(1, &buffer);
         }
-        friend SceneObject;
         friend VertexInstance;
 
         int32_t addElement(STRUCTURE accessorDesc);
@@ -33,8 +32,12 @@ namespace NSM {
 
     class VertexInstance : public BaseClass {
     public:
-        VertexInstance();
-        friend SceneObject;
+    };
+
+    class TriangleArrayInstance : public VertexInstance {
+    public:
+        TriangleArrayInstance();
+        friend TriangleHierarchy;
 
         size_t getNodeCount();
         void setNodeCount(size_t tcount);

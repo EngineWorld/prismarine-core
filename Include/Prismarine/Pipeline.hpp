@@ -4,12 +4,12 @@
 
 #include "Utils.hpp"
 #include "Structs.hpp"
-#include "SceneObject.hpp"
+#include "TriangleHierarchy.hpp"
 #include "MaterialSet.hpp"
 
 namespace NSM {
 
-    class Dispatcher : public BaseClass {
+    class Pipeline : public BaseClass {
     protected:
         RadixSort * sorter = nullptr;
 
@@ -78,8 +78,8 @@ namespace NSM {
 
     public:
 
-        Dispatcher() { init(); }
-        ~Dispatcher();
+        Pipeline() { init(); }
+        ~Pipeline();
 
         uint32_t width = 256;
         uint32_t height = 256;
@@ -126,7 +126,7 @@ namespace NSM {
         void clearSampler();
         void reclaim();
         void render();
-        int intersection(SceneObject * obj, const int clearDepth = 0);
+        int intersection(TriangleHierarchy * obj, const int clearDepth = 0);
         void shade();
         void applyMaterials(MaterialSet * mat);
         int32_t getRayCount();

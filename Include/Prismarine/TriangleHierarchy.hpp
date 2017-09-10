@@ -8,7 +8,7 @@
 
 namespace NSM {
 
-    class SceneObject : public BaseClass {
+    class TriangleHierarchy : public BaseClass {
     protected:
         RadixSort * sorter = nullptr;
 
@@ -70,8 +70,8 @@ namespace NSM {
 
     public:
 
-        SceneObject() { init(); }
-        ~SceneObject();
+        TriangleHierarchy() { init(); }
+        ~TriangleHierarchy();
 
         int32_t materialID = 0;
         size_t triangleCount = 0;
@@ -84,7 +84,7 @@ namespace NSM {
         void bindBVH();
         void bindLeafs();
         void clearTribuffer();
-        void loadMesh(VertexInstance * gobject);
+        void loadMesh(TriangleArrayInstance * gobject);
         bool isDirty() const;
         void markDirty();
         void resolve();

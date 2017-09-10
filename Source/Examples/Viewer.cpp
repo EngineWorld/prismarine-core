@@ -44,7 +44,7 @@ namespace PaperExample {
         glm::dvec3 eye = glm::dvec3(0.0f, 6.0f, 6.0f);
         glm::dvec3 view = glm::dvec3(0.0f, 2.0f, 0.0f);
         glm::dvec2 mposition;
-        psm::Dispatcher * raysp;
+        psm::Pipeline * raysp;
 
         glm::dmat4 project() {
 #ifdef USE_CAD_SYSTEM
@@ -56,7 +56,7 @@ namespace PaperExample {
 #endif
         }
 
-        void setRays(psm::Dispatcher * r) {
+        void setRays(psm::Pipeline * r) {
             raysp = r;
         }
 
@@ -194,7 +194,7 @@ namespace PaperExample {
 
 
         void saveHdr(std::string name = "") {
-            psm::Dispatcher::HdrImage image = rays->snapHdr();
+            psm::Pipeline::HdrImage image = rays->snapHdr();
 
             // allocate RGBAF
             FIBITMAP * btm = FreeImage_AllocateT(FIT_RGBAF, image.width, image.height);
@@ -224,8 +224,8 @@ namespace PaperExample {
 
 
         GLFWwindow * window;
-        psm::Dispatcher * rays;
-        psm::SceneObject * intersector;
+        psm::Pipeline * rays;
+        psm::TriangleHierarchy * intersector;
         Controller * cam;
         psm::MaterialSet * materialManager;
         
@@ -241,7 +241,7 @@ namespace PaperExample {
 
 #ifdef EXPERIMENTAL_GLTF
         tinygltf::Model gltfModel;
-        std::vector<std::vector<psm::VertexInstance *>> meshVec = std::vector<std::vector<psm::VertexInstance *>>();
+        std::vector<std::vector<psm::TriangleArrayInstance *>> meshVec = std::vector<std::vector<psm::TriangleArrayInstance *>>();
         std::vector<GLuint> glBuffers = std::vector<GLuint>();
         std::vector<uint32_t> rtTextures = std::vector<uint32_t>();
 #endif
@@ -323,7 +323,7 @@ namespace PaperExample {
         materialManager = new MaterialSet();
 
         // init ray tracer
-        rays = new psm::Dispatcher();
+        rays = new psm::Pipeline();
         rays->setSkybox(loadCubemap());
         
         // camera contoller
@@ -417,12 +417,12 @@ namespace PaperExample {
 
         // load mesh templates (better view objectivity)
         for (int m = 0; m < gltfModel.meshes.size();m++) {
-            std::vector<psm::VertexInstance *> primitiveVec = std::vector<psm::VertexInstance *>();
+            std::vector<psm::TriangleArrayInstance *> primitiveVec = std::vector<psm::TriangleArrayInstance *>();
 
             tinygltf::Mesh &glMesh = gltfModel.meshes[m];
             for (int i = 0; i < glMesh.primitives.size();i++) {
                 tinygltf::Primitive & prim = glMesh.primitives[i];
-                psm::VertexInstance * geom = new psm::VertexInstance();
+                psm::TriangleArrayInstance * geom = new psm::TriangleArrayInstance();
                 AccessorSet * acs = new AccessorSet();
                 geom->setAccessorSet(acs);
                 geom->setBufferViewSet(bfvi);
@@ -493,7 +493,7 @@ namespace PaperExample {
 #endif
 
         // create geometry intersector
-        intersector = new psm::SceneObject();
+        intersector = new psm::TriangleHierarchy();
         intersector->allocate(1024 * 2048);
 
         // init timing state
@@ -580,9 +580,9 @@ namespace PaperExample {
             
             glm::dmat4 transform = inTransform * localTransform;
             if (node.mesh >= 0) {
-                std::vector<psm::VertexInstance *>& mesh = meshVec[node.mesh]; // load mesh object (it just vector of primitives)
+                std::vector<psm::TriangleArrayInstance *>& mesh = meshVec[node.mesh]; // load mesh object (it just vector of primitives)
                 for (int p = 0; p < mesh.size(); p++) { // load every primitive
-                    psm::VertexInstance * geom = mesh[p];
+                    psm::TriangleArrayInstance * geom = mesh[p];
                     geom->setTransform(transform);
                     intersector->loadMesh(geom);
                 }

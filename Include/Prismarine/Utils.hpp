@@ -30,8 +30,8 @@ namespace NSM {
     //using namespace gl;
     
     class BaseClass {};
-    class Dispatcher;
-    class SceneObject;
+    class Pipeline;
+    class TriangleHierarchy;
 
     static int32_t tiled(int32_t sz, int32_t gmaxtile) {
         return (int32_t)ceil((double)sz / (double)gmaxtile);

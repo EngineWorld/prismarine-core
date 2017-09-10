@@ -51,7 +51,7 @@ namespace PaperExample {
         glm::dvec3 eye = glm::dvec3(0.0f, 6.0f, 6.0f);
         glm::dvec3 view = glm::dvec3(0.0f, 2.0f, 0.0f);
         glm::dvec2 mposition;
-        psm::Dispatcher * raysp;
+        psm::Pipeline * raysp;
 
         glm::dmat4 project() {
 #ifdef USE_CAD_SYSTEM
@@ -63,7 +63,7 @@ namespace PaperExample {
 #endif
         }
 
-        void setRays(psm::Dispatcher * r) {
+        void setRays(psm::Pipeline * r) {
             raysp = r;
         }
 
@@ -243,7 +243,7 @@ namespace PaperExample {
     class MeshTemplate {
     public:
 
-        psm::VertexInstance * deviceHandle = nullptr;
+        psm::TriangleArrayInstance * deviceHandle = nullptr;
         std::vector<float> rawMeshData;
         std::vector<tinyobj::material_t> materials;
         std::vector<tinyobj::shape_t> shapes; 
@@ -272,7 +272,7 @@ namespace PaperExample {
                 bfv.offset4 = 0;
 
                 uint32_t stride = 8;
-                deviceHandle = new psm::VertexInstance();
+                deviceHandle = new psm::TriangleArrayInstance();
 
                 AccessorSet * acs = new AccessorSet();
                 BufferViewSet * bfvi = new BufferViewSet();
@@ -354,8 +354,8 @@ namespace PaperExample {
         btDiscreteDynamicsWorld* dynamicsWorld;
 
         GLFWwindow * window;
-        psm::Dispatcher * rays;
-        psm::SceneObject * intersector;
+        psm::Pipeline * rays;
+        psm::TriangleHierarchy * intersector;
         Controller * cam;
         psm::MaterialSet * materialManager;
         
@@ -575,7 +575,7 @@ namespace PaperExample {
         materialManager = new psm::MaterialSet();
 
         // init ray tracer
-        rays = new psm::Dispatcher();
+        rays = new psm::Pipeline();
         rays->setSkybox(loadCubemap());
         
         // camera contoller
@@ -583,7 +583,7 @@ namespace PaperExample {
         cam->setRays(rays);
 
         // create geometry intersector
-        intersector = new psm::SceneObject();
+        intersector = new psm::TriangleHierarchy();
         intersector->allocate(1024 * 1024);
         
 

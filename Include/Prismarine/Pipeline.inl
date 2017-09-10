@@ -1,10 +1,10 @@
-#include "Dispatcher.hpp"
+#include "Pipeline.hpp"
 
 // Readme license https://github.com/AwokenGraphics/prismarine-core/blob/master/LICENSE.md
 
 namespace NSM {
 
-    inline Dispatcher::~Dispatcher(){
+    inline Pipeline::~Pipeline(){
         
         glDeleteProgram(renderProgram);
         glDeleteProgram(matProgram);
@@ -39,7 +39,7 @@ namespace NSM {
         
     }
 
-    inline void Dispatcher::initShaders() {
+    inline void Pipeline::initShaders() {
         
         initShaderComputeSPIRV("./shaders-spv/raytracing/surface.comp.spv", surfProgram);
         initShaderComputeSPIRV("./shaders-spv/raytracing/testmat.comp.spv", matProgram);
@@ -64,7 +64,7 @@ namespace NSM {
 
 
 
-    inline void Dispatcher::initVAO() {
+    inline void Pipeline::initVAO() {
         Vc2 arr[4] = { { -1.0f, -1.0f },{ 1.0f, -1.0f },{ -1.0f, 1.0f },{ 1.0f, 1.0f } };
 
 		GLuint posBuf, idcBuf;
@@ -85,7 +85,7 @@ namespace NSM {
     }
 
 
-    inline void Dispatcher::init() {
+    inline void Pipeline::init() {
         initShaders();
         initVAO();
 
@@ -121,17 +121,17 @@ namespace NSM {
     }
 
 
-    inline void Dispatcher::setLightCount(size_t lightcount) {
+    inline void Pipeline::setLightCount(size_t lightcount) {
         materialUniformData.lightcount = lightcount;
     }
 
-    inline void Dispatcher::switchMode() {
+    inline void Pipeline::switchMode() {
         clearRays();
         clearSampler();
         cameraUniformData.enable360 = cameraUniformData.enable360 == 1 ? 0 : 1;
     }
 
-    inline void Dispatcher::resize(const uint32_t & w, const uint32_t & h) {
+    inline void Pipeline::resize(const uint32_t & w, const uint32_t & h) {
         displayWidth = w;
         displayHeight = h;
 
@@ -165,7 +165,7 @@ namespace NSM {
         clearSampler();
     }
 
-    inline void Dispatcher::resizeBuffers(const uint32_t & w, const uint32_t & h) {
+    inline void Pipeline::resizeBuffers(const uint32_t & w, const uint32_t & h) {
         width = w, height = h;
         bool enableInterlacing = false;
 
@@ -202,7 +202,7 @@ namespace NSM {
         syncUniforms();
     }
 
-    inline void Dispatcher::syncUniforms() {
+    inline void Pipeline::syncUniforms() {
         for (int i = 0; i < materialUniformData.lightcount; i++) {
             lightUniformData[i].lightColor = *(Vc4 *)glm::value_ptr(lightColor[i]);
             lightUniformData[i].lightVector = *(Vc4 *)glm::value_ptr(lightVector[i]);
@@ -219,12 +219,12 @@ namespace NSM {
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
     }
 
-    inline void Dispatcher::bindUniforms() {
+    inline void Pipeline::bindUniforms() {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 12, lightUniform);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 13, rayBlockUniform);
     }
 
-    inline void Dispatcher::bind() {
+    inline void Pipeline::bind() {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, rays);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, hits);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, texels);
@@ -239,13 +239,13 @@ namespace NSM {
         bindUniforms();
     }
 
-    inline void Dispatcher::clearRays() {
+    inline void Pipeline::clearRays() {
         for (int i = 0; i < 8;i++) {
             glCopyNamedBufferSubData(arcounterTemp, arcounter, 0, sizeof(uint32_t) * i, sizeof(uint32_t));
         }
     }
 
-    inline void Dispatcher::sample() {
+    inline void Pipeline::sample() {
         
         // collect samples
         glBindImageTexture(0, presampled, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
@@ -269,7 +269,7 @@ namespace NSM {
         
     }
 
-    inline void Dispatcher::camera(const glm::mat4 &persp, const glm::mat4 &frontSide) {
+    inline void Pipeline::camera(const glm::mat4 &persp, const glm::mat4 &frontSide) {
         clearRays();
 
         materialUniformData.time = rand();
@@ -283,7 +283,7 @@ namespace NSM {
         reloadQueuedRays(true);
     }
 
-    inline void Dispatcher::camera(const glm::vec3 &eye, const glm::vec3 &view, const glm::mat4 &persp) {
+    inline void Pipeline::camera(const glm::vec3 &eye, const glm::vec3 &view, const glm::mat4 &persp) {
 #ifdef USE_CAD_SYSTEM
         glm::mat4 sidemat = glm::lookAt(eye, view, glm::vec3(0.0f, 0.0f, 1.0f));
 #elif USE_180_SYSTEM
@@ -295,18 +295,18 @@ namespace NSM {
         this->camera(persp, sidemat);
     }
 
-    inline void Dispatcher::camera(const glm::vec3 &eye, const glm::vec3 &view) {
+    inline void Pipeline::camera(const glm::vec3 &eye, const glm::vec3 &view) {
         this->camera(eye, view, glm::perspective(glm::pi<float>() / 3.0f, float(displayWidth) / float(displayHeight), 0.001f, 1000.0f));
     }
 
-    inline void Dispatcher::clearSampler() {
+    inline void Pipeline::clearSampler() {
         this->bind();
 
         glBindImageTexture(0, sampleflags, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
         dispatch(clearProgram, tiled(displayWidth * displayHeight, worksize));
     }
 
-    inline void Dispatcher::reloadQueuedRays(bool doSort, bool sortMortons) {
+    inline void Pipeline::reloadQueuedRays(bool doSort, bool sortMortons) {
         glGetNamedBufferSubData(arcounter, 0 * sizeof(uint32_t), sizeof(uint32_t), &raycountCache);
         samplerUniformData.rayCount = raycountCache;
         syncUniforms();
@@ -333,7 +333,7 @@ namespace NSM {
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
     }
 
-    inline void Dispatcher::reclaim() {
+    inline void Pipeline::reclaim() {
         int32_t rsize = getRayCount();
         if (rsize <= 0) return;
 
@@ -343,7 +343,7 @@ namespace NSM {
         reloadQueuedRays(true);
     }
 
-    inline void Dispatcher::render() {
+    inline void Pipeline::render() {
         this->bind();
         glEnable(GL_TEXTURE_2D);
         glBindTextureUnit(5, filtered);
@@ -357,7 +357,7 @@ namespace NSM {
         glBindVertexArray(0);
     }
 
-    inline int Dispatcher::intersection(SceneObject * obj, const int clearDepth) {
+    inline int Pipeline::intersection(TriangleHierarchy * obj, const int clearDepth) {
         if (!obj || obj->triangleCount <= 0) return 0;
 
         int32_t rsize = getRayCount();
@@ -374,7 +374,7 @@ namespace NSM {
         return 1;
     }
 
-    inline void Dispatcher::applyMaterials(MaterialSet * mat) {
+    inline void Pipeline::applyMaterials(MaterialSet * mat) {
         mat->bindWithContext(surfProgram);
         glCopyNamedBufferSubData(arcounter, rayBlockUniform, 7 * sizeof(int32_t), offsetof(RayBlockUniform, samplerUniform) + offsetof(SamplerUniformStruct, hitCount), sizeof(int32_t));
         GLuint tcount = 0; glGetNamedBufferSubData(arcounter, 7 * sizeof(int32_t), sizeof(int32_t), &tcount);
@@ -382,7 +382,7 @@ namespace NSM {
         dispatch(surfProgram, tiled(tcount, worksize));
     }
 
-    inline void Dispatcher::shade() {
+    inline void Pipeline::shade() {
         int32_t rsize = getRayCount();
         if (rsize <= 0) return;
         materialUniformData.time = rand(); this->bind();
@@ -391,7 +391,7 @@ namespace NSM {
     }
 
 
-    inline Dispatcher::HdrImage Dispatcher::snapRawHdr() {
+    inline Pipeline::HdrImage Pipeline::snapRawHdr() {
         HdrImage img;
         img.width = displayWidth;
         img.height = displayHeight;
@@ -400,7 +400,7 @@ namespace NSM {
         return img;
     }
 
-    inline Dispatcher::HdrImage Dispatcher::snapHdr() {
+    inline Pipeline::HdrImage Pipeline::snapHdr() {
         HdrImage img;
         img.width = displayWidth;
         img.height = displayHeight;
@@ -411,7 +411,7 @@ namespace NSM {
 
 
 
-    inline int32_t Dispatcher::getRayCount() {
+    inline int32_t Pipeline::getRayCount() {
         return raycountCache >= 32 ? raycountCache : 0;
     }
 }

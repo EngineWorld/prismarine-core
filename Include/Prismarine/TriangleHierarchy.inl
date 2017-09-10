@@ -1,10 +1,10 @@
-#include "SceneObject.hpp"
+#include "TriangleHierarchy.hpp"
 
 // Readme license https://github.com/AwokenGraphics/prismarine-core/blob/master/LICENSE.md
 
 namespace NSM {
 
-    inline SceneObject::~SceneObject() {
+    inline TriangleHierarchy::~TriangleHierarchy() {
         glDeleteProgram(geometryLoaderProgramI16);
         glDeleteProgram(geometryLoaderProgram2);
         glDeleteProgram(buildProgramH);
@@ -34,7 +34,7 @@ namespace NSM {
     }
 
 
-    inline void SceneObject::initShaders() {
+    inline void TriangleHierarchy::initShaders() {
         //initShaderComputeSPIRV("./shaders-spv/hlbvh/refit.comp.spv", refitProgramH);
         initShaderComputeSPIRV("./shaders-spv/hlbvh/refit-new.comp.spv", refitProgramH);
         initShaderComputeSPIRV("./shaders-spv/hlbvh/build.comp.spv", buildProgramH);
@@ -44,7 +44,7 @@ namespace NSM {
         initShaderComputeSPIRV("./shaders-spv/vertex/loader-int16.comp.spv", geometryLoaderProgramI16);
     }
 
-    inline void SceneObject::init() {
+    inline void TriangleHierarchy::init() {
         initShaders();
         sorter = new RadixSort();
 
@@ -69,7 +69,7 @@ namespace NSM {
         glNamedBufferSubData(minmaxBufRef, 0, strided<bbox>(1), &bound);
     }
 
-    inline void SceneObject::allocate(const size_t &count) {
+    inline void TriangleHierarchy::allocate(const size_t &count) {
         maxt = count * 2;
 
         size_t height = std::min(maxt > 0 ? (maxt - 1) / 2047 + 1 : 0, 2047u) + 1;
@@ -105,22 +105,22 @@ namespace NSM {
         clearTribuffer();
     }
 
-    inline void SceneObject::syncUniforms() {
+    inline void TriangleHierarchy::syncUniforms() {
         geometryBlockData.geometryUniform = geometryUniformData;
         glNamedBufferSubData(geometryBlockUniform, 0, strided<GeometryBlockUniform>(1), &geometryBlockData);
 
         this->bindUniforms();
     }
 
-    inline void SceneObject::setMaterialID(int32_t id) {
+    inline void TriangleHierarchy::setMaterialID(int32_t id) {
         materialID = id;
     }
 
-    inline void SceneObject::bindUniforms() {
+    inline void TriangleHierarchy::bindUniforms() {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 14, geometryBlockUniform);
     }
 
-    inline void SceneObject::bind() {
+    inline void TriangleHierarchy::bind() {
         // mosaic buffers for write
         glBindImageTexture(0, vbo_vertex_textrue_upload, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
         glBindImageTexture(1, vbo_normal_textrue_upload, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
@@ -143,28 +143,28 @@ namespace NSM {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 10, mat_triangle_ssbo);
     }
 
-    inline void SceneObject::bindLeafs() {
+    inline void TriangleHierarchy::bindLeafs() {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 17, leafBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 18, mortonBufferIndex);
     }
 
-    inline void SceneObject::bindBVH() {
+    inline void TriangleHierarchy::bindBVH() {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 9, bvhnodesBuffer);
     }
 
-    inline void SceneObject::clearTribuffer() {
+    inline void TriangleHierarchy::clearTribuffer() {
         markDirty();
         glCopyNamedBufferSubData(minmaxBufRef, minmaxBuf, 0, 0, strided<bbox>(1));
         glCopyNamedBufferSubData(lscounterTemp, tcounter, 0, 0, strided<uint32_t>(1));
         geometryUniformData.triangleOffset = 0;
     }
 
-    inline void SceneObject::configureIntersection(bool clearDepth) {
+    inline void TriangleHierarchy::configureIntersection(bool clearDepth) {
         this->geometryUniformData.clearDepth = clearDepth;
         this->syncUniforms();
     }
 
-    inline void SceneObject::loadMesh(VertexInstance * gobject) {
+    inline void TriangleHierarchy::loadMesh(TriangleArrayInstance * gobject) {
         if (!gobject || gobject->meshUniformData.nodeCount <= 0) return;
 
         glCopyNamedBufferSubData(tcounter, gobject->meshUniformBuffer, 0, offsetof(MeshUniformStruct, storingOffset), sizeof(uint32_t));
@@ -183,19 +183,19 @@ namespace NSM {
         glUseProgram(0);
     }
 
-    inline bool SceneObject::isDirty() const {
+    inline bool TriangleHierarchy::isDirty() const {
         return dirty;
     }
 
-    inline void SceneObject::markDirty() {
+    inline void TriangleHierarchy::markDirty() {
         dirty = true;
     }
 
-    inline void SceneObject::resolve() {
+    inline void TriangleHierarchy::resolve() {
         dirty = false;
     }
 
-    inline void SceneObject::build(const glm::dmat4 &optimization) {
+    inline void TriangleHierarchy::build(const glm::dmat4 &optimization) {
         // get triangle count that uploaded
         glGetNamedBufferSubData(tcounter, 0, strided<uint32_t>(1), &this->triangleCount);
         size_t triangleCount = std::min(uint32_t(this->triangleCount), uint32_t(maxt));
