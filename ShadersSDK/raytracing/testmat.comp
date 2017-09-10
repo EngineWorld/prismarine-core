@@ -247,8 +247,8 @@ void main() {
 #ifdef USE_SIMPLIFIED_MODEL
     {
         mixed(diffuseRay.final.xyz, reflectionRay.color.xyz, clamp(spca, 0.0f, 1.0f));
-        emitRay(reflectionRay, normal, 1.0f);
         emitRay(diffuseRay, normal, 1.0f);
+        emitRay(reflectionRay, normal, 1.0f);
         emitRay(emissiveRay, normal, clamp(emis, 0.0f, 1.0f));
     }
 #else
@@ -258,9 +258,10 @@ void main() {
 #else 
         mixed(diffuseRay.color.xyz, reflectionRay.color.xyz, clamp(float(random() < spca), 0.0f, 1.0f));
 #endif
-        emitRay(reflectionRay, normal, 1.0f);
+        
         RayRework shadowRay = directLight(0, diffuseRay, vec3(1.0f), normal);
         emitRay(diffuseRay, normal, 1.0f);
+        emitRay(reflectionRay, normal, 1.0f);
         emitRay(emissiveRay, normal, clamp(emis, 0.0f, 1.0f));
         applyLight(shadowRay, diffuseRay, surfacenormal); // push shadow
     }
