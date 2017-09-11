@@ -21,6 +21,7 @@ struct SharedVarsData {
     int bakedStackCount;
     int chainID;
     int prevHt;
+    int nextHt;
 };
 
 struct TResult {
@@ -186,10 +187,13 @@ HitRework interpolateMeshData(inout HitRework res) {
 }
 
 void includeChain(in int chainID, in vec4 intersection){
-    int hid = atomicIncHt(true);
+    // reuse old chains (i.e. override)
+    int hid = sharedVarsData.nextHt;
+    sharedVarsData.nextHt = hid >= 0 ? hitBuf.nodes[hid].next : -1;
+    if (hid < 0) hid = atomicIncHt(true);
+
     HitRework hitp = hitBuf.nodes[hid];
     hitp.uvt = intersection;
-
     hitp.next = -1;
     hitBuf.nodes[hid] = interpolateMeshData(hitp);
     if (sharedVarsData.prevHt == -1) {
@@ -276,17 +280,16 @@ vec3 unprojectVoxels(in vec3 orig) {
 
 TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
     TResult lastRes;
-    lastRes.dist = sharedVarsData.prevHt != -1 ? hitBuf.nodes[sharedVarsData.prevHt].uvt.z : INFINITY;
-    lastRes.predist = sharedVarsData.prevHt != -1 ? hitBuf.nodes[sharedVarsData.prevHt].uvt.z : INFINITY;
+    lastRes.dist = sharedVarsData.nextHt != -1 ? hitBuf.nodes[sharedVarsData.nextHt].uvt.z : INFINITY;
+    lastRes.predist = sharedVarsData.nextHt != -1 ? hitBuf.nodes[sharedVarsData.nextHt].uvt.z : INFINITY;
     lastRes.triangleID = LONGEST;
     lastRes.materialID = LONGEST;
     lastRes.normal = vec4(0.f);
 
-
     // deferred stack
     deferredPtr = 0;
     deferredStack[L][0] = -1;
-    sharedVarsData.chainID = -1;
+    sharedVarsData.chainID = sharedVarsData.nextHt;
     sharedVarsData.bakedStackCount = 0;
     sharedVarsData.prevHt = -1; // reset previous for avoid depth bug (multi-BVH)
     for (int i=0;i<BAKED_STACK_SIZE;i++) {bakedStack[L][i] = vec4(vec2(0.0f), INFINITY, LONGEST);}
@@ -305,7 +308,7 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
     // test with root node
     float near = INFINITY, far = INFINITY;
     float d = intersectCubeSingle(torig, dirproj, vec4(vec3(-0.0001f), 1.0f), vec4(vec3(1.0001f), 1.0f), near, far);
-    //lastRes.predist = min(lastRes.predist, far * dirlenInv);
+    lastRes.predist = min(lastRes.predist, far * dirlenInv + PZERO);
 
     // init state
     int idx = 0, esc = -1, level = 0;
@@ -336,7 +339,7 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
                     and2(
                         and2(
                             and2(lessThanEqual(nears, vec2(INFINITY-PZERO)), lessThanEqual(nears * dirlenInv, vec2(INFINITY-PZERO))),
-                            lessThanEqual(nears, vec2(lastRes.predist+PZERO) * dirlen)
+                            lessThanEqual(nears * dirlenInv - PZERO, vec2(lastRes.predist))
                         ),
                         and2(bvec2(node.pdata.x != -1, node.pdata.y != -1), bvec2(node.pdata.x != node.pdata.y))
                     )
@@ -418,14 +421,11 @@ void main() {
     if (allInvocations(overflow)) return;
 
     // traverse
-    sharedVarsData.prevHt = ray.hit;
+    //sharedVarsData.prevHt = ray.hit;
+    sharedVarsData.nextHt = ray.hit;
     traverse(ray.origin.xyz, ray.direct.xyz, !overflow);
     
-    // check nearest
-    float olddist = ray.hit != -1 ? hitBuf.nodes[ray.hit].uvt.z : INFINITY;
-    float newdist = sharedVarsData.chainID != -1 ? hitBuf.nodes[sharedVarsData.chainID].uvt.z : INFINITY;
-    if (lessEqualF(newdist, olddist) && lessF(newdist, INFINITY)) {
-        ray.hit = sharedVarsData.chainID;
-        if (!overflow) rayBuf.nodes[t] = ray; // avoid invalids
-    }
+    // override chain id
+    ray.hit = sharedVarsData.chainID;
+    if (!overflow) rayBuf.nodes[t] = ray; // avoid invalids
 }
