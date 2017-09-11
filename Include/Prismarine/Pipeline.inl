@@ -138,24 +138,25 @@ namespace NSM {
         if (sampleflags != -1) glDeleteTextures(1, &sampleflags);
         if (presampled  != -1) glDeleteTextures(1, &presampled);
         if (filtered != -1) glDeleteTextures(1, &filtered);
-        if (prevsampled != -1) glDeleteTextures(1, &prevsampled);
-        if (positionimg != -1) glDeleteTextures(1, &positionimg);
+        //if (prevsampled != -1) glDeleteTextures(1, &prevsampled);
+        //if (positionimg != -1) glDeleteTextures(1, &positionimg);
 
         //reprojected = allocateTexture2D<GL_RGBA32F>(displayWidth, displayHeight);
         //positionimg = allocateTexture2D<GL_RGBA32F>(displayWidth, displayHeight);
 
         sampleflags = allocateTexture2D<GL_R32UI>(displayWidth, displayHeight);
         presampled = allocateTexture2D<GL_RGBA32F>(displayWidth, displayHeight);
-        prevsampled = allocateTexture2D<GL_RGBA32F>(displayWidth, displayHeight);
-        filtered = allocateTexture2D<GL_RGBA32F>(displayWidth, displayHeight);
+		filtered = allocateTexture2D<GL_RGBA32F>(displayWidth, displayHeight);
+        //prevsampled = allocateTexture2D<GL_RGBA32F>(displayWidth, displayHeight);
+        
         
         // set sampler of
         glTextureParameteri(presampled, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTextureParameteri(presampled, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
         // previous frame for temporal AA
-        glTextureParameteri(prevsampled, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTextureParameteri(prevsampled, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        //glTextureParameteri(prevsampled, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        //glTextureParameteri(prevsampled, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
         // set sampler of
         glTextureParameteri(filtered, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -180,7 +181,8 @@ namespace NSM {
         if (quantized     != -1) glDeleteBuffers(1, &quantized);
         if (deferredStack != -1) glDeleteBuffers(1, &deferredStack);
 
-        const int32_t cmultiplier = 6;
+        //const int32_t cmultiplier = 6;
+		const int32_t cmultiplier = 4;
         const int32_t wrsize = width * height;
         currentRayLimit = std::min(wrsize * cmultiplier / (enableInterlacing ? 2 : 1), 4096 * 4096);
 
@@ -257,7 +259,7 @@ namespace NSM {
         // filter by deinterlacing, etc.
         glBindImageTexture(0, presampled, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
         glBindImageTexture(1, filtered, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
-        glBindImageTexture(2, prevsampled, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+        //glBindImageTexture(2, prevsampled, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 
         // deinterlace if need
         dispatch(deinterlaceProgram, tiled(displayWidth * displayHeight, worksize));
@@ -266,7 +268,7 @@ namespace NSM {
         dispatch(filterProgram, tiled(displayWidth * displayHeight, worksize));
 
         // save previous frame
-        glCopyImageSubData(filtered, GL_TEXTURE_2D, 0, 0, 0, 0, prevsampled, GL_TEXTURE_2D, 0, 0, 0, 0, displayWidth, displayHeight, 1);
+        //glCopyImageSubData(filtered, GL_TEXTURE_2D, 0, 0, 0, 0, prevsampled, GL_TEXTURE_2D, 0, 0, 0, 0, displayWidth, displayHeight, 1);
         
     }
 
@@ -352,7 +354,7 @@ namespace NSM {
         this->bind();
         glEnable(GL_TEXTURE_2D);
         glBindTextureUnit(5, filtered);
-        glBindTextureUnit(6, prevsampled);
+        //glBindTextureUnit(6, prevsampled);
         glScissor(0, 0, displayWidth, displayHeight);
         glViewport(0, 0, displayWidth, displayHeight);
         glUseProgram(renderProgram);

@@ -176,6 +176,7 @@ void main() {
     float emis = mlength(emi.xyz);
     float spca = clamp(mlength(sc.xyz), 0.0f, 1.0f);
     float prom = 1.0f - tx.a;
+    float aprom = random() < prom ? 1.f : 0.f;
 
     // create rays
     RayRework diffuseRay = ray;
@@ -203,8 +204,8 @@ void main() {
         emissiveRay = emissive(emissiveRay, emi.xyz, normal);
 
         ray = promised(ray, normal);
-        ray.color.xyz *= prom;
-        ray.final.xyz *= prom;
+        ray.color.xyz *= aprom;
+        ray.final.xyz *= aprom;
     } else {
         reflectionRay.color.xyz *= 0.0f;
         emissiveRay.color.xyz *= 0.0f;
@@ -214,14 +215,14 @@ void main() {
 
     // emit rays
     if (!overflow && !skipping) {
-        diffuseRay.color.xyz *= 1.0f - prom;
-        diffuseRay.final.xyz *= 1.0f - prom;
-        reflectionRay.color.xyz *= 1.0f - prom;
-        emissiveRay.final.xyz *= (1.0f - prom) * (1.0f - clamp(spca, 0.0f, 1.0f));
+        diffuseRay.color.xyz *= 1.0f - aprom;
+        diffuseRay.final.xyz *= 1.0f - aprom;
+        reflectionRay.color.xyz *= 1.0f - aprom;
+        emissiveRay.final.xyz *= (1.0f - aprom) * (1.0f - clamp(spca, 0.0f, 1.0f));
     }
 
     // register reprojection coordinate
-    if (RayBasis(ray) == 1 && prom < 0.1f) {
+    if (RayBasis(ray) == 1 && aprom < 0.1f) {
         Texel txfi = texelBuf.nodes[ray.texel];
         txfi.last3d = vec4(ray.origin.xyz, 1.0f);
         texelBuf.nodes[ray.texel] = txfi;

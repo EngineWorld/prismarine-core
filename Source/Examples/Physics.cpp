@@ -824,10 +824,16 @@ int main(const int argc, const char ** argv)
     glfwSetErrorCallback(error_callback);
     if (!glfwInit()) exit(EXIT_FAILURE);
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_CONTEXT_NO_ERROR, GLFW_TRUE);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+#ifdef USE_OPENGL_45_COMPATIBLE
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+#else
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+#endif
+
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_CONTEXT_NO_ERROR, GLFW_TRUE);
+
 
     const double measureSeconds = 2.0;
     const double superSampling = 2.0;
