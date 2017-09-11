@@ -70,8 +70,13 @@ void main() {
             firstHit = hitBuf.nodes[firstHit.next];
         }
 
-        if (HitActived(firstHit) == 0) {
-            compositedHit[0].uvt = vec4(vec2(0.f), INFINITY, intBitsToFloat(-1));
+        if (HitActived(firstHit) == 0) { // if none, make as transparent
+            compositedHit[0].uvt = firstHit.uvt;
+            compositedHit[0].albedo = vec4(0.f);
+            compositedHit[0].emission = vec4(0.f);
+            compositedHit[0].metallicRoughness.yz = vec2(0.f);;
+            compositedHit[0].normalHeight = firstHit.normalHeight;
+            firstHit.next = -1;
         } else {
             compositedHit[0].uvt = firstHit.uvt;
             compositedHit[0].albedo = unpackHalf(firstHit.albedo);
