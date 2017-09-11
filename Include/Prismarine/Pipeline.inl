@@ -185,11 +185,12 @@ namespace NSM {
         currentRayLimit = std::min(wrsize * cmultiplier / (enableInterlacing ? 2 : 1), 4096 * 4096);
 
         colorchains = allocateBuffer<ColorChain>(wrsize * 8);
+		texels = allocateBuffer<Texel>(wrsize);
+
         rays = allocateBuffer<Ray>(currentRayLimit);
-        hits = allocateBuffer<Hit>(currentRayLimit);
+        hits = allocateBuffer<Hit>(currentRayLimit / 2);
         activel = allocateBuffer<int32_t>(currentRayLimit);
         activenl = allocateBuffer<int32_t>(currentRayLimit);
-        texels = allocateBuffer<Texel>(wrsize);
         freedoms = allocateBuffer<int32_t>(currentRayLimit);
         availables = allocateBuffer<int32_t>(currentRayLimit);
         deferredStack = allocateBuffer<int32_t>(currentRayLimit * 8);
