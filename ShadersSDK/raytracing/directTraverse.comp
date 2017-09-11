@@ -194,7 +194,7 @@ void includeChain(in int chainID, in vec4 intersection){
 
     HitRework hitp = hitBuf.nodes[hid];
     hitp.uvt = intersection;
-    hitp.next = -1;
+    hitp.next = sharedVarsData.nextHt; // for future overriding
     hitBuf.nodes[hid] = interpolateMeshData(hitp);
     if (sharedVarsData.prevHt == -1) {
         sharedVarsData.chainID = hid;
