@@ -40,8 +40,8 @@ struct Material {
     highp ivec4 iModifiers0;
 };
 
-
-const uint MAX_TEXTURES = 72;
+//const uint MAX_TEXTURES = 72;
+const uint MAX_TEXTURES = 32;
 layout ( binding = 15, std430 ) readonly buffer MaterialsSSBO {Material submats[];};
 
 #ifdef USE_OPENGL
