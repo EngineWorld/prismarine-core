@@ -35,8 +35,8 @@ namespace NSM {
 
 
     inline void TriangleHierarchy::initShaders() {
-        //initShaderComputeSPIRV("./shaders-spv/hlbvh/refit.comp.spv", refitProgramH);
-        initShaderComputeSPIRV("./shaders-spv/hlbvh/refit-new.comp.spv", refitProgramH);
+        initShaderComputeSPIRV("./shaders-spv/hlbvh/refit.comp.spv", refitProgramH);
+        //initShaderComputeSPIRV("./shaders-spv/hlbvh/refit-new.comp.spv", refitProgramH);
         initShaderComputeSPIRV("./shaders-spv/hlbvh/build.comp.spv", buildProgramH);
         initShaderComputeSPIRV("./shaders-spv/hlbvh/aabbmaker.comp.spv", aabbMakerProgramH);
         initShaderComputeSPIRV("./shaders-spv/hlbvh/minmax.comp.spv", minmaxProgram2);
@@ -275,8 +275,8 @@ namespace NSM {
         // build BVH itself
         dispatch(buildProgramH, 1);
 		//dispatch(buildProgramH, tiled(triangleCount, 1024));
-		//dispatch(refitProgramH, 1);
-        dispatch(refitProgramH, tiled(triangleCount, 1024));
+		dispatch(refitProgramH, 1);
+        //dispatch(refitProgramH, tiled(triangleCount, 1024));
 
 		//std::vector < HlbvhNode > nodes(triangleCount*2);
 		//glGetNamedBufferSubData(bvhnodesBuffer, 0, strided<HlbvhNode>(nodes.size()), nodes.data());

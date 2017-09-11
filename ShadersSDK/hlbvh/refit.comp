@@ -59,7 +59,7 @@ void main() {
                     childNode.pdata.w = Leafs[MortoncodesIndices[range.x]].pdata.w;
 
                     Nodes[idx] = childNode;
-                    atomicExchange(Flags[idx], 0);
+                    //atomicExchange(Flags[idx], 0);
                     atomicExchange(Actives[aCounterInc(true)], idx);
                 }
             }
