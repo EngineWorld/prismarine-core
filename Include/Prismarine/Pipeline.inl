@@ -181,8 +181,7 @@ namespace NSM {
         if (quantized     != -1) glDeleteBuffers(1, &quantized);
         if (deferredStack != -1) glDeleteBuffers(1, &deferredStack);
 
-        //const int32_t cmultiplier = 6;
-		const int32_t cmultiplier = 4;
+        const int32_t cmultiplier = 6;
         const int32_t wrsize = width * height;
         currentRayLimit = std::min(wrsize * cmultiplier / (enableInterlacing ? 2 : 1), 4096 * 4096);
 
