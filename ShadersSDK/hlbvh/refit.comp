@@ -10,10 +10,11 @@
 #include "./includes.glsl"
 
 const int work_size = 1024;
+layout ( local_size_x = work_size ) in;
+
+
 shared int aCounter;
 shared int aRange[2];
-
-layout ( local_size_x = work_size ) in;
 
 initAtomicIncFunction(aCounter, aCounterInc, int);
 

@@ -8,12 +8,12 @@
 #include "../include/vertex.glsl"
 #include "../include/mathlib.glsl"
 
-//#define WARP_SIZE 32
+const int work_size = 1024;
+layout ( local_size_x = work_size ) in;
+shared bbox sdata[ work_size ];
+
 
 layout ( std430, binding = 0 ) restrict buffer MinmaxOutputSSBO {vec4 minmax[];};
-layout ( local_size_x = 512 ) in;
-
-shared bbox sdata[ 512 ];
 
 bbox getMinMaxPrimitive(in uint idx){
     uint tri = clamp(idx, 0u, uint(GEOMETRY_BLOCK geometryUniform.triangleCount-1));

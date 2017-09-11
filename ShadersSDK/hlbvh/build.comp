@@ -9,7 +9,8 @@
 #include "../include/ballotlib.glsl"
 #include "./includes.glsl"
 
-layout ( local_size_x = 1024 ) in;
+const int work_size = 1024;
+layout ( local_size_x = work_size ) in;
 
 int nlz (in uint64_t x) {
     uvec2 pair = U2P(x);
