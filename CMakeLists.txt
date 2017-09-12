@@ -27,6 +27,8 @@ set(SOURCES_LIST
     "./ShadersSDK/render/*.*"
     "./ShadersSDK/hlbvh/*.*"
     "./ShadersSDK/tools/*.*"
+	
+	"./Source/Examples/*.hpp"
 )
 
 set (DEFINES
