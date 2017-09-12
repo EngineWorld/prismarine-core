@@ -706,11 +706,11 @@ int main(const int argc, const char ** argv)
 	float scale = 1.0f;
     int32_t canvasWidth = baseWidth;
     int32_t canvasHeight = baseHeight;
-    glfwGetFramebufferSize(window, &canvasWidth, &canvasHeight);
-
+    
 	// make DPI scaled
 	glfwGetWindowContentScale(window, &scale, nullptr);
 	glfwSetWindowSize(window, baseWidth * scale, baseHeight * scale);
+	glfwGetFramebufferSize(window, &canvasWidth, &canvasHeight);
 
     glfwMakeContextCurrent(window);
     glfwSwapInterval(0);
