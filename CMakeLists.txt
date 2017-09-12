@@ -95,30 +95,3 @@ foreach(source IN LISTS RSOURCES)
 endforeach()
 
 
-set (LIBS 
-    ${OPENGL_LIBRARIES}
-    glfw3 
-    glew32 
-    FreeImage 
-    LinearMath_RelWithDebugInfo
-    Bullet3Common_RelWithDebugInfo
-    Bullet3Dynamics_RelWithDebugInfo
-    Bullet3Collision_RelWithDebugInfo
-    BulletCollision_RelWithDebugInfo
-    BulletDynamics_RelWithDebugInfo
-    BulletInverseDynamics_RelWithDebugInfo
-    BulletSoftBody_RelWithDebugInfo
-)
-
-
-set (APPLICATION_NAME prismarine-physics)
-add_executable(${APPLICATION_NAME} Source/Examples/Physics.cpp ${RSOURCES})
-target_link_libraries(${APPLICATION_NAME} ${LIBS})
-
-foreach(source IN LISTS RSOURCES)
-    get_filename_component(source_path "${source}" PATH)
-    string(REPLACE "/" "\\" source_path_msvc "${source_path}")
-    source_group("${source_path_msvc}" FILES "${source}")
-endforeach()
-
-
