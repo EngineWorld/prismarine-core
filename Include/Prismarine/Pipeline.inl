@@ -318,10 +318,12 @@ namespace NSM {
 
         uint32_t availableCount = counters[2];
         glCopyNamedBufferSubData(arcounter, arcounter, 2 * sizeof(int32_t), 3 * sizeof(int32_t), sizeof(int32_t));
+		//glNamedBufferSubData(arcounterTemp, 3 * sizeof(int32_t), sizeof(int32_t), &availableCountLeast);
 
         // set to zeros
         glCopyNamedBufferSubData(arcounterTemp, arcounter, 0, sizeof(uint32_t) * 7, sizeof(uint32_t));
-        glCopyNamedBufferSubData(arcounterTemp, arcounter, 0, sizeof(uint32_t) * 2, sizeof(uint32_t));
+        //glCopyNamedBufferSubData(arcounterTemp, arcounter, 0, sizeof(uint32_t) * 2, sizeof(uint32_t));
+		glNamedBufferSubData(arcounterTemp, 2 * sizeof(int32_t), sizeof(int32_t), &counters[3]); // using with least
         glCopyNamedBufferSubData(arcounterTemp, arcounter, 0, sizeof(uint32_t) * 0, sizeof(uint32_t));
 
         // copy active collection
@@ -333,6 +335,7 @@ namespace NSM {
         // copy collection of available ray memory 
         if (availableCount > 0) {
             //glCopyNamedBufferSubData(freedoms, availables, 0, 0, strided<uint32_t>(availableCount));
+			glCopyNamedBufferSubData(availables, freedoms, 0, 0, strided<uint32_t>(counters[3])); // copy free memory data
 			SWAP(freedoms, availables);
         }
 
