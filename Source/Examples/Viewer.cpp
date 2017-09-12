@@ -703,13 +703,16 @@ int main(const int argc, const char ** argv)
     GLFWwindow* window = glfwCreateWindow(baseWidth, baseHeight, "Simple example", NULL, NULL);
     if (!window) { glfwTerminate(); exit(EXIT_FAILURE); }
 
+	
 	float scale = 1.0f;
-    int32_t canvasWidth = baseWidth;
-    int32_t canvasHeight = baseHeight;
-    
-	// make DPI scaled
 	glfwGetWindowContentScale(window, &scale, nullptr);
-	glfwSetWindowSize(window, baseWidth * scale, baseHeight * scale);
+
+	// make DPI scaled
+	int32_t windowWidth = baseWidth * scale, windowHeight = baseHeight * scale;
+	glfwSetWindowSize(window, windowWidth, windowHeight);
+
+	// get canvas size
+	int32_t canvasWidth = baseWidth, canvasHeight = baseHeight;
 	glfwGetFramebufferSize(window, &canvasWidth, &canvasHeight);
 
     glfwMakeContextCurrent(window);
@@ -729,24 +732,24 @@ int main(const int argc, const char ** argv)
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
-        int32_t oldWidth = baseWidth, oldHeight = baseHeight;
+        int32_t oldWidth = windowWidth, oldHeight = windowHeight;
 		float oldScale = scale;
 
         // DPI scaling for Windows
         {
-            glfwGetWindowSize(window, &baseWidth, &baseHeight); // get as base width and height
+            glfwGetWindowSize(window, &windowWidth, &windowHeight); // get as base width and height
 			glfwGetWindowContentScale(window, &scale, nullptr);
         }
 
         // scale window by DPI
         if (oldScale != scale) {
-			baseWidth *= (scale / oldScale);
-			baseHeight *= (scale / oldScale);
-			glfwSetWindowSize(window, baseWidth, baseHeight); // rescale window by DPI
+			windowWidth *= (scale / oldScale);
+			windowHeight *= (scale / oldScale);
+			glfwSetWindowSize(window, windowWidth, windowHeight); // rescale window by DPI
         }
 
         // on resizing (include DPI scaling)
-        if (oldWidth != baseWidth || oldHeight != baseHeight) {
+        if (oldWidth != windowWidth || oldHeight != windowHeight) {
 			glfwGetFramebufferSize(window, &canvasWidth, &canvasHeight);
             app->resize(canvasWidth, canvasHeight); // resize canvas
         }
