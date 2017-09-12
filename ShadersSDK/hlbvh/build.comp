@@ -2,6 +2,8 @@
 
 // Readme license https://github.com/AwokenGraphics/prismarine-core/blob/master/LICENSE.md
 
+#define _ORDERED_ACCESS
+
 #include "../include/constants.glsl"
 #include "../include/structs.glsl"
 #include "../include/uniforms.glsl"
@@ -83,8 +85,9 @@ void main() {
         HlbvhNode node = Nodes[hid];
         node.box.mn = (0.0f).xxxx;
         node.box.mx = (0.0f).xxxx;
-        node.pdata.xy = ivec2(0, Range[0]-1);
-        node.pdata.zw = (-1).xx;
+        node.branch[0] = 0;
+        node.branch[1] = Range[0]-1;
+        node.pdata.xy = (-1).xx;
         
         Nodes[hid] = node;
         Flags[hid] = 0;
@@ -116,22 +119,22 @@ void main() {
                 int prID = readLane(chID == 0 ? atomicExchange(Actives[trID], -1) : -1, wsID);
                 HlbvhNode parentNode = Nodes[prID];
 
-                if (parentNode.pdata.x != parentNode.pdata.y && prID != -1) {
+                if (parentNode.branch[0] != parentNode.branch[1] && prID != -1) {
                     // find split
-                    int split = readLane(findSplit(parentNode.pdata.x, parentNode.pdata.y, chID), wsID);
+                    int split = readLane(findSplit(parentNode.branch[0], parentNode.branch[1], chID), wsID);
                     int hid = lCounterInc(true);
 
                     // init child node
                     HlbvhNode childNode = Nodes[hid];
                     childNode.box.mn = (0.0f).xxxx;
                     childNode.box.mx = (0.0f).xxxx;
-                    childNode.pdata.zw = ivec2(prID, -1);
+                    childNode.pdata.xy = ivec2(prID, -1);
 
                     // differentiation between left and right node
-                    childNode.pdata.xy = chID == 0 ? ivec2(parentNode.pdata.x, split+0) : ivec2(split+1, parentNode.pdata.y);
+                    childNode.branch = chID == 0 ? int[2](parentNode.branch[0], split+0) : int[2](split+1, parentNode.branch[1]);
 
                     // is leaf?
-                    bool isLeaf = (childNode.pdata.y - childNode.pdata.x) < 1;
+                    bool isLeaf = (childNode.branch[1] - childNode.branch[0]) < 1;
                     if (isLeaf) {
                         atomicExchange(LeafIndices[cCounterInc(true)], hid);
                     } else { // add to next works
@@ -142,11 +145,7 @@ void main() {
                     Nodes[hid] = childNode;
 
                     // if SIMD thread is left, use left lane of parent node, else right lane
-                    if (chID == 0) {
-                        Nodes[prID].pdata.x = hid;
-                    } else {
-                        Nodes[prID].pdata.y = hid;
-                    }
+                    Nodes[prID].branch[chID] = hid;
                 }
             }
         }

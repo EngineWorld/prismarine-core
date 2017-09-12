@@ -14,13 +14,8 @@ struct Texel {
 };
 
 struct bbox {
-#ifdef USE_WARP_OPTIMIZED
-    highp float mn[4];
-    highp float mx[4];
-#else
     highp vec4 mn;
     highp vec4 mx;
-#endif
 };
 
 
@@ -132,8 +127,9 @@ void RayBasis(inout RayRework ray, in int basis){
 
 struct HlbvhNode {
     highp bbox box;
-#ifdef USE_WARP_OPTIMIZED
-    highp int pdata[4];
+#ifdef _ORDERED_ACCESS
+    highp int branch[2];
+    highp ivec2 pdata;
 #else
     highp ivec4 pdata;
 #endif
