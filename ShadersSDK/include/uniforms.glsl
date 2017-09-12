@@ -55,16 +55,6 @@ struct GeometryUniformStruct {
     int clearDepth;
 };
 
-struct OctreeUniformStruct {
-    mat4x4 project;
-    mat4x4 unproject;
-
-    int maxDepth;
-    int currentDepth;
-    int nodeCount;
-    int unk0;
-};
-
 struct CameraUniformStruct {
     mat4x4 projInv;
     mat4x4 camInv;
