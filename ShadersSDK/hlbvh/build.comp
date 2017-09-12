@@ -66,10 +66,13 @@ initAtomicIncFunction(cCounter, cCounterInc, int);
 void main() {
     uint threadID = uint(gl_LocalInvocationID.x);
 
+    int WS = int(gl_WorkGroupSize.x);
+    int hWS = int(gl_WorkGroupSize.x) / 2;
+
     // set leaf indices to initial
-    uint workSize = min((Range[0] <= 0) ? 0 : ((Range[0] - 1) / int(gl_WorkGroupSize.x) + 1), 8192);
+    uint workSize = min((Range[0] <= 0) ? 0 : ((Range[0] - 1) / WS + 1), 8192);
     for (int i=0;i<workSize;i++) {
-        int trID = int(gl_WorkGroupSize.x) * i + int(threadID);
+        int trID = WS * i + int(threadID);
         atomicExchange(LeafIndices[trID], -1);
         atomicExchange(Actives[trID], -1);
     }
@@ -108,14 +111,14 @@ void main() {
         if (aRange[1] <= aRange[0]) break; // no work, break
 
         // begin work on splitting
-        uint workSize = min((aRange[1] <= aRange[0]) ? 0 : (((aRange[1] - aRange[0]) - 1) / (int(gl_WorkGroupSize.x) / 2) + 1), 8192);
+        uint workSize = min((aRange[1] <= aRange[0]) ? 0 : (((aRange[1] - aRange[0]) - 1) / hWS + 1), 8192);
         for (int i=0;i<workSize;i++) {
-            int trID = aRange[0] + ((int(gl_WorkGroupSize.x) / 2) * i + (int(threadID) / 2));
+            int trID = aRange[0] + hWS * i + int(threadID) / 2;
             if (allInvocations(trID >= aRange[1])) break;
 
             if (trID < aRange[1]) {
                 int chID = int(threadID)&1;
-                int wsID = (int(gl_LocalInvocationID.x % gl_SubGroupSizeARB) >> 1) << 1;
+                int wsID = (int(LANE_IDX) >> 1) << 1;
                 int prID = readLane(chID == 0 ? atomicExchange(Actives[trID], -1) : -1, wsID);
                 HlbvhNode parentNode = Nodes[prID];
 
