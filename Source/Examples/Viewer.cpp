@@ -22,20 +22,83 @@
 namespace PaperExample {
     using namespace NSM;
 
-    const int32_t kW = 0;
-    const int32_t kA = 1;
-    const int32_t kS = 2;
-    const int32_t kD = 3;
-    const int32_t kQ = 4;
-    const int32_t kE = 5;
-    const int32_t kSpc = 6;
-    const int32_t kSft = 7;
-    const int32_t kC = 8;
-    const int32_t kK = 9;
-    const int32_t kM = 10;
-    const int32_t kL = 11;
 
 
+
+
+	const std::string bgTexName = "background.jpg";
+
+	GLuint loadCubemap() {
+		FREE_IMAGE_FORMAT formato = FreeImage_GetFileType(bgTexName.c_str(), 0);
+		if (formato == FIF_UNKNOWN) {
+			return 0;
+		}
+		FIBITMAP* imagen = FreeImage_Load(formato, bgTexName.c_str());
+		if (!imagen) {
+			return 0;
+		}
+
+		FIBITMAP* temp = FreeImage_ConvertTo32Bits(imagen);
+		FreeImage_Unload(imagen);
+		imagen = temp;
+
+		uint32_t width = FreeImage_GetWidth(imagen);
+		uint32_t height = FreeImage_GetHeight(imagen);
+
+		GLuint texture = 0;
+		glCreateTextures(GL_TEXTURE_2D, 1, &texture);
+		glTextureStorage2D(texture, 1, GL_RGBA8, width, height);
+		glTextureParameteri(texture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTextureParameteri(texture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTextureParameteri(texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+		uint8_t * pixelsPtr = FreeImage_GetBits(imagen);
+		glTextureSubImage2D(texture, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, pixelsPtr);
+
+		return texture;
+	}
+
+	uint32_t _byType(int &type) {
+		switch (type) {
+		case TINYGLTF_TYPE_VEC4:
+			return 4;
+			break;
+
+		case TINYGLTF_TYPE_VEC3:
+			return 3;
+			break;
+
+		case TINYGLTF_TYPE_VEC2:
+			return 2;
+			break;
+
+		case TINYGLTF_TYPE_SCALAR:
+			return 1;
+			break;
+		}
+		return 1;
+	}
+
+	int32_t getTextureIndex(std::map<std::string, double> &mapped) {
+		return mapped.count("index") > 0 ? mapped["index"] : -1;
+	}
+
+
+
+
+	const int32_t kW = 0;
+	const int32_t kA = 1;
+	const int32_t kS = 2;
+	const int32_t kD = 3;
+	const int32_t kQ = 4;
+	const int32_t kE = 5;
+	const int32_t kSpc = 6;
+	const int32_t kSft = 7;
+	const int32_t kC = 8;
+	const int32_t kK = 9;
+	const int32_t kM = 10;
+	const int32_t kL = 11;
 
     class Controller {
         bool monteCarlo = true;
@@ -142,43 +205,6 @@ namespace PaperExample {
 
     };
 
-
-
-
-
-    const std::string bgTexName = "background.jpg";
-
-    GLuint loadCubemap() {
-        FREE_IMAGE_FORMAT formato = FreeImage_GetFileType(bgTexName.c_str(), 0);
-        if (formato == FIF_UNKNOWN) {
-            return 0;
-        }
-        FIBITMAP* imagen = FreeImage_Load(formato, bgTexName.c_str());
-        if (!imagen) {
-            return 0;
-        }
-
-        FIBITMAP* temp = FreeImage_ConvertTo32Bits(imagen);
-        FreeImage_Unload(imagen);
-        imagen = temp;
-
-        uint32_t width = FreeImage_GetWidth(imagen);
-        uint32_t height = FreeImage_GetHeight(imagen);
-
-        GLuint texture = 0;
-        glCreateTextures(GL_TEXTURE_2D, 1, &texture);
-        glTextureStorage2D(texture, 1, GL_RGBA8, width, height);
-        glTextureParameteri(texture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTextureParameteri(texture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTextureParameteri(texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-        uint8_t * pixelsPtr = FreeImage_GetBits(imagen);
-        glTextureSubImage2D(texture, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, pixelsPtr);
-
-        return texture;
-    }
-
     class PathTracerApplication {
     public:
         PathTracerApplication(const int32_t& argc, const char ** argv, GLFWwindow * wind);
@@ -190,39 +216,9 @@ namespace PaperExample {
         void process();
         void resize(const int32_t& width, const int32_t& height);
         void resizeBuffers(const int32_t& width, const int32_t& height);
-
-
-
-        void saveHdr(std::string name = "") {
-            psm::Pipeline::HdrImage image = rays->snapHdr();
-
-            // allocate RGBAF
-            FIBITMAP * btm = FreeImage_AllocateT(FIT_RGBAF, image.width, image.height);
-
-            // copy HDR data
-            int ti = 0;
-            for (int r = 0; r < image.height; r++) {
-                auto row = FreeImage_GetScanLine(btm, r);
-                memcpy(row, image.image + r * 4 * image.width, image.width * sizeof(float) * 4);
-            }
-            
-            // convert as 48 bits
-            //btm = FreeImage_ConvertToRGBF(btm);
-
-            // save HDR
-            FreeImage_Save(FIF_EXR, btm, name.c_str(), EXR_FLOAT | EXR_PIZ);
-            FreeImage_Unload(btm);
-        }
-
-
+		void saveHdr(std::string name = "");
 
     private:
-        
-
-
-
-
-
         GLFWwindow * window;
         psm::Pipeline * rays;
         psm::TriangleHierarchy * intersector;
@@ -252,31 +248,6 @@ namespace PaperExample {
             float f = 0.0f;
         } goptions;
     };
-
-    uint32_t _byType(int &type) {
-        switch (type) {
-            case TINYGLTF_TYPE_VEC4:
-            return 4;
-            break;
-
-            case TINYGLTF_TYPE_VEC3:
-            return 3;
-            break;
-
-            case TINYGLTF_TYPE_VEC2:
-            return 2;
-            break;
-
-            case TINYGLTF_TYPE_SCALAR:
-            return 1;
-            break;
-        }
-        return 1;
-    }
-
-    int32_t getTextureIndex(std::map<std::string, double> &mapped) {
-        return mapped.count("index") > 0 ? mapped["index"] : -1;
-    }
 
     PathTracerApplication::PathTracerApplication(const int32_t& argc, const char ** argv, GLFWwindow * wind) {
         window = wind;
@@ -406,7 +377,7 @@ namespace PaperExample {
             glBuffers.push_back(glBuf);
         }
 
-
+		// make buffer views
         BufferViewSet * bfvi = new BufferViewSet();
         for (auto const &bv : gltfModel.bufferViews) {
             VirtualBufferView bfv;
@@ -501,6 +472,29 @@ namespace PaperExample {
         time = glfwGetTime() * 1000.f;
         diff = 0;
     }
+
+
+
+	void PathTracerApplication::saveHdr(std::string name) {
+		psm::Pipeline::HdrImage image = rays->snapHdr();
+
+		// allocate RGBAF
+		FIBITMAP * btm = FreeImage_AllocateT(FIT_RGBAF, image.width, image.height);
+
+		// copy HDR data
+		int ti = 0;
+		for (int r = 0; r < image.height; r++) {
+			auto row = FreeImage_GetScanLine(btm, r);
+			memcpy(row, image.image + r * 4 * image.width, image.width * sizeof(float) * 4);
+		}
+
+		// convert as 48 bits
+		//btm = FreeImage_ConvertToRGBF(btm);
+
+		// save HDR
+		FreeImage_Save(FIF_EXR, btm, name.c_str(), EXR_FLOAT | EXR_PIZ);
+		FreeImage_Unload(btm);
+	}
 
     // key downs
     void PathTracerApplication::passKeyDown(const int32_t& key) {
