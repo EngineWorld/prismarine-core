@@ -37,12 +37,12 @@ uint L = 0;
 int deferredPtr = 0;
 SharedVarsData sharedVarsData;
 
-const int STACK_SIZE = 16;
+const int STACK_SIZE = 12;
 const int GLOBAL_STACK_SIZE = 8;// in VEGA can be effective, in Pascal not
 const int BAKED_STACK_SIZE = 8;
 
 shared int deferredStack[WORK_SIZE][STACK_SIZE];
-shared vec4 bakedStack[WORK_SIZE][BAKED_STACK_SIZE];
+vec4 bakedStack[BAKED_STACK_SIZE];
 
 
 
@@ -78,7 +78,7 @@ void reorderTriangles() {
         for (int index = 0; index < sharedVarsData.bakedStackCount - iround; index++) {
             
             // choice from both
-            vec4 bakedPair[2] = {bakedStack[L][index], bakedStack[L][index+1]}; // cache
+            vec4 bakedPair[2] = {bakedStack[index], bakedStack[index+1]}; // cache
             bool lessIdx = floatBitsToInt(bakedPair[0].w) <= floatBitsToInt(bakedPair[1].w);
             bool deeper = lessF(bakedPair[0].z, bakedPair[1].z);
 
@@ -86,8 +86,8 @@ void reorderTriangles() {
             bool swapable = (lessIdx || deeper);
             ivec2 pairIdx = swapable ? ivec2(1, 0) : ivec2(0, 1);
             if (swapable) {
-                bakedStack[L][index  ] = bakedPair[pairIdx.x];
-                bakedStack[L][index+1] = bakedPair[pairIdx.y];
+                bakedStack[index  ] = bakedPair[pairIdx.x];
+                bakedStack[index+1] = bakedPair[pairIdx.y];
             }
         }
     }
@@ -98,14 +98,14 @@ void reorderTriangles() {
     // select only unique triangle ID's
     for (int iround = 0; iround < BAKED_STACK_SIZE; iround++) {
         if (iround >= sharedVarsData.bakedStackCount-1) break;
-        if (floatBitsToInt(bakedStack[L][iround+1].w) != floatBitsToInt(bakedStack[L][iround].w)) {
-            bakedStack[L][cleanBakedStackCount++] = bakedStack[L][iround];
+        if (floatBitsToInt(bakedStack[iround+1].w) != floatBitsToInt(bakedStack[iround].w)) {
+            bakedStack[cleanBakedStackCount++] = bakedStack[iround];
         }
     }
 
     // copy last primitive
     if (sharedVarsData.bakedStackCount > 0 && cleanBakedStackCount <= BAKED_STACK_SIZE) {
-        bakedStack[L][cleanBakedStackCount++] = bakedStack[L][sharedVarsData.bakedStackCount-1];
+        bakedStack[cleanBakedStackCount++] = bakedStack[sharedVarsData.bakedStackCount-1];
     }
     
     sharedVarsData.bakedStackCount = cleanBakedStackCount;
@@ -207,7 +207,7 @@ void includeChain(in int chainID, in vec4 intersection){
 TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {
     reorderTriangles();
     for (int i=0;i<sharedVarsData.bakedStackCount;i++) {
-        includeChain(i, bakedStack[L][i]);
+        includeChain(i, bakedStack[i]);
     }
     return res;
 }
@@ -241,7 +241,7 @@ TResult testIntersectionPacked(inout TResult res, in vec3 orig, in vec3 dir, in 
             }
             res.predist = _d2.x;
             res.triangleID = tri.x;
-            bakedStack[L][add(sharedVarsData.bakedStackCount, 1)] = vec4(uv2.xz, _d2.x, intBitsToFloat(tri.x));
+            bakedStack[add(sharedVarsData.bakedStackCount, 1)] = vec4(uv2.xz, _d2.x, intBitsToFloat(tri.x));
         }
 
         near = validTriangles.y && lessF(_d2.y, INFINITY) && lessEqualF(_d2.y, res.predist) && greaterEqualF(_d2.y, 0.0f);
@@ -251,7 +251,7 @@ TResult testIntersectionPacked(inout TResult res, in vec3 orig, in vec3 dir, in 
             }
             res.predist = _d2.y;
             res.triangleID = tri.y;
-            bakedStack[L][add(sharedVarsData.bakedStackCount, 1)] = vec4(uv2.yw, _d2.y, intBitsToFloat(tri.y));
+            bakedStack[add(sharedVarsData.bakedStackCount, 1)] = vec4(uv2.yw, _d2.y, intBitsToFloat(tri.y));
         }
     }
 
@@ -292,7 +292,7 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
     sharedVarsData.chainID = sharedVarsData.nextHt;
     sharedVarsData.bakedStackCount = 0;
     sharedVarsData.prevHt = -1; // reset previous for avoid depth bug (multi-BVH)
-    for (int i=0;i<BAKED_STACK_SIZE;i++) {bakedStack[L][i] = vec4(vec2(0.0f), INFINITY, LONGEST);}
+    for (int i=0;i<BAKED_STACK_SIZE;i++) {bakedStack[i] = vec4(vec2(0.0f), INFINITY, LONGEST);}
 
     // something fix
     direct = normalize(direct);
