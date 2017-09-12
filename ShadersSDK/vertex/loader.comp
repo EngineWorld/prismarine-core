@@ -7,6 +7,7 @@
 //#include "../include/uniforms.glsl"
 #include "../include/vertex.glsl"
 #include "../include/mathlib.glsl"
+#include "../include/ballotlib.glsl"
 
 LOCAL_SIZE_LAYOUT;
 
@@ -111,7 +112,10 @@ void main()
     // adapt quads to triangles
     int istride = mode == 1 ? 2 : 1;
     int tidc = meshUniform.storingOffset + int(gl_GlobalInvocationID.x) * istride;
-    atomicAdd(tcounter[0], istride);
+    int activel = firstActive();
+    int lcnt = int(bitCount64(ballotHW(true)));
+    if (LANE_IDX == activel) atomicAdd(tcounter[0], LANE_IDX == activel ? readLane(istride, activel) * lcnt : 0);
+    //atomicAdd(tcounter[0], istride);
 
     vec3 offsetnormal = normalize(cross(vertice[1] - vertice[0], vertice[2] - vertice[0]));
     {
