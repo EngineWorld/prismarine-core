@@ -168,11 +168,13 @@ HitRework interpolateMeshData(inout HitRework res) {
         ));
 
         bvec2 delta = bvec2(and2(equal(deltas[0], vec2(0.f)), equal(deltas[1], vec2(0.f))));
-        vec2 deltaUV1 = mix(deltas[0].xy, vec2(1.0f, 0.0f), delta);
-        vec2 deltaUV2 = mix(deltas[1].xy, vec2(0.0f, 1.0f), delta);
+        mat2x2 deltaUV = mat2(
+            mix(deltas[0].xy, vec2(1.0f, 0.0f), delta),
+            mix(deltas[1].xy, vec2(0.0f, 1.0f), delta)
+        );
 
-        float f = 1.0f / fma(deltaUV1.x, deltaUV2.y, -deltaUV1.y * deltaUV2.x);
-        vec3 tang = fma(deltaPos1, vec3(deltaUV2.y), -deltaPos2 * deltaUV1.y) * f;
+        float f = 1.0f / determinant(deltaUV);
+        vec3 tang = fma(deltaPos1, vec3(deltaUV[1].y), -deltaPos2 * deltaUV[0].y) * f;
 
         if (validInterpolant) {
             res.normalHeight = vec4(normal, 0.0f);
