@@ -255,4 +255,15 @@ uvec2 packHalf(in vec4 floats){
 }
 
 
+// reserved for future rasterizers
+// just for save
+vec3 barycentric2D(in vec3 p, in mat3x3 triangle){
+    mat3x3 plc = transpose(mat3x3(triangle[2] - triangle[0], triangle[1] - triangle[0], triangle[0] - p));
+    vec3 u = cross(plc[0], plc[1]); // xy (2d) cross
+    if (abs(u.z) < 1.f) return vec3(-1.f,1.f,1.f); 
+    return vec3(u.z-(u.x+u.y), u.y, u.x)/u.z;
+}
+
+
+
 #endif

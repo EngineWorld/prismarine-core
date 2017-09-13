@@ -46,14 +46,6 @@ vec2 dot2(in mat3x2 a, in mat3x2 b){
 }
 
 
-// reserved for future rasterizers
-// just for save
-vec3 barycentric2D(in vec3 p, in mat3x3 triangle){
-    mat3x3 plc = transpose(mat3x3(triangle[2] - triangle[0], triangle[1] - triangle[0], triangle[0] - p));
-    vec3 u = cross(plc[0], plc[1]); // xy (2d) cross
-    if (abs(u.z) < 1.f) return vec3(-1.f,1.f,1.f); 
-    return vec3(u.z-(u.x+u.y), u.y, u.x)/u.z;
-}
 
 
 vec2 intersectTriangle2(in vec3 orig, in vec3 dir, inout ivec2 tri, inout vec4 UV, in bvec2 valid) {
