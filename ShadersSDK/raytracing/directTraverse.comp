@@ -181,8 +181,8 @@ HitRework interpolateMeshData(inout HitRework res) {
         bvec2 delta = bvec2(all(equal(deltas[0], vec2(0.f))), all(equal(deltas[1], vec2(0.f))));
         const vec2 udet = vec2(1.0f, 0.0f);
         mat2x2 deltaUV = mat2(
-            mix(deltas[0].xy, udet, delta.x),                  //x (v1-v0, v2-v0)
-            mix(deltas[1].yx, udet, delta.y) * vec2(1.f, -1.f) //y (v2-v0, v0-v1)
+            mix(deltas[0].xy, udet, bvec2(delta.x)),                  //x (v1-v0, v2-v0)
+            mix(deltas[1].yx, udet, bvec2(delta.y)) * vec2(1.f, -1.f) //y (v2-v0, v0-v1)
         );
         float f = 1.f / dot(deltaUV[0], deltaUV[1]);
         vec3 tang = fma(deltaPos1, vec3(deltaUV[1].x), deltaPos2 * deltaUV[1].y) * f;
@@ -353,6 +353,7 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
                         and2(
                             and2(lessThanEqual(nears, vec2(INFINITY-PZERO)), lessThanEqual(nears * dirlenInv, vec2(INFINITY-PZERO))),
                             lessThanEqual(nears * dirlenInv - PZERO, vec2(lastRes.predist))
+                            //bvec2(true)
                         ),
                         and2(bvec2(node.pdata.x != -1, node.pdata.y != -1), bvec2(node.pdata.x != node.pdata.y))
                     )
