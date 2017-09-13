@@ -176,7 +176,8 @@ void main() {
     float emis = mlength(emi.xyz);
     float spca = clamp(mlength(sc.xyz), 0.0f, 1.0f);
     float prom = 1.0f - tx.a;
-    float aprom = random() < prom ? 1.f : 0.f;
+    //float aprom = random() < prom ? 1.f : 0.f;
+    float aprom = RayType(ray) == 1 ? prom : (random() < prom ? 1.f : 0.f);
 
     // create rays
     RayRework diffuseRay = ray;
