@@ -205,7 +205,7 @@ float intersectTriangle(in vec3 orig, in vec3 dir, in int tri, inout vec2 UV, in
 #define M16(m, i) (m[i])
 #else
 #define INDEX16 uint
-#define M16(m, i) (BFE(m[i/2], int(16*(i%2)), 16))
+#define M16(m, i) (BFE_HW(m[i/2], int(16*(i&1)), 16))
 #endif
 
 #ifdef ENABLE_INT16_LOADING

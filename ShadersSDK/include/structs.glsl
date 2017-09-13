@@ -60,67 +60,67 @@ struct HitRework {
 };
 
 
-int HitActived(in HitRework hit){
+int HitActived(inout HitRework hit){
     return BFE(hit.bitfield, 0, 1);
 }
 
 void HitActived(inout HitRework hit, in int actived){
-    hit.bitfield = BFI(hit.bitfield, actived, 0, 1);
+    hit.bitfield = BFI_HW(hit.bitfield, actived, 0, 1);
 }
 
 
 
-int RayActived(in RayRework ray){
+int RayActived(inout RayRework ray){
     return BFE(ray.bitfield, 0, 1);
 }
 
 void RayActived(inout RayRework ray, in int actived){
-    ray.bitfield = BFI(ray.bitfield, actived, 0, 1);
+    ray.bitfield = BFI_HW(ray.bitfield, actived, 0, 1);
 }
 
 
-int RayType(in RayRework ray){
+int RayType(inout RayRework ray){
     return BFE(ray.bitfield, 1, 2);
 }
 
 void RayType(inout RayRework ray, in int type){
-    ray.bitfield = BFI(ray.bitfield, type, 1, 2);
+    ray.bitfield = BFI_HW(ray.bitfield, type, 1, 2);
 }
 
 
-int RayDL(in RayRework ray){
+int RayDL(inout RayRework ray){
     return BFE(ray.bitfield, 3, 1);
 }
 
 void RayDL(inout RayRework ray, in int dl){
-    ray.bitfield = BFI(ray.bitfield, dl, 3, 1);
+    ray.bitfield = BFI_HW(ray.bitfield, dl, 3, 1);
 }
 
 
-int RayTargetLight(in RayRework ray){
+int RayTargetLight(inout RayRework ray){
     return BFE(ray.bitfield, 4, 4);
 }
 
 void RayTargetLight(inout RayRework ray, in int tl){
-    ray.bitfield = BFI(ray.bitfield, tl, 4, 4);
+    ray.bitfield = BFI_HW(ray.bitfield, tl, 4, 4);
 }
 
 
-int RayBounce(in RayRework ray){
+int RayBounce(inout RayRework ray){
     return BFE(ray.bitfield, 8, 4);
 }
 
 void RayBounce(inout RayRework ray, in int bn){
-    ray.bitfield = BFI(ray.bitfield, bn, 8, 4);
+    ray.bitfield = BFI_HW(ray.bitfield, bn, 8, 4);
 }
 
 
-int RayBasis(in RayRework ray){
+int RayBasis(inout RayRework ray){
     return BFE(ray.bitfield, 12, 1);
 }
 
 void RayBasis(inout RayRework ray, in int basis){
-    ray.bitfield = BFI(ray.bitfield, basis, 12, 1);
+    ray.bitfield = BFI_HW(ray.bitfield, basis, 12, 1);
 }
 
 
@@ -187,15 +187,15 @@ struct VirtualAccessor {
     highp int bufferView;
 };
 
-int aComponents(in VirtualAccessor vac) {
+int aComponents(inout VirtualAccessor vac) {
     return BFE(vac.bitfield, 0, 2);
 }
 
-int aType(in VirtualAccessor vac) {
+int aType(inout VirtualAccessor vac) {
     return BFE(vac.bitfield, 2, 4);
 }
 
-int aNormalized(in VirtualAccessor vac) {
+int aNormalized(inout VirtualAccessor vac) {
     return BFE(vac.bitfield, 6, 1);
 }
 

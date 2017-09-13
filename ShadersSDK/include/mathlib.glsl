@@ -155,16 +155,44 @@ vec2 intersectCubeDual(
 
 
 
-#define BFE(a,o,n) ((a >> o) & ((1 << n)-1))
+//#define BFE(a,o,n) ((a >> o) & ((1 << n)-1))
+//#define BFE_HW(a,o,n) (bitfieldExtract(a,o,n))
 
 uvec2 U2P(in uint64_t pckg) {
     return uvec2((pckg >> 0) & 0xFFFFFFFF, (pckg >> 32) & 0xFFFFFFFF);
 }
 
+int BFE(in int base, in int offset, in int bits){
+    return (base >> offset) & ((1 << bits)-1);
+    //int result = bitfieldExtract(base, offset, bits);
+    //return result;
+}
+
+int BFE_HW(in int base, in int offset, in int bits){
+    return bitfieldExtract(base, offset, bits);
+}
+
+
+int BFE(in uint base, in int offset, in int bits){
+    return int((base >> offset) & ((1 << bits)-1));
+    //int result = int(bitfieldExtract(base, offset, bits));
+    //return result;
+}
+
+int BFE_HW(in uint base, in int offset, in int bits){
+    return int(bitfieldExtract(base, offset, bits));
+}
+
+
+
 int BFI(in int base, in int inserts, in int offset, in int bits){
     int mask = bits >= 32 ? 0xFFFFFFFF : (1<<bits)-1;
     int offsetMask = mask << offset;
     return ((base & (~offsetMask)) | ((inserts & mask) << offset));
+}
+
+int BFI_HW(in int base, in int inserts, in int offset, in int bits){
+    return bitfieldInsert(base, inserts, offset, bits);
 }
 
 
