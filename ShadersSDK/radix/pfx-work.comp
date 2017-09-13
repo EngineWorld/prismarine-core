@@ -4,7 +4,7 @@
 
 #include "./includes.glsl"
 
-#define WG_COUNT 8
+#define WG_COUNT 16
 
 shared uint localHistogram[WG_COUNT];
 void prefixScan() {

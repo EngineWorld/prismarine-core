@@ -46,7 +46,7 @@ namespace NSM {
         // uniforms
         GeometryUniformStruct geometryUniformData;
 
-
+		GLuint buildBuffer = -1;
         GLuint aabbCounter = -1;
         GLuint leafBuffer = -1;
         GLuint bvhnodesBuffer = -1;

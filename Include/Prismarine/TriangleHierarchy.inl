@@ -36,8 +36,9 @@ namespace NSM {
 
     inline void TriangleHierarchy::initShaders() {
         initShaderComputeSPIRV("./shaders-spv/hlbvh/refit.comp.spv", refitProgramH);
+		initShaderComputeSPIRV("./shaders-spv/hlbvh/build.comp.spv", buildProgramH);
         //initShaderComputeSPIRV("./shaders-spv/hlbvh/refit-new.comp.spv", refitProgramH);
-        initShaderComputeSPIRV("./shaders-spv/hlbvh/build.comp.spv", buildProgramH);
+        //initShaderComputeSPIRV("./shaders-spv/hlbvh/build-new.comp.spv", buildProgramH);
         initShaderComputeSPIRV("./shaders-spv/hlbvh/aabbmaker.comp.spv", aabbMakerProgramH);
         initShaderComputeSPIRV("./shaders-spv/hlbvh/minmax.comp.spv", minmaxProgram2);
         initShaderComputeSPIRV("./shaders-spv/vertex/loader.comp.spv", geometryLoaderProgram2);
@@ -53,6 +54,7 @@ namespace NSM {
         lscounterTemp = allocateBuffer<uint32_t>(1);
         tcounter = allocateBuffer<uint32_t>(1);
         geometryBlockUniform = allocateBuffer<GeometryBlockUniform>(1);
+		buildBuffer = allocateBuffer<uint32_t>(8);
 
         bbox bound;
         bound.mn.x = 100000.f;
@@ -271,12 +273,46 @@ namespace NSM {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, bvhflagsBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, activeBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, childBuffer);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, buildBuffer);
+
+		/*
+		// build BVH uses multi-threads and all async modules
+		HlbvhNode node;
+		node.box.mn = glm::vec4(0.0f).xxxx;
+		node.box.mx = glm::vec4(0.0f).xxxx;
+		node.pdata.x = 0;
+		node.pdata.y = triangleCount - 1;
+		node.pdata.z = -1;
+		node.pdata.w = -1;
+
+		GLint flagDefault = 0;
+		GLint activeElement = 0;
+		GLint buildCounterData[8] = {0};
+		buildCounterData[1] = 1;
+		buildCounterData[2] = 1;
+		buildCounterData[5] = 1;
+		glNamedBufferSubData(buildBuffer, 0, 8 * sizeof(GLint), buildCounterData);
+		glNamedBufferSubData(bvhnodesBuffer, 0, sizeof(HlbvhNode), &node);
+		glNamedBufferSubData(bvhflagsBuffer, 0, sizeof(GLint), &flagDefault);
+		glNamedBufferSubData(activeBuffer, 0, sizeof(GLint), &activeElement);
+		for (int i = 0; i < 256;i++) {
+			GLint nodeCount = buildCounterData[5] - buildCounterData[4];
+			if (nodeCount <= 0) break;
+
+			dispatch(buildProgramH, tiled(nodeCount, 1024 / 2)); // because threads occupied by leafs
+			glCopyNamedBufferSubData(buildBuffer, buildBuffer, 5 * sizeof(GLint), 4 * sizeof(GLint), sizeof(GLint));
+			glCopyNamedBufferSubData(buildBuffer, buildBuffer, 2 * sizeof(GLint), 5 * sizeof(GLint), sizeof(GLint));
+			glGetNamedBufferSubData(buildBuffer, 0, 8 * sizeof(GLint), buildCounterData);
+		}
+		dispatch(refitProgramH, tiled(triangleCount, 1024));
+		*/
 
         // build BVH itself
         dispatch(buildProgramH, 1);
-		//dispatch(buildProgramH, tiled(triangleCount, 1024));
 		dispatch(refitProgramH, 1);
-        //dispatch(refitProgramH, tiled(triangleCount, 1024));
+		//dispatch(refitProgramH, tiled(triangleCount, 1024));
+		
+        
 
 		//std::vector < HlbvhNode > nodes(triangleCount*2);
 		//glGetNamedBufferSubData(bvhnodesBuffer, 0, strided<HlbvhNode>(nodes.size()), nodes.data());
