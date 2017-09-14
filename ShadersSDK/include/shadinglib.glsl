@@ -29,7 +29,8 @@ RayRework reflection(in RayRework ray, in vec3 color, in vec3 normal, in float r
     //ray.origin.xyz = fma(faceforward(normal, ray.direct.xyz, -normal), vec3(GAP), ray.origin.xyz); // padding
 
     RayDL(ray, (SUNLIGHT_CAUSTICS ? true : RayType(ray) == 1) ? 0 : 1); RayType(ray, 0);
-    RayBounce(ray, min(3, RayBounce(ray)));
+    //RayBounce(ray, min(3, RayBounce(ray)));
+    RayBounce(ray, min(2, RayBounce(ray)));
     RayActived(ray, RayType(ray) == 2 ? 0 : RayActived(ray));
     return ray;
 }
