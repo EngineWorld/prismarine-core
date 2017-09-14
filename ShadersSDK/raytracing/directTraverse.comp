@@ -393,7 +393,6 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
                     }
                     idx = leftright.x;
                     node = Nodes[idx]; // for optimized read-write operations
-                    //level++;
                 }
             }
 
@@ -406,8 +405,6 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
             bool valid = ptr >= 0;
             esc = idx;
             idx = valid ? loadStack(ptr) : -1;
-            //idx = node.pdata.z;
-            //level--;
             node = Nodes[idx]; // for optimized read-write operations
             validBox = validBox && valid && idx >= 0 && level >= 0;
         };
