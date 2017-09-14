@@ -229,7 +229,7 @@ namespace PrismarineExample {
 
 		// create geometry intersector
 		intersector = new psm::TriangleHierarchy();
-		intersector->allocate(1024 * 1024);
+		intersector->allocate(1024 * 512);
 		//intersector->allocate(1024 * 2048);
 
 		// init timing state

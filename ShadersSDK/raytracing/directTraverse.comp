@@ -38,7 +38,7 @@ int deferredPtr = 0;
 SharedVarsData sharedVarsData;
 
 const int STACK_SIZE = 12;
-const int GLOBAL_STACK_SIZE = 8;// in VEGA can be effective, in Pascal not
+const int GLOBAL_STACK_SIZE = 4;// in VEGA can be effective, in Pascal not
 const int BAKED_STACK_SIZE = 8;
 
 shared int deferredStack[WORK_SIZE][STACK_SIZE];
