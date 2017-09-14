@@ -326,14 +326,17 @@ namespace NSM {
 		glNamedBufferSubData(bvhflagsBuffer, 0, sizeof(GLint), &flagDefault);
 		glNamedBufferSubData(activeBuffer, 0, sizeof(GLint), &activeElement);
 
+
 		for (int i = 0; i < 256; i++) {
-			//GLint nodeCount = buildCounterData[5] - buildCounterData[4];
-			//if (nodeCount <= 0) break;
+			if ((i&0xF) == 0xF) { // every 16 pass
+				glGetNamedBufferSubData(buildBuffer, 0, 8 * sizeof(GLint), buildCounterData);
+				GLint nodeCount = buildCounterData[5] - buildCounterData[4];
+				if (nodeCount <= 0) break;
+			}
 
 			dispatch(buildProgramH, 4);
 			glCopyNamedBufferSubData(buildBuffer, buildBuffer, 5 * sizeof(GLint), 4 * sizeof(GLint), sizeof(GLint));
 			glCopyNamedBufferSubData(buildBuffer, buildBuffer, 2 * sizeof(GLint), 5 * sizeof(GLint), sizeof(GLint));
-			//glGetNamedBufferSubData(buildBuffer, 0, 8 * sizeof(GLint), buildCounterData);
 		}
 
 
