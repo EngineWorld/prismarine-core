@@ -86,8 +86,8 @@ void main() {
         atomicExchange(Actives[aCounterInc(true)], hid);
 
         HlbvhNode node = Nodes[hid];
-        node.box.mn = (0.0f).xxxx;
-        node.box.mx = (0.0f).xxxx;
+        node.box.mn = ( 100000.0f).xxxx;
+        node.box.mx = (-100000.0f).xxxx;
         node.branch[0] = 0;
         node.branch[1] = Range[0]-1;
         node.pdata.xy = (-1).xx;
@@ -129,8 +129,8 @@ void main() {
 
                     // init child node
                     HlbvhNode childNode = Nodes[hid];
-                    childNode.box.mn = (0.0f).xxxx;
-                    childNode.box.mx = (0.0f).xxxx;
+                    childNode.box.mn = ( 100000.0f).xxxx;
+                    childNode.box.mx = (-100000.0f).xxxx;
                     childNode.pdata.xy = ivec2(prID, -1);
 
                     // differentiation between left and right node
