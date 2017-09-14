@@ -45,8 +45,8 @@ uint64_t part1By2_64(in uint a){
 
 uint64_t encodeMorton3_64(in uvec3 a)
 {
-    return part1By2_64(a.x) | (part1By2_64(a.y) << 1) | (part1By2_64(a.z) << 2);
-    //return MortonToHilbert3D(part1By2_64(a.x) | (part1By2_64(a.y) << 1) | (part1By2_64(a.z) << 2), 21);
+    //return part1By2_64(a.x) | (part1By2_64(a.y) << 1) | (part1By2_64(a.z) << 2);
+    return MortonToHilbert3D(part1By2_64(a.x) | (part1By2_64(a.y) << 1) | (part1By2_64(a.z) << 2), 21);
 }
 
 #else
@@ -88,8 +88,8 @@ uint part1By2_64(in uint a){
 }
 
 uint encodeMorton3_64(in uvec3 a) {
-    return part1By2_64(a.x) | (part1By2_64(a.y) << 1) | (part1By2_64(a.z) << 2);
-    //return MortonToHilbert3D(part1By2_64(a.x) | (part1By2_64(a.y) << 1) | (part1By2_64(a.z) << 2), 10);
+    //return part1By2_64(a.x) | (part1By2_64(a.y) << 1) | (part1By2_64(a.z) << 2);
+    return MortonToHilbert3D(part1By2_64(a.x) | (part1By2_64(a.y) << 1) | (part1By2_64(a.z) << 2), 10);
 }
 
 #endif
