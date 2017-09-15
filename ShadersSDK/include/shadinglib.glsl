@@ -5,9 +5,6 @@
 #ifndef _MATERIALFUNC_H
 #define _MATERIALFUNC_H
 
-//#include "./pivot.glsl"
-//#include "./ggx.glsl"
-
 #define GAP (PZERO*2.f)
 
 float computeFresnel(in vec3 normal, in vec3 indc, in float n1, in float n2){
@@ -64,7 +61,6 @@ RayRework directLightWhitted(in int i, in RayRework directRay, in vec3 color, in
     
     vec3 lpath = sLight(i) - directRay.origin.xyz;
     vec3 ldirect = normalize(lpath);
-    //float dist = length(lpath);
     float dist = length(lightCenter(i).xyz - directRay.origin.xyz);
     float weight = samplingWeight(ldirect, normal, lightUniform.lightNode[i].lightColor.w, dist);
 
@@ -85,7 +81,6 @@ RayRework directLight(in int i, in RayRework directRay, in vec3 color, in vec3 n
     
     vec3 lpath = sLight(i) - directRay.origin.xyz;
     vec3 ldirect = normalize(lpath);
-    //float dist = length(lpath);
     float dist = length(lightCenter(i).xyz - directRay.origin.xyz);
     float weight = samplingWeight(ldirect, normal, lightUniform.lightNode[i].lightColor.w, dist);
 
@@ -112,7 +107,6 @@ RayRework diffuse(in RayRework ray, in vec3 color, in vec3 normal){
     ray.color.xyz *= color;
     ray.direct.xyz = normalize(randomCosine(normal));
     ray.origin.xyz = ray.origin.xyz = fma(ray.direct.xyz, vec3(GAP), ray.origin.xyz);
-    //ray.origin.xyz = fma(faceforward(normal, ray.direct.xyz, -normal), vec3(GAP), ray.origin.xyz); // padding
     RayActived(ray, RayType(ray) == 2 ? 0 : RayActived(ray));
     RayBounce(ray, min(2, RayBounce(ray)));
     RayType(ray, 1);
@@ -127,7 +121,6 @@ RayRework diffuse(in RayRework ray, in vec3 color, in vec3 normal){
 RayRework promised(in RayRework ray, in vec3 normal){
     RayBounce(ray, RayBounce(ray)+1);
     ray.origin.xyz = ray.origin.xyz = fma(ray.direct.xyz, vec3(GAP), ray.origin.xyz);
-    //ray.origin.xyz = fma(faceforward(normal, ray.direct.xyz, -normal), vec3(GAP), ray.origin.xyz); // padding
     return ray;
 }
 
@@ -147,11 +140,9 @@ RayRework reflection(in RayRework ray, in vec3 color, in vec3 normal, in float r
     ray.direct.xyz = normalize(mix(reflect(ray.direct.xyz, normal), randomCosine(normal), clamp(refly * random(), 0.0f, 1.0f)));
     ray.color.xyz *= color;
     ray.origin.xyz = fma(ray.direct.xyz, vec3(GAP), ray.origin.xyz);
-    //ray.origin.xyz = fma(faceforward(normal, ray.direct.xyz, -normal), vec3(GAP), ray.origin.xyz); // padding
 
     RayDL(ray, (SUNLIGHT_CAUSTICS ? true : RayType(ray) == 1) ? 0 : 1); RayType(ray, 0);
-    //RayBounce(ray, min(3, RayBounce(ray)));
-    RayBounce(ray, min(2, RayBounce(ray)));
+    RayBounce(ray, min(3, RayBounce(ray)));
     RayActived(ray, RayType(ray) == 2 ? 0 : RayActived(ray));
     return ray;
 }
@@ -179,7 +170,6 @@ RayRework refraction(in RayRework ray, in vec3 color, in vec3 normal, in float i
 
     if (!refrc) {
         ray.origin.xyz = fma(ray.direct.xyz, vec3(GAP), ray.origin.xyz);
-        //ray.origin.xyz = fma(faceforward(normal, ray.direct.xyz, -normal), vec3(GAP), ray.origin.xyz); // padding
     }
     ray.color.xyz *= color;
     return ray;
