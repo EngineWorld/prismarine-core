@@ -183,6 +183,10 @@ namespace NSM {
         markDirty();
 
         glUseProgram(0);
+
+#ifdef PROFILE_RT
+		glFinish();
+#endif
     }
 
     inline bool TriangleHierarchy::isDirty() const {
@@ -355,5 +359,9 @@ namespace NSM {
         this->geometryUniformData.triangleCount = this->triangleCount;
         this->syncUniforms();
         this->resolve();
+
+#ifdef PROFILE_RT
+		glFinish();
+#endif
     }
 }

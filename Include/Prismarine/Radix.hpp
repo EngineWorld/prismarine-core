@@ -65,6 +65,10 @@ namespace NSM {
 
                 swapness = !swapness;
             }
+
+#ifdef PROFILE_RT
+			glFinish();
+#endif
         }
 
     };

@@ -24,6 +24,7 @@
 #include "external/include/FreeImage.h"
 #endif
 
+#define PROFILE_RT
 #define NSM psm
 
 namespace NSM {
@@ -159,6 +160,10 @@ namespace NSM {
         glUseProgram(program);
         glDispatchCompute(gridSize, 1, 1);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
+
+//#ifdef PROFILE_RT
+//		glFinish();
+//#endif
     }
 
     void dispatchIndirect(const GLuint &program, const GLuint& buffer) {

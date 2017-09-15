@@ -267,6 +267,10 @@ namespace NSM {
         // use temporal AA
         dispatch(filterProgram, tiled(displayWidth * displayHeight, worksize));
 
+#ifdef PROFILE_RT
+		glFinish();
+#endif
+
         // save previous frame
         //glCopyImageSubData(filtered, GL_TEXTURE_2D, 0, 0, 0, 0, prevsampled, GL_TEXTURE_2D, 0, 0, 0, 0, displayWidth, displayHeight, 1);
         
@@ -282,6 +286,10 @@ namespace NSM {
 
         this->bind();
         dispatch(cameraProgram, tiled(width * height, worksize));
+
+#ifdef PROFILE_RT
+		glFinish();
+#endif
 
         reloadQueuedRays(true);
     }
@@ -307,6 +315,10 @@ namespace NSM {
 
         glBindImageTexture(0, sampleflags, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
         dispatch(clearProgram, tiled(displayWidth * displayHeight, worksize));
+
+#ifdef PROFILE_RT
+		glFinish();
+#endif
     }
 
     inline void Pipeline::reloadQueuedRays(bool doSort, bool sortMortons) {
@@ -383,6 +395,10 @@ namespace NSM {
         dispatch(traverseDirectProgram, tiled(rsize, worksize));
 		hitModified = true;
 
+#ifdef PROFILE_RT
+		glFinish();
+#endif
+
         return 1;
     }
 
@@ -396,6 +412,10 @@ namespace NSM {
 
         if (hitCountCached <= 0) return;
         dispatch(surfProgram, tiled(hitCountCached, worksize));
+
+#ifdef PROFILE_RT
+		glFinish();
+#endif
     }
 
     inline void Pipeline::shade() {
@@ -405,6 +425,10 @@ namespace NSM {
         glBindTextureUnit(5, skybox);
         dispatch(matProgram, tiled(rsize, worksize));
 		reloadQueuedRays(true); // you can at now
+
+#ifdef PROFILE_RT
+		glFinish();
+#endif
     }
 
 
