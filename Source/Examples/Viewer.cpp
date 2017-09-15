@@ -311,6 +311,8 @@ namespace PrismarineExample {
 		}
 		rays->sample();
 		rays->render();
+
+		glFinish();
 	}
 
 };
