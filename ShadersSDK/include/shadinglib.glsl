@@ -75,7 +75,7 @@ vec3 sLight(in int i){
 }
 
 int applyLight(in RayRework directRay, inout RayRework ray, in vec3 normal) {
-#ifdef DIRECT_LIGHT
+#ifdef DIRECT_LIGHT_ENABLED
     RayActived(directRay, (RayType(ray) == 2 || dot(normal, directRay.direct.xyz) < 0.f) ? 0 : RayActived(directRay)); 
     RayDL(ray, 0); // not neccesary
     return createRay(directRay);
@@ -172,7 +172,7 @@ RayRework diffuse(in RayRework ray, in vec3 color, in vec3 normal){
     RayActived(ray, RayType(ray) == 2 ? 0 : RayActived(ray));
     RayBounce(ray, min(2, RayBounce(ray)));
     RayType(ray, 1);
-#ifdef DIRECT_LIGHT
+#ifdef DIRECT_LIGHT_ENABLED
     RayDL(ray, 0);
 #else
     RayDL(ray, 1);

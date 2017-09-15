@@ -60,67 +60,95 @@ struct HitRework {
 };
 
 
+
+const ivec2 ACTIVED = ivec2(0, 1);
+const ivec2 TYPE = ivec2(1, 2);
+const ivec2 DIRECT_LIGHT = ivec2(3, 1);
+const ivec2 TARGET_LIGHT = ivec2(4, 4);
+const ivec2 BOUNCE = ivec2(8, 4);
+const ivec2 BASIS = ivec2(12, 1);
+
+int parameteri(const ivec2 parameter, inout int bitfield){
+    return BFE(bitfield, parameter.x, parameter.y);
+}
+
+int parameteri(const ivec2 parameter, inout HitRework hit){
+    return BFE(hit.bitfield, parameter.x, parameter.y);
+}
+
+int parameteri(const ivec2 parameter, inout RayRework ray){
+    return BFE(ray.bitfield, parameter.x, parameter.y);
+}
+
+void parameteri(const ivec2 parameter, inout int bitfield, in int value){
+    bitfield = BFI_HW(bitfield, value, parameter.x, parameter.y);
+}
+
+void parameteri(const ivec2 parameter, inout RayRework ray, in int value){
+    ray.bitfield = BFI_HW(ray.bitfield, value, parameter.x, parameter.y);
+}
+
+void parameteri(const ivec2 parameter, inout HitRework hit, in int value){
+    hit.bitfield = BFI_HW(hit.bitfield, value, parameter.x, parameter.y);
+}
+
+
+
+
 int HitActived(inout HitRework hit){
-    return BFE(hit.bitfield, 0, 1);
+    return parameteri(ACTIVED, hit);
 }
 
 void HitActived(inout HitRework hit, in int actived){
-    hit.bitfield = BFI_HW(hit.bitfield, actived, 0, 1);
+    parameteri(ACTIVED, hit, actived);
 }
 
-
-
 int RayActived(inout RayRework ray){
-    return BFE(ray.bitfield, 0, 1);
+    return parameteri(ACTIVED, ray);
 }
 
 void RayActived(inout RayRework ray, in int actived){
-    ray.bitfield = BFI_HW(ray.bitfield, actived, 0, 1);
+    parameteri(ACTIVED, ray, actived);
 }
 
-
 int RayType(inout RayRework ray){
-    return BFE(ray.bitfield, 1, 2);
+    return parameteri(TYPE, ray);
 }
 
 void RayType(inout RayRework ray, in int type){
-    ray.bitfield = BFI_HW(ray.bitfield, type, 1, 2);
+    parameteri(TYPE, ray, type);
 }
 
-
 int RayDL(inout RayRework ray){
-    return BFE(ray.bitfield, 3, 1);
+    return parameteri(DIRECT_LIGHT, ray);
 }
 
 void RayDL(inout RayRework ray, in int dl){
-    ray.bitfield = BFI_HW(ray.bitfield, dl, 3, 1);
+    parameteri(DIRECT_LIGHT, ray, dl);
 }
 
-
 int RayTargetLight(inout RayRework ray){
-    return BFE(ray.bitfield, 4, 4);
+    return parameteri(TARGET_LIGHT, ray);
 }
 
 void RayTargetLight(inout RayRework ray, in int tl){
-    ray.bitfield = BFI_HW(ray.bitfield, tl, 4, 4);
+    parameteri(TARGET_LIGHT, ray, tl);
 }
 
-
 int RayBounce(inout RayRework ray){
-    return BFE(ray.bitfield, 8, 4);
+    return parameteri(BOUNCE, ray);
 }
 
 void RayBounce(inout RayRework ray, in int bn){
-    ray.bitfield = BFI_HW(ray.bitfield, bn, 8, 4);
+    parameteri(BOUNCE, ray, bn);
 }
 
-
 int RayBasis(inout RayRework ray){
-    return BFE(ray.bitfield, 12, 1);
+    return parameteri(BASIS, ray);
 }
 
 void RayBasis(inout RayRework ray, in int basis){
-    ray.bitfield = BFI_HW(ray.bitfield, basis, 12, 1);
+    parameteri(BASIS, ray, basis);
 }
 
 
@@ -187,16 +215,25 @@ struct VirtualAccessor {
     highp int bufferView;
 };
 
+
+int parameteri(const ivec2 parameter, inout VirtualAccessor vac){
+    return BFE(vac.bitfield, parameter.x, parameter.y);
+}
+
+const ivec2 COMPONENTS = ivec2(0, 2);
+const ivec2 ATYPE = ivec2(2, 4);
+const ivec2 NORMALIZED = ivec2(6, 1);
+
 int aComponents(inout VirtualAccessor vac) {
-    return BFE(vac.bitfield, 0, 2);
+    return parameteri(COMPONENTS, vac);
 }
 
 int aType(inout VirtualAccessor vac) {
-    return BFE(vac.bitfield, 2, 4);
+    return parameteri(ATYPE, vac);
 }
 
 int aNormalized(inout VirtualAccessor vac) {
-    return BFE(vac.bitfield, 6, 1);
+    return parameteri(NORMALIZED, vac);
 }
 
 
