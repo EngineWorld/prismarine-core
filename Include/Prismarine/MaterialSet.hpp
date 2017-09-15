@@ -7,14 +7,21 @@
 #include "TextureSet.hpp"
 
 namespace NSM {
+	class TriangleHierarchy;
+	class Pipeline;
+
     class MaterialSet : public BaseClass {
 
     protected:
         
+		friend class Pipeline;
+		friend class TriangleHierarchy;
         TextureSet * texset = nullptr;
         GLuint mats = -1;
         std::vector<VirtualMaterial> submats;
         void init();
+		GLuint countBuffer = -1;
+		GLint loadOffset = 0;
 
     public:
 
@@ -31,5 +38,6 @@ namespace NSM {
 
         void loadToVGA();
         void bindWithContext(GLuint & prog);
+		void setLoadingOffset(GLint loadOffset);
     };
 }

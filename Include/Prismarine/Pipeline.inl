@@ -381,19 +381,21 @@ namespace NSM {
 
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 19, deferredStack);
         dispatch(traverseDirectProgram, tiled(rsize, worksize));
-        
+		hitModified = true;
+
         return 1;
     }
 
-    inline void Pipeline::applyMaterials(MaterialSet * mat, intptr_t moffset) {
+    inline void Pipeline::applyMaterials(MaterialSet * mat) {
         mat->bindWithContext(surfProgram);
-		materialUniformData.materialOffset = moffset;
-		materialUniformData.materialCount = mat->getMaterialCount();
-		syncUniforms();
+		glCopyNamedBufferSubData(mat->countBuffer, rayBlockUniform, 0, offsetof(RayBlockUniform, materialUniform) + offsetof(MaterialUniformStruct, materialOffset), sizeof(GLint) * 2); // copy material part
         glCopyNamedBufferSubData(arcounter, rayBlockUniform, 7 * sizeof(int32_t), offsetof(RayBlockUniform, samplerUniform) + offsetof(SamplerUniformStruct, hitCount), sizeof(int32_t));
-        GLuint tcount = 0; glGetNamedBufferSubData(arcounter, 7 * sizeof(int32_t), sizeof(int32_t), &tcount);
-        if (tcount <= 0) return;
-        dispatch(surfProgram, tiled(tcount, worksize));
+
+		if (hitModified) glGetNamedBufferSubData(arcounter, 7 * sizeof(int32_t), sizeof(int32_t), &hitCountCached);
+		hitModified = false;
+
+        if (hitCountCached <= 0) return;
+        dispatch(surfProgram, tiled(hitCountCached, worksize));
     }
 
     inline void Pipeline::shade() {

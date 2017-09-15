@@ -50,6 +50,9 @@ namespace NSM {
         int32_t currentRayLimit = 0;
         int32_t worksize = 128;
 
+		bool hitModified = false;
+		size_t hitCountCached = 0;
+
         // position texture
         //GLuint positionimg = -1;
         //GLuint prevsampled = -1;
@@ -128,7 +131,7 @@ namespace NSM {
         void render();
         int intersection(TriangleHierarchy * obj, const int clearDepth = 0);
         void shade();
-        void applyMaterials(MaterialSet * mat, intptr_t moffset = 0);
+        void applyMaterials(MaterialSet * mat);
         int32_t getRayCount();
 
     };
