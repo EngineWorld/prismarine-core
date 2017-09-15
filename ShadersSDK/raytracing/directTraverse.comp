@@ -353,15 +353,14 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
                         and2(
                             and2(lessThanEqual(nears, vec2(INFINITY-PZERO)), lessThanEqual(nears * dirlenInv, vec2(INFINITY-PZERO))),
                             lessThanEqual(nears * dirlenInv - PZERO, vec2(lastRes.predist))
-                            //bvec2(true)
                         ),
                         and2(bvec2(node.pdata.x != -1, node.pdata.y != -1), bvec2(node.pdata.x != node.pdata.y))
                     )
                 ), and2(bvec2((leftNear ? node.pdata.y : node.pdata.x) != esc), bvec2(node.pdata.x != esc, node.pdata.y != esc)))
             );
 
-            bool leftOrder = all(overlapsGeneral) ? leftNear : overlapsGeneral.x;
-            bvec2 overlaps = and2(overlapsGeneral, bvec2(lnode.pdata.x != lnode.pdata.y, rnode.pdata.x != rnode.pdata.y)); // is nodes
+            bool  leftOrder = all(overlapsGeneral) ? leftNear : overlapsGeneral.x;
+            bvec2  overlaps = and2(overlapsGeneral, bvec2(lnode.pdata.x != lnode.pdata.y, rnode.pdata.x != rnode.pdata.y)); // is nodes
             overlapsGeneral = and2(overlapsGeneral, bvec2(lnode.pdata.x == lnode.pdata.y, rnode.pdata.x == rnode.pdata.y)); // is leafs
 
             // reorder distances
@@ -373,8 +372,7 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
             
             // intersect triangles when accumulate WARP's
             if (anyInvocation(anyLeaf)) {
-                bvec2 overlaps = overlapsGeneral;
-                overlaps = leftOrder ? overlaps : overlaps.yx;
+                bvec2 overlaps = leftOrder ? overlapsGeneral : overlapsGeneral.yx; // additional re-order will in past
                 includeLeaf2(origin, direct, overlaps, leftOrder ? lnode : rnode, leftOrder ? rnode : lnode, dirproj * hits.y + torig, lastRes);
                 skipIntersection = false;
             }
@@ -383,8 +381,8 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
             bool anyOverlap = any(overlaps);
             if (anyInvocation(anyOverlap)) {
             //if (allInvocations(anyOverlap || !validBox)) {
-                bvec2 overlapsBool = overlaps;
-                ivec2 leftright = mix(ivec2(-1), node.pdata.xy, overlapsBool);
+                bool leftOrder = all(overlaps) ? leftNear : overlaps.x; // reorder again
+                ivec2 leftright = mix(ivec2(-1), node.pdata.xy, overlaps);
                 leftright = leftOrder ? leftright : leftright.yx;
 
                 if (anyOverlap && !skipIntersection) {
@@ -393,6 +391,7 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
                     }
                     idx = leftright.x;
                     node = Nodes[idx]; // for optimized read-write operations
+                    //level++;
                 }
             }
 
@@ -402,11 +401,12 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
         // go to parent 
         if (!skipUpstream && !skipIntersection) {
             int ptr = --deferredPtr;
-            bool valid = ptr >= 0;
+            //int ptr = 0;
             esc = idx;
-            idx = valid ? loadStack(ptr) : -1;
+            idx = ptr >= 0 ? loadStack(ptr) : -1;
+            //idx = node.pdata.z; level--;
             node = Nodes[idx]; // for optimized read-write operations
-            validBox = validBox && valid && idx >= 0 && level >= 0;
+            validBox = validBox && idx >= 0 && level >= 0 && ptr >= 0;
         };
 
         skipUpstream = false; // continue search when found
