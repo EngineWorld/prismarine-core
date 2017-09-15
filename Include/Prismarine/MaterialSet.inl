@@ -34,4 +34,8 @@ namespace NSM {
         submats[i] = submat;
     }
 
+	inline size_t MaterialSet::getMaterialCount() {
+		return submats.size();
+	}
+
 }

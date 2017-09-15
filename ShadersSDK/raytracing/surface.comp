@@ -35,7 +35,7 @@ struct Material {
     highp int flags;
     highp int alphafunc;
     highp int binding;
-    highp int unk0i;
+    highp int bitfield;
 
     highp ivec4 iModifiers0;
 };
@@ -159,7 +159,9 @@ void main() {
 
     HitRework hit = hitBuf.nodes[t];
     RayRework ray = rayBuf.nodes[hit.ray];
-    Material material = submats[hit.materialID];
+    int matID = hit.materialID - RAY_BLOCK materialUniform.materialOffset;
+    overflow = overflow || (matID >= RAY_BLOCK materialUniform.materialCount || matID < 0);
+    Material material = submats[matID];
 
     vec3 normal = normalize(hit.normalHeight.xyz);
     vec3 tangent = normalize(hit.tangent.xyz);

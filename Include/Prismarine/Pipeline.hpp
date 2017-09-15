@@ -128,7 +128,8 @@ namespace NSM {
         void render();
         int intersection(TriangleHierarchy * obj, const int clearDepth = 0);
         void shade();
-        void applyMaterials(MaterialSet * mat);
+        void applyMaterials(MaterialSet * mat, intptr_t moffset = 0);
         int32_t getRayCount();
+
     };
 }

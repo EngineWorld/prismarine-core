@@ -385,8 +385,11 @@ namespace NSM {
         return 1;
     }
 
-    inline void Pipeline::applyMaterials(MaterialSet * mat) {
+    inline void Pipeline::applyMaterials(MaterialSet * mat, intptr_t moffset) {
         mat->bindWithContext(surfProgram);
+		materialUniformData.materialOffset = moffset;
+		materialUniformData.materialCount = mat->getMaterialCount();
+		syncUniforms();
         glCopyNamedBufferSubData(arcounter, rayBlockUniform, 7 * sizeof(int32_t), offsetof(RayBlockUniform, samplerUniform) + offsetof(SamplerUniformStruct, hitCount), sizeof(int32_t));
         GLuint tcount = 0; glGetNamedBufferSubData(arcounter, 7 * sizeof(int32_t), sizeof(int32_t), &tcount);
         if (tcount <= 0) return;

@@ -142,32 +142,25 @@ namespace NSM {
 
 
 
-    struct MaterialUniformStruct {
-        iVc1 materialID;
-        iVc1 _reserved;
-        iVc1 time;
-        iVc1 lightcount;
-        Vc4 backgroundColor = vec4r; // for skybox configure
-        iVc4 iModifiers0 = ivec4r;
-        iVc4 iModifiers1 = ivec4r;
-        Vc4 fModifiers0 = vec4r;
-        Vc4 fModifiers1 = vec4r;
-        Vc4x4 transformModifier = mat4r;
-    };
+	struct MaterialUniformStruct {
+		int materialOffset;
+		int materialCount;
+		int time;
+		int lightcount;
+	};
 
-    struct SamplerUniformStruct {
-        Vc2 sceneRes;
-        iVc1 samplecount;
-        iVc1 rayCount;
-        iVc1 iteration;
-        iVc1 phase;
-        iVc1 hitCount;
-        iVc1 reserved0;
-        iVc1 reserved1;
-        iVc1 currentRayLimit;
-
-        iVc2 padding;
-    };
+	struct SamplerUniformStruct {
+		glm::vec2 sceneRes;
+		int samplecount;
+		int rayCount;
+		int iteration;
+		int phase;
+		int hitCount; // planned
+		int reserved0;
+		int reserved1;
+		int currentRayLimit;
+		glm::ivec2 padding;
+	};
 
     struct LightUniformStruct {
         Vc4 lightVector;
@@ -263,7 +256,7 @@ namespace NSM {
         int32_t flags = 0;
         int32_t alphafunc = 0;
         int32_t binding = 0;
-        int32_t unk0i = 0;
+        int32_t bitfield = 0;
 
         glm::ivec4 iModifiers0 = glm::ivec4(0);
     };

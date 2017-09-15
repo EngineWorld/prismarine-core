@@ -14,16 +14,10 @@
 //#define GEOMETRY_BLOCK 
 
 struct MaterialUniformStruct {
-    int materialID;
-    int _reserved;
+    int materialOffset;
+    int materialCount;
     int time;
     int lightcount;
-    vec4 backgroundColor; // for skybox configure
-    ivec4 iModifiers0;
-    ivec4 iModifiers1;
-    vec4 fModifiers0;
-    vec4 fModifiers1;
-    mat4x4 transformModifier;
 };
 
 struct SamplerUniformStruct {
@@ -36,6 +30,7 @@ struct SamplerUniformStruct {
     int reserved0;
     int reserved1;
     int currentRayLimit;
+    ivec2 padding;
 };
 
 struct LightUniformStruct {

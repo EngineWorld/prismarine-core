@@ -24,7 +24,8 @@ namespace NSM {
         void setTextureSet(TextureSet &txs) { texset = &txs; }
         void clearSubmats() { submats.resize(0); }
 
-        size_t addSubmat(const VirtualMaterial * submat) ;
+		size_t getMaterialCount();
+        size_t addSubmat(const VirtualMaterial * submat);
         size_t addSubmat(const VirtualMaterial &submat);
         void setSumbat(const size_t& i, const VirtualMaterial &submat);
 
