@@ -43,7 +43,7 @@ namespace NSM {
         
         initShaderComputeSPIRV("./shaders-spv/raytracing/surface.comp.spv", surfProgram);
         initShaderComputeSPIRV("./shaders-spv/raytracing/rayshading.comp.spv", matProgram);
-        initShaderComputeSPIRV("./shaders-spv/raytracing/reclaim.comp.spv", reclaimProgram);
+        //initShaderComputeSPIRV("./shaders-spv/raytracing/reclaim.comp.spv", reclaimProgram);
         initShaderComputeSPIRV("./shaders-spv/raytracing/camera.comp.spv", cameraProgram);
         initShaderComputeSPIRV("./shaders-spv/raytracing/clear.comp.spv", clearProgram);
         initShaderComputeSPIRV("./shaders-spv/raytracing/sampler.comp.spv", samplerProgram);

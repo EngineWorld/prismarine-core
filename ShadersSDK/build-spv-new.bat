@@ -34,7 +34,6 @@ call glslc %CFLAGS% %FRGPROF% %INDIR%%RNDR%render.frag        -o %OUTDIR%%RNDR%r
 call glslc %CFLAGS% %VRTPROF% %INDIR%%RNDR%render.vert        -o %OUTDIR%%RNDR%render.vert.spv
 call glslc %CFLAGS% %CMPPROF% %INDIR%%RNDR%camera.comp        -o %OUTDIR%%RNDR%camera.comp.spv
 call glslc %CFLAGS% %CMPPROF% %INDIR%%RNDR%clear.comp         -o %OUTDIR%%RNDR%clear.comp.spv
-call glslc %CFLAGS% %CMPPROF% %INDIR%%RNDR%reclaim.comp       -o %OUTDIR%%RNDR%reclaim.comp.spv
 call glslc %CFLAGS% %CMPPROF% %INDIR%%RNDR%sampler.comp       -o %OUTDIR%%RNDR%sampler.comp.spv
 call glslc %CFLAGS% %CMPPROF% %INDIR%%RNDR%filter.comp        -o %OUTDIR%%RNDR%filter.comp.spv
 call glslc %CFLAGS% %CMPPROF% %INDIR%%RNDR%deinterlace.comp   -o %OUTDIR%%RNDR%deinterlace.comp.spv
@@ -81,7 +80,6 @@ call spirv-opt %OPTFLAGS% %OUTDIR%%VRTX%loader-int16.comp.spv   -o %OUTDIR%%VRTX
 
 call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%directTraverse.comp.spv -o %OUTDIR%%RNDR%directTraverse.comp.spv
 call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%surface.comp.spv        -o %OUTDIR%%RNDR%resolver.comp.spv
-call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%reclaim.comp.spv        -o %OUTDIR%%RNDR%reclaim.comp.spv
 call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%rayshading.comp.spv     -o %OUTDIR%%RNDR%rayshading.comp.spv
 call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%camera.comp.spv         -o %OUTDIR%%RNDR%camera.comp.spv
 call spirv-opt %OPTFLAGS% %OUTDIR%%RNDR%sampler.comp.spv        -o %OUTDIR%%RNDR%sampler.comp.spv

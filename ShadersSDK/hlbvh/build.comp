@@ -162,7 +162,7 @@ void main() {
             //int trID = aRange[0] + hWS * i + int(threadID) / 2;
             int trID = aRange[0] + WS * i + int(threadID);
             if (allInvocations(trID >= aRange[1])) break;
-            splitNode(trID);
+            if (trID < aRange[1]) splitNode(trID);
         }
     }
 
