@@ -118,7 +118,7 @@ vec2 intersectTriangle2(in vec3 orig, in vec3 dir, inout ivec2 tri, inout vec4 U
 
             vec2 u = vec2(0.f);
             u = dot2(tvec, pvec) * invDev;
-            valid = and2(valid, and2(greaterThanEqual(u, vec2(0.f)), lessThan(u, vec2(1.f))));
+            valid = and2(valid, and2(greaterThanEqual(u, vec2(-0.00001f)), lessThan(u, vec2(1.00001f))));
             if (anyInvocation(any(valid))) {
                 mat3x2 qvec = mat3x2(
                     fma(tvec[1], e1[2], -tvec[2] * e1[1]),
@@ -128,7 +128,7 @@ vec2 intersectTriangle2(in vec3 orig, in vec3 dir, inout ivec2 tri, inout vec4 U
 
                 vec2 v = vec2(0.f);
                 v = dot2(dir2, qvec) * invDev;
-                valid = and2(valid, and2(greaterThanEqual(v, vec2(0.f)), lessThan(u+v, vec2(1.f))));
+                valid = and2(valid, and2(greaterThanEqual(v, vec2(-0.00001f)), lessThan(u+v, vec2(1.00001f))));
                 if (anyInvocation(any(valid))) {
                     // distance
                     t2 = dot2(e2, qvec) * invDev;
@@ -178,12 +178,12 @@ float intersectTriangle(in vec3 orig, in vec3 dir, in int tri, inout vec2 UV, in
             float invDev = 1.f / (max(abs(det), 0.000001f) * sign(det));
             vec3 tvec = orig - ve[0];
             float u = dot(tvec, pvec) * invDev;
-            if (u < 0.f || u > 1.0f) valid = false;
+            if (u < -0.00001f || u > 1.00001f) valid = false;
             if (anyInvocation(valid)) {
                 // invalidate V
                 vec3 qvec = cross(tvec, e1);
                 float v = dot(dir, qvec) * invDev;
-                if (v < 0.f || (u+v) > 1.0f) valid = false;
+                if (v < -0.00001f || (u+v) > 1.00001f) valid = false;
                 if (anyInvocation(valid)) {
                     // resolve T
                     float t = dot(e2, qvec) * invDev;
