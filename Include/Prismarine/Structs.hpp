@@ -5,7 +5,7 @@
 #include "Utils.hpp"
 
 namespace NSM {
-    
+
     typedef float Vc1;
     typedef int32_t iVc1;
 
@@ -65,7 +65,7 @@ namespace NSM {
     const Vc4 vec4r = { 0.0f, 0.0f, 0.0f, 0.0f };
     const iVc4 ivec4r = { 0, 0, 0, 0 };
 
-    struct Minmax  {
+    struct Minmax {
         Vc4 mn;
         Vc4 mx;
     };
@@ -103,7 +103,7 @@ namespace NSM {
         // low four 16 bit - texcoords
         glm::uvec4 metallicRoughness; // four 16-bit float
 
-        // color parameters
+                                      // color parameters
         glm::uvec4 emission_albedo;
         //glm::vec4 emission;
         //glm::vec4 albedo;
@@ -136,31 +136,31 @@ namespace NSM {
     };
 
     struct ColorChain {
-        Vc4 color = {0.0f, 0.0f, 0.0f, 0.0f};
-        iVc4 cdata = {0, 0, 0, 0};
+        Vc4 color = { 0.0f, 0.0f, 0.0f, 0.0f };
+        iVc4 cdata = { 0, 0, 0, 0 };
     };
 
 
 
-	struct MaterialUniformStruct {
-		int materialOffset;
-		int materialCount;
-		int time;
-		int lightcount;
-	};
+    struct MaterialUniformStruct {
+        int materialOffset;
+        int materialCount;
+        int time;
+        int lightcount;
+    };
 
-	struct SamplerUniformStruct {
-		glm::vec2 sceneRes;
-		int samplecount;
-		int rayCount;
-		int iteration;
-		int phase;
-		int hitCount; // planned
-		int reserved0;
-		int reserved1;
-		int currentRayLimit;
-		glm::ivec2 padding;
-	};
+    struct SamplerUniformStruct {
+        glm::vec2 sceneRes;
+        int samplecount;
+        int rayCount;
+        int iteration;
+        int phase;
+        int hitCount; // planned
+        int reserved0;
+        int reserved1;
+        int currentRayLimit;
+        glm::ivec2 padding;
+    };
 
     struct LightUniformStruct {
         Vc4 lightVector;

@@ -29,7 +29,7 @@
 
 namespace NSM {
     //using namespace gl;
-    
+
     class BaseClass {};
     class Pipeline;
     class TriangleHierarchy;
@@ -161,9 +161,9 @@ namespace NSM {
         glDispatchCompute(gridSize, 1, 1);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
 
-//#ifdef PROFILE_RT
-//		glFinish();
-//#endif
+        //#ifdef PROFILE_RT
+        //		glFinish();
+        //#endif
     }
 
     void dispatchIndirect(const GLuint &program, const GLuint& buffer) {
@@ -173,11 +173,11 @@ namespace NSM {
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
     }
 
-	void SWAP(GLuint& buf1, GLuint& buf2) {
-		GLuint tmp = buf1;
-		buf1 = buf2;
-		buf2 = tmp;
-	}
+    void SWAP(GLuint& buf1, GLuint& buf2) {
+        GLuint tmp = buf1;
+        buf1 = buf2;
+        buf2 = tmp;
+    }
 
     const int32_t zero[1] = { 0 };
 

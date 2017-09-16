@@ -20,10 +20,10 @@ namespace NSM {
         std::vector<uint32_t> freedomTextures;
         std::map<std::string, uint32_t> texnames;
 
-        TextureSet() {init();};
+        TextureSet() { init(); };
         void loadToVGA();
         void bindWithContext(GLuint & prog);
-		void freeTextureByGL(const GLuint& idx);
+        void freeTextureByGL(const GLuint& idx);
         void freeTexture(const uint32_t& idx);
         void clearGlTextures();
 

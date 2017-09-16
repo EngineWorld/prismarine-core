@@ -37,7 +37,7 @@ namespace NSM {
         GLuint vbo_normal_textrue_upload = -1;
         GLuint vbo_texcoords_textrue_upload = -1;
         GLuint vbo_modifiers_textrue_upload = -1;
-        
+
 
         // uniform buffer
         GLuint geometryBlockUniform = -1;
@@ -46,7 +46,7 @@ namespace NSM {
         // uniforms
         GeometryUniformStruct geometryUniformData;
 
-		GLuint buildBuffer = -1;
+        GLuint buildBuffer = -1;
         GLuint aabbCounter = -1;
         GLuint leafBuffer = -1;
         GLuint bvhnodesBuffer = -1;
@@ -66,7 +66,7 @@ namespace NSM {
         void init();
 
         glm::vec3 offset = glm::vec3(-1.0001f);
-        glm::vec3 scale  = glm::vec3( 2.0002f);
+        glm::vec3 scale = glm::vec3(2.0002f);
 
     public:
 

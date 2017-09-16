@@ -50,13 +50,13 @@ namespace NSM {
         int32_t currentRayLimit = 0;
         int32_t worksize = 128;
 
-		bool hitModified = false;
-		size_t hitCountCached = 0;
+        bool hitModified = false;
+        size_t hitCountCached = 0;
 
         // position texture
         //GLuint positionimg = -1;
         //GLuint prevsampled = -1;
-		//GLuint reprojected = -1;
+        //GLuint reprojected = -1;
 
         // frame buffers
         GLuint presampled = -1;

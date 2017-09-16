@@ -4,8 +4,8 @@
 
 namespace NSM {
 
-    inline Pipeline::~Pipeline(){
-        
+    inline Pipeline::~Pipeline() {
+
         glDeleteProgram(renderProgram);
         glDeleteProgram(matProgram);
         glDeleteProgram(reclaimProgram);
@@ -36,11 +36,11 @@ namespace NSM {
         glDeleteTextures(1, &sampleflags);
 
         glDeleteVertexArrays(1, &vao);
-        
+
     }
 
     inline void Pipeline::initShaders() {
-        
+
         initShaderComputeSPIRV("./shaders-spv/raytracing/surface.comp.spv", surfProgram);
         initShaderComputeSPIRV("./shaders-spv/raytracing/rayshading.comp.spv", matProgram);
         //initShaderComputeSPIRV("./shaders-spv/raytracing/reclaim.comp.spv", reclaimProgram);
@@ -50,7 +50,7 @@ namespace NSM {
         initShaderComputeSPIRV("./shaders-spv/raytracing/filter.comp.spv", filterProgram);
         initShaderComputeSPIRV("./shaders-spv/raytracing/directTraverse.comp.spv", traverseDirectProgram);
         initShaderComputeSPIRV("./shaders-spv/raytracing/deinterlace.comp.spv", deinterlaceProgram);
-        
+
 
         {
             renderProgram = glCreateProgram();
@@ -67,7 +67,7 @@ namespace NSM {
     inline void Pipeline::initVAO() {
         Vc2 arr[4] = { { -1.0f, -1.0f },{ 1.0f, -1.0f },{ -1.0f, 1.0f },{ 1.0f, 1.0f } };
 
-		GLuint posBuf, idcBuf;
+        GLuint posBuf, idcBuf;
 
         glCreateBuffers(1, &posBuf);
         glNamedBufferData(posBuf, strided<Vc2>(4), arr, GL_STATIC_DRAW);
@@ -90,7 +90,7 @@ namespace NSM {
         initVAO();
 
         lightUniformData = new LightUniformStruct[6];
-        for (int i = 0; i < 6;i++) {
+        for (int i = 0; i < 6; i++) {
             lightColor[i] = glm::vec4((glm::vec3(255.f, 250.f, 244.f) / 255.f) * 100.f, 40.0f);
             lightAmbient[i] = glm::vec4(0.0f);
             lightVector[i] = glm::vec4(0.3f, 1.0f, 0.1f, 400.0f);
@@ -136,7 +136,7 @@ namespace NSM {
         displayHeight = h;
 
         if (sampleflags != -1) glDeleteTextures(1, &sampleflags);
-        if (presampled  != -1) glDeleteTextures(1, &presampled);
+        if (presampled != -1) glDeleteTextures(1, &presampled);
         if (filtered != -1) glDeleteTextures(1, &filtered);
         //if (prevsampled != -1) glDeleteTextures(1, &prevsampled);
         //if (positionimg != -1) glDeleteTextures(1, &positionimg);
@@ -146,10 +146,10 @@ namespace NSM {
 
         sampleflags = allocateTexture2D<GL_R32UI>(displayWidth, displayHeight);
         presampled = allocateTexture2D<GL_RGBA32F>(displayWidth, displayHeight);
-		filtered = allocateTexture2D<GL_RGBA32F>(displayWidth, displayHeight);
+        filtered = allocateTexture2D<GL_RGBA32F>(displayWidth, displayHeight);
         //prevsampled = allocateTexture2D<GL_RGBA32F>(displayWidth, displayHeight);
-        
-        
+
+
         // set sampler of
         glTextureParameteri(presampled, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTextureParameteri(presampled, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -170,24 +170,24 @@ namespace NSM {
         width = w, height = h;
         bool enableInterlacing = false;
 
-        if (colorchains   != -1) glDeleteBuffers(1, &colorchains);
-        if (rays          != -1) glDeleteBuffers(1, &rays);
-        if (hits          != -1) glDeleteBuffers(1, &hits);
-        if (activel       != -1) glDeleteBuffers(1, &activel);
-        if (activenl      != -1) glDeleteBuffers(1, &activenl);
-        if (texels        != -1) glDeleteBuffers(1, &texels);
-        if (freedoms      != -1) glDeleteBuffers(1, &freedoms);
-        if (availables    != -1) glDeleteBuffers(1, &availables);
-        if (quantized     != -1) glDeleteBuffers(1, &quantized);
+        if (colorchains != -1) glDeleteBuffers(1, &colorchains);
+        if (rays != -1) glDeleteBuffers(1, &rays);
+        if (hits != -1) glDeleteBuffers(1, &hits);
+        if (activel != -1) glDeleteBuffers(1, &activel);
+        if (activenl != -1) glDeleteBuffers(1, &activenl);
+        if (texels != -1) glDeleteBuffers(1, &texels);
+        if (freedoms != -1) glDeleteBuffers(1, &freedoms);
+        if (availables != -1) glDeleteBuffers(1, &availables);
+        if (quantized != -1) glDeleteBuffers(1, &quantized);
         if (deferredStack != -1) glDeleteBuffers(1, &deferredStack);
 
         //const int32_t cmultiplier = 6;
-		const int32_t cmultiplier = 4;
+        const int32_t cmultiplier = 4;
         const int32_t wrsize = width * height;
         currentRayLimit = std::min(wrsize * cmultiplier / (enableInterlacing ? 2 : 1), 4096 * 4096);
 
         colorchains = allocateBuffer<ColorChain>(wrsize * 8);
-		texels = allocateBuffer<Texel>(wrsize);
+        texels = allocateBuffer<Texel>(wrsize);
 
         rays = allocateBuffer<Ray>(currentRayLimit);
         hits = allocateBuffer<Hit>(currentRayLimit / 2);
@@ -243,13 +243,13 @@ namespace NSM {
     }
 
     inline void Pipeline::clearRays() {
-        for (int i = 0; i < 8;i++) {
+        for (int i = 0; i < 8; i++) {
             glCopyNamedBufferSubData(arcounterTemp, arcounter, 0, sizeof(uint32_t) * i, sizeof(uint32_t));
         }
     }
 
     inline void Pipeline::sample() {
-        
+
         // collect samples
         glBindImageTexture(0, presampled, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
         glBindImageTexture(1, sampleflags, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
@@ -268,12 +268,12 @@ namespace NSM {
         dispatch(filterProgram, tiled(displayWidth * displayHeight, worksize));
 
 #ifdef PROFILE_RT
-		glFinish();
+        glFinish();
 #endif
 
         // save previous frame
         //glCopyImageSubData(filtered, GL_TEXTURE_2D, 0, 0, 0, 0, prevsampled, GL_TEXTURE_2D, 0, 0, 0, 0, displayWidth, displayHeight, 1);
-        
+
     }
 
     inline void Pipeline::camera(const glm::mat4 &persp, const glm::mat4 &frontSide) {
@@ -288,7 +288,7 @@ namespace NSM {
         dispatch(cameraProgram, tiled(width * height, worksize));
 
 #ifdef PROFILE_RT
-		glFinish();
+        glFinish();
 #endif
 
         reloadQueuedRays(true);
@@ -317,40 +317,40 @@ namespace NSM {
         dispatch(clearProgram, tiled(displayWidth * displayHeight, worksize));
 
 #ifdef PROFILE_RT
-		glFinish();
+        glFinish();
 #endif
     }
 
     inline void Pipeline::reloadQueuedRays(bool doSort, bool sortMortons) {
-		int32_t counters[8];
-		counters[3] = counters[3] >= 0 ? counters[3] : 0;
-		glGetNamedBufferSubData(arcounter, 0 * sizeof(uint32_t), 8 * sizeof(uint32_t), counters);
+        int32_t counters[8];
+        counters[3] = counters[3] >= 0 ? counters[3] : 0;
+        glGetNamedBufferSubData(arcounter, 0 * sizeof(uint32_t), 8 * sizeof(uint32_t), counters);
 
-		raycountCache = counters[0];
+        raycountCache = counters[0];
         samplerUniformData.rayCount = raycountCache;
         //syncUniforms(); // no need extra loud
 
         uint32_t availableCount = counters[2];
         glCopyNamedBufferSubData(arcounter, arcounter, 2 * sizeof(int32_t), 3 * sizeof(int32_t), sizeof(int32_t));
-		//glNamedBufferSubData(arcounterTemp, 3 * sizeof(int32_t), sizeof(int32_t), &availableCountLeast);
+        //glNamedBufferSubData(arcounterTemp, 3 * sizeof(int32_t), sizeof(int32_t), &availableCountLeast);
 
         // set to zeros
         glCopyNamedBufferSubData(arcounterTemp, arcounter, 0, sizeof(uint32_t) * 7, sizeof(uint32_t));
         //glCopyNamedBufferSubData(arcounterTemp, arcounter, 0, sizeof(uint32_t) * 2, sizeof(uint32_t));
-		glNamedBufferSubData(arcounterTemp, 2 * sizeof(int32_t), sizeof(int32_t), &counters[3]); // using with least
+        glNamedBufferSubData(arcounterTemp, 2 * sizeof(int32_t), sizeof(int32_t), &counters[3]); // using with least
         glCopyNamedBufferSubData(arcounterTemp, arcounter, 0, sizeof(uint32_t) * 0, sizeof(uint32_t));
 
         // copy active collection
         if (raycountCache > 0) {
             //glCopyNamedBufferSubData(activenl, activel, 0, 0, strided<uint32_t>(raycountCache));
-			SWAP(activenl, activel);
+            SWAP(activenl, activel);
         }
 
         // copy collection of available ray memory 
         if (availableCount > 0) {
             //glCopyNamedBufferSubData(freedoms, availables, 0, 0, strided<uint32_t>(availableCount));
-			if (counters[3] > 0) glCopyNamedBufferSubData(availables, freedoms, 0, 0, strided<uint32_t>(counters[3])); // copy free memory data
-			SWAP(freedoms, availables);
+            if (counters[3] > 0) glCopyNamedBufferSubData(availables, freedoms, 0, 0, strided<uint32_t>(counters[3])); // copy free memory data
+            SWAP(freedoms, availables);
         }
 
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
@@ -393,10 +393,10 @@ namespace NSM {
 
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 19, deferredStack);
         dispatch(traverseDirectProgram, tiled(rsize, worksize));
-		hitModified = true;
+        hitModified = true;
 
 #ifdef PROFILE_RT
-		glFinish();
+        glFinish();
 #endif
 
         return 1;
@@ -404,17 +404,17 @@ namespace NSM {
 
     inline void Pipeline::applyMaterials(MaterialSet * mat) {
         mat->bindWithContext(surfProgram);
-		glCopyNamedBufferSubData(mat->countBuffer, rayBlockUniform, 0, offsetof(RayBlockUniform, materialUniform) + offsetof(MaterialUniformStruct, materialOffset), sizeof(GLint) * 2); // copy material part
+        glCopyNamedBufferSubData(mat->countBuffer, rayBlockUniform, 0, offsetof(RayBlockUniform, materialUniform) + offsetof(MaterialUniformStruct, materialOffset), sizeof(GLint) * 2); // copy material part
         glCopyNamedBufferSubData(arcounter, rayBlockUniform, 7 * sizeof(int32_t), offsetof(RayBlockUniform, samplerUniform) + offsetof(SamplerUniformStruct, hitCount), sizeof(int32_t));
 
-		if (hitModified) glGetNamedBufferSubData(arcounter, 7 * sizeof(int32_t), sizeof(int32_t), &hitCountCached);
-		hitModified = false;
+        if (hitModified) glGetNamedBufferSubData(arcounter, 7 * sizeof(int32_t), sizeof(int32_t), &hitCountCached);
+        hitModified = false;
 
         if (hitCountCached <= 0) return;
         dispatch(surfProgram, tiled(hitCountCached, worksize));
 
 #ifdef PROFILE_RT
-		glFinish();
+        glFinish();
 #endif
     }
 
@@ -424,10 +424,10 @@ namespace NSM {
         materialUniformData.time = rand(); this->bind();
         glBindTextureUnit(5, skybox);
         dispatch(matProgram, tiled(rsize, worksize));
-		reloadQueuedRays(true); // you can at now
+        reloadQueuedRays(true); // you can at now
 
 #ifdef PROFILE_RT
-		glFinish();
+        glFinish();
 #endif
     }
 

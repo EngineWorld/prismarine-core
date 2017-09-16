@@ -73,7 +73,7 @@ vec4 checkerFetch(in ivec2 tx, in int lod){
     minColor = mix(minColor, min(min(min(in5, in6), min(in7, in8)), minColor), 0.5f);
     maxColor = mix(maxColor, max(max(max(in5, in6), max(in7, in8)), maxColor), 0.5f);
     
-   	vec3 preclamping = antialiased;
+       vec3 preclamping = antialiased;
     antialiased = clamp(antialiased, minColor, maxColor);
     
     mixRate = 1.0f / (1.0f / mixRate + 1.0f);

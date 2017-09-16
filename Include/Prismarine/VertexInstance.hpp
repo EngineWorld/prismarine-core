@@ -69,7 +69,7 @@ namespace NSM {
         GLuint mat_triangle_ssbo = -1;
         GLuint vebo_triangle_ssbo = -1;
         GLuint indirect_dispatch_buffer = -1;
-        
+
         BufferViewSet * bufferViewSet;
         AccessorSet * accessorSet;
         MeshUniformStruct meshUniformData;

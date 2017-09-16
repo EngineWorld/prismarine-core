@@ -23,76 +23,76 @@ namespace PrismarineExample {
 
     using namespace psm;
 
-	const std::string bgTexName = "background.jpg";
+    const std::string bgTexName = "background.jpg";
 
-	GLuint loadCubemap() {
-		FREE_IMAGE_FORMAT formato = FreeImage_GetFileType(bgTexName.c_str(), 0);
-		if (formato == FIF_UNKNOWN) {
-			return 0;
-		}
-		FIBITMAP* imagen = FreeImage_Load(formato, bgTexName.c_str());
-		if (!imagen) {
-			return 0;
-		}
+    GLuint loadCubemap() {
+        FREE_IMAGE_FORMAT formato = FreeImage_GetFileType(bgTexName.c_str(), 0);
+        if (formato == FIF_UNKNOWN) {
+            return 0;
+        }
+        FIBITMAP* imagen = FreeImage_Load(formato, bgTexName.c_str());
+        if (!imagen) {
+            return 0;
+        }
 
-		FIBITMAP* temp = FreeImage_ConvertTo32Bits(imagen);
-		FreeImage_Unload(imagen);
-		imagen = temp;
+        FIBITMAP* temp = FreeImage_ConvertTo32Bits(imagen);
+        FreeImage_Unload(imagen);
+        imagen = temp;
 
-		uint32_t width = FreeImage_GetWidth(imagen);
-		uint32_t height = FreeImage_GetHeight(imagen);
+        uint32_t width = FreeImage_GetWidth(imagen);
+        uint32_t height = FreeImage_GetHeight(imagen);
 
-		GLuint texture = 0;
-		glCreateTextures(GL_TEXTURE_2D, 1, &texture);
-		glTextureStorage2D(texture, 1, GL_RGBA8, width, height);
-		glTextureParameteri(texture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTextureParameteri(texture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTextureParameteri(texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        GLuint texture = 0;
+        glCreateTextures(GL_TEXTURE_2D, 1, &texture);
+        glTextureStorage2D(texture, 1, GL_RGBA8, width, height);
+        glTextureParameteri(texture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(texture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTextureParameteri(texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-		uint8_t * pixelsPtr = FreeImage_GetBits(imagen);
-		glTextureSubImage2D(texture, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, pixelsPtr);
+        uint8_t * pixelsPtr = FreeImage_GetBits(imagen);
+        glTextureSubImage2D(texture, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, pixelsPtr);
 
-		return texture;
-	}
+        return texture;
+    }
 
-	uint32_t _byType(int &type) {
-		switch (type) {
-		case TINYGLTF_TYPE_VEC4:
-			return 4;
-			break;
+    uint32_t _byType(int &type) {
+        switch (type) {
+        case TINYGLTF_TYPE_VEC4:
+            return 4;
+            break;
 
-		case TINYGLTF_TYPE_VEC3:
-			return 3;
-			break;
+        case TINYGLTF_TYPE_VEC3:
+            return 3;
+            break;
 
-		case TINYGLTF_TYPE_VEC2:
-			return 2;
-			break;
+        case TINYGLTF_TYPE_VEC2:
+            return 2;
+            break;
 
-		case TINYGLTF_TYPE_SCALAR:
-			return 1;
-			break;
-		}
-		return 1;
-	}
+        case TINYGLTF_TYPE_SCALAR:
+            return 1;
+            break;
+        }
+        return 1;
+    }
 
-	int32_t getTextureIndex(std::map<std::string, double> &mapped) {
-		return mapped.count("index") > 0 ? mapped["index"] : -1;
-	}
+    int32_t getTextureIndex(std::map<std::string, double> &mapped) {
+        return mapped.count("index") > 0 ? mapped["index"] : -1;
+    }
 
-	const int32_t kW = 0;
-	const int32_t kA = 1;
-	const int32_t kS = 2;
-	const int32_t kD = 3;
-	const int32_t kQ = 4;
-	const int32_t kE = 5;
-	const int32_t kSpc = 6;
-	const int32_t kSft = 7;
-	const int32_t kC = 8;
-	const int32_t kK = 9;
-	const int32_t kM = 10;
-	const int32_t kL = 11;
+    const int32_t kW = 0;
+    const int32_t kA = 1;
+    const int32_t kS = 2;
+    const int32_t kD = 3;
+    const int32_t kQ = 4;
+    const int32_t kE = 5;
+    const int32_t kSpc = 6;
+    const int32_t kSft = 7;
+    const int32_t kC = 8;
+    const int32_t kK = 9;
+    const int32_t kM = 10;
+    const int32_t kL = 11;
 
     class Controller {
         bool monteCarlo = true;
@@ -200,36 +200,36 @@ namespace PrismarineExample {
 
     class PathTracerApplication {
     public:
-		PathTracerApplication(const int32_t& argc, const char ** argv, GLFWwindow * wind) { };
-		PathTracerApplication() { };
+        PathTracerApplication(const int32_t& argc, const char ** argv, GLFWwindow * wind) { };
+        PathTracerApplication() { };
 
         void passKeyDown(const int32_t& key);
         void passKeyRelease(const int32_t& key);
         void mousePress(const int32_t& button);
         void mouseRelease(const int32_t& button);
         void mouseMove(const double& x, const double& y);
-		
+
         void resize(const int32_t& width, const int32_t& height);
         void resizeBuffers(const int32_t& width, const int32_t& height);
-		void saveHdr(std::string name = "");
+        void saveHdr(std::string name = "");
 
-		virtual void init(const int32_t& argc, const char ** argv) = 0;
-		virtual void process() = 0;
-		virtual void execute(const int32_t& argc, const char ** argv, GLFWwindow * wind);
+        virtual void init(const int32_t& argc, const char ** argv) = 0;
+        virtual void process() = 0;
+        virtual void execute(const int32_t& argc, const char ** argv, GLFWwindow * wind);
 
     protected:
-		const double measureSeconds = 2.0;
-		const double superSampling = 2.0; // IT SHOULD! Should be double resolution!
+        const double measureSeconds = 2.0;
+        const double superSampling = 2.0; // IT SHOULD! Should be double resolution!
 
-		int32_t baseWidth = 1;
-		int32_t baseHeight = 1;
+        int32_t baseWidth = 1;
+        int32_t baseHeight = 1;
 
         GLFWwindow * window;
         psm::Pipeline * rays;
         psm::TriangleHierarchy * intersector;
         Controller * cam;
         psm::MaterialSet * materialManager;
-        
+
         double time = 0;
         double diff = 0;
         glm::dvec2 mousepos;
@@ -254,93 +254,93 @@ namespace PrismarineExample {
         } goptions;
     };
 
-	void PathTracerApplication::execute(const int32_t& argc, const char ** argv, GLFWwindow * wind) {
-		window = wind;
-		glfwGetWindowSize(window, &baseWidth, &baseHeight);
+    void PathTracerApplication::execute(const int32_t& argc, const char ** argv, GLFWwindow * wind) {
+        window = wind;
+        glfwGetWindowSize(window, &baseWidth, &baseHeight);
 
-		// get DPI scaling
-		float scale = 1.0f;
-		glfwGetWindowContentScale(window, &scale, nullptr);
+        // get DPI scaling
+        float scale = 1.0f;
+        glfwGetWindowContentScale(window, &scale, nullptr);
 
-		// make DPI scaled
-		int32_t windowWidth = baseWidth * scale, windowHeight = baseHeight * scale;
-		glfwSetWindowSize(window, windowWidth, windowHeight);
+        // make DPI scaled
+        int32_t windowWidth = baseWidth * scale, windowHeight = baseHeight * scale;
+        glfwSetWindowSize(window, windowWidth, windowHeight);
 
-		// get canvas size
-		int32_t canvasWidth = baseWidth, canvasHeight = baseHeight;
-		glfwGetFramebufferSize(window, &canvasWidth, &canvasHeight);
+        // get canvas size
+        int32_t canvasWidth = baseWidth, canvasHeight = baseHeight;
+        glfwGetFramebufferSize(window, &canvasWidth, &canvasHeight);
 
-		// init or prerender data
-		this->init(argc, argv);
+        // init or prerender data
+        this->init(argc, argv);
 
-		// resize buffers and canvas
-		this->resizeBuffers(int(double(baseWidth) * double(superSampling)), int(double(baseHeight) * double(superSampling)));
-		this->resize(canvasWidth, canvasHeight);
+        // resize buffers and canvas
+        this->resizeBuffers(int(double(baseWidth) * double(superSampling)), int(double(baseHeight) * double(superSampling)));
+        this->resize(canvasWidth, canvasHeight);
 
-		// rendering itself
-		double lastTime = glfwGetTime();
-		double prevFrameTime = lastTime;
-		while (!glfwWindowShouldClose(window)) {
-			glfwPollEvents();
+        // rendering itself
+        double lastTime = glfwGetTime();
+        double prevFrameTime = lastTime;
+        while (!glfwWindowShouldClose(window)) {
+            glfwPollEvents();
 
-			int32_t oldWidth = windowWidth, oldHeight = windowHeight;
-			float oldScale = scale;
+            int32_t oldWidth = windowWidth, oldHeight = windowHeight;
+            float oldScale = scale;
 
-			// DPI scaling for Windows
-			{
-				glfwGetWindowSize(window, &windowWidth, &windowHeight); // get as base width and height
-				glfwGetWindowContentScale(window, &scale, nullptr);
-			}
+            // DPI scaling for Windows
+            {
+                glfwGetWindowSize(window, &windowWidth, &windowHeight); // get as base width and height
+                glfwGetWindowContentScale(window, &scale, nullptr);
+            }
 
-			// scale window by DPI
-			if (oldScale != scale) {
-				windowWidth *= (scale / oldScale);
-				windowHeight *= (scale / oldScale);
-				glfwSetWindowSize(window, windowWidth, windowHeight); // rescale window by DPI
-			}
+            // scale window by DPI
+            if (oldScale != scale) {
+                windowWidth *= (scale / oldScale);
+                windowHeight *= (scale / oldScale);
+                glfwSetWindowSize(window, windowWidth, windowHeight); // rescale window by DPI
+            }
 
-			// on resizing (include DPI scaling)
-			if (oldWidth != windowWidth || oldHeight != windowHeight) {
-				glfwGetFramebufferSize(window, &canvasWidth, &canvasHeight);
-				this->resize(canvasWidth, canvasHeight); // resize canvas
-			}
+            // on resizing (include DPI scaling)
+            if (oldWidth != windowWidth || oldHeight != windowHeight) {
+                glfwGetFramebufferSize(window, &canvasWidth, &canvasHeight);
+                this->resize(canvasWidth, canvasHeight); // resize canvas
+            }
 
-			// do ray tracing
-			this->process();
+            // do ray tracing
+            this->process();
 
-			// Measure speed
-			double currentTime = glfwGetTime();
-			if (currentTime - lastTime >= measureSeconds) {
-				std::cout << "FPS: " << 1.f / (currentTime - prevFrameTime) << std::endl;
-				lastTime += measureSeconds;
-			}
-			prevFrameTime = currentTime;
+            // Measure speed
+            double currentTime = glfwGetTime();
+            if (currentTime - lastTime >= measureSeconds) {
+                std::cout << "FPS: " << 1.f / (currentTime - prevFrameTime) << std::endl;
+                lastTime += measureSeconds;
+            }
+            prevFrameTime = currentTime;
 
-			// swapchain
-			glfwSwapBuffers(window);
-		}
-	}
+            // swapchain
+            glfwSwapBuffers(window);
+        }
+    }
 
-	void PathTracerApplication::saveHdr(std::string name) {
-		psm::Pipeline::HdrImage image = rays->snapHdr();
+    void PathTracerApplication::saveHdr(std::string name) {
+        psm::Pipeline::HdrImage image = rays->snapHdr();
 
-		// allocate RGBAF
-		FIBITMAP * btm = FreeImage_AllocateT(FIT_RGBAF, image.width, image.height);
+        // allocate RGBAF
+        FIBITMAP * btm = FreeImage_AllocateT(FIT_RGBAF, image.width, image.height);
 
-		// copy HDR data
-		int ti = 0;
-		for (int r = 0; r < image.height; r++) {
-			auto row = FreeImage_GetScanLine(btm, r);
-			memcpy(row, image.image + r * 4 * image.width, image.width * sizeof(float) * 4);
-		}
+        // copy HDR data
+        int ti = 0;
+        for (int r = 0; r < image.height; r++) {
+            auto row = FreeImage_GetScanLine(btm, r);
+            memcpy(row, image.image + r * 4 * image.width, image.width * sizeof(float) * 4);
+        }
 
-		// convert as 48 bits
-		//btm = FreeImage_ConvertToRGBF(btm);
+        // convert as 48 bits
+        //btm = FreeImage_ConvertToRGBF(btm);
 
-		// save HDR
-		FreeImage_Save(FIF_EXR, btm, name.c_str(), EXR_FLOAT | EXR_PIZ);
-		FreeImage_Unload(btm);
-	}
+        // save HDR
+        FreeImage_Save(FIF_EXR, btm, name.c_str(), EXR_FLOAT | EXR_PIZ);
+        FreeImage_Unload(btm);
+    }
 
     // key downs
     void PathTracerApplication::passKeyDown(const int32_t& key) {

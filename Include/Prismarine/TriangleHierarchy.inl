@@ -36,7 +36,7 @@ namespace NSM {
 
     inline void TriangleHierarchy::initShaders() {
         //initShaderComputeSPIRV("./shaders-spv/hlbvh/refit.comp.spv", refitProgramH);
-		//initShaderComputeSPIRV("./shaders-spv/hlbvh/build.comp.spv", buildProgramH);
+        //initShaderComputeSPIRV("./shaders-spv/hlbvh/build.comp.spv", buildProgramH);
         initShaderComputeSPIRV("./shaders-spv/hlbvh/refit-new.comp.spv", refitProgramH);
         initShaderComputeSPIRV("./shaders-spv/hlbvh/build-new.comp.spv", buildProgramH);
         initShaderComputeSPIRV("./shaders-spv/hlbvh/aabbmaker.comp.spv", aabbMakerProgramH);
@@ -54,7 +54,7 @@ namespace NSM {
         lscounterTemp = allocateBuffer<uint32_t>(1);
         tcounter = allocateBuffer<uint32_t>(1);
         geometryBlockUniform = allocateBuffer<GeometryBlockUniform>(1);
-		buildBuffer = allocateBuffer<uint32_t>(8);
+        buildBuffer = allocateBuffer<uint32_t>(8);
 
         bbox bound;
         bound.mn.x = 100000.f;
@@ -185,7 +185,7 @@ namespace NSM {
         glUseProgram(0);
 
 #ifdef PROFILE_RT
-		glFinish();
+        glFinish();
 #endif
     }
 
@@ -209,7 +209,7 @@ namespace NSM {
 
         // validate
         if (this->triangleCount <= 0 || !dirty) return;
-        
+
         // copy uploading buffers to BVH
         size_t maxHeight = std::min(maxt > 0 ? (maxt - 1) / 2047 + 1 : 0, 2047u) + 1;
         size_t height = std::min(triangleCount > 0 ? (triangleCount - 1) / 2047 + 1 : 0, maxHeight) + 1;
@@ -277,82 +277,82 @@ namespace NSM {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, bvhflagsBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, activeBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, childBuffer);
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, buildBuffer);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, buildBuffer);
 
-		/*
-		// build BVH uses multi-threads and all async modules
-		HlbvhNode node;
-		node.box.mn = glm::vec4(0.0f).xxxx;
-		node.box.mx = glm::vec4(0.0f).xxxx;
-		node.pdata.x = 0;
-		node.pdata.y = triangleCount - 1;
-		node.pdata.z = -1;
-		node.pdata.w = -1;
+        /*
+        // build BVH uses multi-threads and all async modules
+        HlbvhNode node;
+        node.box.mn = glm::vec4(0.0f).xxxx;
+        node.box.mx = glm::vec4(0.0f).xxxx;
+        node.pdata.x = 0;
+        node.pdata.y = triangleCount - 1;
+        node.pdata.z = -1;
+        node.pdata.w = -1;
 
-		GLint flagDefault = 0;
-		GLint activeElement = 0;
-		GLint buildCounterData[8] = {0};
-		buildCounterData[1] = 1;
-		buildCounterData[2] = 1;
-		buildCounterData[5] = 1;
-		glNamedBufferSubData(buildBuffer, 0, 8 * sizeof(GLint), buildCounterData);
-		glNamedBufferSubData(bvhnodesBuffer, 0, sizeof(HlbvhNode), &node);
-		glNamedBufferSubData(bvhflagsBuffer, 0, sizeof(GLint), &flagDefault);
-		glNamedBufferSubData(activeBuffer, 0, sizeof(GLint), &activeElement);
-		for (int i = 0; i < 256;i++) {
-			GLint nodeCount = buildCounterData[5] - buildCounterData[4];
-			if (nodeCount <= 0) break;
+        GLint flagDefault = 0;
+        GLint activeElement = 0;
+        GLint buildCounterData[8] = {0};
+        buildCounterData[1] = 1;
+        buildCounterData[2] = 1;
+        buildCounterData[5] = 1;
+        glNamedBufferSubData(buildBuffer, 0, 8 * sizeof(GLint), buildCounterData);
+        glNamedBufferSubData(bvhnodesBuffer, 0, sizeof(HlbvhNode), &node);
+        glNamedBufferSubData(bvhflagsBuffer, 0, sizeof(GLint), &flagDefault);
+        glNamedBufferSubData(activeBuffer, 0, sizeof(GLint), &activeElement);
+        for (int i = 0; i < 256;i++) {
+        GLint nodeCount = buildCounterData[5] - buildCounterData[4];
+        if (nodeCount <= 0) break;
 
-			dispatch(buildProgramH, tiled(nodeCount, 1024 / 2)); // because threads occupied by leafs
-			glCopyNamedBufferSubData(buildBuffer, buildBuffer, 5 * sizeof(GLint), 4 * sizeof(GLint), sizeof(GLint));
-			glCopyNamedBufferSubData(buildBuffer, buildBuffer, 2 * sizeof(GLint), 5 * sizeof(GLint), sizeof(GLint));
-			glGetNamedBufferSubData(buildBuffer, 0, 8 * sizeof(GLint), buildCounterData);
-		}
-		dispatch(refitProgramH, tiled(triangleCount, 1024));
-		*/
+        dispatch(buildProgramH, tiled(nodeCount, 1024 / 2)); // because threads occupied by leafs
+        glCopyNamedBufferSubData(buildBuffer, buildBuffer, 5 * sizeof(GLint), 4 * sizeof(GLint), sizeof(GLint));
+        glCopyNamedBufferSubData(buildBuffer, buildBuffer, 2 * sizeof(GLint), 5 * sizeof(GLint), sizeof(GLint));
+        glGetNamedBufferSubData(buildBuffer, 0, 8 * sizeof(GLint), buildCounterData);
+        }
+        dispatch(refitProgramH, tiled(triangleCount, 1024));
+        */
 
-		HlbvhNode node;
-		node.box.mn = glm::vec4( 100000.0f).xxxx;
-		node.box.mx = glm::vec4(-100000.0f).xxxx;
-		node.pdata.x = 0;
-		node.pdata.y = triangleCount - 1;
-		node.pdata.z = -1;
-		node.pdata.w = -1;
+        HlbvhNode node;
+        node.box.mn = glm::vec4(100000.0f).xxxx;
+        node.box.mx = glm::vec4(-100000.0f).xxxx;
+        node.pdata.x = 0;
+        node.pdata.y = triangleCount - 1;
+        node.pdata.z = -1;
+        node.pdata.w = -1;
 
-		GLint flagDefault = 0;
-		GLint activeElement = 0;
-		GLint buildCounterData[8] = { 0 };
-		buildCounterData[1] = 1;
-		buildCounterData[2] = 1;
-		buildCounterData[5] = 1;
-		glNamedBufferSubData(buildBuffer, 0, 8 * sizeof(GLint), buildCounterData);
-		glNamedBufferSubData(bvhnodesBuffer, 0, sizeof(HlbvhNode), &node);
-		glNamedBufferSubData(bvhflagsBuffer, 0, sizeof(GLint), &flagDefault);
-		glNamedBufferSubData(activeBuffer, 0, sizeof(GLint), &activeElement);
+        GLint flagDefault = 0;
+        GLint activeElement = 0;
+        GLint buildCounterData[8] = { 0 };
+        buildCounterData[1] = 1;
+        buildCounterData[2] = 1;
+        buildCounterData[5] = 1;
+        glNamedBufferSubData(buildBuffer, 0, 8 * sizeof(GLint), buildCounterData);
+        glNamedBufferSubData(bvhnodesBuffer, 0, sizeof(HlbvhNode), &node);
+        glNamedBufferSubData(bvhflagsBuffer, 0, sizeof(GLint), &flagDefault);
+        glNamedBufferSubData(activeBuffer, 0, sizeof(GLint), &activeElement);
 
 
-		for (int i = 0; i < 256; i++) {
-			if ((i&0xF) == 0xF) { // every 16 pass
-				glGetNamedBufferSubData(buildBuffer, 0, 8 * sizeof(GLint), buildCounterData);
-				GLint nodeCount = buildCounterData[5] - buildCounterData[4];
-				if (nodeCount <= 0) break;
-			}
+        for (int i = 0; i < 256; i++) {
+            if ((i & 0xF) == 0xF) { // every 16 pass
+                glGetNamedBufferSubData(buildBuffer, 0, 8 * sizeof(GLint), buildCounterData);
+                GLint nodeCount = buildCounterData[5] - buildCounterData[4];
+                if (nodeCount <= 0) break;
+            }
 
-			dispatch(buildProgramH, 4);
-			glCopyNamedBufferSubData(buildBuffer, buildBuffer, 5 * sizeof(GLint), 4 * sizeof(GLint), sizeof(GLint));
-			glCopyNamedBufferSubData(buildBuffer, buildBuffer, 2 * sizeof(GLint), 5 * sizeof(GLint), sizeof(GLint));
-		}
+            dispatch(buildProgramH, 4);
+            glCopyNamedBufferSubData(buildBuffer, buildBuffer, 5 * sizeof(GLint), 4 * sizeof(GLint), sizeof(GLint));
+            glCopyNamedBufferSubData(buildBuffer, buildBuffer, 2 * sizeof(GLint), 5 * sizeof(GLint), sizeof(GLint));
+        }
 
 
         // build BVH itself
         //dispatch(buildProgramH, 1);
-		//dispatch(refitProgramH, 1);
-		dispatch(refitProgramH, tiled(triangleCount, 1024));
-		
-        
+        //dispatch(refitProgramH, 1);
+        dispatch(refitProgramH, tiled(triangleCount, 1024));
 
-		//std::vector < HlbvhNode > nodes(triangleCount*2);
-		//glGetNamedBufferSubData(bvhnodesBuffer, 0, strided<HlbvhNode>(nodes.size()), nodes.data());
+
+
+        //std::vector < HlbvhNode > nodes(triangleCount*2);
+        //glGetNamedBufferSubData(bvhnodesBuffer, 0, strided<HlbvhNode>(nodes.size()), nodes.data());
 
 
         // set back triangle count
@@ -361,7 +361,7 @@ namespace NSM {
         this->resolve();
 
 #ifdef PROFILE_RT
-		glFinish();
+        glFinish();
 #endif
     }
 }
