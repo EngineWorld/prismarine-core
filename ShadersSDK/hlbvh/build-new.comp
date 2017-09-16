@@ -11,7 +11,8 @@
 #include "../include/ballotlib.glsl"
 #include "./includes.glsl"
 
-const int work_size = 1024;
+//const int work_size = 1024;
+const int work_size = 128;
 layout ( local_size_x = work_size ) in;
 
 int nlz (in uint64_t x) {

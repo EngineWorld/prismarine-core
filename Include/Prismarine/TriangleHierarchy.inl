@@ -338,7 +338,8 @@ namespace NSM {
                 if (nodeCount <= 0) break;
             }
 
-            dispatch(buildProgramH, 4);
+            dispatch(buildProgramH, 32);
+            //dispatch(buildProgramH, 4);
             glCopyNamedBufferSubData(buildBuffer, buildBuffer, 5 * sizeof(GLint), 4 * sizeof(GLint), sizeof(GLint));
             glCopyNamedBufferSubData(buildBuffer, buildBuffer, 2 * sizeof(GLint), 5 * sizeof(GLint), sizeof(GLint));
         }
@@ -347,8 +348,8 @@ namespace NSM {
         // build BVH itself
         //dispatch(buildProgramH, 1);
         //dispatch(refitProgramH, 1);
-        dispatch(refitProgramH, tiled(triangleCount, 1024));
-
+        //dispatch(refitProgramH, tiled(triangleCount, 1024));
+        dispatch(refitProgramH, tiled(triangleCount, 128));
 
 
         //std::vector < HlbvhNode > nodes(triangleCount*2);

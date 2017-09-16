@@ -14,7 +14,7 @@ namespace NSM {
         GLuint pfxWorkProgram = -1;
 
         struct Consts { GLuint NumKeys, Shift, Descending, IsSigned; };
-        const uint32_t WG_COUNT = 16;
+        const uint32_t WG_COUNT = 32;
 
         GLuint TmpKeys = -1;
         GLuint TmpValues = -1;
