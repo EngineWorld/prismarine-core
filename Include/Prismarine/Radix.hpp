@@ -31,8 +31,8 @@ namespace NSM {
             initShaderComputeSPIRV("./shaders-spv/radix/histogram.comp.spv", histogramProgram);
             initShaderComputeSPIRV("./shaders-spv/radix/pfx-work.comp.spv", pfxWorkProgram);
 
-            TmpKeys = allocateBuffer<uint64_t>(1024 * 1024 * 4);
-            TmpValues = allocateBuffer<uint32_t>(1024 * 1024 * 4);
+            TmpKeys = allocateBuffer<uint64_t>(1024 * 1024 * 2);
+            TmpValues = allocateBuffer<uint32_t>(1024 * 1024 * 2);
             Histograms = allocateBuffer<uint32_t>(WG_COUNT * 256);
             PrefixSums = allocateBuffer<uint32_t>(WG_COUNT * 256);
             VarBuffer = allocateBuffer<Consts>(1);

@@ -24,9 +24,9 @@ bbox getMinMaxPrimitive(in uint idx){
         fetchMosaic(vertex_texture, gatherMosaic(getUniformCoord(tri)), 2)
     );
 
-    triverts[0] = mult4(triverts[0], GEOMETRY_BLOCK geometryUniform.transform);
-    triverts[1] = mult4(triverts[1], GEOMETRY_BLOCK geometryUniform.transform);
-    triverts[2] = mult4(triverts[2], GEOMETRY_BLOCK geometryUniform.transform);
+    triverts[0] = mult4(GEOMETRY_BLOCK geometryUniform.transform, triverts[0]);
+    triverts[1] = mult4(GEOMETRY_BLOCK geometryUniform.transform, triverts[1]);
+    triverts[2] = mult4(GEOMETRY_BLOCK geometryUniform.transform, triverts[2]);
 
 #ifdef ENABLE_AMD_INSTRUCTION_SET
     return bbox(

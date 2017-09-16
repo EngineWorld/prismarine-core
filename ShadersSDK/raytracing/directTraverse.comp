@@ -283,11 +283,11 @@ void includeLeaf2(in vec3 origin, in vec3 direct, in bvec2 valids, in HlbvhNode 
 
 
 vec3 projectVoxels(in vec3 orig) {
-    return mult4(vec4(orig, 1.0f), GEOMETRY_BLOCK geometryUniform.transform).xyz;
+    return mult4(GEOMETRY_BLOCK geometryUniform.transform, vec4(orig, 1.0f)).xyz;
 }
 
 vec3 unprojectVoxels(in vec3 orig) {
-    return mult4(vec4(orig, 1.0f), GEOMETRY_BLOCK geometryUniform.transformInv).xyz;
+    return mult4(GEOMETRY_BLOCK geometryUniform.transformInv, vec4(orig, 1.0f)).xyz;
 }
 
 
@@ -312,8 +312,7 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
 
     // test constants
     vec3 torig = projectVoxels(origin);
-    //vec3 tdirproj = mult4(GEOMETRY_BLOCK geometryUniform.transform, vec4(direct, 1.0)).xyz;
-    vec3 tdirproj = mult4(vec4(direct, 0.0), GEOMETRY_BLOCK geometryUniform.transform).xyz;
+    vec3 tdirproj = mult4(vec4(direct, 1.0), GEOMETRY_BLOCK geometryUniform.transform).xyz;
     float dirlen = length(tdirproj) / max(length(direct), 0.000001f);
     float dirlenInv = 1.f / max(dirlen, 0.000001f);
     vec3 dirproj = normalize(tdirproj);

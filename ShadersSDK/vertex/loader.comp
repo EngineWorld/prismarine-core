@@ -98,8 +98,8 @@ void main()
         vtex.y = 1.0f - vtex.y; // invert Y
 #endif
 
-        vec4 normalf  = mult4(vec4(vnorm, 0.0f), meshUniform.transformInv);
-        vec4 verticef = mult4(vec4(vpos , 1.0f), meshUniform.transform);
+        vec4 normalf  = mult4(meshUniform.transformInv, vec4(vnorm, 0.0f));
+        vec4 verticef = mult4(meshUniform.transform, vec4(vpos , 1.0f));
         verticef.xyz /= verticef.w;
 
         vertice[i] = verticef.xyz;

@@ -280,8 +280,8 @@ namespace NSM {
         clearRays();
 
         materialUniformData.time = rand();
-        cameraUniformData.camInv = *(Vc4x4 *)glm::value_ptr(glm::inverse(frontSide));
-        cameraUniformData.projInv = *(Vc4x4 *)glm::value_ptr(glm::inverse(persp));
+        cameraUniformData.camInv = *(Vc4x4 *)glm::value_ptr(glm::transpose(glm::inverse(frontSide)));
+        cameraUniformData.projInv = *(Vc4x4 *)glm::value_ptr(glm::transpose(glm::inverse(persp)));
         cameraUniformData.interlaceStage = (framenum++) % 2;
 
         this->bind();
