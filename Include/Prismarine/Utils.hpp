@@ -24,7 +24,7 @@
 #include "external/include/FreeImage.h"
 #endif
 
-#define PROFILE_RT
+//#define PROFILE_RT
 #define NSM psm
 
 namespace NSM {
