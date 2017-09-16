@@ -28,8 +28,8 @@ namespace NSM {
         glDeleteBuffers(1, &mortonBufferIndex);
         glDeleteBuffers(1, &bvhflagsBuffer);
         glDeleteBuffers(1, &lscounterTemp);
-        glDeleteBuffers(1, &minmaxBufRef);
         glDeleteBuffers(1, &tcounter);
+        glDeleteBuffers(1, &minmaxBufRef);
         glDeleteBuffers(1, &minmaxBuf);
     }
 
@@ -49,8 +49,8 @@ namespace NSM {
         initShaders();
         sorter = new RadixSort();
 
-        minmaxBufRef = allocateBuffer<bbox>(1);
-        minmaxBuf = allocateBuffer<bbox>(1);
+        minmaxBufRef = allocateBuffer<bbox>(boundWorkSize);
+        minmaxBuf = allocateBuffer<bbox>(boundWorkSize);
         lscounterTemp = allocateBuffer<uint32_t>(1);
         tcounter = allocateBuffer<uint32_t>(1);
         geometryBlockUniform = allocateBuffer<GeometryBlockUniform>(1);
@@ -67,8 +67,10 @@ namespace NSM {
         bound.mx.w = -100000.f;
 
         glNamedBufferSubData(lscounterTemp, 0, strided<int32_t>(1), zero);
-        glNamedBufferSubData(minmaxBuf, 0, strided<bbox>(1), &bound);
-        glNamedBufferSubData(minmaxBufRef, 0, strided<bbox>(1), &bound);
+        for (int i = 0; i < boundWorkSize;i++) {
+            glNamedBufferSubData(minmaxBuf, strided<bbox>(i), strided<bbox>(1), &bound);
+            glNamedBufferSubData(minmaxBufRef, strided<bbox>(i), strided<bbox>(1), &bound);
+        }
     }
 
     inline void TriangleHierarchy::allocate(const size_t &count) {
@@ -232,11 +234,19 @@ namespace NSM {
         this->syncUniforms();
         this->bind();
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, minmaxBuf);
-        dispatch(minmaxProgram2, 1);
+        //dispatch(minmaxProgram2, 1);
+        dispatch(minmaxProgram2, boundWorkSize);
 
         // getting boundings
-        bbox bound;
-        glGetNamedBufferSubData(minmaxBuf, 0, strided<bbox>(1), &bound);
+        bbox * bounds = new bbox[boundWorkSize];
+        glGetNamedBufferSubData(minmaxBuf, 0, strided<bbox>(boundWorkSize), bounds);
+        bbox bound = bounds[0];
+        for (int i = 1; i < boundWorkSize;i++) {
+            bound.mn = glm::min(bounds[i].mn, bound.mn);
+            bound.mx = glm::max(bounds[i].mx, bound.mx);
+        }
+        delete bounds;
+
         scale = (glm::make_vec4((float *)&bound.mx) - glm::make_vec4((float *)&bound.mn)).xyz();
         offset = glm::make_vec4((float *)&bound.mn).xyz();
 
