@@ -323,7 +323,7 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
     lastRes.predist = min(lastRes.predist, far * dirlenInv);
 
     // init state
-    int idx = 0, esc = -1, level = 0;
+    int idx = 0, esc = -1, level = 0, found = -1;
     bool validBox = valid && lessF(d, INFINITY) && lessF(d * dirlenInv, INFINITY) && greaterEqualF(d, 0.0f);
     HlbvhNode node = Nodes[idx];
 
@@ -388,8 +388,9 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
                     if (deferredPtr < (STACK_SIZE + GLOBAL_STACK_SIZE) && leftright.y != -1 && leftright.x != leftright.y) {
                         storeStack(deferredPtr++, leftright.y);
                     }
-                    idx = leftright.x;
-                    node = Nodes[idx]; // for optimized read-write operations
+                    found = leftright.x;
+                    //idx = leftright.x;
+                    //node = Nodes[idx]; // for optimized read-write operations
                     //level++;
                 }
             }
@@ -398,11 +399,11 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
         }
 
         // go to parent 
-        if (!skipUpstream && !skipIntersection) {
-            int ptr = --deferredPtr;
+        if (/*!skipUpstream &&*/ !skipIntersection) {
+            int ptr = skipUpstream ? deferredPtr : --deferredPtr;
             //int ptr = 0;
-            esc = idx;
-            idx = ptr >= 0 ? loadStack(ptr) : -1;
+            esc = skipUpstream ? -1 : idx;
+            idx = ptr >= 0 ? (skipUpstream ? found : loadStack(ptr)) : -1;
             //idx = node.pdata.z; level--;
             node = Nodes[idx]; // for optimized read-write operations
             validBox = validBox && idx >= 0 && level >= 0 && ptr >= 0;
