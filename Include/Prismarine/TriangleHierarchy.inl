@@ -100,7 +100,7 @@ namespace NSM {
         aabbCounter = allocateBuffer<int32_t>(1);
         bvhnodesBuffer = allocateBuffer<HlbvhNode>(maxt * 2);
         bvhflagsBuffer = allocateBuffer<uint32_t>(maxt * 2);
-        activeBuffer = allocateBuffer<uint32_t>(maxt * 2);
+        activeBuffer = allocateBuffer<uint32_t>(maxt * 5);
         mortonBuffer = allocateBuffer<uint64_t>(maxt * 1);
         mortonBufferIndex = allocateBuffer<uint32_t>(maxt * 1);
         leafBuffer = allocateBuffer<HlbvhNode>(maxt * 1);
@@ -359,8 +359,8 @@ namespace NSM {
         //dispatch(buildProgramH, 1);
         //dispatch(refitProgramH, 1);
         //dispatch(refitProgramH, tiled(triangleCount, 1024));
-        dispatch(refitProgramH, tiled(triangleCount, 128));
-
+        //dispatch(refitProgramH, tiled(triangleCount, 128));
+        dispatch(refitProgramH, 32);
 
         //std::vector < HlbvhNode > nodes(triangleCount*2);
         //glGetNamedBufferSubData(bvhnodesBuffer, 0, strided<HlbvhNode>(nodes.size()), nodes.data());

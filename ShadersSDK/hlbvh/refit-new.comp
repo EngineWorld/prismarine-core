@@ -13,48 +13,94 @@
 const int work_size = 128;
 layout ( local_size_x = work_size ) in;
 
+shared int aCounter;
+shared int aRange[2];
+initAtomicIncFunction(aCounter, aCounterInc, int);
+
 void main() {
-    int globalID = int(gl_GlobalInvocationID.x);
-    if (globalID < Range[0]) {
-        int idx = atomicExchange(LeafIndices[globalID], -1);
-        if (idx >= 0) {
-            // link childrens
-            {
-                HlbvhNode childNode = Nodes[idx];
-                childNode.box.mn = ( 100000.f).xxxx;
-                childNode.box.mx = (-100000.f).xxxx;
-                
-                // make leafs links
-                uint leafID = MortoncodesIndices[childNode.pdata.x];
-                atomicExchange(Leafs[leafID].pdata.z, int(idx));
+    int localID = int(gl_LocalInvocationID.x);
 
-                // fit bounding box
-                bbox lbound = Leafs[leafID].box;
-                bbox bound = childNode.box;
-                childNode.box.mn = min(bound.mn, lbound.mn);
-                childNode.box.mx = max(bound.mx, lbound.mx);
+    // init counter
+    if (localID == 0) {
+        aCounter = 0;
+        aRange[0] = 0;
+        aRange[1] = 0;
+    }
 
-                // reform range
-                ivec2 range = childNode.pdata.xy;
-                childNode.pdata.xy = range.yy; // leaf end (for identify that is leaf)
-                //childNode.pdata.w = range.x; // leaf index (except morton-code) is primitive
-                childNode.pdata.w = Leafs[MortoncodesIndices[range.x]].pdata.w;
+    // use chunky model
+    int n = GEOMETRY_BLOCK geometryUniform.triangleCount * int(log2(float(gl_NumWorkGroups)));
+    int blockSize = min(n <= 0 ? 0 : ((n - 1) / int(gl_NumWorkGroups) + 1), 1024 * 1024);
+    int blockOffset = blockSize * int(gl_WorkGroupID.x);
 
-                Nodes[idx] = childNode;
-            }
+    memoryBarrier(); barrier(); 
+    {
+        int n = GEOMETRY_BLOCK geometryUniform.triangleCount;
+        int wcount = min(n <= 0 ? 0 : ((n - 1) / int(gl_WorkGroupSize.x) + 1), 50000);
+        for (int w=0;w<wcount;w+=int(gl_NumWorkGroups)) {
+            int globalID = (w + int(gl_WorkGroupID.x)) * int(gl_WorkGroupSize.x) + localID;
+            if (allInvocations(globalID >= n)) break;
+            if (globalID < n && globalID >= 0) {
+                int idx = atomicExchange(LeafIndices[globalID], -1);
+                if (idx >= 0) {
+                    HlbvhNode childNode = Nodes[idx];
+                    childNode.box.mn = ( 100000.f).xxxx;
+                    childNode.box.mx = (-100000.f).xxxx;
+                    
+                    uint leafID = MortoncodesIndices[childNode.pdata.x];
 
-            // fit BVH parent nodes
-            idx = Nodes[idx].pdata.z;
-            bool validParent = true;
-            for (int l=0;l<256;l++) {
-                // if parent node is not occupy
-                validParent = validParent && idx >= 0;
-                if (validParent) validParent = atomicCompSwap(Flags[idx], 0, 1) == 1;
-                //if (validParent) validParent = atomicExchange(Flags[idx], 1) == 1;
+                    // make leafs links
+                    atomicExchange(Leafs[leafID].pdata.z, int(idx));
 
-                if (validParent) {
-                    HlbvhNode nd = Nodes[idx];
+                    // fit bounding box
+                    bbox lbound = Leafs[leafID].box;
+                    bbox bound = childNode.box;
+                    childNode.box.mn = min(bound.mn, lbound.mn);
+                    childNode.box.mx = max(bound.mx, lbound.mx);
+
+                    // reform range
+                    ivec2 range = childNode.pdata.xy;
+                    childNode.pdata.xy = range.yy; // leaf end (for identify that is leaf)
+                    //childNode.pdata.w = range.x; // leaf index (except morton-code) is primitive
+                    childNode.pdata.w = Leafs[MortoncodesIndices[range.x]].pdata.w;
+
+                    Nodes[idx] = childNode;
                     //atomicExchange(Flags[idx], 0);
+                    atomicExchange(Actives[blockOffset + aCounterInc(true)], idx);
+                }
+            }
+        }
+    }
+
+    // from lower to upper
+    for (int l=0;l<256;l++) {
+        // sync count
+        memoryBarrier(); barrier(); 
+        if (localID == 0) {
+            aRange[0] = aRange[1];
+            aRange[1] = aCounter;
+        }
+
+        // sync count
+        memoryBarrier(); barrier(); 
+        if (aRange[1] <= aRange[0]) break;
+
+        int n = aRange[1] - aRange[0];
+        int wcount = min(n <= 0 ? 0 : ((n - 1) / int(gl_WorkGroupSize.x) + 1), 50000);
+        for (int w=0;w<wcount;w++) {
+            int globalID = w * int(gl_WorkGroupSize.x) + localID;
+            if (allInvocations(globalID >= n)) break;
+            if (globalID < n && globalID >= 0) {
+                // get current level node
+                int idx = atomicExchange(Actives[blockOffset + aRange[0]+globalID], -1);
+                if (idx >= 0) {
+                    HlbvhNode nd = Nodes[idx];
+
+                    // if parent node is not occupy
+                    bool validParent = nd.pdata.z >= 0 && idx >= 0;
+                    if (validParent) validParent = atomicCompSwap(Flags[nd.pdata.z], 0, 1) == 1;
+
+                    // defer parent nodes
+                    if (validParent) atomicExchange(Actives[blockOffset + aCounterInc( validParent )], nd.pdata.z);
 
                     // process unifying boxes
                     if (nd.pdata.x != nd.pdata.y && idx >= 0) {
@@ -71,12 +117,12 @@ void main() {
                         // store if valid
                         Nodes[idx] = nd;
                     }
-
-                    idx = nd.pdata.z;
-                } else {
-                    break;
                 }
             }
         }
+        
     }
+    
+
+
 }
