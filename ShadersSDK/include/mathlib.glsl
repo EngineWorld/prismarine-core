@@ -84,6 +84,14 @@ uint btc(in uint vlc){
     return vlc == 0 ? 0 : bitCount(vlc);
 }
 
+int lsb(in uint vlc){
+    return vlc == 0 ? -1 : findLSB(vlc);
+}
+
+int msb(in uint vlc){
+    return vlc == 0 ? -1 : findMSB(vlc);
+}
+
 
 
 
