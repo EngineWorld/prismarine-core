@@ -70,9 +70,9 @@ uvec2 genLtMask(){
         mask = uvec2(0xFFFFFFFF, 0xFFFFFFFF);
     } else 
     if (LANE_IDX >= 32) {
-        mask = uvec2(0xFFFFFFFF, (1 << (LANE_IDX-32))-1);
+        mask = uvec2(0xFFFFFFFF, LANE_IDX == 32 ? 0 : (1 << (LANE_IDX-32))-1);
     } else {
-        mask = uvec2((1 << LANE_IDX)-1, 0);
+        mask = uvec2(LANE_IDX == 0 ? 0 : (1 << LANE_IDX)-1, 0);
     }
     return mask;
 }

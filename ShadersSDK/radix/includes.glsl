@@ -119,9 +119,9 @@ uvec2 genLtMask(){
         mask = uvec2(0xFFFFFFFF, 0xFFFFFFFF);
     } else 
     if (LANE_IDX >= 32) {
-        mask = uvec2(0xFFFFFFFF, (1 << (LANE_IDX-32))-1);
+        mask = uvec2(0xFFFFFFFF, LANE_IDX == 32 ? 0 : (1 << (LANE_IDX-32))-1);
     } else {
-        mask = uvec2((1 << LANE_IDX)-1, 0);
+        mask = uvec2(LANE_IDX == 0 ? 0 : (1 << LANE_IDX)-1, 0);
     }
     return mask;
 }
@@ -137,7 +137,7 @@ uint readLane(in uint val, in uint lane){
 uvec2 ballotHW(in bool val) {
     return U2P(ballotARB(val)) & uvec2(
         gl_SubGroupSizeARB >= 32 ? 0xFFFFFFFF : ((1 << gl_SubGroupSizeARB)-1), 
-        gl_SubGroupSizeARB >= 64 ? 0xFFFFFFFF : ((1 << (gl_SubGroupSizeARB-32))-1)
+        gl_SubGroupSizeARB <= 32 ? 0 : (gl_SubGroupSizeARB >= 64 ? 0xFFFFFFFF : ((1 << (gl_SubGroupSizeARB-32))-1))
     );
 }
 
