@@ -387,7 +387,7 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
         }
 
         // go to parent 
-        if (!skipIntersection) {
+        if (!skipIntersection && validBox) {
             int ptr = skipUpstream ? deferredPtr : --deferredPtr;
             //int ptr = 0;
             esc = skipUpstream ? -1 : idx;
