@@ -107,8 +107,8 @@ uvec2 ballotHW(in bool val) {
 
 int firstActive(){
     UVEC_BALLOT_WARP bits = ballotHW(true);
-    int lv = lsb(bits.x);
-    return (lv >= 0 ? lv : (32+lsb(bits.y)));
+    int lv = lsb(bits.y);
+    return (lv >= 0 ? (32+lv) : lsb(bits.x));
 }
 
 #endif

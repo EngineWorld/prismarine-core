@@ -14,19 +14,18 @@
 const int work_size = 1024;
 layout ( local_size_x = work_size ) in;
 
-int nlz (in uint64_t x) {
+int nlz(in uint64_t x) {
     uvec2 pair = U2P(x);
-    int msbNear = findMSB(pair.y);
-    int nlzFinal = (msbNear >= 0) ? msbNear : (32 + findMSB(pair.x));
-    return 63-nlzFinal;
+    int lv = msb(pair.y);
+    return 63-((lv >= 0) ? (32 + lv) : (msb(pair.x)));
 }
 
-int nlz (in uint x) {
-    return 31-findMSB(x);
+int nlz(in uint x) {
+    return 31-msb(x);
 }
 
-int nlz (in int x) {
-    return 31-findMSB(uint(x));
+int nlz(in int x) {
+    return 31-msb(uint(x));
 }
 
 int findSplit( int first, int last) {
