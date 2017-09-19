@@ -121,14 +121,28 @@ void main() {
     int WS = int(gl_WorkGroupSize.x);
     int hWS = int(gl_WorkGroupSize.x) / 2;
 
+    // create initial (root) node
+    bool isBeginning = aRange[1] == 0;
+    if (gl_GlobalInvocationID.x == 0 && isBeginning) {
+        int hid = lCounterInc(true, 1);
+        atomicExchange(Actives[aCounterInc(true)], hid);
+
+        HlbvhNode node = Nodes[hid];
+        node.box.mn = ( 100000.0f).xxxx;
+        node.box.mx = (-100000.0f).xxxx;
+        node.pdata = ivec4(0, Range[0]-1, (-1).xx);
+        
+        Nodes[hid] = node;
+        Flags[hid] = 0;
+    }
+
     // begin work on splitting
-    //uint workSize = min((aRange[1] <= aRange[0]) ? 0 : (((aRange[1] - aRange[0]) - 1) / hWS + 1), 8192);
-    uint workSize = min((aRange[1] <= aRange[0]) ? 0 : (((aRange[1] - aRange[0]) - 1) / WS + 1), 8192);
+    int ranged[2] = isBeginning ? int[2](0, 1) : int[2](aRange[0], aRange[1]);
+    uint workSize = min((ranged[1] <= ranged[0]) ? 0 : (((ranged[1] - ranged[0]) - 1) / WS + 1), 8192);
     for (int i=0;i<workSize;i+=int(gl_NumWorkGroups)) {
-        //int trID = aRange[0] + hWS * (i+workID) + int(threadID) / 2;
-        int trID = aRange[0] + WS * (i+workID) + int(threadID);
-        if (allInvocations(trID >= aRange[1])) break;
-        if (trID < aRange[1]) splitNode(trID);
+        int trID = ranged[0] + WS * (i+workID) + int(threadID);
+        if (allInvocations(trID >= ranged[1])) break;
+        if (trID < ranged[1]) splitNode(trID);
     }
 
 }

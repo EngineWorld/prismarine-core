@@ -28,9 +28,7 @@ void main() {
     }
 
     // use chunky model
-    int n = GEOMETRY_BLOCK geometryUniform.triangleCount * int(2.f * log2(float(gl_NumWorkGroups)));
-    int blockSize = min(n <= 0 ? 0 : ((n - 1) / int(gl_NumWorkGroups) + 1), 1024 * 1024);
-    int blockOffset = blockSize * int(gl_WorkGroupID.x);
+    int blockOffset = GEOMETRY_BLOCK geometryUniform.triangleCount * int(gl_WorkGroupID.x);
 
     memoryBarrier(); barrier(); 
     {

@@ -100,7 +100,7 @@ namespace NSM {
         aabbCounter = allocateBuffer<int32_t>(1);
         bvhnodesBuffer = allocateBuffer<HlbvhNode>(maxt * 2);
         bvhflagsBuffer = allocateBuffer<uint32_t>(maxt * 2);
-        activeBuffer = allocateBuffer<uint32_t>(maxt * 5);
+        activeBuffer = allocateBuffer<uint32_t>(maxt * boundWorkSize);
         mortonBuffer = allocateBuffer<uint64_t>(maxt * 1);
         mortonBufferIndex = allocateBuffer<uint32_t>(maxt * 1);
         leafBuffer = allocateBuffer<HlbvhNode>(maxt * 1);
@@ -289,58 +289,9 @@ namespace NSM {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, childBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, buildBuffer);
 
-        /*
-        // build BVH uses multi-threads and all async modules
-        HlbvhNode node;
-        node.box.mn = glm::vec4(0.0f).xxxx;
-        node.box.mx = glm::vec4(0.0f).xxxx;
-        node.pdata.x = 0;
-        node.pdata.y = triangleCount - 1;
-        node.pdata.z = -1;
-        node.pdata.w = -1;
+        for (int i=0;i<8;i++) glCopyNamedBufferSubData(lscounterTemp, buildBuffer, 0, i * sizeof(GLint), strided<GLint>(1));
 
-        GLint flagDefault = 0;
-        GLint activeElement = 0;
         GLint buildCounterData[8] = {0};
-        buildCounterData[1] = 1;
-        buildCounterData[2] = 1;
-        buildCounterData[5] = 1;
-        glNamedBufferSubData(buildBuffer, 0, 8 * sizeof(GLint), buildCounterData);
-        glNamedBufferSubData(bvhnodesBuffer, 0, sizeof(HlbvhNode), &node);
-        glNamedBufferSubData(bvhflagsBuffer, 0, sizeof(GLint), &flagDefault);
-        glNamedBufferSubData(activeBuffer, 0, sizeof(GLint), &activeElement);
-        for (int i = 0; i < 256;i++) {
-        GLint nodeCount = buildCounterData[5] - buildCounterData[4];
-        if (nodeCount <= 0) break;
-
-        dispatch(buildProgramH, tiled(nodeCount, 1024 / 2)); // because threads occupied by leafs
-        glCopyNamedBufferSubData(buildBuffer, buildBuffer, 5 * sizeof(GLint), 4 * sizeof(GLint), sizeof(GLint));
-        glCopyNamedBufferSubData(buildBuffer, buildBuffer, 2 * sizeof(GLint), 5 * sizeof(GLint), sizeof(GLint));
-        glGetNamedBufferSubData(buildBuffer, 0, 8 * sizeof(GLint), buildCounterData);
-        }
-        dispatch(refitProgramH, tiled(triangleCount, 1024));
-        */
-
-        HlbvhNode node;
-        node.box.mn = glm::vec4(100000.0f).xxxx;
-        node.box.mx = glm::vec4(-100000.0f).xxxx;
-        node.pdata.x = 0;
-        node.pdata.y = triangleCount - 1;
-        node.pdata.z = -1;
-        node.pdata.w = -1;
-
-        GLint flagDefault = 0;
-        GLint activeElement = 0;
-        GLint buildCounterData[8] = { 0 };
-        buildCounterData[1] = 1;
-        buildCounterData[2] = 1;
-        buildCounterData[5] = 1;
-        glNamedBufferSubData(buildBuffer, 0, 8 * sizeof(GLint), buildCounterData);
-        glNamedBufferSubData(bvhnodesBuffer, 0, sizeof(HlbvhNode), &node);
-        glNamedBufferSubData(bvhflagsBuffer, 0, sizeof(GLint), &flagDefault);
-        glNamedBufferSubData(activeBuffer, 0, sizeof(GLint), &activeElement);
-
-
         for (int i = 0; i < 256; i++) {
             if ((i & 0xF) == 0xF) { // every 16 pass
                 glGetNamedBufferSubData(buildBuffer, 0, 8 * sizeof(GLint), buildCounterData);
@@ -349,22 +300,13 @@ namespace NSM {
             }
 
             dispatch(buildProgramH, 32);
-            //dispatch(buildProgramH, 4);
             glCopyNamedBufferSubData(buildBuffer, buildBuffer, 5 * sizeof(GLint), 4 * sizeof(GLint), sizeof(GLint));
             glCopyNamedBufferSubData(buildBuffer, buildBuffer, 2 * sizeof(GLint), 5 * sizeof(GLint), sizeof(GLint));
         }
-
-
-        // build BVH itself
-        //dispatch(buildProgramH, 1);
-        //dispatch(refitProgramH, 1);
-        //dispatch(refitProgramH, tiled(triangleCount, 1024));
-        //dispatch(refitProgramH, tiled(triangleCount, 128));
         dispatch(refitProgramH, 32);
 
         //std::vector < HlbvhNode > nodes(triangleCount*2);
         //glGetNamedBufferSubData(bvhnodesBuffer, 0, strided<HlbvhNode>(nodes.size()), nodes.data());
-
 
         // set back triangle count
         this->geometryUniformData.triangleCount = this->triangleCount;
