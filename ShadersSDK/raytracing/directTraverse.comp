@@ -241,10 +241,18 @@ TResult testIntersectionPacked(inout TResult res, in vec3 orig, in vec3 dir, in 
         // planned packed math
         vec4 uv2 = vec4(0.0f);
         vec2 _d2 = vec2(INFINITY);
+
+/*
         if (anyInvocation(all(validTriangles))) { // if any have two triangles, then use this method
             _d2 = intersectTriangle2(orig, dir, tri, uv2, validTriangles);
         } else { // no need use much resources
             _d2.x = intersectTriangle(orig, dir, tri.x, uv2.xz, validTriangles.x);
+        }
+*/
+
+        if (anyInvocation(any(validTriangles))) {
+            _d2.x = intersectTriangle(orig, dir, tri.x, uv2.xz, validTriangles.x);
+            _d2.y = intersectTriangle(orig, dir, tri.y, uv2.yw, validTriangles.y);
         }
 
         bool near = validTriangles.x && lessF(_d2.x, INFINITY) && lessEqualF(_d2.x, res.predist) && greaterEqualF(_d2.x, 0.0f);
