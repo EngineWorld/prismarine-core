@@ -184,8 +184,6 @@ namespace NSM {
         dispatchIndirect(gobject->index16bit ? geometryLoaderProgramI16 : geometryLoaderProgram2, gobject->indirect_dispatch_buffer);
         markDirty();
 
-        glUseProgram(0);
-
 #ifdef PROFILE_RT
         glFinish();
 #endif
@@ -204,6 +202,7 @@ namespace NSM {
     }
 
     inline void TriangleHierarchy::build(const glm::dmat4 &optimization) {
+        //glFinish();
         // get triangle count that uploaded
         glGetNamedBufferSubData(tcounter, 0, strided<uint32_t>(1), &this->triangleCount);
         size_t triangleCount = std::min(uint32_t(this->triangleCount), uint32_t(maxt));
@@ -230,12 +229,18 @@ namespace NSM {
             geometryUniformData.transformInv = *(Vc4x4 *)glm::value_ptr(glm::transpose(glm::inverse(glm::mat4(mat))));
         }
 
+
+
         // get bounding box of scene
         this->syncUniforms();
         this->bind();
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, minmaxBuf);
         //dispatch(minmaxProgram2, 1);
+
+
+        //glFinish();
         dispatch(minmaxProgram2, boundWorkSize);
+        //glFinish();
 
         // getting boundings
         bbox * bounds = new bbox[boundWorkSize];
@@ -271,18 +276,19 @@ namespace NSM {
         this->syncUniforms();
         dispatch(aabbMakerProgramH, tiled(triangleCount, worksize));
         glGetNamedBufferSubData(aabbCounter, 0, strided<uint32_t>(1), &triangleCount);
+        //glFinish();
         if (triangleCount <= 0) return;
+        geometryUniformData.triangleCount = triangleCount;
 
         // radix sort of morton-codes
         sorter->sort(mortonBuffer, mortonBufferIndex, triangleCount); // early serial tests
-        geometryUniformData.triangleCount = triangleCount;
+        //glFinish();
 
         // debug
         //std::vector<GLuint64> mortons(triangleCount);
         //glGetNamedBufferSubData(mortonBuffer, 0, strided<GLuint64>(mortons.size()), mortons.data());
 
         // bind BVH buffers
-        this->syncUniforms();
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, bvhnodesBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, bvhflagsBuffer);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, activeBuffer);
@@ -291,6 +297,7 @@ namespace NSM {
 
         for (int i=0;i<8;i++) glCopyNamedBufferSubData(lscounterTemp, buildBuffer, 0, i * sizeof(GLint), strided<GLint>(1));
 
+        this->syncUniforms();
         GLint buildCounterData[8] = {0};
         for (int i = 0; i < 256; i++) {
             if ((i & 0xF) == 0xF) { // every 16 pass
@@ -303,7 +310,10 @@ namespace NSM {
             glCopyNamedBufferSubData(buildBuffer, buildBuffer, 5 * sizeof(GLint), 4 * sizeof(GLint), sizeof(GLint));
             glCopyNamedBufferSubData(buildBuffer, buildBuffer, 2 * sizeof(GLint), 5 * sizeof(GLint), sizeof(GLint));
         }
+        //glFinish();
+
         dispatch(refitProgramH, 32);
+        //glFinish();
 
         //std::vector < HlbvhNode > nodes(triangleCount*2);
         //glGetNamedBufferSubData(bvhnodesBuffer, 0, strided<HlbvhNode>(nodes.size()), nodes.data());
@@ -313,8 +323,6 @@ namespace NSM {
         this->syncUniforms();
         this->resolve();
 
-#ifdef PROFILE_RT
-        glFinish();
-#endif
+        //glFinish();
     }
 }

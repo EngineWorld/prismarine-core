@@ -235,6 +235,48 @@ namespace PrismarineExample {
         // init timing state
         time = glfwGetTime() * 1000.f;
         diff = 0;
+
+        /*
+        glm::dmat4 matrix(1.0);
+        matrix *= glm::scale(glm::dvec3(mscale));
+        intersector->clearTribuffer();
+
+#ifdef EXPERIMENTAL_GLTF
+        // load meshes
+        std::function<void(tinygltf::Node &, glm::dmat4, int)> traverse = [&](tinygltf::Node & node, glm::dmat4 inTransform, int recursive)->void {
+            glm::dmat4 localTransform(1.0);
+            localTransform *= (node.matrix.size() >= 16 ? glm::make_mat4(node.matrix.data()) : glm::dmat4(1.0));
+
+            localTransform *= (node.translation.size() >= 3 ? glm::translate(glm::make_vec3(node.translation.data())) : glm::dmat4(1.0));
+            localTransform *= (node.scale.size() >= 3 ? glm::scale(glm::make_vec3(node.scale.data())) : glm::dmat4(1.0));
+            localTransform *= (node.rotation.size() >= 4 ? glm::mat4_cast(glm::make_quat(node.rotation.data())) : glm::dmat4(1.0));
+
+            glm::dmat4 transform = inTransform * localTransform;
+            if (node.mesh >= 0) {
+                std::vector<psm::TriangleArrayInstance *>& mesh = meshVec[node.mesh]; // load mesh object (it just vector of primitives)
+                for (int p = 0; p < mesh.size(); p++) { // load every primitive
+                    psm::TriangleArrayInstance * geom = mesh[p];
+                    geom->setTransform(transform);
+                    intersector->loadMesh(geom);
+                }
+            }
+            else
+                if (node.children.size() > 0) {
+                    for (int n = 0; n < node.children.size(); n++) {
+                        if (recursive >= 0) traverse(gltfModel.nodes[node.children[n]], transform, recursive - 1);
+                    }
+                }
+        };
+
+        // load scene
+        uint32_t sceneID = 0;
+        if (gltfModel.scenes.size() > 0) {
+            for (int n = 0; n < gltfModel.scenes[sceneID].nodes.size(); n++) {
+                tinygltf::Node & node = gltfModel.nodes[gltfModel.scenes[sceneID].nodes[n]];
+                traverse(node, glm::dmat4(matrix), 2);
+            }
+        }
+#endif*/
     }
 
 
@@ -252,15 +294,25 @@ namespace PrismarineExample {
         }
 
         // initial transform
-        glm::dmat4 matrix(1.0);
-        matrix *= glm::scale(glm::dvec3(mscale));
+        //glm::dmat4 matrix(1.0);
+        //matrix *= glm::scale(glm::dvec3(mscale));
 
         // clear BVH and load materials
+        //intersector->clearTribuffer();
+
+
+
+
+
+
+
+
+
+        glm::dmat4 matrix(1.0);
+        matrix *= glm::scale(glm::dvec3(mscale));
         intersector->clearTribuffer();
-        materialManager->loadToVGA();
 
 #ifdef EXPERIMENTAL_GLTF
-
         // load meshes
         std::function<void(tinygltf::Node &, glm::dmat4, int)> traverse = [&](tinygltf::Node & node, glm::dmat4 inTransform, int recursive)->void {
             glm::dmat4 localTransform(1.0);
@@ -297,8 +349,19 @@ namespace PrismarineExample {
         }
 #endif
 
+
+
+
+
+
+
+
+
+        materialManager->loadToVGA();
+
         // build BVH in device
-        intersector->build(matrix);
+        intersector->markDirty();
+        intersector->build();
 
         // process ray tracing
         rays->camera(cam->eye, cam->view);
