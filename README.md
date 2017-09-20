@@ -5,7 +5,6 @@
 
 ## Support
 
-[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/capitalknew/1usd)
 [![Gitter chat](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/capitalknew/prismarine)
 
 
