@@ -162,8 +162,6 @@ vec2 intersectCubeDual(
     f16vec2 tNear = max(max(t1[0], t1[1]), t1[2]);
     f16vec2 tFar  = min(min(t2[0], t2[1]), t2[2]);
 #endif
-    f16vec2 inf = f16vec2(INFINITY);
-
 #else 
     mat3x2 dr2 = mat3x2(dr.xx, dr.yy, dr.zz);
     mat3x2 origin2 = mat3x2(origin.xx, origin.yy, origin.zz);
@@ -191,12 +189,12 @@ vec2 intersectCubeDual(
     vec2 tNear = max(max(t1[0], t1[1]), t1[2]);
     vec2 tFar  = min(min(t2[0], t2[1]), t2[2]);
 #endif
-    vec2 inf = vec2(INFINITY);
 #endif
 
+    vec2 inf = vec2(INFINITY);
     bvec2 isCube = and2(greaterThanEqual(tFar+PZERO, tNear), greaterThanEqual(tFar+PZERO, vec2(0.0f)));
-    near = vec2(mix(inf, min(tNear, tFar), isCube));
-    far  = vec2(mix(inf, max(tNear, tFar), isCube));
+    near = mix(inf, vec2(min(tNear, tFar)), isCube);
+    far  = mix(inf, vec2(max(tNear, tFar)), isCube);
     return mix(near, far, lessThanEqual(near + PZERO, vec2(0.0f)));
 }
 
