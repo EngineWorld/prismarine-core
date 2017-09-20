@@ -1,4 +1,4 @@
-# <img src="core.svg" width="360"/>
+
 
 > basic OpenGL ray tracing render engine
 
