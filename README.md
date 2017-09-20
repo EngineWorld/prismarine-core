@@ -12,6 +12,10 @@
 
 See `Projects`. 
 
+## Future events
+
+- 25 September of 2017 year - Preview Release of RX Vega Edition. Release may delayed up to few days. 
+
 ## Screenshots
 
 <details>
