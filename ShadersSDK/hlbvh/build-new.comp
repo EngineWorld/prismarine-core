@@ -136,8 +136,10 @@ void main() {
         Flags[hid] = 0;
     }
 
+    memoryBarrier(); barrier(); 
+
     // begin work on splitting
-    int ranged[2] = isBeginning ? int[2](0, 1) : int[2](aRange[0], aRange[1]);
+    int ranged[2] = (isBeginning && workID == 0) ? int[2](0, 1) : int[2](aRange[0], aRange[1]);
     uint workSize = min((ranged[1] <= ranged[0]) ? 0 : (((ranged[1] - ranged[0]) - 1) / WS + 1), 8192);
     for (int i=0;i<workSize;i+=int(gl_NumWorkGroups)) {
         int trID = ranged[0] + WS * (i+workID) + int(threadID);
