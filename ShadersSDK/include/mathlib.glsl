@@ -126,6 +126,37 @@ vec2 intersectCubeDual(
     in mat2x4 cubeMin, in mat2x4 cubeMax,
     inout vec2 near, inout vec2 far
 ) {
+#ifdef AMD_F16_BVH
+    f16vec3 dr = f16vec3(1.0f / ray);
+    f16mat3x2 dr2 = f16mat3x2(dr.xx, dr.yy, dr.zz);
+    f16mat3x2 origin2 = f16mat3x2(origin.xx, origin.yy, origin.zz);
+    f16mat4x2 cubeMin2 = transpose(f16mat2x4(cubeMin));
+    f16mat4x2 cubeMax2 = transpose(f16mat2x4(cubeMax));
+
+    f16mat3x2 norig = f16mat3x2(-origin2[0]*dr2[0], -origin2[1]*dr2[1], -origin2[2]*dr2[2]);
+    f16mat3x2 tMin = f16mat3x2(
+        fma(cubeMin2[0], dr2[0], norig[0]), 
+        fma(cubeMin2[1], dr2[1], norig[1]), 
+        fma(cubeMin2[2], dr2[2], norig[2])
+    );
+    f16mat3x2 tMax = f16mat3x2(
+        fma(cubeMax2[0], dr2[0], norig[0]), 
+        fma(cubeMax2[1], dr2[1], norig[1]), 
+        fma(cubeMax2[2], dr2[2], norig[2])
+    );
+
+    f16mat3x2 t1 = f16mat3x2(min(tMin[0], tMax[0]), min(tMin[1], tMax[1]), min(tMin[2], tMax[2]));
+    f16mat3x2 t2 = f16mat3x2(max(tMin[0], tMax[0]), max(tMin[1], tMax[1]), max(tMin[2], tMax[2]));
+#ifdef ENABLE_AMD_INSTRUCTION_SET
+    f16vec2 tNear = max3(t1[0], t1[1], t1[2]);
+    f16vec2 tFar  = min3(t2[0], t2[1], t2[2]);
+#else
+    f16vec2 tNear = max(max(t1[0], t1[1]), t1[2]);
+    f16vec2 tFar  = min(min(t2[0], t2[1]), t2[2]);
+#endif
+    f16vec2 inf = f16vec2(INFINITY);
+
+#else 
     vec3 dr = 1.0f / ray;
 
     mat3x2 dr2 = mat3x2(dr.xx, dr.yy, dr.zz);
@@ -155,9 +186,11 @@ vec2 intersectCubeDual(
     vec2 tFar  = min(min(t2[0], t2[1]), t2[2]);
 #endif
     vec2 inf = vec2(INFINITY);
+#endif
+
     bvec2 isCube = and2(greaterThanEqual(tFar+PZERO, tNear), greaterThanEqual(tFar+PZERO, vec2(0.0f)));
-    near = mix(inf, min(tNear, tFar), isCube);
-    far  = mix(inf, max(tNear, tFar), isCube);
+    near = vec2(mix(inf, min(tNear, tFar), isCube));
+    far  = vec2(mix(inf, max(tNear, tFar), isCube));
     return mix(near, far, lessThanEqual(near + PZERO, vec2(0.0f)));
 }
 
