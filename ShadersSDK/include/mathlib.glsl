@@ -121,13 +121,21 @@ float intersectCubeSingle(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 
 }
 
 
+#ifdef AMD_F16_BVH
 vec2 intersectCubeDual(
-    in vec3 origin, in vec3 ray, 
+    in f16vec3 origin, in f16vec3 dr, 
     in mat2x4 cubeMin, in mat2x4 cubeMax,
     inout vec2 near, inout vec2 far
-) {
+) 
+#else
+vec2 intersectCubeDual(
+    in vec3 origin, in vec3 dr, 
+    in mat2x4 cubeMin, in mat2x4 cubeMax,
+    inout vec2 near, inout vec2 far
+) 
+#endif
+{
 #ifdef AMD_F16_BVH
-    f16vec3 dr = f16vec3(1.0f / ray);
     f16mat3x2 dr2 = f16mat3x2(dr.xx, dr.yy, dr.zz);
     f16mat3x2 origin2 = f16mat3x2(origin.xx, origin.yy, origin.zz);
     f16mat4x2 cubeMin2 = transpose(f16mat2x4(cubeMin));
@@ -157,8 +165,6 @@ vec2 intersectCubeDual(
     f16vec2 inf = f16vec2(INFINITY);
 
 #else 
-    vec3 dr = 1.0f / ray;
-
     mat3x2 dr2 = mat3x2(dr.xx, dr.yy, dr.zz);
     mat3x2 origin2 = mat3x2(origin.xx, origin.yy, origin.zz);
     mat4x2 cubeMin2 = transpose(cubeMin);

@@ -326,11 +326,21 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
     float dirlenInv = 1.f / max(dirlen, 0.000001f);
     vec3 dirproj = normalize(tdirproj);
 
+    
+
+
     // test with root node
     float near = INFINITY, far = INFINITY;
     float d = intersectCubeSingle(torig, dirproj, vec4(vec3(-0.00001f), 1.0f), vec4(vec3(1.00001f), 1.0f), near, far);
     float toffset = max(near, 0.f);
-    torig += tdirproj * toffset;
+
+#ifdef AMD_F16_BVH
+    f16vec3 origined = f16vec3(torig + dirproj * toffset);
+    f16vec3 divident = f16vec3(1.f / dirproj);
+#else
+    vec3 origined = torig + dirproj * toffset;
+    vec3 divident = 1.f / dirproj;
+#endif
 
     // init state
     int idx = 0, esc = -1, level = 0, found = -1;
@@ -349,7 +359,12 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
             HlbvhNode rnode = Nodes[node.pdata.y];
 
             vec2 inf2 = vec2(INFINITY), nears = inf2, fars = inf2;
-            vec2 hits = intersectCubeDual(torig, dirproj, mat2x4(lnode.box.mn, rnode.box.mn), mat2x4(lnode.box.mx, rnode.box.mx), nears, fars);
+#ifdef AMD_F16_BVH // because precision too low, need fix some precision errors bounding boxes before testing
+            vec2 hits = intersectCubeDual(origined, divident, mat2x4(lnode.box.mn - 0.001f, rnode.box.mn - 0.001f), mat2x4(lnode.box.mx + 0.001f, rnode.box.mx + 0.001f), nears, fars);
+#else
+            vec2 hits = intersectCubeDual(origined, divident, mat2x4(lnode.box.mn, rnode.box.mn), mat2x4(lnode.box.mx, rnode.box.mx), nears, fars);
+#endif
+
             bool leftNear = lessEqualF(nears.x, nears.y);
 
             bvec2 overlapsGeneral = and2(bvec2(notLeaf),
