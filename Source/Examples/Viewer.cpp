@@ -327,7 +327,7 @@ namespace PrismarineExample {
                 std::vector<psm::TriangleArrayInstance *>& mesh = meshVec[node.mesh]; // load mesh object (it just vector of primitives)
                 for (int p = 0; p < mesh.size(); p++) { // load every primitive
                     psm::TriangleArrayInstance * geom = mesh[p];
-                    geom->setTransform(transform);
+                    geom->setTransform(transform); // bottlenecking!!! need resolve by using buffers and caching.
                     intersector->loadMesh(geom);
                 }
             }
