@@ -359,39 +359,8 @@ int main(const int argc, const char ** argv)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_CONTEXT_NO_ERROR, GLFW_TRUE);
 
-
-    // planks 
-    // great around 30 (or higher) FPS
-    // fine around 15 FPS
-    // "may works" around 5-10 FPS
-
-    // GPU rating (by increment)
-    // GTX 1060 
-    // GTX 1070
-    // VEGA 56
-    // VEGA 64
-    // GTX 1080 Ti
-    // Titan Xp
-
-    // VEGA 64 should work fine without interlacing, for VEGA 56 will harder, GTX 1080 Ti should work great, GTX 1070 should also work great with interlacing
     int32_t baseWidth = 640;
-    int32_t baseHeight = 360;
-
-    // GTX 1070 should work fine without interlacing, VEGA 64 should work great, GTX 1060 with interlacing also should work great
-    //int32_t baseWidth = 400;
-    //int32_t baseHeight = 300;
-
-    // VEGA 64 (with interlacing) should work fine, GTX 1080 Ti may works without interlacing
-    //int32_t baseWidth = 960;
-    //int32_t baseHeight = 540;
-
-    // VEGA 56 test with or without interlacing (or GTX 1070 with interlacing), from VEGA 56 with interlacing should work fine, GTX 1080 Ti should work fine without interlacing in some cases
-    //int32_t baseWidth = 800;
-    //int32_t baseHeight = 450;
-
-    // GTX 1080 Ti should work fine with interlacing (1440p)
-    //int32_t baseWidth = 1280;
-    //int32_t baseHeight = 640;
+    int32_t baseHeight = 480;
 
     GLFWwindow* window = glfwCreateWindow(baseWidth, baseHeight, "Simple example", NULL, NULL);
     if (!window) { glfwTerminate(); exit(EXIT_FAILURE); }
