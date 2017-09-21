@@ -35,9 +35,14 @@ See `Projects`.
 - GPU optimized BVH (HLBVH)
 - Direct light for sun
 - Modern OpenGL based
-- Support NVidia GTX 1070 and newer
 - Optimized for performance
 - Open source (at now)
+
+## Hardware requirement (and AMD remark)
+
+**Tested only on NVidia video cards. About problems with AMD, and other vendors we are not responsive (at this moment).** We does not really know, when we can buy RX Vega based GPU (we have problems with the budget, because the economy of our country leaves much to be desired). All tests on unsupported or not tested video cards you do only at your own peril and risk. Separately it is worth mentioning the support of AMD RX Vega. As soon as we have the money and the video card itself, we will try to report it (in git commit or directly readme). Just remember that the date of the message, tests and purchase may not coincide, you have it in mind.
+
+About minimal tech specs, we highly recommend 8Gb (or higher) of video memory. As for the frequency and the number of threads, this information is not available (the only thing that on a weak hardware can be serious performance problems). It is worth noting the tested size WARP (aka. SIMD) is 32. It is mainly for this reason that we mentioned about AMD support.
 
 ## Requirement
 
