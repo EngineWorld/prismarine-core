@@ -160,10 +160,6 @@ namespace NSM {
         glUseProgram(program);
         glDispatchCompute(gridSize, 1, 1);
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
-
-        //#ifdef PROFILE_RT
-        //		glFinish();
-        //#endif
     }
 
     void dispatchIndirect(const GLuint &program, const GLuint& buffer) {
