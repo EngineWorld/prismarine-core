@@ -163,6 +163,7 @@ namespace NSM {
         glTextureParameteri(filtered, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
         samplerUniformData.samplecount = displayWidth * displayHeight;
+        //syncUniforms();
         clearSampler();
     }
 
@@ -237,8 +238,6 @@ namespace NSM {
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, activenl);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, freedoms);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, arcounter);
-
-        syncUniforms();
         bindUniforms();
     }
 
@@ -285,6 +284,7 @@ namespace NSM {
         cameraUniformData.interlaceStage = (framenum++) % 2;
 
         this->bind();
+        this->syncUniforms();
         dispatch(cameraProgram, tiled(width * height, worksize));
 
 #ifdef PROFILE_RT
@@ -354,6 +354,7 @@ namespace NSM {
         }
 
         glMemoryBarrier(GL_ALL_BARRIER_BITS);
+        this->syncUniforms();
     }
 
     inline void Pipeline::reclaim() {
@@ -421,7 +422,9 @@ namespace NSM {
     inline void Pipeline::shade() {
         int32_t rsize = getRayCount();
         if (rsize <= 0) return;
-        materialUniformData.time = rand(); this->bind();
+        materialUniformData.time = rand(); 
+        this->bind();
+        this->syncUniforms();
         glBindTextureUnit(5, skybox);
         dispatch(matProgram, tiled(rsize, worksize));
         reloadQueuedRays(true); // you can at now
