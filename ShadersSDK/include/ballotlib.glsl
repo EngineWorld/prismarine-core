@@ -102,10 +102,7 @@ int readLane(in int val, in int lane){
 }
 
 uvec2 ballotHW(in bool val) {
-    return U2P(ballotARB(val)) & uvec2(
-        gl_SubGroupSizeARB >= 32 ? 0xFFFFFFFF : ((1 << gl_SubGroupSizeARB)-1), 
-        gl_SubGroupSizeARB <= 32 ? 0 : (gl_SubGroupSizeARB >= 64 ? 0xFFFFFFFF : ((1 << (gl_SubGroupSizeARB-32))-1))
-    );
+    return U2P(ballotARB(val));
 }
 
 int firstActive(){
