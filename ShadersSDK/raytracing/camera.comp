@@ -97,5 +97,6 @@ void main()
         }
         
         createRayIdx(ray, idx, interlaced ? (idx / 2) : idx);
+        if (RayActived(ray) == 1) _collect(ray); // pre-collect
     }
 }

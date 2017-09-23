@@ -111,7 +111,7 @@ void storeRay(in int rayIndex, inout RayRework ray) {
     if (rayIndex == -1 || rayIndex == LONGEST || rayIndex >= RAY_BLOCK samplerUniform.currentRayLimit) {
         RayActived(ray, 0);
     } else {
-        if (RayActived(ray) == 0) {
+        if (mlength(ray.final.xyz) >= 0.0001f && RayActived(ray) == 0) {
             _collect(ray);
         }
         ray.idx = rayIndex;
