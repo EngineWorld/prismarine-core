@@ -204,6 +204,7 @@ namespace NSM {
     inline void TriangleHierarchy::build(const glm::dmat4 &optimization) {
         //glFinish();
         // get triangle count that uploaded
+        glFinish();
         glGetNamedBufferSubData(tcounter, 0, strided<uint32_t>(1), &this->triangleCount);
         size_t triangleCount = std::min(uint32_t(this->triangleCount), uint32_t(maxt));
         geometryUniformData.triangleCount = triangleCount;
@@ -244,6 +245,7 @@ namespace NSM {
 
         // getting boundings
         bbox * bounds = new bbox[boundWorkSize];
+        glFinish();
         glGetNamedBufferSubData(minmaxBuf, 0, strided<bbox>(boundWorkSize), bounds);
         bbox bound = bounds[0];
         for (int i = 1; i < boundWorkSize;i++) {
@@ -275,8 +277,8 @@ namespace NSM {
         this->bind();
         this->syncUniforms();
         dispatch(aabbMakerProgramH, tiled(triangleCount, worksize));
+        glFinish();
         glGetNamedBufferSubData(aabbCounter, 0, strided<uint32_t>(1), &triangleCount);
-        //glFinish();
         if (triangleCount <= 0) return;
         geometryUniformData.triangleCount = triangleCount;
 
@@ -302,6 +304,7 @@ namespace NSM {
         GLint buildCounterData[8] = {0};
         for (int i = 0; i < 256; i++) {
             if ((i & 0xF) == 0xF) { // every 16 pass
+                glFinish();
                 glGetNamedBufferSubData(buildBuffer, 0, 8 * sizeof(GLint), buildCounterData);
                 GLint nodeCount = buildCounterData[5] - buildCounterData[4];
                 if (nodeCount <= 0) break;
