@@ -45,8 +45,8 @@ uint LT_IDX = 0;
 
 #define BFE(a,o,n) ((a >> o) & ((1 << n)-1))
 
-//#define KEYTYPE UVEC64_WARP
-#define KEYTYPE UVEC_WARP
+#define KEYTYPE UVEC64_WARP
+//#define KEYTYPE UVEC_WARP
 layout (std430, binding = 20) buffer KeyInBlock {KEYTYPE KeyIn[];};
 layout (std430, binding = 21) buffer ValueInBlock {uint ValueIn[];};
 layout (std430, binding = 24) buffer VarsBlock {
