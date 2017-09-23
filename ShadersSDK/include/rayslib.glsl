@@ -9,12 +9,12 @@
 #include "../include/morton.glsl"
 #include "../include/ballotlib.glsl"
 
-layout ( std430, binding = 0 ) restrict buffer RaysSSBO { RayRework nodes[]; } rayBuf;
-layout ( std430, binding = 1 ) restrict buffer HitsSSBO { HitRework nodes[]; } hitBuf;
+layout ( std430, binding = 0 ) buffer RaysSSBO { RayRework nodes[]; } rayBuf;
+layout ( std430, binding = 1 ) buffer HitsSSBO { HitRework nodes[]; } hitBuf;
 
 #ifndef SIMPLIFIED_RAY_MANAGMENT
-layout ( std430, binding = 2 ) restrict buffer TexelsSSBO { Texel nodes[]; } texelBuf;
-layout ( std430, binding = 3 ) restrict buffer ColorChainBlock { ColorChain chains[]; } chBuf;
+layout ( std430, binding = 2 ) buffer TexelsSSBO { Texel nodes[]; } texelBuf;
+layout ( std430, binding = 3 ) buffer ColorChainBlock { ColorChain chains[]; } chBuf;
 #endif
 
 // current list
@@ -26,12 +26,12 @@ layout ( std430, binding = 5 ) readonly buffer AvailablesIndicesSSBO { int indc[
 
 // new list
 #ifndef SIMPLIFIED_RAY_MANAGMENT
-layout ( std430, binding = 6 ) restrict buffer CollectedActivesSSBO { int indc[]; } collBuf;
-layout ( std430, binding = 7 ) restrict buffer FreedomIndicesSSBO { int indc[]; } freedBuf;
+layout ( std430, binding = 6 ) buffer CollectedActivesSSBO { int indc[]; } collBuf;
+layout ( std430, binding = 7 ) buffer FreedomIndicesSSBO { int indc[]; } freedBuf;
 #endif
 
 // counters
-layout ( std430, binding = 8 ) restrict buffer CounterBlock { 
+layout ( std430, binding = 8 ) buffer CounterBlock { 
     int At; // new list collection counter
     int Rt; // ray list counter
     int Qt; // next available ptr 

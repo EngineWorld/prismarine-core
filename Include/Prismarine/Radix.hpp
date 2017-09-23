@@ -54,8 +54,8 @@ namespace NSM {
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 27, Histograms);
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 28, PrefixSums);
 
-            for (GLuint i = 0; i < 8; i++) { // 64-bit uint
-                                             //for (GLuint i = 0; i < 4; i++) {
+            //for (GLuint i = 0; i < 8; i++) { // 64-bit uint
+            for (GLuint i = 0; i < 4; i++) {
                 Consts consts = { size, i, descending, 0 };
                 glNamedBufferSubData(VarBuffer, 0, strided<Consts>(1), &consts);
 

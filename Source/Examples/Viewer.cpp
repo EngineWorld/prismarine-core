@@ -296,7 +296,7 @@ namespace PrismarineExample {
         materialManager->loadToVGA();
 
         // build BVH in device
-        intersector->markDirty();
+        //intersector->markDirty();
         intersector->build();
 
         // process ray tracing

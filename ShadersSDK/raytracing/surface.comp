@@ -6,6 +6,8 @@
 
 #include "../include/constants.glsl"
 
+#define USE_BINDLESS
+
 #ifdef USE_BINDLESS
 #extension GL_ARB_bindless_texture : require
 #endif
@@ -46,8 +48,8 @@ layout ( binding = 15, std430 ) readonly buffer MaterialsSSBO {Material submats[
 
 #ifdef USE_OPENGL
 #ifdef USE_BINDLESS
-//layout ( location = 1, bindless_sampler ) uniform sampler2D samplers[MAX_TEXTURES];
-layout ( binding = 16 ) readonly buffer Textures { sampler2D samplers[]; };
+layout ( location = 1, bindless_sampler ) uniform sampler2D samplers[MAX_TEXTURES];
+//layout ( binding = 16 ) readonly buffer Textures { sampler2D samplers[]; };
 #else
 layout ( location = 1 ) uniform sampler2D samplers[MAX_TEXTURES];
 #endif

@@ -10,10 +10,6 @@
 
 #include "../include/constants.glsl"
 
-#ifdef USE_BINDLESS
-#extension GL_ARB_bindless_texture : require
-#endif
-
 #include "../include/structs.glsl"
 #include "../include/uniforms.glsl"
 #include "../include/rayslib.glsl"

@@ -11,7 +11,8 @@ namespace NSM {
     protected:
         GLuint firstBind = 6;
         GLuint texturesBuffer = -1;
-        std::vector<GLint> vctr;
+        //std::vector<GLint> vctr;
+        std::vector<GLuint64> vctr;
         void init();
 
     public:

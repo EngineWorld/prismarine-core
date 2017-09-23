@@ -26,7 +26,7 @@ layout ( binding = 0, rgba32f) uniform image2D vertex_texture_out;
 layout ( binding = 1, rgba32f) uniform image2D normal_texture_out;
 layout ( binding = 2, rgba32f) uniform image2D texcoords_texture_out;
 layout ( binding = 3, rgba32f) uniform image2D modifiers_texture_out;
-layout ( std430, binding = 0 ) restrict buffer TCounterSSBO {int tcounter[];};
+layout ( std430, binding = 0 ) buffer TCounterSSBO {int tcounter[];};
 
 // tools
 vec4 readByAccessor(in uint accessorID, in uint idx){

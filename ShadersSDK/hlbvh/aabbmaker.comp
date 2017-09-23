@@ -11,19 +11,19 @@
 #include "../include/ballotlib.glsl"
 
 
-layout ( std430, binding = 0 ) restrict buffer MortoncodesBlock {
+layout ( std430, binding = 0 ) buffer MortoncodesBlock {
     MORTONTYPE Mortoncodes[];
 } mortonBuf;
 
-layout ( std430, binding = 1 ) restrict buffer IndicesBlock {
+layout ( std430, binding = 1 ) buffer IndicesBlock {
     int MortoncodesIndices[];
 } mortonIdc;
 
-layout ( std430, binding = 2 ) restrict buffer CounterBlock {
+layout ( std430, binding = 2 ) buffer CounterBlock {
     int aabbCounter[1];
 } counters;
 
-layout ( std430, binding = 3 ) restrict buffer OutLeafBlock {
+layout ( std430, binding = 3 ) buffer OutLeafBlock {
     HlbvhNode OutLeafs[];
 } outLeafsBuf;
 
@@ -184,6 +184,8 @@ void main() {
         if (greaterEqualF(branges.x, 0.f) && greaterEqualF(branges.y, 0.f) && greaterEqualF(branges.z, 0.f)) {
             if (splitcnt >= maxSplits) {
                 int to = atomicIncAABB(true);
+                //atomicIncAABB(true);
+                //int to = t;
 
                 mortonIdc.MortoncodesIndices[to] = int(to);
 #ifdef INT64_MORTON

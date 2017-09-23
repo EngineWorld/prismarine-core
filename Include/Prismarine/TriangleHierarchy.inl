@@ -35,10 +35,10 @@ namespace NSM {
 
 
     inline void TriangleHierarchy::initShaders() {
-        initShaderComputeSPIRV("./shaders-spv/hlbvh/refit.comp.spv", refitProgramH);
-        initShaderComputeSPIRV("./shaders-spv/hlbvh/build.comp.spv", buildProgramH);
-        //initShaderComputeSPIRV("./shaders-spv/hlbvh/refit-new.comp.spv", refitProgramH);
-        //initShaderComputeSPIRV("./shaders-spv/hlbvh/build-new.comp.spv", buildProgramH);
+        //initShaderComputeSPIRV("./shaders-spv/hlbvh/refit.comp.spv", refitProgramH);
+        //initShaderComputeSPIRV("./shaders-spv/hlbvh/build.comp.spv", buildProgramH);
+        initShaderComputeSPIRV("./shaders-spv/hlbvh/refit-new.comp.spv", refitProgramH);
+        initShaderComputeSPIRV("./shaders-spv/hlbvh/build-new.comp.spv", buildProgramH);
         initShaderComputeSPIRV("./shaders-spv/hlbvh/aabbmaker.comp.spv", aabbMakerProgramH);
         initShaderComputeSPIRV("./shaders-spv/hlbvh/minmax.comp.spv", minmaxProgram2);
         initShaderComputeSPIRV("./shaders-spv/vertex/loader.comp.spv", geometryLoaderProgram2);
@@ -285,8 +285,8 @@ namespace NSM {
         //glFinish();
 
         // debug
-        //std::vector<GLuint64> mortons(triangleCount);
-        //glGetNamedBufferSubData(mortonBuffer, 0, strided<GLuint64>(mortons.size()), mortons.data());
+        //std::vector<GLuint> mortons(triangleCount);
+        //glGetNamedBufferSubData(mortonBuffer, 0, strided<GLuint>(mortons.size()), mortons.data());
 
         // bind BVH buffers
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, bvhnodesBuffer);
@@ -297,7 +297,7 @@ namespace NSM {
 
         for (int i=0;i<8;i++) glCopyNamedBufferSubData(lscounterTemp, buildBuffer, 0, i * sizeof(GLint), strided<GLint>(1));
 
-        /*
+        
         this->syncUniforms();
         GLint buildCounterData[8] = {0};
         for (int i = 0; i < 256; i++) {
@@ -315,10 +315,10 @@ namespace NSM {
 
         dispatch(refitProgramH, 32);
         //glFinish();
-        */
+        
 
-        dispatch(buildProgramH, 1);
-        dispatch(refitProgramH, 1);
+        //dispatch(buildProgramH, 1);
+        //dispatch(refitProgramH, 1);
 
         //std::vector < HlbvhNode > nodes(triangleCount*2);
         //glGetNamedBufferSubData(bvhnodesBuffer, 0, strided<HlbvhNode>(nodes.size()), nodes.data());

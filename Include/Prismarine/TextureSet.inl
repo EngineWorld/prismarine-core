@@ -13,7 +13,7 @@ namespace NSM {
     }
 
     inline void TextureSet::loadToVGA() {
-        /*
+        
         uint32_t pcount = std::min((uint32_t)textures.size(), 64u);
         vctr.resize(pcount);
         for (int i = 0; i < pcount; i++) {
@@ -22,19 +22,21 @@ namespace NSM {
         vctr[i] = texHandle;
         }
         glNamedBufferData(texturesBuffer, vctr.size() * sizeof(GLuint64), vctr.data(), GL_STATIC_DRAW);
-        */
+        
 
+        /*
         uint32_t pcount = std::min((uint32_t)textures.size(), 64u);
         vctr.resize(pcount);
         for (int i = 0; i < pcount; i++) vctr[i] = firstBind + i - 1; // use bindings, except first (move indice)
+        */
     }
 
     inline void TextureSet::bindWithContext(GLuint & prog) {
-        //glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 16, texturesBuffer); // bindless texture buffer
-        //glProgramUniformHandleui64vARB(prog, 1, vctr.size(), vctr.data()); // bindless texture (uniform)
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 16, texturesBuffer); // bindless texture buffer
+        glProgramUniformHandleui64vARB(prog, 1, vctr.size(), vctr.data()); // bindless texture (uniform)
 
-        glBindTextures(firstBind, vctr.size() - 1, textures.data() + 1); // bind textures, except first
-        glProgramUniform1iv(prog, 1, vctr.size(), vctr.data());
+        //glBindTextures(firstBind, vctr.size() - 1, textures.data() + 1); // bind textures, except first
+        //glProgramUniform1iv(prog, 1, vctr.size(), vctr.data());
     }
 
     inline void TextureSet::clearGlTextures() {
