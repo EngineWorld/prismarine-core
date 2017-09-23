@@ -111,8 +111,8 @@ uint readLane(in uint val, in int lane) {
 #define UVEC_BALLOT_WARP uvec2
 
 uvec2 genLtMask(){
-    //return U2P(gl_SubGroupLtMaskARB);
-    
+    return U2P(gl_SubGroupLtMaskARB);
+    /*
     uvec2 mask = uvec2(0, 0);
     if (gl_SubGroupInvocationARB >= 64u) {
         mask = uvec2(0xFFFFFFFFu, 0xFFFFFFFFu);
@@ -123,7 +123,7 @@ uvec2 genLtMask(){
     if (gl_SubGroupInvocationARB >= 0u && gl_SubGroupInvocationARB < 32u) {
         mask = uvec2(gl_SubGroupInvocationARB == 0 ? 0u : (1 << gl_SubGroupInvocationARB)-1, 0u);
     }
-    return mask;
+    return mask;*/
 }
 
 uint bitCount64(in uvec2 lh) {
