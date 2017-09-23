@@ -36,7 +36,7 @@ void prefixScan(){
 void main(){
     LT_IDX = gl_LocalInvocationID.x;
     LC_IDX = (gl_LocalInvocationID.x / gl_SubGroupSizeARB);
-    LANE_IDX = gl_SubGroupInvocationARB;
+    LANE_IDX = (gl_LocalInvocationID.x % gl_SubGroupSizeARB);
 
     blocks_info blocks = get_blocks_info(NumKeys);
     UVEC_WARP localIdx = LT_IDX;

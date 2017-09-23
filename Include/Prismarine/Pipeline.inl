@@ -182,11 +182,12 @@ namespace NSM {
         if (quantized != -1) glDeleteBuffers(1, &quantized);
         if (deferredStack != -1) glDeleteBuffers(1, &deferredStack);
 
+        //const int32_t cmultiplier = 6;
         const int32_t cmultiplier = 4;
         const int32_t wrsize = width * height;
         currentRayLimit = std::min(wrsize * cmultiplier / (enableInterlacing ? 2 : 1), 4096 * 4096);
 
-        colorchains = allocateBuffer<ColorChain>(4096 * 4096);
+        colorchains = allocateBuffer<ColorChain>(wrsize * 8);
         texels = allocateBuffer<Texel>(wrsize);
 
         rays = allocateBuffer<Ray>(currentRayLimit);
@@ -323,7 +324,6 @@ namespace NSM {
     inline void Pipeline::reloadQueuedRays(bool doSort, bool sortMortons) {
         int32_t counters[8];
         counters[3] = counters[3] >= 0 ? counters[3] : 0;
-        glFinish();
         glGetNamedBufferSubData(arcounter, 0 * sizeof(uint32_t), 8 * sizeof(uint32_t), counters);
 
         raycountCache = counters[0];
@@ -408,10 +408,7 @@ namespace NSM {
         glCopyNamedBufferSubData(mat->countBuffer, rayBlockUniform, 0, offsetof(RayBlockUniform, materialUniform) + offsetof(MaterialUniformStruct, materialOffset), sizeof(GLint) * 2); // copy material part
         glCopyNamedBufferSubData(arcounter, rayBlockUniform, 7 * sizeof(int32_t), offsetof(RayBlockUniform, samplerUniform) + offsetof(SamplerUniformStruct, hitCount), sizeof(int32_t));
 
-        if (hitModified) {
-            glFinish();
-            glGetNamedBufferSubData(arcounter, 7 * sizeof(int32_t), sizeof(int32_t), &hitCountCached);
-        }
+        if (hitModified) glGetNamedBufferSubData(arcounter, 7 * sizeof(int32_t), sizeof(int32_t), &hitCountCached);
         hitModified = false;
 
         if (hitCountCached <= 0) return;

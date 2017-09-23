@@ -2,11 +2,7 @@
 
 // Readme license https://github.com/AwokenGraphics/prismarine-core/blob/master/LICENSE.md
 
-#extension GL_ARB_shader_group_vote : require
-
 #include "./includes.glsl"
-
-
 
 //layout (local_size_x = WARP_SIZE, local_size_y = WORK_SIZE) in;
 layout (local_size_x = BLOCK_SIZE) in;
@@ -36,10 +32,10 @@ uint prefixScanWarp(inout UVEC_WARP v){
 uint prefixSum(in uint data, inout uint total_sum) {
     UVEC_WARP rsort = data;
     for (uint i = 1; i < WORK_SIZE_RT; i <<= 1) {
-        rsort += READ_LANE(rsort, int(LANE_IDX) - int(i)) * uint(LANE_IDX < WORK_SIZE_RT);
+        rsort += READ_LANE(rsort, LANE_IDX - i) * uint(LANE_IDX < WORK_SIZE_RT);
     }
-    total_sum = READ_LANE(rsort, int(WORK_SIZE_RT)-1);
-    UVEC_WARP result = READ_LANE(rsort, int(LANE_IDX) - 1) * uint(LANE_IDX < WORK_SIZE_RT);
+    total_sum = READ_LANE(rsort, WORK_SIZE_RT-1);
+    UVEC_WARP result = READ_LANE(rsort, LANE_IDX - 1) * uint(LANE_IDX < WORK_SIZE_RT);
     return result;
 }
 
@@ -50,7 +46,6 @@ void sortWork(inout UVEC64_WARP sort, inout uint sortVal, in bool valids){
         UVEC_WARP warpKey = UVEC_WARP(cmp);
 
         // prefix scan for WARP (sum)
-        //warpPScan[LC_IDX] = anyInvocation(valids) ? prefixScanWarp(warpKey) : 0; // cache by WARP ID
         warpPScan[LC_IDX] = anyInvocationARB(valids) ? prefixScanWarp(warpKey) : 0; // cache by WARP ID
         
         // use LANE_IDX as LC_IDX, so we did caching, WARP size should less or equal than WORK_SIZE
@@ -104,7 +99,7 @@ void prefixScan(){
 void main(){
     LT_IDX = gl_LocalInvocationID.x;
     LC_IDX = (gl_LocalInvocationID.x / gl_SubGroupSizeARB);
-    LANE_IDX = gl_SubGroupInvocationARB;
+    LANE_IDX = (gl_LocalInvocationID.x % gl_SubGroupSizeARB);
 
     blocks_info blocks = get_blocks_info(NumKeys);
     UVEC_WARP localIdx = LT_IDX;

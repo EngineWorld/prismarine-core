@@ -15,7 +15,7 @@
 layout ( std430, binding = 9 ) readonly buffer NodesBlock { HlbvhNode Nodes[]; };
 //layout ( std430, binding = 17 ) readonly buffer LeafBlock { HlbvhNode Leafs[]; };
 //layout ( std430, binding = 18 ) readonly buffer MortonIndicesBlock { int MortonIndices[]; };
-layout ( std430, binding = 19 ) buffer IStackGlobal { int deferredStackGlobal[]; };
+layout ( std430, binding = 19 ) restrict buffer IStackGlobal { int deferredStackGlobal[]; };
 
 struct SharedVarsData {
     int bakedStackCount;
@@ -117,7 +117,6 @@ HitRework interpolateMeshData(inout HitRework res) {
     int tri = floatBitsToInt(res.uvt.w);
 
     bool validInterpolant = greaterEqualF(res.uvt.z, 0.0f) && lessF(res.uvt.z, INFINITY) && tri != LONGEST;
-    //if (anyInvocation(validInterpolant)) {
     if (anyInvocationARB(validInterpolant)) {
         ivec2 triv = gatherMosaic(getUniformCoord(tri));
         vec2 sz = 1.f / textureSize(vertex_texture, 0);
@@ -131,48 +130,49 @@ HitRework interpolateMeshData(inout HitRework res) {
             fetchMosaic(vertex_texture, triv, 2).xyz
         );
 
-        /*
-        mat3x3 trinorms = mat3x3(
-            textureGather(normal_texture, trig, 0).wzx,
-            textureGather(normal_texture, trig, 1).wzx,
-            textureGather(normal_texture, trig, 2).wzx
-        );*/
-
         mat3x3 trinorms = transpose(mat3x3(
             fetchMosaic(normal_texture, triv, 0).xyz, 
             fetchMosaic(normal_texture, triv, 1).xyz, 
             fetchMosaic(normal_texture, triv, 2).xyz
         ));
 
-        /*
+        mat4x3 texcoords = transpose(mat3x4(
+            fetchMosaic(texcoords_texture, triv, 0).xyzw, 
+            fetchMosaic(texcoords_texture, triv, 1).xyzw, 
+            fetchMosaic(texcoords_texture, triv, 2).xyzw
+        ));
+
+        mat4x3 mods = transpose(mat3x4(
+            fetchMosaic(modifiers_texture, triv, 0).xyzw, 
+            fetchMosaic(modifiers_texture, triv, 1).xyzw, 
+            fetchMosaic(modifiers_texture, triv, 2).xyzw
+        ));
+
+/*
+        mat3x3 trinorms = mat3x3(
+            textureGather(normal_texture, trig, 0).wzx,
+            textureGather(normal_texture, trig, 1).wzx,
+            textureGather(normal_texture, trig, 2).wzx
+        );
+
         mat4x3 texcoords = mat4x3(
             textureGather(texcoords_texture, trig, 0).wzx,
             textureGather(texcoords_texture, trig, 1).wzx,
             textureGather(texcoords_texture, trig, 2).wzx,
             textureGather(texcoords_texture, trig, 3).wzx
-        );*/
+        );
 
-        mat4x3 texcoords = transpose(mat3x4(
-            fetchMosaic(texcoords_texture, triv, 0).xyzw,
-            fetchMosaic(texcoords_texture, triv, 1).xyzw,
-            fetchMosaic(texcoords_texture, triv, 2).xyzw
-        ));
-
-        mat4x3 colors = mat4x3(vec3(1.f), vec3(1.f), vec3(1.f), vec3(1.f));
-
-        /*
         mat4x3 mods = mat4x3(
             textureGather(modifiers_texture, trig, 0).wzx,
             textureGather(modifiers_texture, trig, 1).wzx,
             textureGather(modifiers_texture, trig, 2).wzx,
             textureGather(modifiers_texture, trig, 3).wzx
-        );*/
+        );
+*/
 
-        mat4x3 mods = transpose(mat3x4(
-            fetchMosaic(modifiers_texture, triv, 0).xyzw,
-            fetchMosaic(modifiers_texture, triv, 1).xyzw,
-            fetchMosaic(modifiers_texture, triv, 2).xyzw
-        ));
+        mat4x3 colors = mat4x3(vec3(1.f), vec3(1.f), vec3(1.f), vec3(1.f));
+
+        
 
         vec2 uv = res.uvt.xy;
         vec3 vs = vec3(1.0f - uv.x - uv.y, uv);
@@ -258,32 +258,24 @@ TResult testIntersectionPacked(inout TResult res, in vec3 orig, in vec3 dir, in 
         validTriangles = validTriangles.yx;
     }
 
-    //if (anyInvocation(any(validTriangles))) {
     if (anyInvocationARB(any(validTriangles))) {
 
         // planned packed math
         vec4 uv2 = vec4(0.0f);
         vec2 _d2 = vec2(INFINITY);
 
-        /*
-        if (anyInvocationARB(any(validTriangles))) {
-            _d2 = intersectTriangle2(orig, dir, tri, uv2, validTriangles);
-        }*/
-
-        /*
+/*
         if (anyInvocationARB(all(validTriangles))) { // if any have two triangles, then use this method
             _d2 = intersectTriangle2(orig, dir, tri, uv2, validTriangles);
         } else { // no need use much resources
             _d2.x = intersectTriangle(orig, dir, tri.x, uv2.xz, validTriangles.x);
         }
-        */
+*/
 
-        //if (anyInvocation(any(validTriangles))) {
         if (anyInvocationARB(any(validTriangles))) {
             _d2.x = intersectTriangle(orig, dir, tri.x, uv2.xz, validTriangles.x);
             _d2.y = intersectTriangle(orig, dir, tri.y, uv2.yw, validTriangles.y);
         }
-        
 
         bool near = validTriangles.x && lessF(_d2.x, INFINITY) && lessEqualF(_d2.x, res.predist) && greaterEqualF(_d2.x, 0.0f);
         if (near) {
@@ -314,7 +306,6 @@ TResult testIntersectionPacked(inout TResult res, in vec3 orig, in vec3 dir, in 
 const int groupSize = 1;
 
 void includeLeaf2(in vec3 origin, in vec3 direct, in bvec2 valids, in HlbvhNode lnode, in HlbvhNode rnode, inout TResult lastRes){
-    //if (anyInvocation(any(valids))) {
     if (anyInvocationARB(any(valids))) {
         testIntersectionPacked(lastRes, origin.xyz, direct.xyz, ivec2(lnode.pdata.w, rnode.pdata.w), valids);
     }
@@ -381,12 +372,10 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
     bool skipUpstream = false;
     bool skipIntersection = false;
     for (int i=0;i<8192;i++) {
-        //if (allInvocations(!validBox)) break;
         if (allInvocationsARB(!validBox)) break;
 
         // choice near box
         bool notLeaf = node.pdata.x != node.pdata.y && validBox;
-        //if (anyInvocation(notLeaf)) {
         if (anyInvocationARB(notLeaf)) {
             HlbvhNode lnode = Nodes[node.pdata.x];
             HlbvhNode rnode = Nodes[node.pdata.y];
@@ -413,10 +402,7 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
                         ),
                         and2(bvec2(node.pdata.x != -1, node.pdata.y != -1), bvec2(node.pdata.x != node.pdata.y))
                     )
-                ), 
-                    //and2(bvec2((leftNear ? node.pdata.y : node.pdata.x) != esc), bvec2(node.pdata.x != esc, node.pdata.y != esc))
-                    bvec2(true)
-                )
+                ), and2(bvec2((leftNear ? node.pdata.y : node.pdata.x) != esc), bvec2(node.pdata.x != esc, node.pdata.y != esc)))
             );
 
             bvec2  overlaps = and2(overlapsGeneral, bvec2(lnode.pdata.x != lnode.pdata.y, rnode.pdata.x != rnode.pdata.y)); // is nodes
@@ -425,7 +411,6 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
             // intersect triangles when accumulate WARP's
             bool anyLeaf = any(overlapsGeneral); skipIntersection = skipIntersection || anyLeaf; // if any leaf found, skipping
             //if (allInvocationsARB(skipIntersection || !validBox)) {
-            //if (anyInvocation(skipIntersection)) {
             if (anyInvocationARB(skipIntersection)) {
                 bool leftOrder = all(overlapsGeneral) ? leftNear : overlapsGeneral.x;
                 bvec2 overlaps = leftOrder ? overlapsGeneral : overlapsGeneral.yx; // additional re-order will in past
@@ -435,7 +420,6 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
 
             // choice child nodes by nears
             bool anyOverlap = any(overlaps);
-            //if (anyInvocation(anyOverlap)) {
             if (anyInvocationARB(anyOverlap)) {
                 bool  leftOrder = all(overlaps) ? leftNear : overlaps.x; // reorder again
                 ivec2 leftright = mix(ivec2(-1), node.pdata.xy, overlaps);
@@ -476,15 +460,11 @@ void main() {
     int it = int(gl_GlobalInvocationID.x);
     bool overflow = it >= RAY_BLOCK samplerUniform.rayCount;
     if (allInvocationsARB(overflow)) return;
-    //if (allInvocations(overflow)) return;
 
     int t = activedBuf.indc[it];
-    overflow = overflow || t <= 0;
-
     RayRework ray = rayBuf.nodes[t];
     overflow = RayActived(ray) == 0 || overflow;
     if (allInvocationsARB(overflow)) return;
-    //if (allInvocations(overflow)) return;
 
     // traverse
     //sharedVarsData.prevHt = ray.hit;

@@ -15,14 +15,12 @@
 const int work_size = 128;
 layout ( local_size_x = work_size ) in;
 
-#ifdef INT64_MORTON
 int nlz(in uint64_t x) {
     uvec2 pair = U2P(x);
     int lv = msb(pair.x);
     int hi = msb(pair.y);
     return 63-((hi >= 0) ? (32 + hi) : lv);
 }
-#endif
 
 int nlz(in uint x) {
     return 31-msb(x);
@@ -57,7 +55,7 @@ int findSplit( int first, int last) {
     return clamp(split, first, last-1);
 }
 
-layout ( std430, binding = 8 ) buffer BuildCounters {
+layout ( std430, binding = 8 ) restrict buffer BuildCounters {
     int cCounter;
     int lCounter;
     int aCounter;
@@ -145,7 +143,6 @@ void main() {
     uint workSize = min((ranged[1] <= ranged[0]) ? 0 : (((ranged[1] - ranged[0]) - 1) / WS + 1), 8192);
     for (int i=0;i<workSize;i+=int(gl_NumWorkGroups)) {
         int trID = ranged[0] + WS * (i+workID) + int(threadID);
-        //if (allInvocations(trID >= ranged[1])) break;
         if (allInvocationsARB(trID >= ranged[1])) break;
         if (trID < ranged[1]) splitNode(trID);
     }

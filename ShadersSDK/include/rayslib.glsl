@@ -9,12 +9,12 @@
 #include "../include/morton.glsl"
 #include "../include/ballotlib.glsl"
 
-layout ( std430, binding = 0 ) buffer RaysSSBO { RayRework nodes[]; } rayBuf;
-layout ( std430, binding = 1 ) buffer HitsSSBO { HitRework nodes[]; } hitBuf;
+layout ( std430, binding = 0 ) restrict buffer RaysSSBO { RayRework nodes[]; } rayBuf;
+layout ( std430, binding = 1 ) restrict buffer HitsSSBO { HitRework nodes[]; } hitBuf;
 
 #ifndef SIMPLIFIED_RAY_MANAGMENT
-layout ( std430, binding = 2 ) buffer TexelsSSBO { Texel nodes[]; } texelBuf;
-layout ( std430, binding = 3 ) buffer ColorChainBlock { ColorChain chains[]; } chBuf;
+layout ( std430, binding = 2 ) restrict buffer TexelsSSBO { Texel nodes[]; } texelBuf;
+layout ( std430, binding = 3 ) restrict buffer ColorChainBlock { ColorChain chains[]; } chBuf;
 #endif
 
 // current list
@@ -26,12 +26,12 @@ layout ( std430, binding = 5 ) readonly buffer AvailablesIndicesSSBO { int indc[
 
 // new list
 #ifndef SIMPLIFIED_RAY_MANAGMENT
-layout ( std430, binding = 6 ) buffer CollectedActivesSSBO { int indc[]; } collBuf;
-layout ( std430, binding = 7 ) buffer FreedomIndicesSSBO { int indc[]; } freedBuf;
+layout ( std430, binding = 6 ) restrict buffer CollectedActivesSSBO { int indc[]; } collBuf;
+layout ( std430, binding = 7 ) restrict buffer FreedomIndicesSSBO { int indc[]; } freedBuf;
 #endif
 
 // counters
-layout ( std430, binding = 8 ) buffer CounterBlock { 
+layout ( std430, binding = 8 ) restrict buffer CounterBlock { 
     int At; // new list collection counter
     int Rt; // ray list counter
     int Qt; // next available ptr 
@@ -58,21 +58,22 @@ initAtomicIncFunction(arcounter.Ht, atomicIncHt, int)
 
 void _collect(inout RayRework ray){
 #ifndef SIMPLIFIED_RAY_MANAGMENT
+    //vec4 color = min(max(ray.final, vec4(0.f)), vec4(1000.f));
     vec4 color = max(ray.final, vec4(0.f));
-    ray.final = vec4(0.f);
+    ray.final.xyzw = vec4(0.0f);
+
     if (mlength(color.xyz) < 10000.f && !any(isnan(color.xyz)) && !any(isinf(color.xyz))) {
         int idx = atomicIncCt(true); // allocate new index
-        atomicCompSwap(texelBuf.nodes[ray.texel].EXT.y, -1, idx); // link first index
-        int prev = atomicExchange(texelBuf.nodes[ray.texel].EXT.y, idx);
         //int prev = atomicExchange(texelBuf.nodes[ray.texel].EXT.z, idx);
+        //atomicCompSwap(texelBuf.nodes[ray.texel].EXT.y, -1, idx); // link first index
+        int prev = atomicExchange(texelBuf.nodes[ray.texel].EXT.y, idx);
 
-        // create new chain
-        //atomicExchange(chBuf.chains[idx].cdata.x, -1);
-        atomicExchange(chBuf.chains[idx].cdata.x, prev);
+        chBuf.chains[idx].cdata.x = -1;
         chBuf.chains[idx].color = vec4(color.xyz, 1.0f);
         
         // link with previous (need do after)
-        //if (prev >= 0) atomicExchange(chBuf.chains[prev].cdata.x, idx);
+        //if (prev != -1) atomicExchange(chBuf.chains[prev].cdata.x, idx);
+        if (prev != -1) atomicExchange(chBuf.chains[idx].cdata.x, prev);
     }
 #endif
 }
@@ -107,7 +108,7 @@ int addRayToList(in RayRework ray, in int act){
 }
 
 void storeRay(in int rayIndex, inout RayRework ray) {
-    if (rayIndex == -1 || rayIndex <= 0 || rayIndex == LONGEST || rayIndex >= RAY_BLOCK samplerUniform.currentRayLimit) {
+    if (rayIndex == -1 || rayIndex == LONGEST || rayIndex >= RAY_BLOCK samplerUniform.currentRayLimit) {
         RayActived(ray, 0);
     } else {
         if (RayActived(ray) == 0) {
@@ -127,9 +128,7 @@ void storeRay(inout RayRework ray) {
 #ifndef SIMPLIFIED_RAY_MANAGMENT
 int createRayStrict(inout RayRework original, in int idx, in int rayIndex) {
     bool invalidRay = 
-        (
-         rayIndex == -1 || 
-         rayIndex <= 0 || 
+        (rayIndex == -1 || 
          rayIndex == LONGEST || 
          rayIndex >= RAY_BLOCK samplerUniform.currentRayLimit || 
 

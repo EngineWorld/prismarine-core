@@ -19,7 +19,6 @@ float sqlen(in vec3 a) { return dot(a, a); }
 float sqlen(in vec2 a) { return dot(a, a); }
 float sqlen(in float v) { return v * v; }
 float mlength(in vec3 mcolor){ return max(mcolor.x, max(mcolor.y, mcolor.z)); }
-float mnlength(in vec3 mcolor){ return min(mcolor.x, max(mcolor.y, mcolor.z)); }
 vec4 divW(in vec4 aw){ return aw / aw.w; }
 
 
@@ -208,8 +207,7 @@ vec2 intersectCubeDual(
 //#define BFE_HW(a,o,n) (bitfieldExtract(a,o,n))
 
 uvec2 U2P(in uint64_t pckg) {
-    //return uvec2(uint((pckg >> 0) & 0xFFFFFFFFu), uint((pckg >> 32) & 0xFFFFFFFFu));
-    return unpackUint2x32(pckg);
+    return uvec2((pckg >> 0) & 0xFFFFFFFF, (pckg >> 32) & 0xFFFFFFFF);
 }
 
 int BFE(in int base, in int offset, in int bits){

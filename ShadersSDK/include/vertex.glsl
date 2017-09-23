@@ -7,7 +7,7 @@
 
 #include "../include/mathlib.glsl"
 
-layout ( std430, binding = 10 ) buffer GeomMaterialsSSBO {int mats[];};
+layout ( std430, binding = 10 ) restrict buffer GeomMaterialsSSBO {int mats[];};
 
 layout (binding = 0) uniform sampler2D vertex_texture;
 layout (binding = 1) uniform sampler2D normal_texture;
@@ -54,7 +54,6 @@ vec2 intersectTriangle2(in vec3 orig, in vec3 dir, inout ivec2 tri, inout vec4 U
     vec2 t2 = vec2(INFINITY);
 
     valid = and2(valid, notEqual(tri, ivec2(LONGEST)));
-    //if (anyInvocation(any(valid))) {
     if (anyInvocationARB(any(valid))) {
         
         ivec2 tri0 = gatherMosaic(getUniformCoord(tri.x));
@@ -65,7 +64,6 @@ vec2 intersectTriangle2(in vec3 orig, in vec3 dir, inout ivec2 tri, inout vec4 U
         vec2 ntri0 = fma(vec2(tri0), sz, hs);
         vec2 ntri1 = fma(vec2(tri1), sz, hs);
 
-/*
         mat3x2 v012x = transpose(mat2x3(
             textureGather(vertex_texture, ntri0, 0).wzx,
             textureGather(vertex_texture, ntri1, 0).wzx
@@ -78,9 +76,8 @@ vec2 intersectTriangle2(in vec3 orig, in vec3 dir, inout ivec2 tri, inout vec4 U
             textureGather(vertex_texture, ntri0, 2).wzx,
             textureGather(vertex_texture, ntri1, 2).wzx
         ));
-*/
 
-
+/*
         mat3 ve0xyz = transpose(mat3(
             fetchMosaic(vertex_texture, tri0, 0).xyz, 
             fetchMosaic(vertex_texture, tri0, 1).xyz, 
@@ -96,7 +93,7 @@ vec2 intersectTriangle2(in vec3 orig, in vec3 dir, inout ivec2 tri, inout vec4 U
         mat3x2 v012x = transpose(mat2x3(ve0xyz[0], ve1xyz[0]));
         mat3x2 v012y = transpose(mat2x3(ve0xyz[1], ve1xyz[1]));
         mat3x2 v012z = transpose(mat2x3(ve0xyz[2], ve1xyz[2]));
-
+*/
 
         mat3x2 e1 = mat3x2(v012x[1] - v012x[0], v012y[1] - v012y[0], v012z[1] - v012z[0]);
         mat3x2 e2 = mat3x2(v012x[2] - v012x[0], v012y[2] - v012y[0], v012z[2] - v012z[0]);
@@ -111,7 +108,6 @@ vec2 intersectTriangle2(in vec3 orig, in vec3 dir, inout ivec2 tri, inout vec4 U
 
         vec2 det = dot2(pvec, e1);
         valid = and2(valid, greaterThan(abs(det), vec2(0.f)));
-        //if (anyInvocation(any(valid))) {
         if (anyInvocationARB(any(valid))) {
             vec2 invDev = 1.f / (max(abs(det), 0.000001f) * sign(det));
             mat3x2 tvec = mat3x2(
@@ -123,7 +119,6 @@ vec2 intersectTriangle2(in vec3 orig, in vec3 dir, inout ivec2 tri, inout vec4 U
             vec2 u = vec2(0.f);
             u = dot2(tvec, pvec) * invDev;
             valid = and2(valid, and2(greaterThanEqual(u, vec2(-0.00001f)), lessThan(u, vec2(1.00001f))));
-            //if (anyInvocation(any(valid))) {
             if (anyInvocationARB(any(valid))) {
                 mat3x2 qvec = mat3x2(
                     fma(tvec[1], e1[2], -tvec[2] * e1[1]),
@@ -134,7 +129,6 @@ vec2 intersectTriangle2(in vec3 orig, in vec3 dir, inout ivec2 tri, inout vec4 U
                 vec2 v = vec2(0.f);
                 v = dot2(dir2, qvec) * invDev;
                 valid = and2(valid, and2(greaterThanEqual(v, vec2(-0.00001f)), lessThan(u+v, vec2(1.00001f))));
-                //if (anyInvocation(any(valid))) {
                 if (anyInvocationARB(any(valid))) {
                     // distance
                     t2 = dot2(e2, qvec) * invDev;
@@ -163,7 +157,6 @@ float intersectTriangle(in vec3 orig, in vec3 dir, in int tri, inout vec2 UV, in
     float T = INFINITY;
 
     if (tri == LONGEST) valid = false;
-    //if (anyInvocation(valid)) {
     if (anyInvocationARB(valid)) {
         // fetch directly
         mat3 ve = mat3(
@@ -180,20 +173,17 @@ float intersectTriangle(in vec3 orig, in vec3 dir, in int tri, inout vec2 UV, in
 
         // invalidate culling
         if (abs(det) <= 0.0f) valid = false;
-        //if (anyInvocation(valid)) {
         if (anyInvocationARB(valid)) {
             // invalidate U
             float invDev = 1.f / (max(abs(det), 0.000001f) * sign(det));
             vec3 tvec = orig - ve[0];
             float u = dot(tvec, pvec) * invDev;
             if (u < -0.00001f || u > 1.00001f) valid = false;
-            //if (anyInvocation(valid)) {
             if (anyInvocationARB(valid)) {
                 // invalidate V
                 vec3 qvec = cross(tvec, e1);
                 float v = dot(dir, qvec) * invDev;
                 if (v < -0.00001f || (u+v) > 1.00001f) valid = false;
-                //if (anyInvocation(valid)) {
                 if (anyInvocationARB(valid)) {
                     // resolve T
                     float t = dot(e2, qvec) * invDev;

@@ -2,6 +2,7 @@
 
 cd %~dp0
 set CFLAGS=--target-env=opengl -x glsl -Werror -DUSE_OPENGL -E 
+set HFLAGS=--target-env=vulkan -x hlsl -Werror -E 
 set INDIR=.\
 set OUTDIR=..\Build\shaders-spv\
 set OUTSHR=..\Build\shaders\
@@ -17,7 +18,7 @@ set VRTPROF=-fshader-stage=vertex
 set GMTPROF=-fshader-stage=geometry
 
 
-set CMPPROFM=-e CSMain -S compute --hlsl-iomap --target-env opengl -V -D
+set CMPPROFM=-e CSMain -S compute --hlsl-iomap --target-env opengl -V -D 
 
 
 mkdir %OUTDIR%

@@ -1,16 +1,16 @@
 
 // Readme license https://github.com/AwokenGraphics/prismarine-core/blob/master/LICENSE.md
-//#define EMULATE_BALLOT
 
 #extension GL_ARB_gpu_shader_int64 : enable
 #extension GL_AMD_gpu_shader_int64 : enable
 
 #ifndef EMULATE_BALLOT
 #extension GL_ARB_shader_ballot : require
+#extension GL_ARB_shader_group_vote : require
 #endif
 
-//#define BLOCK_SIZE 256
 #define BLOCK_SIZE 1024
+//#define BLOCK_SIZE 256
 #define BLOCK_SIZE_RT (gl_WorkGroupSize.x)
 
 #ifdef AMD_SUPPORT
@@ -47,22 +47,21 @@ uint LT_IDX = 0;
 
 #define KEYTYPE UVEC64_WARP
 //#define KEYTYPE UVEC_WARP
-layout (std430, binding = 20) buffer KeyInBlock {KEYTYPE KeyIn[];};
-layout (std430, binding = 21) buffer ValueInBlock {uint ValueIn[];};
-layout (std430, binding = 24) buffer VarsBlock {
+layout (std430, binding = 20) restrict buffer KeyInBlock {KEYTYPE KeyIn[];};
+layout (std430, binding = 21) restrict buffer ValueInBlock {uint ValueIn[];};
+layout (std430, binding = 24) restrict buffer VarsBlock {
     uint NumKeys;
     uint Shift;
     uint Descending;
     uint IsSigned;
 };
-layout (std430, binding = 25) buffer KeyTmpBlock {KEYTYPE KeyTmp[];};
-layout (std430, binding = 26) buffer ValueTmpBlock {uint ValueTmp[];};
-layout (std430, binding = 27) buffer HistogramBlock {uint Histogram[];};
-layout (std430, binding = 28) buffer PrefixBlock {uint PrefixSum[];};
+layout (std430, binding = 25) restrict buffer KeyTmpBlock {KEYTYPE KeyTmp[];};
+layout (std430, binding = 26) restrict buffer ValueTmpBlock {uint ValueTmp[];};
+layout (std430, binding = 27) restrict buffer HistogramBlock {uint Histogram[];};
+layout (std430, binding = 28) restrict buffer PrefixBlock {uint PrefixSum[];};
 
 uvec2 U2P(in uint64_t pckg) {
-    //return uvec2(uint((pckg >> 0u) & 0xFFFFFFFFu), uint((pckg >> 32u) & 0xFFFFFFFFu));
-    return unpackUint2x32(pckg);
+    return uvec2((pckg >> 0) & 0xFFFFFFFF, (pckg >> 32) & 0xFFFFFFFF);
 }
 
 struct blocks_info { uint count; uint offset; };
@@ -98,7 +97,7 @@ uint bitCount64(in uint a64) {
     return btc(a64);
 }
 
-uint readLane(in uint val, in int lane) {
+uint readLane(in uint val, in uint lane) {
     // warp can be have barrier, but is not required
     atomicExchange(invocationCache[LC_IDX][LANE_IDX], val);
     // warp can be have barrier, but is not required
@@ -111,20 +110,16 @@ uint readLane(in uint val, in int lane) {
 #define UVEC_BALLOT_WARP uvec2
 
 uvec2 genLtMask(){
-    return U2P((1ul << uint64_t(gl_SubGroupInvocationARB))-1ul);
+    return U2P((1ul << uint64_t(LANE_IDX))-1ul);
 }
 
 uint bitCount64(in uvec2 lh) {
     return uint(btc(lh.x) + btc(lh.y));
 }
 
-uint readLane(in uint val, in int lane){
-    return readInvocationARB(val, uint(lane));
+uint readLane(in uint val, in uint lane){
+    return readInvocationARB(val, lane);
 }
-
-//uint64_t readLane(in uint64_t val, in int lane){
-//    return readInvocationARB(val, uint(lane));
-//}
 
 uvec2 ballotHW(in bool val) {
     return U2P(ballotARB(val));

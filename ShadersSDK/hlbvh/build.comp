@@ -14,14 +14,12 @@
 const int work_size = 1024;
 layout ( local_size_x = work_size ) in;
 
-#ifdef INT64_MORTON
 int nlz(in uint64_t x) {
     uvec2 pair = U2P(x);
     int lv = msb(pair.x);
     int hi = msb(pair.y);
     return 63-((hi >= 0) ? (32 + hi) : lv);
 }
-#endif
 
 int nlz(in uint x) {
     return 31-msb(x);
@@ -163,7 +161,6 @@ void main() {
         for (int i=0;i<workSize;i++) {
             //int trID = aRange[0] + hWS * i + int(threadID) / 2;
             int trID = aRange[0] + WS * i + int(threadID);
-            //if (allInvocations(trID >= aRange[1])) break;
             if (allInvocationsARB(trID >= aRange[1])) break;
             if (trID < aRange[1]) splitNode(trID);
         }

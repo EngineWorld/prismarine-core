@@ -59,7 +59,7 @@ namespace NSM {
         std::string line = "";
         while (!fileStream.eof()) {
             std::getline(fileStream, line);
-            if (lineDirective || line.find("#line") == std::string::npos && line.find("GL_GOOGLE_include_directive") == std::string::npos) content.append(line + "\n");
+            if (lineDirective || line.find("#line") == std::string::npos) content.append(line + "\n");
         }
         fileStream.close();
         return content;
@@ -92,7 +92,8 @@ namespace NSM {
             const GLchar * strc = str.c_str();//str.data();
             int32_t size = str.size();
 
-            //std::cout << str << std::endl;
+            glShaderSource(comp, 1, &strc, &size);
+            glCompileShader(comp);
 
             /*
 #ifdef USE_OPENGL_45_COMPATIBLE
@@ -101,10 +102,8 @@ namespace NSM {
 #else
             glShaderBinary(1, &comp, GL_SHADER_BINARY_FORMAT_SPIR_V, strc, size);
             glSpecializeShader(comp, entryName.c_str(), 0, nullptr, nullptr);
-#endif*/
-
-            glShaderSource(comp, 1, &strc, &size);
-            glCompileShader(comp);
+#endif
+*/
 
             GLint status = false;
             glGetShaderiv(comp, GL_COMPILE_STATUS, &status);

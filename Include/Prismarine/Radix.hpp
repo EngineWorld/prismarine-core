@@ -58,8 +58,8 @@ namespace NSM {
             //for (GLuint i = 0; i < 4; i++) {
                 Consts consts = { size, i, descending, 0 };
                 glNamedBufferSubData(VarBuffer, 0, strided<Consts>(1), &consts);
-
                 dispatch(sortProgram, 1);
+
                 //dispatch(histogramProgram, WG_COUNT);
                 //dispatch(pfxWorkProgram, 1);
                 //dispatch(permuteProgram, WG_COUNT);
