@@ -131,27 +131,48 @@ HitRework interpolateMeshData(inout HitRework res) {
             fetchMosaic(vertex_texture, triv, 2).xyz
         );
 
+        /*
         mat3x3 trinorms = mat3x3(
             textureGather(normal_texture, trig, 0).wzx,
             textureGather(normal_texture, trig, 1).wzx,
             textureGather(normal_texture, trig, 2).wzx
-        );
+        );*/
 
+        mat3x3 trinorms = transpose(mat3x3(
+            fetchMosaic(normal_texture, triv, 0).xyz, 
+            fetchMosaic(normal_texture, triv, 1).xyz, 
+            fetchMosaic(normal_texture, triv, 2).xyz
+        ));
+
+        /*
         mat4x3 texcoords = mat4x3(
             textureGather(texcoords_texture, trig, 0).wzx,
             textureGather(texcoords_texture, trig, 1).wzx,
             textureGather(texcoords_texture, trig, 2).wzx,
             textureGather(texcoords_texture, trig, 3).wzx
-        );
+        );*/
+
+        mat4x3 texcoords = transpose(mat3x4(
+            fetchMosaic(texcoords_texture, triv, 0).xyzw,
+            fetchMosaic(texcoords_texture, triv, 1).xyzw,
+            fetchMosaic(texcoords_texture, triv, 2).xyzw
+        ));
 
         mat4x3 colors = mat4x3(vec3(1.f), vec3(1.f), vec3(1.f), vec3(1.f));
 
+        /*
         mat4x3 mods = mat4x3(
             textureGather(modifiers_texture, trig, 0).wzx,
             textureGather(modifiers_texture, trig, 1).wzx,
             textureGather(modifiers_texture, trig, 2).wzx,
             textureGather(modifiers_texture, trig, 3).wzx
-        );
+        );*/
+
+        mat4x3 mods = transpose(mat3x4(
+            fetchMosaic(modifiers_texture, triv, 0).xyzw,
+            fetchMosaic(modifiers_texture, triv, 1).xyzw,
+            fetchMosaic(modifiers_texture, triv, 2).xyzw
+        ));
 
         vec2 uv = res.uvt.xy;
         vec3 vs = vec3(1.0f - uv.x - uv.y, uv);
@@ -244,19 +265,26 @@ TResult testIntersectionPacked(inout TResult res, in vec3 orig, in vec3 dir, in 
         vec4 uv2 = vec4(0.0f);
         vec2 _d2 = vec2(INFINITY);
 
-/*
+        
+        if (anyInvocationARB(any(validTriangles))) {
+            _d2 = intersectTriangle2(orig, dir, tri, uv2, validTriangles);
+        }
+
+        /*
         if (anyInvocationARB(all(validTriangles))) { // if any have two triangles, then use this method
             _d2 = intersectTriangle2(orig, dir, tri, uv2, validTriangles);
         } else { // no need use much resources
             _d2.x = intersectTriangle(orig, dir, tri.x, uv2.xz, validTriangles.x);
         }
-*/
+        */
 
         //if (anyInvocation(any(validTriangles))) {
+        /*
         if (anyInvocationARB(any(validTriangles))) {
             _d2.x = intersectTriangle(orig, dir, tri.x, uv2.xz, validTriangles.x);
             _d2.y = intersectTriangle(orig, dir, tri.y, uv2.yw, validTriangles.y);
-        }
+        }*/
+        
 
         bool near = validTriangles.x && lessF(_d2.x, INFINITY) && lessEqualF(_d2.x, res.predist) && greaterEqualF(_d2.x, 0.0f);
         if (near) {

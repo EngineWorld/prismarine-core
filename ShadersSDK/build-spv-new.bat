@@ -1,8 +1,7 @@
 :: It is helper for compilation shaders to SPIR-V
 
 cd %~dp0
-set CFLAGS=--target-env=opengl -x glsl -Werror -E -DUSE_OPENGL 
-set HFLAGS=--target-env=vulkan -x hlsl -Werror -E 
+set CFLAGS=--target-env=opengl -x glsl -Werror -DUSE_OPENGL -E 
 set INDIR=.\
 set OUTDIR=..\Build\shaders-spv\
 set OUTSHR=..\Build\shaders\
