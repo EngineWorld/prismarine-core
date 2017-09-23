@@ -49,7 +49,7 @@
 
 #ifdef USE_INT64
 #extension GL_ARB_gpu_shader_int64 : enable
-//#extension GL_AMD_gpu_shader_int64 : enable
+#extension GL_AMD_gpu_shader_int64 : enable
 #endif
 
 #ifdef USE_ARB_CLOCK

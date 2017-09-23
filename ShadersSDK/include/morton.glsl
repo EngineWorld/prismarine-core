@@ -7,6 +7,7 @@
 
 #if (defined(INT64_MORTON) && defined(USE_INT64))
 
+/*
 uint64_t MortonToHilbert3D( in uint64_t morton, in uint64_t bits ) {
     uint64_t hilbert = morton;
     if ( bits > 1 ) {
@@ -31,7 +32,7 @@ uint64_t MortonToHilbert3D( in uint64_t morton, in uint64_t bits ) {
     hilbert ^= ( ( hilbert >> 1 ) & 0x92492492 );
     hilbert ^= ( ( hilbert & 0x92492492 ) >> 1 );
     return( hilbert );
-}
+}*/
 
 uint64_t part1By2_64(in uint a){
     uint64_t x = a & 0x1ffffful;
@@ -51,6 +52,7 @@ uint64_t encodeMorton3_64(in uvec3 a)
 
 #else
 
+/*
 uint MortonToHilbert3D( in uint morton, in uint bits ) {
     uint hilbert = morton;
     if ( bits > 1 ) {
@@ -75,7 +77,7 @@ uint MortonToHilbert3D( in uint morton, in uint bits ) {
     hilbert ^= ( ( hilbert >> 1 ) & 0x92492492 );
     hilbert ^= ( ( hilbert & 0x92492492 ) >> 1 );
     return( hilbert );
-}
+}*/
 
 uint part1By2_64(in uint a){
     uint x = a;

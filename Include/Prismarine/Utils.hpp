@@ -85,23 +85,26 @@ namespace NSM {
 
 
     inline GLuint loadShaderSPIRV(std::string path, GLenum shaderType = GL_COMPUTE_SHADER, std::string entryName = "main") {
-        std::vector<GLchar> str = readBinary(path);
+        //std::vector<GLchar> str = readBinary(path);
+        std::string str = readSource(path);
         GLuint comp = glCreateShader(shaderType);
         {
-            const GLchar * strc = str.data();
+            const GLchar * strc = str.c_str();//str.data();
             int32_t size = str.size();
 
-            
+            //std::cout << str << std::endl;
+
+            /*
 #ifdef USE_OPENGL_45_COMPATIBLE
             glShaderBinary(1, &comp, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, strc, size);
             glSpecializeShaderARB(comp, entryName.c_str(), 0, nullptr, nullptr);
 #else
             glShaderBinary(1, &comp, GL_SHADER_BINARY_FORMAT_SPIR_V, strc, size);
             glSpecializeShader(comp, entryName.c_str(), 0, nullptr, nullptr);
-#endif
+#endif*/
 
-            //glShaderSource(comp, 1, &strc, &size);
-            //glCompileShader(comp);
+            glShaderSource(comp, 1, &strc, &size);
+            glCompileShader(comp);
 
             GLint status = false;
             glGetShaderiv(comp, GL_COMPILE_STATUS, &status);
