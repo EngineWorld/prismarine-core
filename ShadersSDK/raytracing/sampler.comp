@@ -31,7 +31,7 @@ vec4 collectSamples(in uint ts){
             } else {
                 vec4 color = chBuf.chains[sid].color;
                 int next = atomicExchange(chBuf.chains[sid].cdata.x, -1);
-                if (!any(isnan(color.xyz)) && !any(isinf(color.xyz))) sampled += color;
+                if (!any(isnan(color.xyz)) && !any(isinf(color.xyz)) && next != -1) sampled += color;
                 sid = next;
             }
         }
