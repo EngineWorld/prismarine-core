@@ -1,4 +1,4 @@
-#version 460 core
+#version 450 core
 
 // Readme license https://github.com/AwokenGraphics/prismarine-core/blob/master/LICENSE.md
 
@@ -59,9 +59,9 @@ shared int lCounter;
 shared int aCounter;
 shared int aRange[2];
 
-initAtomicIncByFunction(lCounter, lCounterInc, int);
-initAtomicIncFunction(aCounter, aCounterInc, int);
-initAtomicIncFunction(cCounter, cCounterInc, int);
+initAtomicIncByFunction(lCounter, lCounterInc, int)
+initAtomicIncFunction(aCounter, aCounterInc, int)
+initAtomicIncFunction(cCounter, cCounterInc, int)
 
 void splitNode(in int trID){
     int prID = atomicExchange(Actives[trID], -1);
@@ -161,7 +161,8 @@ void main() {
         for (int i=0;i<workSize;i++) {
             //int trID = aRange[0] + hWS * i + int(threadID) / 2;
             int trID = aRange[0] + WS * i + int(threadID);
-            if (allInvocations(trID >= aRange[1])) break;
+            //if (allInvocations(trID >= aRange[1])) break;
+            if (allInvocationsARB(trID >= aRange[1])) break;
             if (trID < aRange[1]) splitNode(trID);
         }
     }

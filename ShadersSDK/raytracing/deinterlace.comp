@@ -1,4 +1,4 @@
-#version 460 core
+#version 450 core
 
 // Readme license https://github.com/AwokenGraphics/prismarine-core/blob/master/LICENSE.md
 

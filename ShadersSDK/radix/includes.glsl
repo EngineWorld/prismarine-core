@@ -3,7 +3,7 @@
 
 
 #ifndef EMULATE_BALLOT
-#extension GL_ARB_gpu_shader_int64 : require
+#extension GL_ARB_gpu_shader_int64 : enable
 #extension GL_ARB_shader_ballot : require
 #endif
 

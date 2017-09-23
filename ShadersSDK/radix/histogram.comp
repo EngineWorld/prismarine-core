@@ -1,6 +1,8 @@
-#version 460 core
+#version 450 core
 
 // Readme license https://github.com/AwokenGraphics/prismarine-core/blob/master/LICENSE.md
+
+#extension GL_ARB_shader_group_vote : require
 
 #include "./includes.glsl"
 
@@ -44,8 +46,9 @@ void sortWork(inout UVEC64_WARP sort, inout uint sortVal, in bool valids){
         UVEC_WARP warpKey = UVEC_WARP(cmp);
 
         // prefix scan for WARP (sum)
-        warpPScan[LC_IDX] = anyInvocation(valids) ? prefixScanWarp(warpKey) : 0; // cache by WARP ID
-        
+        //warpPScan[LC_IDX] = anyInvocation(valids) ? prefixScanWarp(warpKey) : 0; // cache by WARP ID
+        warpPScan[LC_IDX] = anyInvocationARB(valids) ? prefixScanWarp(warpKey) : 0; // cache by WARP ID
+
         // use LANE_IDX as LC_IDX, so we did caching, WARP size should less or equal than WORK_SIZE
         // calculate prefix scans per WARP works
         memoryBarrier(); barrier();

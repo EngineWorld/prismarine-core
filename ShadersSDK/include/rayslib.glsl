@@ -47,14 +47,14 @@ layout ( std430, binding = 8 ) restrict buffer CounterBlock {
 
 
 
-initAtomicIncFunction(arcounter.At, atomicIncAt, int);
-initAtomicIncFunction(arcounter.Rt, atomicIncRt, int);
-initAtomicIncFunction(arcounter.Qt, atomicIncQt, int);
-initAtomicDecFunction(arcounter.Ut, atomicDecUt, int);
-initAtomicIncFunction(arcounter.Ct, atomicIncCt, int);
-initAtomicIncFunction(arcounter.Ft, atomicIncFt, int);
-initAtomicIncFunction(arcounter.Gt, atomicIncGt, int);
-initAtomicIncFunction(arcounter.Ht, atomicIncHt, int);
+initAtomicIncFunction(arcounter.At, atomicIncAt, int)
+initAtomicIncFunction(arcounter.Rt, atomicIncRt, int)
+initAtomicIncFunction(arcounter.Qt, atomicIncQt, int)
+initAtomicDecFunction(arcounter.Ut, atomicDecUt, int)
+initAtomicIncFunction(arcounter.Ct, atomicIncCt, int)
+initAtomicIncFunction(arcounter.Ft, atomicIncFt, int)
+initAtomicIncFunction(arcounter.Gt, atomicIncGt, int)
+initAtomicIncFunction(arcounter.Ht, atomicIncHt, int)
 
 void _collect(inout RayRework ray){
 #ifndef SIMPLIFIED_RAY_MANAGMENT

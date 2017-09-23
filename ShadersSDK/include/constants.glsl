@@ -48,7 +48,8 @@
 #endif
 
 #ifdef USE_INT64
-#extension GL_ARB_gpu_shader_int64 : require
+#extension GL_ARB_gpu_shader_int64 : enable
+//#extension GL_AMD_gpu_shader_int64 : enable
 #endif
 
 #ifdef USE_ARB_CLOCK
@@ -61,6 +62,7 @@
 
 #ifndef EMULATE_BALLOT
 #extension GL_ARB_shader_ballot : require
+#extension GL_ARB_shader_group_vote : require
 #endif
 
 

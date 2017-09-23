@@ -1,4 +1,4 @@
-#version 460 core
+#version 450 core
 
 // Readme license https://github.com/AwokenGraphics/prismarine-core/blob/master/LICENSE.md
 
@@ -63,9 +63,9 @@ layout ( std430, binding = 8 ) restrict buffer BuildCounters {
     int aRange[2];
 };
 
-initAtomicIncByFunction(lCounter, lCounterInc, int);
-initAtomicIncFunction(aCounter, aCounterInc, int);
-initAtomicIncFunction(cCounter, cCounterInc, int);
+initAtomicIncByFunction(lCounter, lCounterInc, int)
+initAtomicIncFunction(aCounter, aCounterInc, int)
+initAtomicIncFunction(cCounter, cCounterInc, int)
 
 void splitNode(in int trID){
     int prID = atomicExchange(Actives[trID], -1);
@@ -143,7 +143,8 @@ void main() {
     uint workSize = min((ranged[1] <= ranged[0]) ? 0 : (((ranged[1] - ranged[0]) - 1) / WS + 1), 8192);
     for (int i=0;i<workSize;i+=int(gl_NumWorkGroups)) {
         int trID = ranged[0] + WS * (i+workID) + int(threadID);
-        if (allInvocations(trID >= ranged[1])) break;
+        //if (allInvocations(trID >= ranged[1])) break;
+        if (allInvocationsARB(trID >= ranged[1])) break;
         if (trID < ranged[1]) splitNode(trID);
     }
 

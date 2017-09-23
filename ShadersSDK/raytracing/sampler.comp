@@ -1,4 +1,4 @@
-#version 460 core
+#version 450 core
 
 // Readme license https://github.com/AwokenGraphics/prismarine-core/blob/master/LICENSE.md
 
@@ -23,10 +23,12 @@ vec4 collectSamples(in uint ts){
     vec4 sampled = vec4(0.0f);
     int sid = txiho.EXT.y;
     bool invalid = sid < 0 || sid == LONGEST || sid == -1;
-    if (anyInvocation(!invalid)) {
+    //if (anyInvocation(!invalid)) {
+    if (anyInvocationARB(!invalid)) {
         for (int i=0;i<32;i++) {
             invalid = sid < 0 || sid == LONGEST || sid == -1;
-            if (allInvocations(invalid)) { // warps votes for break
+            //if (allInvocations(invalid)) { // warps votes for break
+            if (allInvocationsARB(invalid)) { // warps votes for break
                 break;
             } else 
             if (!invalid) {
