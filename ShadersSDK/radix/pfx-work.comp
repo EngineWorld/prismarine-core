@@ -4,7 +4,8 @@
 
 #include "./includes.glsl"
 
-#define WG_COUNT 32
+//#define WG_COUNT 32
+#define WG_COUNT 1
 
 shared uint localHistogram[WG_COUNT];
 void prefixScan() {
@@ -35,19 +36,21 @@ void main() {
     LANE_IDX = gl_SubGroupInvocationARB;
 
     // prefix scans of workers for every radice
-    uint prv = LT_IDX;
-    for (uint wk=0;wk<WG_COUNT;wk++) {
+    uint prv = 0;
+    for (uint wk=1;wk<WG_COUNT;wk++) {
         uint idx = LT_IDX + wk * RADICES;
-        uint pfx = LT_IDX < RADICES && wk > 0 ? Histogram[prv] : 0;
-        uint val = LT_IDX < RADICES && wk > 0 ? PrefixSum[prv] : 0;
-        if (LT_IDX < RADICES) Histogram[idx] = val + pfx;
-        prv = idx;
+        uint val = LT_IDX < RADICES ? PrefixSum[LT_IDX + (wk-1) * RADICES] : 0;
+        if (LT_IDX < RADICES) {
+            Histogram[idx] = val + prv;
+            prv = Histogram[idx];
+        }
     }
     memoryBarrier(); barrier();
 
     // collect pre-seeds
     if (LT_IDX < RADICES) {
-        localHistogram[LT_IDX] = Histogram[LT_IDX + (WG_COUNT-1) * RADICES] + PrefixSum[LT_IDX + (WG_COUNT-1) * RADICES];
+        uint last = LT_IDX + (uint(WG_COUNT)-1u) * uint(RADICES);
+        localHistogram[LT_IDX] = Histogram[last] + PrefixSum[last];
     }
 
     // prefix scan of seeds

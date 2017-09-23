@@ -183,9 +183,9 @@ void main() {
 
         if (greaterEqualF(branges.x, 0.f) && greaterEqualF(branges.y, 0.f) && greaterEqualF(branges.z, 0.f)) {
             if (splitcnt >= maxSplits) {
-                //int to = atomicIncAABB(true);
-                atomicIncAABB(true);
-                int to = t;
+                int to = atomicIncAABB(true);
+                //atomicIncAABB(true);
+                //int to = t;
 
                 mortonIdc.MortoncodesIndices[to] = int(to);
 #ifdef INT64_MORTON

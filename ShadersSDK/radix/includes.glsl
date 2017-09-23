@@ -9,8 +9,8 @@
 #extension GL_ARB_shader_ballot : require
 #endif
 
-//#define BLOCK_SIZE 1024
-#define BLOCK_SIZE 256
+//#define BLOCK_SIZE 256
+#define BLOCK_SIZE 1024
 #define BLOCK_SIZE_RT (gl_WorkGroupSize.x)
 
 #ifdef AMD_SUPPORT

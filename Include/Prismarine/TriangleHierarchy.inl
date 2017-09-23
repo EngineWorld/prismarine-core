@@ -282,8 +282,8 @@ namespace NSM {
         if (triangleCount <= 0) return;
         geometryUniformData.triangleCount = triangleCount;
 
-        std::vector<GLuint> mortons_original(triangleCount);
-        glGetNamedBufferSubData(mortonBufferIndex, 0, strided<GLuint>(mortons_original.size()), mortons_original.data());
+        //std::vector<GLuint> mortons_original(triangleCount);
+        //glGetNamedBufferSubData(mortonBufferIndex, 0, strided<GLuint>(mortons_original.size()), mortons_original.data());
 
         //std::vector<GLuint64> mortons_original(triangleCount);
         //glGetNamedBufferSubData(mortonBuffer, 0, strided<GLuint64>(mortons_original.size()), mortons_original.data());

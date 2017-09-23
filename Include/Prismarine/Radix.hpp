@@ -59,9 +59,10 @@ namespace NSM {
                 Consts consts = { size, i, descending, 0 };
                 glNamedBufferSubData(VarBuffer, 0, strided<Consts>(1), &consts);
 
-                dispatch(histogramProgram, WG_COUNT);
-                dispatch(pfxWorkProgram, 1);
-                dispatch(permuteProgram, WG_COUNT);
+                dispatch(sortProgram, 1);
+                //dispatch(histogramProgram, WG_COUNT);
+                //dispatch(pfxWorkProgram, 1);
+                //dispatch(permuteProgram, WG_COUNT);
 
                 swapness = !swapness;
             }
