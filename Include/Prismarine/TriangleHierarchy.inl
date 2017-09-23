@@ -35,10 +35,10 @@ namespace NSM {
 
 
     inline void TriangleHierarchy::initShaders() {
-        initShaderComputeSPIRV("./shaders-spv/hlbvh/refit.comp.spv", refitProgramH);
-        initShaderComputeSPIRV("./shaders-spv/hlbvh/build.comp.spv", buildProgramH);
-        //initShaderComputeSPIRV("./shaders-spv/hlbvh/refit-new.comp.spv", refitProgramH);
-        //initShaderComputeSPIRV("./shaders-spv/hlbvh/build-new.comp.spv", buildProgramH);
+        //initShaderComputeSPIRV("./shaders-spv/hlbvh/refit.comp.spv", refitProgramH);
+        //initShaderComputeSPIRV("./shaders-spv/hlbvh/build.comp.spv", buildProgramH);
+        initShaderComputeSPIRV("./shaders-spv/hlbvh/refit-new.comp.spv", refitProgramH);
+        initShaderComputeSPIRV("./shaders-spv/hlbvh/build-new.comp.spv", buildProgramH);
         initShaderComputeSPIRV("./shaders-spv/hlbvh/aabbmaker.comp.spv", aabbMakerProgramH);
         initShaderComputeSPIRV("./shaders-spv/hlbvh/minmax.comp.spv", minmaxProgram2);
         initShaderComputeSPIRV("./shaders-spv/vertex/loader.comp.spv", geometryLoaderProgram2);
@@ -308,7 +308,7 @@ namespace NSM {
 
         for (int i=0;i<8;i++) glCopyNamedBufferSubData(lscounterTemp, buildBuffer, 0, i * sizeof(GLint), strided<GLint>(1));
 
-        /*
+        
         this->syncUniforms();
         GLint buildCounterData[8] = {0};
         for (int i = 0; i < 256; i++) {
@@ -324,13 +324,13 @@ namespace NSM {
             glCopyNamedBufferSubData(buildBuffer, buildBuffer, 2 * sizeof(GLint), 5 * sizeof(GLint), sizeof(GLint));
         }
         dispatch(refitProgramH, 32);
-        */
-
         
+
+        /*
         this->syncUniforms();
         dispatch(buildProgramH, 1);
         dispatch(refitProgramH, 1);
-        
+        */
 
         //std::vector < HlbvhNode > nodes(triangleCount*2);
         //glGetNamedBufferSubData(bvhnodesBuffer, 0, strided<HlbvhNode>(nodes.size()), nodes.data());
