@@ -15,12 +15,14 @@
 const int work_size = 128;
 layout ( local_size_x = work_size ) in;
 
+#ifdef INT64_MORTON
 int nlz(in uint64_t x) {
     uvec2 pair = U2P(x);
     int lv = msb(pair.x);
     int hi = msb(pair.y);
     return 63-((hi >= 0) ? (32 + hi) : lv);
 }
+#endif
 
 int nlz(in uint x) {
     return 31-msb(x);
