@@ -58,20 +58,24 @@ initAtomicIncFunction(arcounter.Ht, atomicIncHt, int)
 
 void _collect(inout RayRework ray){
 #ifndef SIMPLIFIED_RAY_MANAGMENT
-    vec4 color = min(max(ray.final, vec4(0.f)), vec4(1000.f));
-    int idx = atomicIncCt(true); // allocate new index
-    atomicCompSwap(texelBuf.nodes[ray.texel].EXT.y, -1, idx); // link first index
+    vec4 color = max(ray.final, vec4(0.f));
+    if (mlength(color.xyz) < 10000.f && !any(isnan(color.xyz))) {
+        int idx = atomicIncCt(true); // allocate new index
+        atomicCompSwap(texelBuf.nodes[ray.texel].EXT.y, -1, idx); // link first index
+        //int prev = atomicExchange(texelBuf.nodes[ray.texel].EXT.y, idx);
 
-    // create new chain
-    ColorChain cchain = chBuf.chains[idx];
-    cchain.cdata.x = -1;
-    cchain.color = vec4(color.xyz, 1.0f);
-    chBuf.chains[idx] = cchain;
-    ray.final.xyzw = vec4(0.0f);
+        // create new chain
+        ColorChain cchain = chBuf.chains[idx];
+        cchain.cdata.x = -1;
+        //cchain.cdata.x = prev;
+        cchain.color = vec4(color.xyz, 1.0f);
+        chBuf.chains[idx] = cchain;
+        ray.final.xyzw = vec4(0.0f);
 
-    // link with previous (need do after)
-    int prev = atomicExchange(texelBuf.nodes[ray.texel].EXT.z, idx);
-    if (prev != -1) atomicExchange(chBuf.chains[prev].cdata.x, idx);
+        // link with previous (need do after)
+        int prev = atomicExchange(texelBuf.nodes[ray.texel].EXT.z, idx);
+        if (prev != -1) atomicExchange(chBuf.chains[prev].cdata.x, idx);
+    }
 #endif
 }
 
