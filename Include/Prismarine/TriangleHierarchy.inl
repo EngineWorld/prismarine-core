@@ -323,8 +323,11 @@ namespace NSM {
         dispatch(buildProgramH, 1);
         dispatch(refitProgramH, 1);
 
-        //std::vector < HlbvhNode > nodes(triangleCount*2);
-        //glGetNamedBufferSubData(bvhnodesBuffer, 0, strided<HlbvhNode>(nodes.size()), nodes.data());
+        std::vector < HlbvhNode > nodes(triangleCount*2);
+        glGetNamedBufferSubData(bvhnodesBuffer, 0, strided<HlbvhNode>(nodes.size()), nodes.data());
+        //glGetNamedBufferSubData(leafBuffer, 0, strided<HlbvhNode>(nodes.size()), nodes.data());
+        
+
 
         // set back triangle count
         this->geometryUniformData.triangleCount = this->triangleCount;
