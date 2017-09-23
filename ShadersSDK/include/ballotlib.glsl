@@ -65,14 +65,17 @@ int firstActive(){
 #define UVEC_BALLOT_WARP uvec2
 
 uvec2 genLtMask(){
+    //return U2P(gl_SubGroupLtMaskARB);
+    
     uvec2 mask = uvec2(0, 0);
-    if (LANE_IDX >= 64) {
-        mask = uvec2(0xFFFFFFFF, 0xFFFFFFFF);
+    if (gl_SubGroupInvocationARB >= 64u) {
+        mask = uvec2(0xFFFFFFFFu, 0xFFFFFFFFu);
     } else 
-    if (LANE_IDX >= 32) {
-        mask = uvec2(0xFFFFFFFF, LANE_IDX == 32 ? 0 : (1 << (LANE_IDX-32))-1);
-    } else {
-        mask = uvec2(LANE_IDX == 0 ? 0 : (1 << LANE_IDX)-1, 0);
+    if (gl_SubGroupInvocationARB >= 32u && gl_SubGroupInvocationARB < 64u) {
+        mask = uvec2(0xFFFFFFFFu, gl_SubGroupInvocationARB == 32 ? 0u : (1u << (gl_SubGroupInvocationARB-32u))-1u);
+    } else 
+    if (gl_SubGroupInvocationARB >= 0u && gl_SubGroupInvocationARB < 32u) {
+        mask = uvec2(gl_SubGroupInvocationARB == 0 ? 0u : (1 << gl_SubGroupInvocationARB)-1, 0u);
     }
     return mask;
 }

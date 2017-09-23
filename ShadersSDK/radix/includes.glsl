@@ -1,11 +1,11 @@
 
 // Readme license https://github.com/AwokenGraphics/prismarine-core/blob/master/LICENSE.md
+//#define EMULATE_BALLOT
 
-
-#ifndef EMULATE_BALLOT
 #extension GL_ARB_gpu_shader_int64 : enable
 #extension GL_AMD_gpu_shader_int64 : enable
 
+#ifndef EMULATE_BALLOT
 #extension GL_ARB_shader_ballot : require
 #endif
 
@@ -61,7 +61,7 @@ layout (std430, binding = 27) buffer HistogramBlock {uint Histogram[];};
 layout (std430, binding = 28) buffer PrefixBlock {uint PrefixSum[];};
 
 uvec2 U2P(in uint64_t pckg) {
-    //return uvec2(uint((pckg >> 0) & 0xFFFFFFFF), uint((pckg >> 32) & 0xFFFFFFFF));
+    //return uvec2(uint((pckg >> 0u) & 0xFFFFFFFFu), uint((pckg >> 32u) & 0xFFFFFFFFu));
     return unpackUint2x32(pckg);
 }
 
@@ -98,7 +98,7 @@ uint bitCount64(in uint a64) {
     return btc(a64);
 }
 
-uint readLane(in uint val, in uint lane) {
+uint readLane(in uint val, in int lane) {
     // warp can be have barrier, but is not required
     atomicExchange(invocationCache[LC_IDX][LANE_IDX], val);
     // warp can be have barrier, but is not required
@@ -110,21 +110,18 @@ uint readLane(in uint val, in uint lane) {
 //#define UVEC_BALLOT_WARP UVEC64_WARP
 #define UVEC_BALLOT_WARP uvec2
 
-/*
 uvec2 genLtMask(){
-    return U2P(gl_SubGroupLtMaskARB);
-}
-*/
-
-uvec2 genLtMask(){
+    //return U2P(gl_SubGroupLtMaskARB);
+    
     uvec2 mask = uvec2(0, 0);
-    if (LANE_IDX >= 64) {
-        mask = uvec2(0xFFFFFFFF, 0xFFFFFFFF);
+    if (gl_SubGroupInvocationARB >= 64u) {
+        mask = uvec2(0xFFFFFFFFu, 0xFFFFFFFFu);
     } else 
-    if (LANE_IDX >= 32) {
-        mask = uvec2(0xFFFFFFFF, LANE_IDX == 32 ? 0 : (1 << (LANE_IDX-32))-1);
-    } else {
-        mask = uvec2(LANE_IDX == 0 ? 0 : (1 << LANE_IDX)-1, 0);
+    if (gl_SubGroupInvocationARB >= 32u && gl_SubGroupInvocationARB < 64u) {
+        mask = uvec2(0xFFFFFFFFu, gl_SubGroupInvocationARB == 32 ? 0u : (1u << (gl_SubGroupInvocationARB-32u))-1u);
+    } else 
+    if (gl_SubGroupInvocationARB >= 0u && gl_SubGroupInvocationARB < 32u) {
+        mask = uvec2(gl_SubGroupInvocationARB == 0 ? 0u : (1 << gl_SubGroupInvocationARB)-1, 0u);
     }
     return mask;
 }
@@ -133,14 +130,18 @@ uint bitCount64(in uvec2 lh) {
     return uint(btc(lh.x) + btc(lh.y));
 }
 
-uint readLane(in uint val, in uint lane){
-    return readInvocationARB(val, lane);
+uint readLane(in uint val, in int lane){
+    return readInvocationARB(val, uint(lane));
 }
+
+//uint64_t readLane(in uint64_t val, in int lane){
+//    return readInvocationARB(val, uint(lane));
+//}
 
 uvec2 ballotHW(in bool val) {
     return U2P(ballotARB(val)) & uvec2(
-        gl_SubGroupSizeARB >= 32 ? 0xFFFFFFFF : ((1 << gl_SubGroupSizeARB)-1), 
-        gl_SubGroupSizeARB <= 32 ? 0 : (gl_SubGroupSizeARB >= 64 ? 0xFFFFFFFF : ((1 << (gl_SubGroupSizeARB-32))-1))
+        gl_SubGroupSizeARB >= 32 ? 0xFFFFFFFFu : ((1 << gl_SubGroupSizeARB)-1), 
+        gl_SubGroupSizeARB <= 32 ? 0 : (gl_SubGroupSizeARB >= 64 ? 0xFFFFFFFFu : ((1 << (gl_SubGroupSizeARB-32))-1))
     );
 }
 

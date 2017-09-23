@@ -32,7 +32,7 @@ shared uint seed[RADICES];
 void main() {
     LT_IDX = gl_LocalInvocationID.x;
     LC_IDX = (gl_LocalInvocationID.x / gl_SubGroupSizeARB);
-    LANE_IDX = (gl_LocalInvocationID.x % gl_SubGroupSizeARB);
+    LANE_IDX = gl_SubGroupInvocationARB;
 
     // prefix scans of workers for every radice
     uint prv = LT_IDX;

@@ -265,10 +265,10 @@ TResult testIntersectionPacked(inout TResult res, in vec3 orig, in vec3 dir, in 
         vec4 uv2 = vec4(0.0f);
         vec2 _d2 = vec2(INFINITY);
 
-        
+        /*
         if (anyInvocationARB(any(validTriangles))) {
             _d2 = intersectTriangle2(orig, dir, tri, uv2, validTriangles);
-        }
+        }*/
 
         /*
         if (anyInvocationARB(all(validTriangles))) { // if any have two triangles, then use this method
@@ -279,11 +279,10 @@ TResult testIntersectionPacked(inout TResult res, in vec3 orig, in vec3 dir, in 
         */
 
         //if (anyInvocation(any(validTriangles))) {
-        /*
         if (anyInvocationARB(any(validTriangles))) {
             _d2.x = intersectTriangle(orig, dir, tri.x, uv2.xz, validTriangles.x);
             _d2.y = intersectTriangle(orig, dir, tri.y, uv2.yw, validTriangles.y);
-        }*/
+        }
         
 
         bool near = validTriangles.x && lessF(_d2.x, INFINITY) && lessEqualF(_d2.x, res.predist) && greaterEqualF(_d2.x, 0.0f);
@@ -414,7 +413,10 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
                         ),
                         and2(bvec2(node.pdata.x != -1, node.pdata.y != -1), bvec2(node.pdata.x != node.pdata.y))
                     )
-                ), and2(bvec2((leftNear ? node.pdata.y : node.pdata.x) != esc), bvec2(node.pdata.x != esc, node.pdata.y != esc)))
+                ), 
+                    //and2(bvec2((leftNear ? node.pdata.y : node.pdata.x) != esc), bvec2(node.pdata.x != esc, node.pdata.y != esc))
+                    bvec2(true)
+                )
             );
 
             bvec2  overlaps = and2(overlapsGeneral, bvec2(lnode.pdata.x != lnode.pdata.y, rnode.pdata.x != rnode.pdata.y)); // is nodes

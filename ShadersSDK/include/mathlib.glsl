@@ -207,7 +207,7 @@ vec2 intersectCubeDual(
 //#define BFE_HW(a,o,n) (bitfieldExtract(a,o,n))
 
 uvec2 U2P(in uint64_t pckg) {
-    //return uvec2(uint((pckg >> 0) & 0xFFFFFFFF), uint((pckg >> 32) & 0xFFFFFFFF));
+    //return uvec2(uint((pckg >> 0) & 0xFFFFFFFFu), uint((pckg >> 32) & 0xFFFFFFFFu));
     return unpackUint2x32(pckg);
 }
 

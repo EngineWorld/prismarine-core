@@ -282,13 +282,22 @@ namespace NSM {
         if (triangleCount <= 0) return;
         geometryUniformData.triangleCount = triangleCount;
 
+        std::vector<GLuint> mortons_original(triangleCount);
+        glGetNamedBufferSubData(mortonBufferIndex, 0, strided<GLuint>(mortons_original.size()), mortons_original.data());
+
+        //std::vector<GLuint64> mortons_original(triangleCount);
+        //glGetNamedBufferSubData(mortonBuffer, 0, strided<GLuint64>(mortons_original.size()), mortons_original.data());
+
         // radix sort of morton-codes
         sorter->sort(mortonBuffer, mortonBufferIndex, triangleCount); // early serial tests
         //glFinish();
 
         // debug
-        //std::vector<GLuint> mortons(triangleCount);
-        //glGetNamedBufferSubData(mortonBuffer, 0, strided<GLuint>(mortons.size()), mortons.data());
+        //std::vector<GLuint64> mortons(triangleCount);
+        //glGetNamedBufferSubData(mortonBuffer, 0, strided<GLuint64>(mortons.size()), mortons.data());
+
+        std::vector<GLuint> mortons(triangleCount);
+        glGetNamedBufferSubData(mortonBufferIndex, 0, strided<GLuint>(mortons.size()), mortons.data());
 
         // bind BVH buffers
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, bvhnodesBuffer);
@@ -314,8 +323,6 @@ namespace NSM {
             glCopyNamedBufferSubData(buildBuffer, buildBuffer, 5 * sizeof(GLint), 4 * sizeof(GLint), sizeof(GLint));
             glCopyNamedBufferSubData(buildBuffer, buildBuffer, 2 * sizeof(GLint), 5 * sizeof(GLint), sizeof(GLint));
         }
-        //glFinish();
-
         dispatch(refitProgramH, 32);
         */
 
