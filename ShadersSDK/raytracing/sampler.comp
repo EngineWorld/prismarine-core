@@ -19,9 +19,8 @@ LOCAL_SIZE_LAYOUT;
 const int chains_limit = 4096 * 4096;
 
 vec4 collectSamples(in uint ts){
-    Texel txiho = texelBuf.nodes[ts];
     vec4 sampled = vec4(0.0f);
-    int sid = txiho.EXT.y;
+    int sid = atomicExchange(texelBuf.nodes[ts].EXT.y, -1);
     bool invalid = sid == -1 || sid > chains_limit || sid <= 0;
     if (!invalid) {
         for (int i=0;i<32;i++) {
