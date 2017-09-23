@@ -59,7 +59,8 @@ initAtomicIncFunction(arcounter.Ht, atomicIncHt, int)
 void _collect(inout RayRework ray){
 #ifndef SIMPLIFIED_RAY_MANAGMENT
     vec4 color = max(ray.final, vec4(0.f));
-    if (mlength(color.xyz) < 1000.f && !any(isnan(color.xyz)) && !any(isinf(color.xyz))) {
+    ray.final = vec4(0.f);
+    if (mlength(color.xyz) < 10000.f && !any(isnan(color.xyz)) && !any(isinf(color.xyz))) {
         int idx = atomicIncCt(true); // allocate new index
         atomicCompSwap(texelBuf.nodes[ray.texel].EXT.y, -1, idx); // link first index
         int prev = atomicExchange(texelBuf.nodes[ray.texel].EXT.y, idx);
