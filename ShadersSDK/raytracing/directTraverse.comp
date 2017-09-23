@@ -479,6 +479,8 @@ void main() {
     //if (allInvocations(overflow)) return;
 
     int t = activedBuf.indc[it];
+    overflow = overflow || t <= 0;
+
     RayRework ray = rayBuf.nodes[t];
     overflow = RayActived(ray) == 0 || overflow;
     if (allInvocationsARB(overflow)) return;

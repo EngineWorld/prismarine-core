@@ -359,8 +359,11 @@ int main(const int argc, const char ** argv)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_CONTEXT_NO_ERROR, GLFW_TRUE);
 
-    int32_t baseWidth = 720;
-    int32_t baseHeight = 540;
+    int32_t baseWidth = 640;
+    int32_t baseHeight = 360;
+
+    //int32_t baseWidth = 720;
+    //int32_t baseHeight = 540;
 
     GLFWwindow* window = glfwCreateWindow(baseWidth, baseHeight, "Simple example", NULL, NULL);
     if (!window) { glfwTerminate(); exit(EXIT_FAILURE); }

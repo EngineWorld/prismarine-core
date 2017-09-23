@@ -186,7 +186,7 @@ namespace NSM {
         const int32_t wrsize = width * height;
         currentRayLimit = std::min(wrsize * cmultiplier / (enableInterlacing ? 2 : 1), 4096 * 4096);
 
-        colorchains = allocateBuffer<ColorChain>(wrsize * 8);
+        colorchains = allocateBuffer<ColorChain>(4096 * 4096);
         texels = allocateBuffer<Texel>(wrsize);
 
         rays = allocateBuffer<Ray>(currentRayLimit);

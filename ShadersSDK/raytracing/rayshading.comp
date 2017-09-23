@@ -47,6 +47,8 @@ void main() {
     bool skipping = overflow;
 
     int t = activedBuf.indc[it];
+    overflow = overflow || t <= 0;
+
     globalInvocationSMP = it;
     RayRework ray = rayBuf.nodes[t];
 
@@ -225,8 +227,6 @@ void main() {
         RayBasis(ray, 0);
     }
 
-
-
     // emit new rays
     if (!overflow && !skipping)
 #ifdef USE_SIMPLIFIED_MODEL
@@ -252,7 +252,6 @@ void main() {
     }
 #endif
 
-
     // reclaim current rays
     if (!overflow) {
         int bounce = RayBounce(ray)-1;
@@ -271,8 +270,4 @@ void main() {
             addRayToList(ray); // add current rays to additions with newer
         }
     }
-
-
-
-
 }

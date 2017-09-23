@@ -19,6 +19,7 @@ float sqlen(in vec3 a) { return dot(a, a); }
 float sqlen(in vec2 a) { return dot(a, a); }
 float sqlen(in float v) { return v * v; }
 float mlength(in vec3 mcolor){ return max(mcolor.x, max(mcolor.y, mcolor.z)); }
+float mnlength(in vec3 mcolor){ return min(mcolor.x, max(mcolor.y, mcolor.z)); }
 vec4 divW(in vec4 aw){ return aw / aw.w; }
 
 

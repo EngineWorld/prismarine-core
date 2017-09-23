@@ -59,22 +59,19 @@ initAtomicIncFunction(arcounter.Ht, atomicIncHt, int)
 void _collect(inout RayRework ray){
 #ifndef SIMPLIFIED_RAY_MANAGMENT
     vec4 color = max(ray.final, vec4(0.f));
-    if (mlength(color.xyz) < 10000.f && !any(isnan(color.xyz))) {
+    if (mlength(color.xyz) < 1000.f && !any(isnan(color.xyz)) && !any(isinf(color.xyz))) {
         int idx = atomicIncCt(true); // allocate new index
         atomicCompSwap(texelBuf.nodes[ray.texel].EXT.y, -1, idx); // link first index
-        //int prev = atomicExchange(texelBuf.nodes[ray.texel].EXT.y, idx);
+        int prev = atomicExchange(texelBuf.nodes[ray.texel].EXT.y, idx);
+        //int prev = atomicExchange(texelBuf.nodes[ray.texel].EXT.z, idx);
 
         // create new chain
-        ColorChain cchain = chBuf.chains[idx];
-        cchain.cdata.x = -1;
-        //cchain.cdata.x = prev;
-        cchain.color = vec4(color.xyz, 1.0f);
-        chBuf.chains[idx] = cchain;
-        ray.final.xyzw = vec4(0.0f);
-
+        //atomicExchange(chBuf.chains[idx].cdata.x, -1);
+        atomicExchange(chBuf.chains[idx].cdata.x, prev);
+        chBuf.chains[idx].color = vec4(color.xyz, 1.0f);
+        
         // link with previous (need do after)
-        int prev = atomicExchange(texelBuf.nodes[ray.texel].EXT.z, idx);
-        if (prev != -1) atomicExchange(chBuf.chains[prev].cdata.x, idx);
+        //if (prev >= 0) atomicExchange(chBuf.chains[prev].cdata.x, idx);
     }
 #endif
 }
@@ -109,7 +106,7 @@ int addRayToList(in RayRework ray, in int act){
 }
 
 void storeRay(in int rayIndex, inout RayRework ray) {
-    if (rayIndex == -1 || rayIndex == LONGEST || rayIndex >= RAY_BLOCK samplerUniform.currentRayLimit) {
+    if (rayIndex == -1 || rayIndex <= 0 || rayIndex == LONGEST || rayIndex >= RAY_BLOCK samplerUniform.currentRayLimit) {
         RayActived(ray, 0);
     } else {
         if (RayActived(ray) == 0) {
@@ -129,7 +126,9 @@ void storeRay(inout RayRework ray) {
 #ifndef SIMPLIFIED_RAY_MANAGMENT
 int createRayStrict(inout RayRework original, in int idx, in int rayIndex) {
     bool invalidRay = 
-        (rayIndex == -1 || 
+        (
+         rayIndex == -1 || 
+         rayIndex <= 0 || 
          rayIndex == LONGEST || 
          rayIndex >= RAY_BLOCK samplerUniform.currentRayLimit || 
 
