@@ -96,7 +96,7 @@ void main()
             if ((abs(xy.x + xy.y) % 2) == RAY_BLOCK cameraUniform.interlaceStage) RayActived(ray, 0);
         }
         
-        createRayIdx(ray, idx, interlaced ? (idx / 2) : idx);
         if (RayActived(ray) == 1) _collect(ray); // pre-collect
+        createRayIdx(ray, idx, interlaced ? (idx / 2) : idx);
     }
 }
