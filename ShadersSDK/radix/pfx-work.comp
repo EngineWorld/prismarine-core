@@ -6,7 +6,7 @@
 
 #define WG_COUNT 32
 
-shared uint localHistogram[WG_COUNT];
+shared uint localHistogram[RADICES];
 void prefixScan(){
     UVEC_WARP localIdx = LT_IDX;
     memoryBarrier(); barrier();
@@ -36,6 +36,11 @@ void main() {
     LC_IDX = (gl_LocalInvocationID.x / gl_SubGroupSizeARB);
     LANE_IDX = (gl_LocalInvocationID.x % gl_SubGroupSizeARB);
 
+    if (LT_IDX < RADICES) {
+        localHistogram[LT_IDX] = 0;
+    }
+    memoryBarrier(); barrier();
+
     // prefix scans of workers for every radice
     uint prv = LT_IDX;
     for (uint wk=0;wk<WG_COUNT;wk++) {
@@ -47,10 +52,9 @@ void main() {
     }
     memoryBarrier(); barrier();
 
-    // collect pre-seeds
-    uint last = LT_IDX + (WG_COUNT-1) * RADICES;
+    uint head = LT_IDX + (WG_COUNT-1) * RADICES;
     if (LT_IDX < RADICES) {
-        localHistogram[LT_IDX] = Histogram[last] + PrefixSum[last];
+        localHistogram[LT_IDX] = Histogram[head] + PrefixSum[head];
     }
 
     // prefix scan of seeds

@@ -9,8 +9,8 @@
 #extension GL_ARB_shader_group_vote : require
 #endif
 
-#define BLOCK_SIZE 1024
-//#define BLOCK_SIZE 256
+//#define BLOCK_SIZE 1024
+#define BLOCK_SIZE 256
 #define BLOCK_SIZE_RT (gl_WorkGroupSize.x)
 
 #ifdef AMD_SUPPORT
@@ -41,8 +41,7 @@ uint LT_IDX = 0;
 #define UVEC64_WARP uint64_t
 
 #define READ_LANE(V, I) (uint(I >= 0 && I < gl_SubGroupSizeARB) * readLane(V, I))
-
-#define BFE(a,o,n) ((a >> o) & ((1 << n)-1))
+#define BFE(a,o,n) ((a >> o) & ((1u << n)-1u))
 
 #define KEYTYPE UVEC64_WARP
 //#define KEYTYPE UVEC_WARP
