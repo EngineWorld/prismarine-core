@@ -49,20 +49,10 @@ struct HitRework {
      vec4 tangent; // also have 4th extra slot
      vec4 texcoord; // critical texcoords 
 
-#ifdef ENABLE_AMD_INSTRUCTION_SET
-    //f16vec4 metallicRoughness;
-    //f16vec4 unk16;
-    // f16vec4 emission;
-    // f16vec4 albedo;
     uint64_t metallicRoughness;
     uint64_t unk16;
     uint64_t emission;
     uint64_t albedo;
-#else
-    uvec4 metallicRoughness; // 8 of 16-bit float, you can pack non-critical surface data
-     uvec2 emission;
-     uvec2 albedo;
-#endif
 
     // integer metadata
      int bitfield; 
