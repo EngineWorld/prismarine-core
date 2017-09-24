@@ -62,8 +62,9 @@ layout ( binding = 6, set = 1 ) uniform usampler2D samplers[MAX_TEXTURES]; // vu
 
 
 vec4 manualUnpack8(in uint rgba8){
-    uvec4 rgba8b = uvec4((rgba8 >> 0u) & 0xFFu, (rgba8 >> 8u) & 0xFFu, (rgba8 >> 16u) & 0xFFu, (rgba8 >> 24u) & 0xFFu);
-    return vec4(rgba8b) / 255.f;
+    //uvec4 rgba8b = uvec4((rgba8 >> 0u) & 0xFFu, (rgba8 >> 8u) & 0xFFu, (rgba8 >> 16u) & 0xFFu, (rgba8 >> 24u) & 0xFFu);
+    //return vec4(rgba8b) / 255.f;
+    return unpackUnorm4x8(rgba8);
 }
 
 
