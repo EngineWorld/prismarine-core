@@ -110,15 +110,12 @@ namespace NSM {
 
         GLuint texture = 0;
         glCreateTextures(GL_TEXTURE_2D, 1, &texture);
-        glTextureStorage2D(texture, 1, GL_RGBA32UI, width, height);
+        glTextureStorage2D(texture, 1, GL_RGBA8, width, height);
         glTextureParameteri(texture, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTextureParameteri(texture, GL_TEXTURE_WRAP_T, GL_REPEAT);
         glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTextureParameteri(texture, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        //glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        //glTextureParameteri(texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        //glTextureSubImage2D(texture, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, pixelsPtr);
-        glTextureSubImage2D(texture, 0, 0, 0, width, height, GL_RED_INTEGER, GL_UNSIGNED_INT, pixelsPtr);
+        glTextureSubImage2D(texture, 0, 0, 0, width, height, GL_BGRA, GL_UNSIGNED_BYTE, pixelsPtr);
 
         texnames[tex] = texture;
         return this->loadTexture(texture);

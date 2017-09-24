@@ -47,13 +47,13 @@ layout ( binding = 15, std430 ) readonly buffer MaterialsSSBO {Material submats[
 #ifdef USE_OPENGL
 #ifdef USE_BINDLESS
 //layout ( location = 1, bindless_sampler ) uniform sampler2D samplers[MAX_TEXTURES];
-layout ( binding = 16 ) readonly buffer Textures { usampler2D samplers[]; };
+layout ( binding = 16 ) readonly buffer Textures { sampler2D samplers[]; };
 #else
 //layout ( location = 1 ) uniform sampler2D samplers[MAX_TEXTURES];
-layout ( location = 1 ) uniform usampler2D samplers[MAX_TEXTURES];
+layout ( location = 1 ) uniform sampler2D samplers[MAX_TEXTURES];
 #endif
 #else
-layout ( binding = 6, set = 1 ) uniform usampler2D samplers[MAX_TEXTURES]; // vulkan API type (future)
+layout ( binding = 6, set = 1 ) uniform sampler2D samplers[MAX_TEXTURES]; // vulkan API type (future)
 #endif
 
 
@@ -81,16 +81,12 @@ bool validateTexture(in uint binding){
 }
 
 vec4 fetchTexture(in uint binding, in vec2 texcoord){
-    //return textureBicubic(samplers[binding], texcoord);
-    uint rgba8 = texture(samplers[binding], texcoord).x;
-    vec4 result = manualUnpack8(rgba8).bgra;
+    vec4 result = texture(samplers[binding], texcoord);
     return result;
 }
 
 vec4 fetchTexture(in uint binding, in vec2 texcoord, in ivec2 offset){
-    //return textureBicubic(samplers[binding], texcoord + vec2(offset) / textureSize(samplers[binding], 0));
-    uint rgba8 = texture(samplers[binding], texcoord + vec2(offset) / textureSize(samplers[binding], 0)).x;
-    vec4 result = manualUnpack8(rgba8).bgra;
+    vec4 result = texture(samplers[binding], texcoord + vec2(offset) / textureSize(samplers[binding], 0));
     return result;
 }
 
@@ -155,8 +151,8 @@ vec3 getNormalMapping(in Material mat, vec2 texcoordi) {
 vec4 fetchDiffuse(in Material mat, in vec2 texcoord){
     vec4 result = max(vec4(mat.diffuse.xyz, 1.f), vec4(0.f));
     if (validateTexture(mat.diffusePart)) {
-        uint rgba8x4 = texture(samplers[mat.diffusePart], texcoord).x;
-        result = manualUnpack8(rgba8x4).bgra;
+        result = texture(samplers[mat.diffusePart], texcoord);
+        result.a = isnan(result.a) || isinf(result.a) ? 0.f : result.a;
     }
     return result;
 }
