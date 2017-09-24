@@ -179,8 +179,8 @@ void main() {
     mat3 tbn = mat3(tangent, normalize(cross(normal, tangent)), normal);
     vec2 texcoord = hit.texcoord.xy;
 
-    vec4 diffuse = fetchDiffuse(material, texcoord).rgba;
-    //vec4 diffuse = vec4(fetchDiffuse(material, texcoord).rgb, 1.f); // alpha not supported by AMD RX Vega
+    //vec4 diffuse = fetchDiffuse(material, texcoord).rgba;
+    vec4 diffuse = vec4(fetchDiffuse(material, texcoord).rgb, 1.f); // alpha not supported by AMD RX Vega
     vec4 emission = vec4(fetchEmissive(material, texcoord).xyz * 2.f, 1.0f);
     vec4 spc = fetchSpecular(material, texcoord);
 
