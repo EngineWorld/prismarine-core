@@ -1,7 +1,7 @@
 :: It is helper for compilation shaders to SPIR-V
 
 cd %~dp0
-set CFLAGS=--target-env=opengl -x glsl -Werror -DUSE_OPENGL -E -DENABLE_AMD_INSTRUCTION_SET 
+set CFLAGS=--target-env=opengl -x glsl -Werror -DUSE_OPENGL -E 
 set INDIR=.\
 set OUTDIR=..\Build\shaders-spv\
 set OUTSHR=..\Build\shaders\
