@@ -108,9 +108,11 @@ namespace NSM {
             GLint status = false;
             glGetShaderiv(comp, GL_COMPILE_STATUS, &status);
             if (!status) {
+
                 char * log = new char[32768];
                 GLsizei len = 0;
 
+                std::cout << path << std::endl;
                 glGetShaderInfoLog(comp, 32768, &len, log);
                 std::string logStr = std::string(log, len);
                 std::cerr << logStr << std::endl;

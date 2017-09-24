@@ -117,7 +117,8 @@ HitRework interpolateMeshData(inout HitRework res) {
     int tri = floatBitsToInt(res.uvt.w);
 
     bool validInterpolant = greaterEqualF(res.uvt.z, 0.0f) && lessF(res.uvt.z, INFINITY) && tri != LONGEST;
-    if (anyInvocationARB(validInterpolant)) {
+    //if (anyInvocationARB(validInterpolant)) {
+    if (validInterpolant) {
         ivec2 triv = gatherMosaic(getUniformCoord(tri));
         vec2 sz = 1.f / textureSize(vertex_texture, 0);
         vec2 hs = sz * 0.5f;
@@ -258,21 +259,15 @@ TResult testIntersectionPacked(inout TResult res, in vec3 orig, in vec3 dir, in 
         validTriangles = validTriangles.yx;
     }
 
-    if (anyInvocationARB(any(validTriangles))) {
+    //if (anyInvocationARB(any(validTriangles))) {
+    if (any(validTriangles)) {
 
         // planned packed math
         vec4 uv2 = vec4(0.0f);
         vec2 _d2 = vec2(INFINITY);
 
-/*
-        if (anyInvocationARB(all(validTriangles))) { // if any have two triangles, then use this method
-            _d2 = intersectTriangle2(orig, dir, tri, uv2, validTriangles);
-        } else { // no need use much resources
-            _d2.x = intersectTriangle(orig, dir, tri.x, uv2.xz, validTriangles.x);
-        }
-*/
-
-        if (anyInvocationARB(any(validTriangles))) {
+        //if (anyInvocationARB(any(validTriangles))) {
+        if (any(validTriangles)) {
             //_d2 = intersectTriangle2(orig, dir, tri, uv2, validTriangles);
             _d2.x = intersectTriangle(orig, dir, tri.x, uv2.xz, validTriangles.x);
             _d2.y = intersectTriangle(orig, dir, tri.y, uv2.yw, validTriangles.y);
@@ -307,7 +302,8 @@ TResult testIntersectionPacked(inout TResult res, in vec3 orig, in vec3 dir, in 
 const int groupSize = 1;
 
 void includeLeaf2(in vec3 origin, in vec3 direct, in bvec2 valids, in HlbvhNode lnode, in HlbvhNode rnode, inout TResult lastRes){
-    if (anyInvocationARB(any(valids))) {
+    //if (anyInvocationARB(any(valids))) {
+    if (any(valids)) {
         testIntersectionPacked(lastRes, origin.xyz, direct.xyz, ivec2(lnode.pdata.w, rnode.pdata.w), valids);
     }
 }
@@ -373,11 +369,13 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
     bool skipUpstream = false;
     bool skipIntersection = false;
     for (int i=0;i<8192;i++) {
-        if (allInvocationsARB(!validBox)) break;
+        //if (allInvocationsARB(!validBox)) break;
+        if (!validBox) break;
 
         // choice near box
         bool notLeaf = node.pdata.x != node.pdata.y && validBox;
-        if (anyInvocationARB(notLeaf)) {
+        //if (anyInvocationARB(notLeaf)) {
+        if (notLeaf) {
             HlbvhNode lnode = Nodes[node.pdata.x];
             HlbvhNode rnode = Nodes[node.pdata.y];
 
@@ -412,7 +410,8 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
             // intersect triangles when accumulate WARP's
             bool anyLeaf = any(overlapsGeneral); skipIntersection = skipIntersection || anyLeaf; // if any leaf found, skipping
             //if (allInvocationsARB(skipIntersection || !validBox)) {
-            if (anyInvocationARB(skipIntersection)) {
+            //if (anyInvocationARB(skipIntersection)) {
+            if (skipIntersection) {
                 bool leftOrder = all(overlapsGeneral) ? leftNear : overlapsGeneral.x;
                 bvec2 overlaps = leftOrder ? overlapsGeneral : overlapsGeneral.yx; // additional re-order will in past
                 includeLeaf2(origin, direct, overlaps, leftOrder ? lnode : rnode, leftOrder ? rnode : lnode, lastRes);
@@ -421,7 +420,8 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
 
             // choice child nodes by nears
             bool anyOverlap = any(overlaps);
-            if (anyInvocationARB(anyOverlap)) {
+            //if (anyInvocationARB(anyOverlap)) {
+            if (anyOverlap) {
                 bool  leftOrder = all(overlaps) ? leftNear : overlaps.x; // reorder again
                 ivec2 leftright = mix(ivec2(-1), node.pdata.xy, overlaps);
                 leftright = leftOrder ? leftright : leftright.yx;
@@ -460,12 +460,13 @@ void main() {
 
     int it = int(gl_GlobalInvocationID.x);
     bool overflow = it >= RAY_BLOCK samplerUniform.rayCount;
-    if (allInvocationsARB(overflow)) return;
+    //if (allInvocationsARB(overflow)) return;
 
     int t = activedBuf.indc[it];
     RayRework ray = rayBuf.nodes[t];
     overflow = RayActived(ray) == 0 || overflow;
-    if (allInvocationsARB(overflow)) return;
+    //if (allInvocationsARB(overflow)) return;
+
 
     if (!overflow) {
         // traverse
