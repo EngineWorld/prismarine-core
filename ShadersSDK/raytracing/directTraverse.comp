@@ -225,19 +225,34 @@ HitRework interpolateMeshData(inout HitRework res) {
 void includeChain(in int chainID, in vec4 intersection){
     // reuse old chains (i.e. override)
     int hid = sharedVarsData.nextHt;
-    sharedVarsData.nextHt = hid >= 0 ? hitBuf.nodes[hid].next : -1;
-    if (hid < 0) hid = atomicIncHt(true);
+    HitRework absorbHit;
+    absorbHit.next = -1;
+    absorbHit.uvt = vec4(INFINITY, 0.0f, 0.0f, intBitsToFloat(-1));
+    if (hid > 0) absorbHit = hitBuf.nodes[hid];
+    sharedVarsData.nextHt = absorbHit.next > 0 ? absorbHit.next : -1; // next linked ID
 
+    // allocate new hit if chain is none
+    if (hid == -1 || hid <= 0) {
+        hid = atomicIncHt(true);
+    }
+
+    // create hit new element
     HitRework hitp = hitBuf.nodes[hid];
-    hitp.uvt = intersection;
+    hitp.uvt  = intersection;
     hitp.next = sharedVarsData.nextHt; // for future overriding
-    hitBuf.nodes[hid] = interpolateMeshData(hitp);
-    if (sharedVarsData.prevHt == -1) {
+    interpolateMeshData(hitp);
+    hitBuf.nodes[hid] = hitp;
+
+    // get previous hit, and set current (i.e. exchange)
+    int prvh = exchange(sharedVarsData.prevHt, hid);
+
+    // link previous element (or header) with currect
+    if (prvh == -1) {
         sharedVarsData.chainID = hid;
     } else {
-        hitBuf.nodes[sharedVarsData.prevHt].next = hid;
+        atomicExchange(hitBuf.nodes[prvh].next, hid);
     }
-    sharedVarsData.prevHt = hid;
+    
 }
 
 TResult choiceBaked(inout TResult res, in vec3 orig, in vec3 dir, in int tpi) {

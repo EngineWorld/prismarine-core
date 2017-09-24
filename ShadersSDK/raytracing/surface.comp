@@ -75,12 +75,14 @@ bool validateTexture(in uint binding){
 
 vec4 fetchTexture(in uint binding, in vec2 texcoord){
     //return textureBicubic(samplers[binding], texcoord);
-    return texture(samplers[binding], texcoord);
+    vec4 result = texture(samplers[binding], texcoord);
+    return result;
 }
 
 vec4 fetchTexture(in uint binding, in vec2 texcoord, in ivec2 offset){
     //return textureBicubic(samplers[binding], texcoord + vec2(offset) / textureSize(samplers[binding], 0));
-    return texture(samplers[binding], texcoord + vec2(offset) / textureSize(samplers[binding], 0));
+    vec4 result = texture(samplers[binding], texcoord + vec2(offset) / textureSize(samplers[binding], 0));
+    return result;
 }
 
 
@@ -142,10 +144,9 @@ vec3 getNormalMapping(in Material mat, vec2 texcoordi) {
 }
 
 vec4 fetchDiffuse(in Material mat, in vec2 texcoord){
-    vec4 result = vec4(0.0f);
-    result = mat.diffuse;
+    vec4 result = max(mat.diffuse, vec4(0.f));
     if (validateTexture(mat.diffusePart)) {
-        result = fetchTexture(mat.diffusePart, texcoord);
+        result = vec4(texture(samplers[mat.diffusePart], texcoord).xyz, texture(samplers[mat.diffusePart], texcoord).w);
     }
     return result;
 }
@@ -168,16 +169,15 @@ void main() {
     mat3 tbn = mat3(tangent, normalize(cross(normal, tangent)), normal);
     vec2 texcoord = hit.texcoord.xy;
 
-    hit.normalHeight.xyz = normalize(tbn * normalize(getNormalMapping(material, texcoord).xyz));
-    hit.normalHeight.w = 1.0f; // height
-
-    hit.emission = packHalf(vec4(fetchEmissive(material, texcoord).xyz * 2.f, 1.0f));
-    hit.albedo = packHalf(fetchDiffuse(material, texcoord));
-
-    HitActived(hit, 1);
-
+    vec4 diffuse = fetchDiffuse(material, texcoord);
+    vec4 emission = vec4(fetchEmissive(material, texcoord).xyz * 2.f, 1.0f);
     vec4 spc = fetchSpecular(material, texcoord);
+
+    hit.normalHeight = vec4(normalize(tbn * normalize(getNormalMapping(material, texcoord).xyz)), 1.f);
+    hit.emission = packHalf(emission);
+    hit.albedo = packHalf(diffuse);
     hit.metallicRoughness = packHalf(vec4(spc.yz, 0.f, 0.f));
+    HitActived(hit, 1);
 
     if (!overflow) {
         hitBuf.nodes[t] = hit;
