@@ -467,12 +467,13 @@ void main() {
     overflow = RayActived(ray) == 0 || overflow;
     if (allInvocationsARB(overflow)) return;
 
-    // traverse
-    //sharedVarsData.prevHt = ray.hit;
-    sharedVarsData.nextHt = ray.hit;
-    traverse(ray.origin.xyz, ray.direct.xyz, !overflow);
-    
-    // override chain id
-    ray.hit = sharedVarsData.chainID;
-    if (!overflow) rayBuf.nodes[t] = ray; // avoid invalids
+    if (!overflow) {
+        // traverse
+        sharedVarsData.nextHt = ray.hit;
+        traverse(ray.origin.xyz, ray.direct.xyz, !overflow);
+        
+        // override chain id
+        ray.hit = sharedVarsData.chainID;
+        rayBuf.nodes[t] = ray; // avoid invalids
+    }
 }

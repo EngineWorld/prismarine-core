@@ -177,7 +177,8 @@ void main() {
     float spca = clamp(mlength(sc.xyz), 0.0f, 1.0f);
     float prom = 1.0f - tx.a;
     //float aprom = random() < prom ? 1.f : 0.f;
-    float aprom = RayType(ray) == 1 ? prom : (random() < prom ? 1.f : 0.f);
+    //float aprom = RayType(ray) == 1 ? prom : (random() < prom ? 1.f : 0.f);
+    float aprom = prom;
 
     // create rays
     RayRework diffuseRay = ray;
@@ -243,10 +244,10 @@ void main() {
         RayBounce(ray, bounce >= 0 ? bounce : 0);
         ray.hit = -1; // reset chains
 
-        if (!overflow) {
+        //if (!overflow) {
             storeRay(t, ray);
             addRayToList(ray); // add current rays to additions with newer
-        }
+        //}
     }
 
     // emit new rays
