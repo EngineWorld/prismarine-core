@@ -37,14 +37,14 @@
 
 // enable required OpenGL extensions
 #ifdef ENABLE_AMD_INSTRUCTION_SET
-#extension GL_AMD_gcn_shader : require
-#extension GL_AMD_gpu_shader_half_float : require
-#extension GL_AMD_gpu_shader_int16 : require
-#extension GL_AMD_shader_trinary_minmax : require
+#extension GL_AMD_gcn_shader : enable
+#extension GL_AMD_gpu_shader_half_float : enable
+#extension GL_AMD_gpu_shader_int16 : enable
+#extension GL_AMD_shader_trinary_minmax : enable
 #endif
 
 #ifdef ENABLE_NVIDIA_INSTRUCTION_SET
-#extension GL_NV_gpu_shader5 : require
+#extension GL_NV_gpu_shader5 : enable
 #endif
 
 #ifdef USE_INT64

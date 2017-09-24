@@ -18,7 +18,12 @@ bool equalF(in float a, in float b) { return abs(a-b) < PZERO; }
 float sqlen(in vec3 a) { return dot(a, a); }
 float sqlen(in vec2 a) { return dot(a, a); }
 float sqlen(in float v) { return v * v; }
+
+#ifdef ENABLE_AMD_INSTRUCTION_SET
+float mlength(in vec3 mcolor){ return max3(mcolor.x, mcolor.y, mcolor.z); }
+#else
 float mlength(in vec3 mcolor){ return max(mcolor.x, max(mcolor.y, mcolor.z)); }
+#endif
 vec4 divW(in vec4 aw){ return aw / aw.w; }
 
 

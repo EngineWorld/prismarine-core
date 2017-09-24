@@ -200,7 +200,8 @@ float intersectTriangle(in vec3 orig, in vec3 dir, in int tri, inout vec2 UV, in
 }
 
 
-#if defined(ENABLE_AMD_INSTRUCTION_SET) || defined(ENABLE_NVIDIA_INSTRUCTION_SET)
+//#if defined(ENABLE_AMD_INSTRUCTION_SET) || defined(ENABLE_NVIDIA_INSTRUCTION_SET)
+#if defined(ENABLE_NVIDIA_INSTRUCTION_SET)
 #define INDEX16 uint16_t
 #define M16(m, i) (m[i])
 #else
