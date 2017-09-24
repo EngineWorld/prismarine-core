@@ -30,10 +30,14 @@ uint prefixScanWarp(inout UVEC_WARP v){
 uint prefixSum(in uint data, inout uint total_sum) {
     UVEC_WARP rsort = data;
     for (uint i = 1; i < WORK_SIZE_RT; i <<= 1) {
-        rsort += READ_LANE(rsort, LANE_IDX - i) * uint(LANE_IDX < WORK_SIZE_RT);
+        int ldc = int(LANE_IDX) - int(i);
+        rsort += READ_LANE(rsort, ldc) * uint(LANE_IDX < WORK_SIZE_RT);
     }
-    total_sum = READ_LANE(rsort, WORK_SIZE_RT-1);
-    UVEC_WARP result = READ_LANE(rsort, LANE_IDX - 1) * uint(LANE_IDX < WORK_SIZE_RT);
+    int sumi = int(WORK_SIZE_RT)-1;
+    total_sum = READ_LANE(rsort, sumi);
+
+    int plc = int(LANE_IDX)-1;
+    UVEC_WARP result = READ_LANE(rsort, plc) * uint(LANE_IDX < WORK_SIZE_RT);
     return result;
 }
 

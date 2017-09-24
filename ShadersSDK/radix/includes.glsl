@@ -40,25 +40,24 @@ uint LT_IDX = 0;
 #define BVEC_WARP bool
 #define UVEC64_WARP uint64_t
 
-//#define READ_LANE(V, I) ((I >= 0 && I < gl_SubGroupSizeARB) ? readLane(V, I) : 0)
 #define READ_LANE(V, I) (uint(I >= 0 && I < gl_SubGroupSizeARB) * readLane(V, I))
 
 #define BFE(a,o,n) ((a >> o) & ((1 << n)-1))
 
 #define KEYTYPE UVEC64_WARP
 //#define KEYTYPE UVEC_WARP
-layout (std430, binding = 20) restrict buffer KeyInBlock {KEYTYPE KeyIn[];};
-layout (std430, binding = 21) restrict buffer ValueInBlock {uint ValueIn[];};
-layout (std430, binding = 24) restrict buffer VarsBlock {
+layout (std430, binding = 20) volatile buffer KeyInBlock {KEYTYPE KeyIn[];};
+layout (std430, binding = 21) volatile buffer ValueInBlock {uint ValueIn[];};
+layout (std430, binding = 24) volatile buffer VarsBlock {
     uint NumKeys;
     uint Shift;
     uint Descending;
     uint IsSigned;
 };
-layout (std430, binding = 25) restrict buffer KeyTmpBlock {KEYTYPE KeyTmp[];};
-layout (std430, binding = 26) restrict buffer ValueTmpBlock {uint ValueTmp[];};
-layout (std430, binding = 27) restrict buffer HistogramBlock {uint Histogram[];};
-layout (std430, binding = 28) restrict buffer PrefixBlock {uint PrefixSum[];};
+layout (std430, binding = 25) volatile buffer KeyTmpBlock {KEYTYPE KeyTmp[];};
+layout (std430, binding = 26) volatile buffer ValueTmpBlock {uint ValueTmp[];};
+layout (std430, binding = 27) volatile buffer HistogramBlock {uint Histogram[];};
+layout (std430, binding = 28) volatile buffer PrefixBlock {uint PrefixSum[];};
 
 uvec2 U2P(in uint64_t pckg) {
     return uvec2((pckg >> 0) & 0xFFFFFFFF, (pckg >> 32) & 0xFFFFFFFF);
@@ -97,7 +96,7 @@ uint bitCount64(in uint a64) {
     return btc(a64);
 }
 
-uint readLane(in uint val, in uint lane) {
+uint readLane(in uint val, in int lane) {
     // warp can be have barrier, but is not required
     atomicExchange(invocationCache[LC_IDX][LANE_IDX], val);
     // warp can be have barrier, but is not required
@@ -117,7 +116,7 @@ uint bitCount64(in uvec2 lh) {
     return uint(btc(lh.x) + btc(lh.y));
 }
 
-uint readLane(in uint val, in uint lane){
+uint readLane(in uint val, in int lane){
     return readInvocationARB(val, lane);
 }
 

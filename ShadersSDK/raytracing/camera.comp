@@ -38,7 +38,7 @@ void main()
         Texel txfi = texelBuf.nodes[idx];
         txfi.coord.x = coord.x;
         txfi.coord.y = coord.y;
-        txfi.EXT = ivec4(-1);
+        txfi.EXT = _ext4(-1,-1,-1,-1);
         texelBuf.nodes[idx] = txfi;
 
         vec4 orig = vec4(0.f, 0.0f, 0.f, 1.0f);

@@ -7,10 +7,11 @@
 #define WG_COUNT 32
 
 shared uint localHistogram[WG_COUNT];
-void prefixScan() {
+void prefixScan(){
     UVEC_WARP localIdx = LT_IDX;
     memoryBarrier(); barrier();
-    uint tmp = localIdx >= 1 && localIdx < RADICES ? localHistogram[localIdx-1] : 0;
+    uint prv = localIdx >= 1 ? localIdx-1 : 0;
+    uint tmp = localIdx >= 1 && localIdx < RADICES ? localHistogram[prv] : 0;
     memoryBarrier(); barrier();
     if (localIdx < RADICES) localHistogram[localIdx] = tmp;
 
@@ -18,7 +19,8 @@ void prefixScan() {
     for (int i=1;i<RADICES;i<<=1) {
         memoryBarrier(); barrier();
         uint idx = localIdx;
-        uint off = idx >= i && idx < RADICES ? localHistogram[idx-i] : 0;
+        uint prv = idx >= i ? idx-i : 0;
+        uint off = idx >= i && idx < RADICES ? localHistogram[prv] : 0;
         uint hst = idx < RADICES ? localHistogram[idx] : 0;
         memoryBarrier(); barrier();
         if (idx < RADICES) localHistogram[idx] = off + hst;
@@ -46,8 +48,9 @@ void main() {
     memoryBarrier(); barrier();
 
     // collect pre-seeds
+    uint last = LT_IDX + (WG_COUNT-1) * RADICES;
     if (LT_IDX < RADICES) {
-        localHistogram[LT_IDX] = Histogram[LT_IDX + (WG_COUNT-1) * RADICES] + PrefixSum[LT_IDX + (WG_COUNT-1) * RADICES];
+        localHistogram[LT_IDX] = Histogram[last] + PrefixSum[last];
     }
 
     // prefix scan of seeds
@@ -56,6 +59,8 @@ void main() {
     // apply prefix scans
     for (uint wk=0;wk<WG_COUNT;wk++) {
         uint idx = LT_IDX + wk * RADICES;
-        if (LT_IDX < RADICES) PrefixSum[idx] = Histogram[idx] + localHistogram[LT_IDX];
+        if (LT_IDX < RADICES) {
+            PrefixSum[idx] = Histogram[idx] + localHistogram[LT_IDX];
+        }
     }
 }

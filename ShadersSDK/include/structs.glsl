@@ -7,17 +7,23 @@
 
 #include "../include/mathlib.glsl"
 
+struct _ext4 {
+    int x;
+    int y;
+    int z;
+    int w;
+};
+
 struct Texel {
     highp vec4 coord;
     highp vec4 last3d;
-    highp ivec4 EXT;
+    highp _ext4 EXT;
 };
 
 struct bbox {
     highp vec4 mn;
     highp vec4 mx;
 };
-
 
 // ray bitfield spec
 // {0     }[1] - actived or not

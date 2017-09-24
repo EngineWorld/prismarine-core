@@ -3,11 +3,11 @@
 
 
 // Morton codes and geometry counters
-layout ( std430, binding = 0 ) restrict buffer MortoncodesBlock {
+layout ( std430, binding = 0 ) volatile buffer MortoncodesBlock {
     MORTONTYPE Mortoncodes[];
 };
 
-layout ( std430, binding = 1 ) restrict buffer IndicesBlock {
+layout ( std430, binding = 1 ) volatile buffer IndicesBlock {
     int MortoncodesIndices[];
 };
 
@@ -15,23 +15,23 @@ layout ( std430, binding = 2 ) readonly buffer NumBlock {
     int Range[1];
 };
 
-layout ( std430, binding = 3 ) restrict buffer LeafBlock {
+layout ( std430, binding = 3 ) volatile buffer LeafBlock {
     HlbvhNode Leafs[];
 };
 
 // BVH nodes
-layout ( std430, binding = 4 ) restrict buffer NodesBlock {
+layout ( std430, binding = 4 ) volatile buffer NodesBlock {
     HlbvhNode Nodes[];
 };
 
-layout ( std430, binding = 5 ) restrict buffer FlagsBlock {
+layout ( std430, binding = 5 ) volatile buffer FlagsBlock {
     int Flags[];
 };
 
-layout ( std430, binding = 6 ) restrict buffer ActivesBlock {
+layout ( std430, binding = 6 ) volatile buffer ActivesBlock {
     int Actives[];
 };
 
-layout ( std430, binding = 7 ) restrict buffer ChildBuffer {
+layout ( std430, binding = 7 ) volatile buffer ChildBuffer {
     int LeafIndices[];
 };
