@@ -16,7 +16,7 @@ layout ( local_size_x = work_size ) in;
 shared int aCounter;
 shared int aRange[2];
 
-initAtomicIncFunction(aCounter, aCounterInc, int);
+initAtomicIncFunction(aCounter, aCounterInc, int)
 
 void main() {
     int localID = int(gl_LocalInvocationID.x);
@@ -92,11 +92,15 @@ void main() {
                     HlbvhNode nd = Nodes[idx];
 
                     // if parent node is not occupy
-                    bool validParent = nd.pdata.z >= 0 && idx >= 0;
-                    if (validParent) validParent = atomicCompSwap(Flags[nd.pdata.z], 0, 1) == 1;
+                    int prid = nd.pdata.z;
+                    bool validParent = prid >= 0 && idx >= 0;
+                    if (validParent) validParent = atomicCompSwap(Flags[prid], 0, 1) == 1;
 
                     // defer parent nodes
-                    if (validParent) atomicExchange(Actives[aCounterInc( validParent )], nd.pdata.z);
+                    if (validParent) {
+                        int mid = aCounterInc( validParent );
+                        atomicExchange(Actives[mid], prid);
+                    }
 
                     // process unifying boxes
                     if (nd.pdata.x != nd.pdata.y && idx >= 0) {

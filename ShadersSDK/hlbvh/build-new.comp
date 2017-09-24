@@ -55,7 +55,7 @@ int findSplit( int first, int last) {
     return clamp(split, first, last-1);
 }
 
-layout ( std430, binding = 8 ) volatile buffer BuildCounters {
+layout ( std430, binding = 8 ) restrict buffer BuildCounters {
     int cCounter;
     int lCounter;
     int aCounter;

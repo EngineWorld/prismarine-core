@@ -26,11 +26,10 @@ void main() {
         aRange[0] = 0;
         aRange[1] = 0;
     }
+    memoryBarrier(); barrier(); 
 
     // use chunky model
     int blockOffset = GEOMETRY_BLOCK geometryUniform.triangleCount * int(gl_WorkGroupID.x);
-
-    memoryBarrier(); barrier(); 
     {
         int n = GEOMETRY_BLOCK geometryUniform.triangleCount;
         int wcount = min(n <= 0 ? 0 : ((n - 1) / int(gl_WorkGroupSize.x) + 1), 50000);
@@ -40,28 +39,6 @@ void main() {
             if (globalID < n && globalID >= 0) {
                 int idx = atomicExchange(LeafIndices[globalID], -1);
                 if (idx >= 0) {
-                    HlbvhNode childNode = Nodes[idx];
-                    childNode.box.mn = ( 100000.f).xxxx;
-                    childNode.box.mx = (-100000.f).xxxx;
-                    
-                    // make leafs links
-                    uint leafID = MortoncodesIndices[childNode.pdata.x];
-                    atomicExchange(Leafs[leafID].pdata.z, int(idx));
-
-                    // fit bounding box
-                    HlbvhNode leaf = Leafs[leafID];
-                    bbox lbound = leaf.box;
-                    bbox bound = childNode.box;
-                    childNode.box.mn = min(bound.mn, lbound.mn);
-                    childNode.box.mx = max(bound.mx, lbound.mx);
-
-                    // reform range
-                    ivec2 range = childNode.pdata.xy;
-                    childNode.pdata.xy = range.yy; // leaf end (for identify that is leaf)
-                    //childNode.pdata.w = range.x; // leaf index (except morton-code) is primitive
-                    childNode.pdata.w = leaf.pdata.w;
-
-                    Nodes[idx] = childNode;
                     int tob = blockOffset + aCounterInc(true);
                     atomicExchange(Actives[tob], idx);
                 }
@@ -89,16 +66,21 @@ void main() {
             if (allInvocationsARB(globalID >= n)) break;
             if (globalID < n && globalID >= 0) {
                 // get current level node
-                int idx = atomicExchange(Actives[blockOffset + aRange[0]+globalID], -1);
+                int gid = blockOffset + aRange[0] + globalID;
+                int idx = atomicExchange(Actives[gid], -1);
                 if (idx >= 0) {
                     HlbvhNode nd = Nodes[idx];
 
                     // if parent node is not occupy
-                    bool validParent = nd.pdata.z >= 0 && idx >= 0;
-                    if (validParent) validParent = atomicCompSwap(Flags[nd.pdata.z], 0, 1) == 1;
+                    int prid = nd.pdata.z;
+                    bool validParent = prid >= 0 && idx >= 0;
+                    if (validParent) validParent = atomicCompSwap(Flags[prid], 0, 1) == 1;
 
                     // defer parent nodes
-                    if (validParent) atomicExchange(Actives[blockOffset + aCounterInc( validParent )], nd.pdata.z);
+                    if (validParent) {
+                        int mid = blockOffset + aCounterInc( validParent );
+                        atomicExchange(Actives[mid], prid);
+                    }
 
                     // process unifying boxes
                     if (nd.pdata.x != nd.pdata.y && idx >= 0) {

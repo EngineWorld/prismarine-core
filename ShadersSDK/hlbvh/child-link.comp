@@ -1,0 +1,56 @@
+#version 450 core
+
+// Readme license https://github.com/AwokenGraphics/prismarine-core/blob/master/LICENSE.md
+
+#include "../include/constants.glsl"
+#include "../include/structs.glsl"
+#include "../include/uniforms.glsl"
+#include "../include/mathlib.glsl"
+#include "../include/ballotlib.glsl"
+#include "./includes.glsl"
+
+//const int work_size = 1024;
+const int work_size = 128;
+layout ( local_size_x = work_size ) in;
+
+void main() {
+    int localID = int(gl_LocalInvocationID.x);
+    int blockOffset = GEOMETRY_BLOCK geometryUniform.triangleCount * int(gl_WorkGroupID.x);
+
+    {
+        int n = GEOMETRY_BLOCK geometryUniform.triangleCount;
+        int wcount = min(n <= 0 ? 0 : ((n - 1) / int(gl_WorkGroupSize.x) + 1), 50000);
+        for (int w=0;w<wcount;w+=int(gl_NumWorkGroups)) {
+            int globalID = (w + int(gl_WorkGroupID.x)) * int(gl_WorkGroupSize.x) + localID;
+            if (allInvocationsARB(globalID >= n)) break;
+            if (globalID < n && globalID >= 0) {
+                int idx = LeafIndices[globalID];
+                if (idx >= 0) {
+                    HlbvhNode childNode = Nodes[idx];
+                    childNode.box.mn = ( 100000.f).xxxx;
+                    childNode.box.mx = (-100000.f).xxxx;
+                    
+                    // make leafs links
+                    uint leafID = MortoncodesIndices[childNode.pdata.x];
+                    atomicExchange(Leafs[leafID].pdata.z, int(idx));
+
+                    // fit bounding box
+                    HlbvhNode leaf = Leafs[leafID];
+                    bbox lbound = leaf.box;
+                    bbox bound = childNode.box;
+                    childNode.box.mn = min(bound.mn, lbound.mn);
+                    childNode.box.mx = max(bound.mx, lbound.mx);
+
+                    // reform range
+                    ivec2 range = childNode.pdata.xy;
+                    childNode.pdata.xy = range.yy; // leaf end (for identify that is leaf)
+                    //childNode.pdata.w = range.x; // leaf index (except morton-code) is primitive
+                    childNode.pdata.w = leaf.pdata.w;
+
+                    Nodes[idx] = childNode;
+                }
+            }
+        }
+    }
+
+}

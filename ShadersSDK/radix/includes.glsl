@@ -45,18 +45,18 @@ uint LT_IDX = 0;
 
 #define KEYTYPE UVEC64_WARP
 //#define KEYTYPE UVEC_WARP
-layout (std430, binding = 20) volatile buffer KeyInBlock {KEYTYPE KeyIn[];};
-layout (std430, binding = 21) volatile buffer ValueInBlock {uint ValueIn[];};
-layout (std430, binding = 24) volatile buffer VarsBlock {
+layout (std430, binding = 20) restrict buffer KeyInBlock {KEYTYPE KeyIn[];};
+layout (std430, binding = 21) restrict buffer ValueInBlock {uint ValueIn[];};
+layout (std430, binding = 24) restrict buffer VarsBlock {
     uint NumKeys;
     uint Shift;
     uint Descending;
     uint IsSigned;
 };
-layout (std430, binding = 25) volatile buffer KeyTmpBlock {KEYTYPE KeyTmp[];};
-layout (std430, binding = 26) volatile buffer ValueTmpBlock {uint ValueTmp[];};
-layout (std430, binding = 27) volatile buffer HistogramBlock {uint Histogram[];};
-layout (std430, binding = 28) volatile buffer PrefixBlock {uint PrefixSum[];};
+layout (std430, binding = 25) restrict buffer KeyTmpBlock {KEYTYPE KeyTmp[];};
+layout (std430, binding = 26) restrict buffer ValueTmpBlock {uint ValueTmp[];};
+layout (std430, binding = 27) restrict buffer HistogramBlock {uint Histogram[];};
+layout (std430, binding = 28) restrict buffer PrefixBlock {uint PrefixSum[];};
 
 uvec2 U2P(in uint64_t pckg) {
     return uvec2((pckg >> 0) & 0xFFFFFFFF, (pckg >> 32) & 0xFFFFFFFF);

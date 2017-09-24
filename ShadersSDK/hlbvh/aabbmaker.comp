@@ -11,19 +11,19 @@
 #include "../include/ballotlib.glsl"
 
 
-layout ( std430, binding = 0 ) volatile buffer MortoncodesBlock {
+layout ( std430, binding = 0 ) restrict buffer MortoncodesBlock {
     MORTONTYPE Mortoncodes[];
 } mortonBuf;
 
-layout ( std430, binding = 1 ) volatile buffer IndicesBlock {
+layout ( std430, binding = 1 ) restrict buffer IndicesBlock {
     int MortoncodesIndices[];
 } mortonIdc;
 
-layout ( std430, binding = 2 ) volatile buffer CounterBlock {
+layout ( std430, binding = 2 ) restrict buffer CounterBlock {
     int aabbCounter[1];
 } counters;
 
-layout ( std430, binding = 3 ) volatile buffer OutLeafBlock {
+layout ( std430, binding = 3 ) restrict buffer OutLeafBlock {
     HlbvhNode OutLeafs[];
 } outLeafsBuf;
 

@@ -2,7 +2,6 @@
 
 cd %~dp0
 set CFLAGS=--target-env=opengl -x glsl -Werror -DUSE_OPENGL -E 
-set HFLAGS=--target-env=vulkan -x hlsl -Werror -E 
 set INDIR=.\
 set OUTDIR=..\Build\shaders-spv\
 set OUTSHR=..\Build\shaders\
@@ -47,7 +46,7 @@ call glslc %CFLAGS% %CMPPROF% %INDIR%%HLBV%build.comp         -o %OUTDIR%%HLBV%b
 call glslc %CFLAGS% %CMPPROF% %INDIR%%HLBV%minmax.comp        -o %OUTDIR%%HLBV%minmax.comp.spv
 call glslc %CFLAGS% %CMPPROF% %INDIR%%HLBV%refit.comp         -o %OUTDIR%%HLBV%refit.comp.spv
 call glslc %CFLAGS% %CMPPROF% %INDIR%%HLBV%refit-new.comp     -o %OUTDIR%%HLBV%refit-new.comp.spv
-
+call glslc %CFLAGS% %CMPPROF% %INDIR%%HLBV%child-link.comp    -o %OUTDIR%%HLBV%child-link.comp.spv
 
 ::call glslc %CFLAGS% %CMPPROF% %INDIR%%RDXI%histogram.comp     -o %OUTDIR%%RDXI%histogram.comp.spv
 ::call glslc %CFLAGS% %CMPPROF% %INDIR%%RDXI%permute.comp       -o %OUTDIR%%RDXI%permute.comp.spv

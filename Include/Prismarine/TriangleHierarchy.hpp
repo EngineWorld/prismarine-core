@@ -24,6 +24,7 @@ namespace NSM {
         GLuint refitProgramH = -1;
         GLuint resortProgramH = -1;
         GLuint minmaxProgram2 = -1;
+        GLuint clinkProgramH = -1;
 
         GLuint mat_triangle_ssbo_upload = -1;
         GLuint mat_triangle_ssbo = -1;
