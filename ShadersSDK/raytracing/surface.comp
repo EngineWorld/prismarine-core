@@ -61,6 +61,11 @@ layout ( binding = 6, set = 1 ) uniform usampler2D samplers[MAX_TEXTURES]; // vu
 
 
 
+vec4 manualUnpack8(in uint rgba8){
+    uvec4 rgba8b = uvec4((rgba8 >> 0u) & 0xFFu, (rgba8 >> 8u) & 0xFFu, (rgba8 >> 16u) & 0xFFu, (rgba8 >> 24u) & 0xFFu);
+    return vec4(rgba8b) / 255.f;
+}
+
 
 bool haveProp(in Material material, in int prop) {
     return (material.flags & prop) > 0;
@@ -77,14 +82,14 @@ bool validateTexture(in uint binding){
 vec4 fetchTexture(in uint binding, in vec2 texcoord){
     //return textureBicubic(samplers[binding], texcoord);
     uint rgba8 = texture(samplers[binding], texcoord).x;
-    vec4 result = vec4(unpackUnorm4x8(rgba8)).bgra;
+    vec4 result = manualUnpack8(rgba8).bgra;
     return result;
 }
 
 vec4 fetchTexture(in uint binding, in vec2 texcoord, in ivec2 offset){
     //return textureBicubic(samplers[binding], texcoord + vec2(offset) / textureSize(samplers[binding], 0));
     uint rgba8 = texture(samplers[binding], texcoord + vec2(offset) / textureSize(samplers[binding], 0)).x;
-    vec4 result = vec4(unpackUnorm4x8(rgba8)).bgra;
+    vec4 result = manualUnpack8(rgba8).bgra;
     return result;
 }
 
@@ -150,7 +155,7 @@ vec4 fetchDiffuse(in Material mat, in vec2 texcoord){
     vec4 result = max(vec4(mat.diffuse.xyz, 1.f), vec4(0.f));
     if (validateTexture(mat.diffusePart)) {
         uint rgba8x4 = texture(samplers[mat.diffusePart], texcoord).x;
-        result = vec4(unpackUnorm4x8(rgba8x4)).bgra;
+        result = manualUnpack8(rgba8x4).bgra;
     }
     return result;
 }
@@ -173,7 +178,8 @@ void main() {
     mat3 tbn = mat3(tangent, normalize(cross(normal, tangent)), normal);
     vec2 texcoord = hit.texcoord.xy;
 
-    vec4 diffuse = vec4(fetchDiffuse(material, texcoord).rgb, 1.f); // alpha not supported by AMD RX Vega
+    vec4 diffuse = fetchDiffuse(material, texcoord).rgba;
+    //vec4 diffuse = vec4(fetchDiffuse(material, texcoord).rgb, 1.f); // alpha not supported by AMD RX Vega
     vec4 emission = vec4(fetchEmissive(material, texcoord).xyz * 2.f, 1.0f);
     vec4 spc = fetchSpecular(material, texcoord);
 
