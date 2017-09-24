@@ -38,28 +38,6 @@ void main() {
             if (globalID < n && globalID >= 0) {
                 int idx = atomicExchange(LeafIndices[globalID], -1);
                 if (idx >= 0) {
-                    HlbvhNode childNode = Nodes[idx];
-                    childNode.box.mn = ( 100000.f).xxxx;
-                    childNode.box.mx = (-100000.f).xxxx;
-                    
-                    // make leafs links
-                    uint leafID = MortoncodesIndices[childNode.pdata.x];
-                    atomicExchange(Leafs[leafID].pdata.z, int(idx));
-
-                    // fit bounding box
-                    HlbvhNode leaf = Leafs[leafID];
-                    bbox lbound = leaf.box;
-                    bbox bound = childNode.box;
-                    childNode.box.mn = min(bound.mn, lbound.mn);
-                    childNode.box.mx = max(bound.mx, lbound.mx);
-
-                    // reform range
-                    ivec2 range = childNode.pdata.xy;
-                    childNode.pdata.xy = range.yy; // leaf end (for identify that is leaf)
-                    //childNode.pdata.w = range.x; // leaf index (except morton-code) is primitive
-                    childNode.pdata.w = leaf.pdata.w;
-
-                    Nodes[idx] = childNode;
                     int tob = aCounterInc(true);
                     atomicExchange(Actives[tob], idx);
                 }

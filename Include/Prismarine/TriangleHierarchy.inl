@@ -312,7 +312,7 @@ namespace NSM {
             glCopyNamedBufferSubData(buildBuffer, buildBuffer, 5 * sizeof(GLint), 4 * sizeof(GLint), sizeof(GLint));
             glCopyNamedBufferSubData(buildBuffer, buildBuffer, 2 * sizeof(GLint), 5 * sizeof(GLint), sizeof(GLint));
         }
-        //dispatch(clinkProgramH, 32);
+        dispatch(clinkProgramH, 32);
         //dispatch(refitProgramH, 32);
         dispatch(refitProgramH, 1);
         //glFinish();
