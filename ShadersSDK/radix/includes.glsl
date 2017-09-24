@@ -108,7 +108,7 @@ uint readLane(in uint val, in int lane) {
 #define UVEC_BALLOT_WARP uvec2
 
 uvec2 genLtMask(){
-    return U2P((1ul << uint64_t(LANE_IDX))-1ul);
+    return U2P(LANE_IDX == 0ul ? 0ul : (1ul << uint64_t(LANE_IDX))-1ul);
 }
 
 uint bitCount64(in uvec2 lh) {

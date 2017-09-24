@@ -65,7 +65,7 @@ int firstActive(){
 #define UVEC_BALLOT_WARP uvec2
 
 uvec2 genLtMask(){
-    return U2P((1ul << uint64_t(LANE_IDX))-1ul);
+    return U2P(LANE_IDX == 0ul ? 0ul : (1ul << uint64_t(LANE_IDX))-1ul);
 }
 
 uint bitCount64(in uvec2 lh) {
@@ -95,9 +95,10 @@ uvec2 ballotHW(in bool val) {
 
 int firstActive(){
     UVEC_BALLOT_WARP bits = ballotHW(true);
-    int lv = lsb(bits.x);
-    int hi = lsb(bits.y);
-    return (lv >= 0) ? lv : (32 + hi);
+    int lv = msb(bits.x);
+    int hi = msb(bits.y);
+    return (hi >= 0) ? (32 + hi) : lv;
+    //return (lv >= 0) ? lv : (32 + hi);
 }
 
 #endif
@@ -111,17 +112,6 @@ T fname(in bool value){ \
     return readLane(LANE_IDX == activeLane ? (sumInOrder > 0 ? atomicAdd(mem,  mix(0, sumInOrder, LANE_IDX == activeLane)) : 0) : 0, activeLane) + idxInOrder; \
 }
 
-#define initAtomicIncFunctionMem(mem, fname, T)\
-T fname(in bool value, in int memc){ \
-    int activeLane = firstActive();\
-    UVEC_BALLOT_WARP bits = ballotHW(value);\
-    T sumInOrder = T(bitCount64(bits));\
-    T idxInOrder = T(bitCount64(genLtMask() & bits));\
-    return readLane(LANE_IDX == activeLane ? (sumInOrder > 0 ? atomicAdd(mem[memc], mix(0, sumInOrder, LANE_IDX == activeLane)) : 0) : 0, activeLane) + idxInOrder; \
-}
-
-
-
 #define initAtomicDecFunction(mem, fname, T)\
 T fname(in bool value){ \
     int activeLane = firstActive();\
@@ -129,15 +119,6 @@ T fname(in bool value){ \
     T sumInOrder = T(bitCount64(bits));\
     T idxInOrder = T(bitCount64(genLtMask() & bits));\
     return readLane(LANE_IDX == activeLane ? (sumInOrder > 0 ? atomicAdd(mem, -mix(0, sumInOrder, LANE_IDX == activeLane)) : 0) : 0, activeLane) - idxInOrder; \
-}
-
-#define initAtomicDecFunctionMem(mem, fname, T)\
-T fname(in bool value, in int memc){ \
-    int activeLane = firstActive();\
-    UVEC_BALLOT_WARP bits = ballotHW(value);\
-    T sumInOrder = T(bitCount64(bits));\
-    T idxInOrder = T(bitCount64(genLtMask() & bits));\
-    return readLane(LANE_IDX == activeLane ? (sumInOrder > 0 ? atomicAdd(mem[memc], -mix(0, sumInOrder, LANE_IDX == activeLane)) : 0) : 0, activeLane) - idxInOrder; \
 }
 
 // with multiplier support
@@ -149,7 +130,6 @@ T fname(in bool value, const int by){ \
     T idxInOrder = T(bitCount64(genLtMask() & bits));\
     return readLane(LANE_IDX == activeLane ? (sumInOrder > 0 ? atomicAdd(mem, mix(0, sumInOrder * by, LANE_IDX == activeLane)) : 0) : 0, activeLane) + idxInOrder * by; \
 }
-
 
 #else
 

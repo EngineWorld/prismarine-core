@@ -64,16 +64,16 @@ void _collect(inout RayRework ray){
 
     if (mlength(color.xyz) < 10000.f && !any(isnan(color.xyz)) && !any(isinf(color.xyz))) {
         int idx = atomicIncCt(true); // allocate new index
-        //int prev = atomicExchange(texelBuf.nodes[ray.texel].EXT.z, idx);
-        //atomicCompSwap(texelBuf.nodes[ray.texel].EXT.y, -1, idx); // link first index
-        int prev = atomicExchange(texelBuf.nodes[ray.texel].EXT.y, idx);
+        int prev = atomicExchange(texelBuf.nodes[ray.texel].EXT.z, idx);
+        atomicCompSwap(texelBuf.nodes[ray.texel].EXT.y, -1, idx); // link first index
+        //int prev = atomicExchange(texelBuf.nodes[ray.texel].EXT.y, idx);
 
         atomicExchange(chBuf.chains[idx].cdata.x, -1);
         chBuf.chains[idx].color = vec4(color.xyz, 1.0f);
         
         // link with previous (need do after)
-        //if (prev != -1) atomicExchange(chBuf.chains[prev].cdata.x, idx);
-        if (prev != -1) atomicExchange(chBuf.chains[idx].cdata.x, prev);
+        if (prev != -1) atomicExchange(chBuf.chains[prev].cdata.x, idx);
+        //if (prev != -1) atomicExchange(chBuf.chains[idx].cdata.x, prev);
     }
 #endif
 }
@@ -112,6 +112,7 @@ void storeRay(in int rayIndex, inout RayRework ray) {
         RayActived(ray, 0);
     } else {
         if (mlength(ray.final.xyz) >= 0.0001f && RayActived(ray) == 0) {
+        //if (RayActived(ray) == 0) {
             _collect(ray);
         }
         ray.idx = rayIndex;

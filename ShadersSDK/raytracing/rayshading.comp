@@ -230,6 +230,25 @@ void main() {
         RayBasis(ray, 0);
     }
 
+    // reclaim current rays
+    if (!overflow) {
+        int bounce = RayBounce(ray)-1;
+        ray.final.xyz = max(vec3(0.0f), ray.final.xyz);
+        ray.color.xyz = max(vec3(0.0f), ray.color.xyz);
+
+        if (bounce < 0 || mlength(ray.color.xyz) < 0.0001f || overflow || ray.hit == -1) {
+            RayActived(ray, 0);
+        }
+
+        RayBounce(ray, bounce >= 0 ? bounce : 0);
+        ray.hit = -1; // reset chains
+
+        if (!overflow) {
+            storeRay(t, ray);
+            addRayToList(ray); // add current rays to additions with newer
+        }
+    }
+
     // emit new rays
     if (!overflow && !skipping)
 #ifdef USE_SIMPLIFIED_MODEL
@@ -254,25 +273,5 @@ void main() {
         applyLight(shadowRay, diffuseRay, surfacenormal); // push shadow
     }
 #endif
-
-    // reclaim current rays
-    if (!overflow) {
-        int bounce = RayBounce(ray)-1;
-        ray.final.xyz = max(vec3(0.0f), ray.final.xyz);
-        ray.color.xyz = max(vec3(0.0f), ray.color.xyz);
-
-        if (bounce < 0 || mlength(ray.color.xyz) < 0.0001f || overflow || ray.hit == -1) {
-            RayActived(ray, 0);
-        }
-
-        RayBounce(ray, bounce >= 0 ? bounce : 0);
-        ray.hit = -1; // reset chains
-
-        if (!overflow) {
-            storeRay(t, ray);
-            addRayToList(ray); // add current rays to additions with newer
-        }
-    }
-
 
 }

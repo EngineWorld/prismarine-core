@@ -86,18 +86,18 @@ int modi(in int a, in int b){
 }
 
 uint btc(in uint vlc){
-    //return vlc == 0 ? 0 : bitCount(vlc);
-    return bitCount(vlc);
+    return vlc == 0 ? 0 : bitCount(vlc);
+    //return bitCount(vlc);
 }
 
 int lsb(in uint vlc){
-    //return vlc == 0 ? -1 : findLSB(vlc);
-    return findLSB(vlc);
+    return vlc == 0 ? -1 : findLSB(vlc);
+    //return findLSB(vlc);
 }
 
 int msb(in uint vlc){
-    //return vlc == 0 ? -1 : findMSB(vlc);
-    return findMSB(vlc);
+    return vlc == 0 ? -1 : findMSB(vlc);
+    //return findMSB(vlc);
 }
 
 
