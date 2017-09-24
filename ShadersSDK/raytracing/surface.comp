@@ -17,27 +17,27 @@
 #include "../include/mathlib.glsl"
 
 struct Material {
-    highp vec4 diffuse;
-    highp vec4 specular;
-    highp vec4 transmission;
-    highp vec4 emissive;
+     vec4 diffuse;
+     vec4 specular;
+     vec4 transmission;
+     vec4 emissive;
 
-    highp float ior;
-    highp float roughness;
-    highp float alpharef;
-    highp float unk0f;
+     float ior;
+     float roughness;
+     float alpharef;
+     float unk0f;
 
-    highp uint diffusePart;
-    highp uint specularPart;
-    highp uint bumpPart;
-    highp uint emissivePart;
+     uint diffusePart;
+     uint specularPart;
+     uint bumpPart;
+     uint emissivePart;
 
-    highp int flags;
-    highp int alphafunc;
-    highp int binding;
-    highp int bitfield;
+     int flags;
+     int alphafunc;
+     int binding;
+     int bitfield;
 
-    highp ivec4 iModifiers0;
+     ivec4 iModifiers0;
 };
 
 //const uint MAX_TEXTURES = 72;
@@ -170,13 +170,14 @@ void main() {
 
     hit.normalHeight.xyz = normalize(tbn * normalize(getNormalMapping(material, texcoord).xyz));
     hit.normalHeight.w = 1.0f; // height
+
     hit.emission = packHalf(vec4(fetchEmissive(material, texcoord).xyz * 2.f, 1.0f));
     hit.albedo = packHalf(fetchDiffuse(material, texcoord));
 
     HitActived(hit, 1);
 
     vec4 spc = fetchSpecular(material, texcoord);
-    hit.metallicRoughness.x = packHalf2x16(spc.yz);
+    hit.metallicRoughness = packHalf(vec4(spc.yz, 0.f, 0.f));
 
     if (!overflow) {
         hitBuf.nodes[t] = hit;

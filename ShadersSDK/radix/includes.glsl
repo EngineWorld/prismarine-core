@@ -59,7 +59,8 @@ layout (std430, binding = 27) restrict buffer HistogramBlock {uint Histogram[];}
 layout (std430, binding = 28) restrict buffer PrefixBlock {uint PrefixSum[];};
 
 uvec2 U2P(in uint64_t pckg) {
-    return uvec2((pckg >> 0) & 0xFFFFFFFF, (pckg >> 32) & 0xFFFFFFFF);
+    //return uvec2((pckg >> 0) & 0xFFFFFFFF, (pckg >> 32) & 0xFFFFFFFF);
+    return unpackUint2x32(pckg);
 }
 
 struct blocks_info { uint count; uint offset; };

@@ -15,14 +15,14 @@ struct _ext4 {
 };
 
 struct Texel {
-    highp vec4 coord;
-    highp vec4 last3d;
-    highp _ext4 EXT;
+     vec4 coord;
+     vec4 last3d;
+     _ext4 EXT;
 };
 
 struct bbox {
-    highp vec4 mn;
-    highp vec4 mx;
+     vec4 mn;
+     vec4 mx;
 };
 
 // ray bitfield spec
@@ -33,36 +33,42 @@ struct bbox {
 // {8 ..11}[4] - bounce index
 
 struct RayRework {
-    highp vec4 origin;
-    highp vec4 direct;
-    highp vec4 color;
-    highp vec4 final;
-    highp int bitfield; // up to 32-bits
-    highp int idx; // ray index itself
-    highp int texel; // texel index
-    highp int hit; // index of hit chain
+     vec4 origin;
+     vec4 direct;
+     vec4 color;
+     vec4 final;
+     int bitfield; // up to 32-bits
+     int idx; // ray index itself
+     int texel; // texel index
+     int hit; // index of hit chain
 };
 
 struct HitRework {
-    highp vec4 uvt; // UV, distance, triangle
-    highp vec4 normalHeight; // normal with height mapping, will already interpolated with geometry
-    highp vec4 tangent; // also have 4th extra slot
-    highp vec4 texcoord; // critical texcoords 
+     vec4 uvt; // UV, distance, triangle
+     vec4 normalHeight; // normal with height mapping, will already interpolated with geometry
+     vec4 tangent; // also have 4th extra slot
+     vec4 texcoord; // critical texcoords 
 
-    // low four 16 bit - texcoords
-    highp uvec4 metallicRoughness; // 8 of 16-bit float, you can pack non-critical surface data
-
-    // color parameters
-    //highp vec4 emission;
-    //highp vec4 albedo;
-    highp uvec2 emission;
-    highp uvec2 albedo;
+#ifdef ENABLE_AMD_INSTRUCTION_SET
+    //f16vec4 metallicRoughness;
+    //f16vec4 unk16;
+    // f16vec4 emission;
+    // f16vec4 albedo;
+    uint64_t metallicRoughness;
+    uint64_t unk16;
+    uint64_t emission;
+    uint64_t albedo;
+#else
+    uvec4 metallicRoughness; // 8 of 16-bit float, you can pack non-critical surface data
+     uvec2 emission;
+     uvec2 albedo;
+#endif
 
     // integer metadata
-    highp int bitfield; 
-    highp int ray; // ray index
-    highp int materialID;
-    highp int next;
+     int bitfield; 
+     int ray; // ray index
+     int materialID;
+     int next;
 };
 
 
@@ -160,65 +166,65 @@ void RayBasis(inout RayRework ray, in int basis){
 
 
 struct HlbvhNode {
-    highp bbox box;
+     bbox box;
 #ifdef _ORDERED_ACCESS
-    highp int branch[2];
-    highp ivec2 pdata;
+     int branch[2];
+     ivec2 pdata;
 #else
-    highp ivec4 pdata;
+     ivec4 pdata;
 #endif
 };
 
 struct VboDataStride {
-    highp vec4 vertex;
-    highp vec4 normal;
-    highp vec4 texcoord;
-    highp vec4 color;
-    highp vec4 modifiers;
+     vec4 vertex;
+     vec4 normal;
+     vec4 texcoord;
+     vec4 color;
+     vec4 modifiers;
 };
 
 struct ColorChain {
-    highp vec4 color;
-    highp ivec4 cdata;
+     vec4 color;
+     ivec4 cdata;
 };
 
 
 
 struct GroupFoundResult {
-    highp int nextResult;
-    highp float boxDistance;
-    highp ivec2 range;
+     int nextResult;
+     float boxDistance;
+     ivec2 range;
 };
 
 struct MeshUniformStruct {
-    highp int vertexAccessor;
-    highp int normalAccessor;
-    highp int texcoordAccessor;
-    highp int modifierAccessor;
+     int vertexAccessor;
+     int normalAccessor;
+     int texcoordAccessor;
+     int modifierAccessor;
 
-    highp mat4 transform;
-    highp mat4 transformInv;
+     mat4 transform;
+     mat4 transformInv;
 
-    highp int materialID;
-    highp int isIndexed;
-    highp int nodeCount;
-    highp int primitiveType;
+     int materialID;
+     int isIndexed;
+     int nodeCount;
+     int primitiveType;
 
-    highp int loadingOffset;
-    highp int storingOffset;
-    highp int _reserved0;
-    highp int _reserved1;
+     int loadingOffset;
+     int storingOffset;
+     int _reserved0;
+     int _reserved1;
 };
 
 struct VirtualBufferView {
-    highp int offset4;
-    highp int stride4;
+     int offset4;
+     int stride4;
 };
 
 struct VirtualAccessor {
-    highp int offset4;
-    highp int bitfield;
-    highp int bufferView;
+     int offset4;
+     int bitfield;
+     int bufferView;
 };
 
 

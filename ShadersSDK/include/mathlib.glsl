@@ -212,7 +212,8 @@ vec2 intersectCubeDual(
 //#define BFE_HW(a,o,n) (bitfieldExtract(a,o,n))
 
 uvec2 U2P(in uint64_t pckg) {
-    return uvec2((pckg >> 0) & 0xFFFFFFFF, (pckg >> 32) & 0xFFFFFFFF);
+    //return uvec2((pckg >> 0) & 0xFFFFFFFF, (pckg >> 32) & 0xFFFFFFFF);
+    return unpackUint2x32(pckg);
 }
 
 int BFE(in int base, in int offset, in int bits){
@@ -327,13 +328,20 @@ vec4 textureBicubic(in sampler2D tx, in vec2 texCoords) {
 
 
 
-vec4 unpackHalf(in uvec2 halfs){
-    return vec4(unpackHalf2x16(halfs.x), unpackHalf2x16(halfs.y));
+vec4 unpackHalf(in uint64_t halfs){
+    uvec2 hilo = unpackUint2x32(halfs);
+    return vec4(unpackHalf2x16(hilo.x), unpackHalf2x16(hilo.y));
 }
 
-uvec2 packHalf(in vec4 floats){
-    return uvec2(packHalf2x16(floats.xy), packHalf2x16(floats.zw));
+uint64_t packHalf(in vec4 floats){
+    return packUint2x32(uvec2(packHalf2x16(floats.xy), packHalf2x16(floats.zw)));
 }
+
+#ifdef ENABLE_AMD_INSTRUCTION_SET
+uint64_t packHalf(in f16vec4 floats){
+    return packUint2x32(uvec2(packHalf2x16(floats.xy), packHalf2x16(floats.zw)));
+}
+#endif
 
 
 // reserved for future rasterizers

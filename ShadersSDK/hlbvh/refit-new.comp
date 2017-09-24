@@ -15,7 +15,7 @@ layout ( local_size_x = work_size ) in;
 
 shared int aCounter;
 shared int aRange[2];
-initAtomicIncFunction(aCounter, aCounterInc, int);
+initAtomicIncFunction(aCounter, aCounterInc, int)
 
 void main() {
     int localID = int(gl_LocalInvocationID.x);
