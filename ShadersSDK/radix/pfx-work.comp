@@ -34,7 +34,7 @@ shared uint seed[RADICES];
 void main() {
     LT_IDX = gl_LocalInvocationID.x;
     LC_IDX = (gl_LocalInvocationID.x / gl_SubGroupSizeARB);
-    LANE_IDX = (gl_LocalInvocationID.x % gl_SubGroupSizeARB);
+    LANE_IDX = gl_SubGroupInvocationARB;
 
     if (LT_IDX < RADICES) {
         localHistogram[LT_IDX] = 0;
