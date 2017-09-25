@@ -280,9 +280,9 @@ TResult testIntersectionPacked(inout TResult res, in vec3 orig, in vec3 dir, in 
         vec2 _d2 = vec2(INFINITY);
 
         if (anyInvocationARB(any(validTriangles))) {
-            //_d2 = intersectTriangle2(orig, dir, tri, uv2, validTriangles);
-            _d2.x = intersectTriangle(orig, dir, tri.x, uv2.xz, validTriangles.x);
-            _d2.y = intersectTriangle(orig, dir, tri.y, uv2.yw, validTriangles.y);
+            _d2 = intersectTriangle2(orig, dir, tri, uv2, validTriangles);
+            //_d2.x = intersectTriangle(orig, dir, tri.x, uv2.xz, validTriangles.x);
+            //_d2.y = intersectTriangle(orig, dir, tri.y, uv2.yw, validTriangles.y);
         }
 
         bool near = validTriangles.x && lessF(_d2.x, INFINITY) && lessEqualF(_d2.x, res.predist) && greaterEqualF(_d2.x, 0.0f);
