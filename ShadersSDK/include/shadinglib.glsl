@@ -94,7 +94,7 @@ RayRework directLight(in int i, in RayRework directRay, in vec3 color, in vec3 n
 
 RayRework ambient(in RayRework ray, in vec3 color, in vec3 normal){
     ray.final.xyz = max(ray.color.xyz * color, vec3(0.0f));
-    ray.final = RayType(ray) == 1 ? vec4(0.0f) : max(ray.final, vec4(0.0f));
+    ray.final = RayType(ray) == 2 ? vec4(0.0f) : max(ray.final, vec4(0.0f));
     ray.direct.xyz = normalize(randomCosine(normal));
     ray.origin.xyz = fma(ray.direct.xyz, vec3(GAP), ray.origin.xyz);
     RayBounce(ray, 0);
