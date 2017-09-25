@@ -169,7 +169,8 @@ namespace NSM {
 
     inline void Pipeline::resizeBuffers(const uint32_t & w, const uint32_t & h) {
         width = w, height = h;
-        bool enableInterlacing = false;
+        //bool enableInterlacing = false;
+        bool enableInterlacing = true;
 
         if (colorchains != -1) glDeleteBuffers(1, &colorchains);
         if (rays != -1) glDeleteBuffers(1, &rays);
