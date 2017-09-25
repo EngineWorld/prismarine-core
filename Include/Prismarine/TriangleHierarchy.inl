@@ -101,8 +101,8 @@ namespace NSM {
         aabbCounter = allocateBuffer<int32_t>(1);
         bvhnodesBuffer = allocateBuffer<HlbvhNode>(maxt * 2);
         bvhflagsBuffer = allocateBuffer<uint32_t>(maxt * 2);
-        activeBuffer = allocateBuffer<uint32_t>(maxt * boundWorkSize);
-        //activeBuffer = allocateBuffer<uint32_t>(maxt * 2);
+        //activeBuffer = allocateBuffer<uint32_t>(maxt * boundWorkSize);
+        activeBuffer = allocateBuffer<uint32_t>(maxt * 2);
         mortonBuffer = allocateBuffer<uint64_t>(maxt * 1);
         mortonBufferIndex = allocateBuffer<uint32_t>(maxt * 1);
         leafBuffer = allocateBuffer<HlbvhNode>(maxt * 1);
