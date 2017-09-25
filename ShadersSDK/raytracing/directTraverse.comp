@@ -390,7 +390,8 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
 
             vec2 inf2 = vec2(INFINITY), nears = inf2, fars = inf2;
 #ifdef AMD_F16_BVH // because precision too low, need fix some precision errors bounding boxes before testing
-            vec2 hits = intersectCubeDual(origined, divident, mat2x4(lnode.box.mn - 0.001f, rnode.box.mn - 0.001f), mat2x4(lnode.box.mx + 0.001f, rnode.box.mx + 0.001f), nears, fars);
+            //vec2 hits = intersectCubeDual(origined, divident, mat2x4(lnode.box.mn - 0.001f, rnode.box.mn - 0.001f), mat2x4(lnode.box.mx + 0.001f, rnode.box.mx + 0.001f), nears, fars);
+            vec2 hits = intersectCubeDual(origined, divident, mat2x4(lnode.box.mn - PZERO, rnode.box.mn - PZERO), mat2x4(lnode.box.mx + PZERO, rnode.box.mx + PZERO), nears, fars);
 #else
             vec2 hits = intersectCubeDual(origined, divident, mat2x4(lnode.box.mn, rnode.box.mn), mat2x4(lnode.box.mx, rnode.box.mx), nears, fars);
 #endif
