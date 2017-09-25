@@ -130,7 +130,7 @@ HitRework interpolateMeshData(inout HitRework res) {
             fetchMosaic(vertex_texture, triv, 1).xyz, 
             fetchMosaic(vertex_texture, triv, 2).xyz
         );
-
+        
         mat3x3 trinorms = transpose(mat3x3(
             fetchMosaic(normal_texture, triv, 0).xyz, 
             fetchMosaic(normal_texture, triv, 1).xyz, 
@@ -170,7 +170,6 @@ HitRework interpolateMeshData(inout HitRework res) {
             textureGather(modifiers_texture, trig, 3).wzx
         );
 */
-
         mat4x3 colors = mat4x3(vec3(1.f), vec3(1.f), vec3(1.f), vec3(1.f));
 
         
