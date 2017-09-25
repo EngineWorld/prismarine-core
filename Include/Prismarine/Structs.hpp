@@ -103,7 +103,7 @@ namespace NSM {
         // low four 16 bit - texcoords
         glm::uvec4 metallicRoughness; // four 16-bit float
 
-                                      // color parameters
+        // color parameters
         glm::uvec4 emission_albedo;
         //glm::vec4 emission;
         //glm::vec4 albedo;

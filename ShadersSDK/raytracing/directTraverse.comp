@@ -214,7 +214,8 @@ HitRework interpolateMeshData(inout HitRework res) {
             res.normalHeight = vec4(normal, 0.0f);
             res.tangent = vec4(normalize(tang - normal * sign(dot(tang, nor))), 0.0f);
             res.texcoord = vs * texcoords; // mult matrix
-            res.albedo = packHalf(vs * colors); // mult matrix
+            res.albedo = packHalf(vec4(0.f));
+            res.emission = packHalf(vec4(0.f));
             res.materialID = mats[tri];
         }
     }

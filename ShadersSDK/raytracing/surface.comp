@@ -6,6 +6,8 @@
 
 #include "../include/constants.glsl"
 
+#define USE_BINDLESS
+
 #ifdef USE_BINDLESS
 #extension GL_ARB_bindless_texture : require
 #endif
@@ -46,8 +48,8 @@ layout ( binding = 15, std430 ) readonly buffer MaterialsSSBO {Material submats[
 
 #ifdef USE_OPENGL
 #ifdef USE_BINDLESS
-//layout ( location = 1, bindless_sampler ) uniform sampler2D samplers[MAX_TEXTURES];
-layout ( binding = 16 ) readonly buffer Textures { sampler2D samplers[]; };
+layout ( location = 1, bindless_sampler ) uniform sampler2D samplers[MAX_TEXTURES];
+//layout ( binding = 16 ) readonly buffer Textures { sampler2D samplers[]; };
 #else
 //layout ( location = 1 ) uniform sampler2D samplers[MAX_TEXTURES];
 layout ( location = 1 ) uniform sampler2D samplers[MAX_TEXTURES];
@@ -82,11 +84,13 @@ bool validateTexture(in uint binding){
 
 vec4 fetchTexture(in uint binding, in vec2 texcoord){
     vec4 result = texture(samplers[binding], texcoord);
+    result = mix(result, vec4(0.f), or(isnan(result), isinf(result)));
     return result;
 }
 
 vec4 fetchTexture(in uint binding, in vec2 texcoord, in ivec2 offset){
     vec4 result = texture(samplers[binding], texcoord + vec2(offset) / textureSize(samplers[binding], 0));
+    result = mix(result, vec4(0.f), or(isnan(result), isinf(result)));
     return result;
 }
 
@@ -151,8 +155,7 @@ vec3 getNormalMapping(in Material mat, vec2 texcoordi) {
 vec4 fetchDiffuse(in Material mat, in vec2 texcoord){
     vec4 result = max(vec4(mat.diffuse.xyz, 1.f), vec4(0.f));
     if (validateTexture(mat.diffusePart)) {
-        result = texture(samplers[mat.diffusePart], texcoord);
-        result.a = isnan(result.a) || isinf(result.a) ? 0.f : result.a;
+        result = fetchTexture(mat.diffusePart, texcoord);
     }
     return result;
 }
@@ -175,8 +178,8 @@ void main() {
     mat3 tbn = mat3(tangent, normalize(cross(normal, tangent)), normal);
     vec2 texcoord = hit.texcoord.xy;
 
-    //vec4 diffuse = fetchDiffuse(material, texcoord).rgba;
-    vec4 diffuse = vec4(fetchDiffuse(material, texcoord).rgb, 1.f); // alpha not supported by AMD RX Vega
+    vec4 diffuse = fetchDiffuse(material, texcoord).rgba;
+    //vec4 diffuse = vec4(fetchDiffuse(material, texcoord).rgb, 1.f); // alpha not supported by AMD RX Vega
     vec4 emission = vec4(fetchEmissive(material, texcoord).xyz * 2.f, 1.0f);
     vec4 spc = fetchSpecular(material, texcoord);
 
