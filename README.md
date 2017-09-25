@@ -16,7 +16,7 @@ See `Projects`.
 
 <details>
 <summary>9/25/2017 (1280x720) - RX Vega run</summary>
-
+ 
 <img src="Screenshots/RXVega.png" width="1920"/>
 
 </details>
