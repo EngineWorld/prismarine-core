@@ -197,7 +197,7 @@ namespace NSM {
         activenl = allocateBuffer<int32_t>(currentRayLimit);
         freedoms = allocateBuffer<int32_t>(currentRayLimit);
         availables = allocateBuffer<int32_t>(currentRayLimit);
-        deferredStack = allocateBuffer<int32_t>(currentRayLimit * 4);
+        deferredStack = allocateBuffer<int32_t>(currentRayLimit * 8);
 
         samplerUniformData.sceneRes = { float(width), float(height) };
         samplerUniformData.currentRayLimit = currentRayLimit;
