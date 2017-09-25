@@ -37,7 +37,7 @@ See `Projects`.
 
 ## Hardware requirement (and AMD remark)
 
-This renderer is stable in NVidia, may be unstable on AMD GPU's. We working on fixing every found bugs. Preview Release planned on October. 
+This renderer is stable in NVidia, may be unstable on AMD GPU's. We working on fixing every found bugs. At now we paused maintenance of NVidia. So we pushed preview release with both GPU vendors support.
 
 ## Requirement
 
