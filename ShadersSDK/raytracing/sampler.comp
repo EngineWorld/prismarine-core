@@ -20,7 +20,8 @@ vec4 collectSamples(in uint ts){
     if (anyInvocationARB(!invalid)) {
         for (int i=0;i<32;i++) {
             invalid = invalid || sid == LONGEST || sid == -1 || sid <= 0;
-            if (allInvocationsARB(invalid)) { // warps votes for break
+            //if (allInvocationsARB(invalid)) { // warps votes for break
+            if (invalid) {
                 break;
             } else 
             if (!invalid) {
