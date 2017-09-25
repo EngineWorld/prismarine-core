@@ -56,12 +56,12 @@ vec3 lightCenterSky(in int i) {
 }
 
 void env(inout vec4 color, in RayRework ray){
-    //color = readEnv(ray.direct.xyz);
+    color = readEnv(ray.direct.xyz);
     
-    vec3 lcenter = lightCenterSky(0);
-    color.xyz = js_getScatter(ray.direct.xyz, -normalize(lcenter - ray.origin.xyz), 800.0f) +
-                js_getScatter(ray.direct.xyz,  normalize(lcenter - ray.origin.xyz), 4000.0f);
-    color = clamp((1.0f - exp(-1.0f * color)), vec4(0.0f), vec4(1.0f));
+    //vec3 lcenter = lightCenterSky(0);
+    //color.xyz = js_getScatter(ray.direct.xyz, -normalize(lcenter - ray.origin.xyz), 800.0f) +
+    //            js_getScatter(ray.direct.xyz,  normalize(lcenter - ray.origin.xyz), 4000.0f);
+    //color = clamp((1.0f - exp(-1.0f * color)), vec4(0.0f), vec4(1.0f));
 }
 
 #define EnvironmentShader env
