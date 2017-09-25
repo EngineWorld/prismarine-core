@@ -4,7 +4,7 @@
 
 /* Atmosphere sky functions and parameters */
 #define up vec3(0.0f, 1.0f, 0.0f)
-#define atmosphereColor vec3(0.18, 0.49, 0.66)
+#define atmosphereColor vec3(0.2, 0.5, 0.6)
 #define rayleighAmmount .06*0.5
 #define mieAmmount .002*0.5
 #define atmosphereHeight .4*0.2
@@ -51,17 +51,17 @@ vec3 js_getScatter(in vec3 V, in vec3 L, in float lightStrength) {
 
 vec3 lightCenterSky(in int i) {
     vec3 playerCenter = vec3(0.0f);
-    vec3 lvec = normalize(lightUniform.lightNode[i].lightVector.xyz) * 1000.0f;
+    vec3 lvec = normalize(lightUniform.lightNode[i].lightVector.xyz) * 10000.0f;
     return lightUniform.lightNode[i].lightOffset.xyz + lvec + playerCenter.xyz;
 }
 
 void env(inout vec4 color, in RayRework ray){
-    //vec3 lcenter = lightCenterSky(0);
-    color = readEnv(ray.direct.xyz);
+    //color = readEnv(ray.direct.xyz);
     
-    //color.xyz = js_getScatter(ray.direct.xyz, -normalize(lcenter - ray.origin.xyz), 800.0f) +
-    //            js_getScatter(ray.direct.xyz,  normalize(lcenter - ray.origin.xyz), 4000.0f);
-    //color = clamp((1.0f - exp(-1.0f * color)), vec4(0.0f), vec4(1.0f));
+    vec3 lcenter = lightCenterSky(0);
+    color.xyz = js_getScatter(ray.direct.xyz, -normalize(lcenter - ray.origin.xyz), 800.0f) +
+                js_getScatter(ray.direct.xyz,  normalize(lcenter - ray.origin.xyz), 4000.0f);
+    color = clamp((1.0f - exp(-1.0f * color)), vec4(0.0f), vec4(1.0f));
 }
 
 #define EnvironmentShader env
