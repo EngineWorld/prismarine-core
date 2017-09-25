@@ -418,7 +418,7 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
 
             // intersect triangles when accumulate WARP's
             bool anyLeaf = any(overlapsGeneral); skipIntersection = skipIntersection || anyLeaf; // if any leaf found, skipping
-            if (allInvocationsARB(skipIntersection || !validBox)) {
+            if (anyInvocationARB(anyLeaf)) {
                 bool leftOrder = all(overlapsGeneral) ? leftNear : overlapsGeneral.x;
                 bvec2 overlaps = leftOrder ? overlapsGeneral : overlapsGeneral.yx; // additional re-order will in past
                 includeLeaf2(origin, direct, overlaps, leftOrder ? lnode : rnode, leftOrder ? rnode : lnode, lastRes);
