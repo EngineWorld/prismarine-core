@@ -40,7 +40,7 @@ See `Projects`.
 
 ## Hardware requirement (and AMD remark)
 
-This renderer is stable in NVidia. In connection with the found bugs, the release for RX Vega will have to be postponed indefinitely.
+This renderer is stable in NVidia, may be unstable on AMD GPU's. We working on fixing every found bugs. Preview Release planned on October. 
 
 ## Requirement
 
