@@ -87,10 +87,15 @@ void main() {
                         HlbvhNode rn = Nodes[nd.pdata.y];
 
                         // unify bounding box
-                        bbox bound = nd.box;
-                        bound.mn = min(ln.box.mn, rn.box.mn);
-                        bound.mx = max(ln.box.mx, rn.box.mx);
-                        nd.box = bound;
+                        //bbox bound = unpackBox(nd.box);
+                        //bound.mn = min(unpackHalf(ln.box.mn), unpackHalf(rn.box.mn));
+                        //bound.mx = max(unpackHalf(ln.box.mx), unpackHalf(rn.box.mx));
+                        //nd.box = packBox(bound);
+
+                        bbox bound = (nd.box);
+                        bound.mn = min((ln.box.mn), (rn.box.mn));
+                        bound.mx = max((ln.box.mx), (rn.box.mx));
+                        nd.box = (bound);
 
                         // store if valid
                         Nodes[idx] = nd;

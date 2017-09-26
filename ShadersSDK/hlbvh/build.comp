@@ -74,8 +74,10 @@ void splitNode(in int trID){
 
         // init child node
         HlbvhNode childNode = Nodes[hid];
-        childNode.box.mn = ( 100000.0f).xxxx;
-        childNode.box.mx = (-100000.0f).xxxx;
+        //childNode.box.mn = packHalf(( 100000.0f).xxxx);
+        //childNode.box.mx = packHalf((-100000.0f).xxxx);
+        childNode.box.mn = (( 100000.0f).xxxx);
+        childNode.box.mx = ((-100000.0f).xxxx);
         childNode.pdata.zw = ivec2(prID, -1);
 
         // encode with SIMD-like
@@ -133,6 +135,8 @@ void main() {
         atomicExchange(Actives[aCounterInc(true)], hid);
 
         HlbvhNode node = Nodes[hid];
+        //node.box.mn = packHalf(( 100000.0f).xxxx);
+        //node.box.mx = packHalf((-100000.0f).xxxx);
         node.box.mn = ( 100000.0f).xxxx;
         node.box.mx = (-100000.0f).xxxx;
         node.pdata = ivec4(0, Range[0]-1, (-1).xx);

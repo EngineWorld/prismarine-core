@@ -25,6 +25,13 @@ struct bbox {
      vec4 mx;
 };
 
+struct bboxf16 {
+    uint64_t mn;
+    uint64_t mx;
+};
+
+
+
 // ray bitfield spec
 // {0     }[1] - actived or not
 // {1 ..2 }[2] - ray type (for example diffuse, specular, shadow)
@@ -157,6 +164,8 @@ void RayBasis(inout RayRework ray, in int basis){
 
 struct HlbvhNode {
      bbox box;
+     //u64vec2 box;
+     //bboxf16 box;
 #ifdef _ORDERED_ACCESS
      int branch[2];
      ivec2 pdata;
@@ -164,6 +173,22 @@ struct HlbvhNode {
      ivec4 pdata;
 #endif
 };
+
+bboxf16 packBox(in bbox box){
+    bboxf16 packed;
+    packed.mn = packHalf(box.mn);
+    packed.mx = packHalf(box.mx);
+    return packed;
+}
+
+bbox unpackBox(in bboxf16 box){
+    bbox packed;
+    packed.mn = unpackHalf(box.mn);
+    packed.mx = unpackHalf(box.mx);
+    return packed;
+}
+
+
 
 struct VboDataStride {
      vec4 vertex;

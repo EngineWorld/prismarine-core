@@ -315,10 +315,11 @@ TResult testIntersectionPacked(inout TResult res, in vec3 orig, in vec3 dir, in 
 
 const int groupSize = 1;
 
-void includeLeaf2(in vec3 origin, in vec3 direct, in bvec2 valids, in HlbvhNode lnode, in HlbvhNode rnode, inout TResult lastRes){
+//void includeLeaf2(in vec3 origin, in vec3 direct, in bvec2 valids, in HlbvhNode lnode, in HlbvhNode rnode, inout TResult lastRes){
+void includeLeaf2(in vec3 origin, in vec3 direct, in bvec2 valids, in ivec4 lnodepdata, in ivec4 rnodepdata, inout TResult lastRes){
     //if (anyInvocationARB(any(valids))) {
     if (any(valids)) {
-        testIntersectionPacked(lastRes, origin.xyz, direct.xyz, ivec2(lnode.pdata.w, rnode.pdata.w), valids);
+        testIntersectionPacked(lastRes, origin.xyz, direct.xyz, ivec2(lnodepdata.w, rnodepdata.w), valids);
     }
 }
 
@@ -390,15 +391,18 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
         bool notLeaf = node.pdata.x != node.pdata.y && validBox;
         //if (anyInvocationARB(notLeaf)) {
         if (notLeaf) {
-            HlbvhNode lnode = Nodes[node.pdata.x];
-            HlbvhNode rnode = Nodes[node.pdata.y];
+            //bbox lnodebox = unpackBox(Nodes[node.pdata.x].box);
+            //bbox rnodebox = unpackBox(Nodes[node.pdata.y].box);
+
+            bbox lnodebox = (Nodes[node.pdata.x].box);
+            bbox rnodebox = (Nodes[node.pdata.y].box);
 
             vec2 inf2 = vec2(INFINITY), nears = inf2, fars = inf2;
 #ifdef AMD_F16_BVH // because precision too low, need fix some precision errors bounding boxes before testing
-            //vec2 hits = intersectCubeDual(origined, divident, mat2x4(lnode.box.mn - 0.001f, rnode.box.mn - 0.001f), mat2x4(lnode.box.mx + 0.001f, rnode.box.mx + 0.001f), nears, fars);
-            vec2 hits = intersectCubeDual(origined, divident, mat2x4(lnode.box.mn - PZERO, rnode.box.mn - PZERO), mat2x4(lnode.box.mx + PZERO, rnode.box.mx + PZERO), nears, fars);
+            //vec2 hits = intersectCubeDual(origined, divident, mat2x4(lnodebox.mn - 0.001f, rnodebox.mn - 0.001f), mat2x4(lnodebox.mx + 0.001f, rnodebox.mx + 0.001f), nears, fars);
+            vec2 hits = intersectCubeDual(origined, divident, mat2x4(lnodebox.mn - PZERO, rnodebox.mn - PZERO), mat2x4(lnodebox.mx + PZERO, rnodebox.mx + PZERO), nears, fars);
 #else
-            vec2 hits = intersectCubeDual(origined, divident, mat2x4(lnode.box.mn, rnode.box.mn), mat2x4(lnode.box.mx, rnode.box.mx), nears, fars);
+            vec2 hits = intersectCubeDual(origined, divident, mat2x4(lnodebox.mn, rnodebox.mn), mat2x4(lnodebox.mx, rnodebox.mx), nears, fars);
 #endif
 
             bool leftNear = lessEqualF(nears.x, nears.y);
@@ -419,8 +423,13 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
                 ), and2(bvec2((leftNear ? node.pdata.y : node.pdata.x) != esc), bvec2(node.pdata.x != esc, node.pdata.y != esc)))
             );
 
-            bvec2  overlaps = and2(overlapsGeneral, bvec2(lnode.pdata.x != lnode.pdata.y, rnode.pdata.x != rnode.pdata.y)); // is nodes
-            overlapsGeneral = and2(overlapsGeneral, bvec2(lnode.pdata.x == lnode.pdata.y, rnode.pdata.x == rnode.pdata.y)); // is leafs
+            ivec4 lnodepdata = ivec4(-1);
+            ivec4 rnodepdata = ivec4(-1);
+            if (overlapsGeneral.x) lnodepdata = Nodes[node.pdata.x].pdata;
+            if (overlapsGeneral.y) rnodepdata = Nodes[node.pdata.y].pdata;
+
+            bvec2  overlaps = and2(overlapsGeneral, bvec2(lnodepdata.x != lnodepdata.y, rnodepdata.x != rnodepdata.y)); // is nodes
+            overlapsGeneral = and2(overlapsGeneral, bvec2(lnodepdata.x == lnodepdata.y, rnodepdata.x == rnodepdata.y)); // is leafs
 
             // intersect triangles when accumulate WARP's
             bool anyLeaf = any(overlapsGeneral); skipIntersection = skipIntersection || anyLeaf; // if any leaf found, skipping
@@ -428,7 +437,7 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
             if (anyLeaf) {
                 bool leftOrder = all(overlapsGeneral) ? leftNear : overlapsGeneral.x;
                 bvec2 overlaps = leftOrder ? overlapsGeneral : overlapsGeneral.yx; // additional re-order will in past
-                includeLeaf2(origin, direct, overlaps, leftOrder ? lnode : rnode, leftOrder ? rnode : lnode, lastRes);
+                includeLeaf2(origin, direct, overlaps, leftOrder ? lnodepdata : rnodepdata, leftOrder ? rnodepdata : lnodepdata, lastRes);
                 skipIntersection = false;
             }
 
