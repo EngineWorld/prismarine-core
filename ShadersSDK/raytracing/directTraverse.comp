@@ -150,7 +150,7 @@ HitRework interpolateMeshData(inout HitRework res) {
             textureGather(modifiers_texture, trig, 2).wzx,
             textureGather(modifiers_texture, trig, 3).wzx
         );
-        
+
 /*
         mat3x3 trinorms = mat3x3(
             textureGatherLodAMD(normal_texture, trig, 0, 0).wzx,
@@ -277,14 +277,14 @@ TResult testIntersectionPacked(inout TResult res, in vec3 orig, in vec3 dir, in 
         validTriangles = validTriangles.yx;
     }
 
-    if (anyInvocationARB(any(validTriangles))) {
-    //if (any(validTriangles)) {
+    //if (anyInvocationARB(any(validTriangles))) {
+    if (any(validTriangles)) {
         // planned packed math
         vec4 uv2 = vec4(0.0f);
         vec2 _d2 = vec2(INFINITY);
 
-        if (anyInvocationARB(any(validTriangles))) {
-        //if (any(validTriangles)) {
+        //if (anyInvocationARB(any(validTriangles))) {
+        if (any(validTriangles)) {
             _d2 = intersectTriangle2(orig, dir, tri, uv2, validTriangles);
             //_d2.x = intersectTriangle(orig, dir, tri.x, uv2.xz, validTriangles.x);
             //_d2.y = intersectTriangle(orig, dir, tri.y, uv2.yw, validTriangles.y);
