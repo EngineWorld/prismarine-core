@@ -41,6 +41,7 @@
 #extension GL_AMD_gpu_shader_half_float : enable
 #extension GL_AMD_gpu_shader_int16 : enable
 #extension GL_AMD_shader_trinary_minmax : enable
+#extension GL_AMD_texture_gather_bias_lod : enable
 #endif
 
 #ifdef ENABLE_NVIDIA_INSTRUCTION_SET

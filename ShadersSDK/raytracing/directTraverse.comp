@@ -170,6 +170,28 @@ HitRework interpolateMeshData(inout HitRework res) {
             textureGather(modifiers_texture, trig, 3).wzx
         );
 */
+/*
+        mat3x3 trinorms = mat3x3(
+            textureGatherLodAMD(normal_texture, trig, 0, 0).wzx,
+            textureGatherLodAMD(normal_texture, trig, 0, 1).wzx,
+            textureGatherLodAMD(normal_texture, trig, 0, 2).wzx
+        );
+
+        mat4x3 texcoords = mat4x3(
+            textureGatherLodAMD(texcoords_texture, trig, 0, 0).wzx,
+            textureGatherLodAMD(texcoords_texture, trig, 0, 1).wzx,
+            textureGatherLodAMD(texcoords_texture, trig, 0, 2).wzx,
+            textureGatherLodAMD(texcoords_texture, trig, 0, 3).wzx
+        );
+
+        mat4x3 mods = mat4x3(
+            textureGatherLodAMD(modifiers_texture, trig, 0, 0).wzx,
+            textureGatherLodAMD(modifiers_texture, trig, 0, 1).wzx,
+            textureGatherLodAMD(modifiers_texture, trig, 0, 2).wzx,
+            textureGatherLodAMD(modifiers_texture, trig, 0, 3).wzx
+        );
+*/
+
         mat4x3 colors = mat4x3(vec3(1.f), vec3(1.f), vec3(1.f), vec3(1.f));
 
         
