@@ -59,11 +59,10 @@ vec2 intersectTriangle2(in vec3 orig, in vec3 dir, inout ivec2 tri, inout vec4 U
         ivec2 tri1 = gatherMosaic(getUniformCoord(tri.y));
 
         vec2 sz = 1.f / textureSize(vertex_texture, 0);
-        vec2 hs = sz * 0.5f;
+        vec2 hs = sz * 0.9999f;
         vec2 ntri0 = fma(vec2(tri0), sz, hs);
         vec2 ntri1 = fma(vec2(tri1), sz, hs);
 
-/*
         mat3x2 v012x = transpose(mat2x3(
             textureGather(vertex_texture, ntri0, 0).wzx,
             textureGather(vertex_texture, ntri1, 0).wzx
@@ -76,23 +75,6 @@ vec2 intersectTriangle2(in vec3 orig, in vec3 dir, inout ivec2 tri, inout vec4 U
             textureGather(vertex_texture, ntri0, 2).wzx,
             textureGather(vertex_texture, ntri1, 2).wzx
         ));
-*/
-
-        mat3 ve0xyz = transpose(mat3(
-            fetchMosaic(vertex_texture, tri0, 0).xyz, 
-            fetchMosaic(vertex_texture, tri0, 1).xyz, 
-            fetchMosaic(vertex_texture, tri0, 2).xyz
-        ));
-
-        mat3 ve1xyz = transpose(mat3(
-            fetchMosaic(vertex_texture, tri1, 0).xyz, 
-            fetchMosaic(vertex_texture, tri1, 1).xyz, 
-            fetchMosaic(vertex_texture, tri1, 2).xyz
-        ));
-
-        mat3x2 v012x = transpose(mat2x3(ve0xyz[0], ve1xyz[0]));
-        mat3x2 v012y = transpose(mat2x3(ve0xyz[1], ve1xyz[1]));
-        mat3x2 v012z = transpose(mat2x3(ve0xyz[2], ve1xyz[2]));
 
         mat3x2 e1 = mat3x2(v012x[1] - v012x[0], v012y[1] - v012y[0], v012z[1] - v012z[0]);
         mat3x2 e2 = mat3x2(v012x[2] - v012x[0], v012y[2] - v012y[0], v012z[2] - v012z[0]);

@@ -121,7 +121,7 @@ HitRework interpolateMeshData(inout HitRework res) {
     if (validInterpolant) {
         ivec2 triv = gatherMosaic(getUniformCoord(tri));
         vec2 sz = 1.f / textureSize(vertex_texture, 0);
-        vec2 hs = sz * 0.5f;
+        vec2 hs = sz * 0.9999f;
         vec2 trig = fma(vec2(triv), sz, hs);
 
         // transposed
@@ -131,25 +131,6 @@ HitRework interpolateMeshData(inout HitRework res) {
             fetchMosaic(vertex_texture, triv, 2).xyz
         );
         
-        mat3x3 trinorms = transpose(mat3x3(
-            fetchMosaic(normal_texture, triv, 0).xyz, 
-            fetchMosaic(normal_texture, triv, 1).xyz, 
-            fetchMosaic(normal_texture, triv, 2).xyz
-        ));
-
-        mat4x3 texcoords = transpose(mat3x4(
-            fetchMosaic(texcoords_texture, triv, 0).xyzw, 
-            fetchMosaic(texcoords_texture, triv, 1).xyzw, 
-            fetchMosaic(texcoords_texture, triv, 2).xyzw
-        ));
-
-        mat4x3 mods = transpose(mat3x4(
-            fetchMosaic(modifiers_texture, triv, 0).xyzw, 
-            fetchMosaic(modifiers_texture, triv, 1).xyzw, 
-            fetchMosaic(modifiers_texture, triv, 2).xyzw
-        ));
-
-/*
         mat3x3 trinorms = mat3x3(
             textureGather(normal_texture, trig, 0).wzx,
             textureGather(normal_texture, trig, 1).wzx,
@@ -169,7 +150,7 @@ HitRework interpolateMeshData(inout HitRework res) {
             textureGather(modifiers_texture, trig, 2).wzx,
             textureGather(modifiers_texture, trig, 3).wzx
         );
-*/
+        
 /*
         mat3x3 trinorms = mat3x3(
             textureGatherLodAMD(normal_texture, trig, 0, 0).wzx,
