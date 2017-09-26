@@ -220,6 +220,7 @@ int BFE(in int base, in int offset, in int bits){
     return (base >> offset) & ((1 << bits)-1);
     //int result = bitfieldExtract(base, offset, bits);
     //return result;
+    //return bitfieldExtract(base, offset, bits);
 }
 
 int BFE_HW(in int base, in int offset, in int bits){
@@ -228,9 +229,10 @@ int BFE_HW(in int base, in int offset, in int bits){
 
 
 int BFE(in uint base, in int offset, in int bits){
-    return int((base >> offset) & ((1 << bits)-1));
+    //return int((base >> offset) & ((1 << bits)-1));
     //int result = int(bitfieldExtract(base, offset, bits));
     //return result;
+    return int(bitfieldExtract(base, offset, bits));
 }
 
 int BFE_HW(in uint base, in int offset, in int bits){
@@ -240,9 +242,10 @@ int BFE_HW(in uint base, in int offset, in int bits){
 
 
 int BFI(in int base, in int inserts, in int offset, in int bits){
-    int mask = bits >= 32 ? 0xFFFFFFFF : (1<<bits)-1;
-    int offsetMask = mask << offset;
-    return ((base & (~offsetMask)) | ((inserts & mask) << offset));
+    //int mask = bits >= 32 ? 0xFFFFFFFF : (1<<bits)-1;
+    //int offsetMask = mask << offset;
+    //return ((base & (~offsetMask)) | ((inserts & mask) << offset));
+    return bitfieldInsert(base, inserts, offset, bits);
 }
 
 int BFI_HW(in int base, in int inserts, in int offset, in int bits){
