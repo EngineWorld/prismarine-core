@@ -90,8 +90,13 @@ void main() {
 
                         // unify bounding box
                         bboxf16 bound;
+#ifdef AMD_F16_BVH
+                        bound.mn = packHalf2(min(unpackHalf2(ln.box.mn), unpackHalf2(rn.box.mn)));
+                        bound.mx = packHalf2(max(unpackHalf2(ln.box.mx), unpackHalf2(rn.box.mx)));
+#else
                         bound.mn = packHalf2(min(unpackHalf(ln.box.mn), unpackHalf(rn.box.mn)));
                         bound.mx = packHalf2(max(unpackHalf(ln.box.mx), unpackHalf(rn.box.mx)));
+#endif
                         nd.box = bound;
 
                         //bbox bound = (nd.box);
