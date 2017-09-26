@@ -201,8 +201,10 @@ void main() {
                 bounding.mx += PZERO;
 
                 HlbvhNode outLeaf = outLeafsBuf.OutLeafs[to];
+                outLeaf.box.mn = packHalf2(bounding.mn);
+                outLeaf.box.mx = packHalf2(bounding.mx);
                 //outLeaf.box = packBox(bounding);
-                outLeaf.box = bounding;
+                //outLeaf.box = bounding;
                 outLeaf.pdata.xy = ivec2(to);
                 outLeaf.pdata.zw = ivec2(-1, t);
                 outLeafsBuf.OutLeafs[to] = outLeaf;

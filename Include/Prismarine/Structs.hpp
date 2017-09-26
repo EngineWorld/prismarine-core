@@ -124,8 +124,8 @@ namespace NSM {
 
     struct HlbvhNode {
         bbox box;
-        //glm::uvec4 box;
-        iVc4 pdata;
+        glm::uvec4 box;
+        //iVc4 pdata;
     };
 
     struct VboDataStride {

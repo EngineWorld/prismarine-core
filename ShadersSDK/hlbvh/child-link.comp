@@ -25,10 +25,10 @@ void main() {
                 int idx = LeafIndices[globalID];
                 if (idx >= 0) {
                     HlbvhNode childNode = Nodes[idx];
-                    //childNode.box.mn = packHalf(( 100000.f).xxxx);
-                    //childNode.box.mx = packHalf((-100000.f).xxxx);
-                    childNode.box.mn = (( 100000.f).xxxx);
-                    childNode.box.mx = ((-100000.f).xxxx);
+                    childNode.box.mn = packHalf2(( 1000.f).xxxx);
+                    childNode.box.mx = packHalf2((-1000.f).xxxx);
+                    //childNode.box.mn = (( 100000.f).xxxx);
+                    //childNode.box.mx = ((-100000.f).xxxx);
                     
                     // make leafs links
                     uint leafID = MortoncodesIndices[childNode.pdata.x];
@@ -36,10 +36,10 @@ void main() {
 
                     // fit bounding box
                     HlbvhNode leaf = Leafs[leafID];
-                    //bboxf16 lbound = leaf.box;
-                    //bboxf16 bound = childNode.box;
-                    bbox lbound = leaf.box;
-                    bbox bound = childNode.box;
+                    bboxf16 lbound = leaf.box;
+                    bboxf16 bound = childNode.box;
+                    //bbox lbound = leaf.box;
+                    //bbox bound = childNode.box;
                     //childNode.box.mn = min(bound.mn, lbound.mn);
                     //childNode.box.mx = max(bound.mx, lbound.mx);
                     childNode.box = lbound;

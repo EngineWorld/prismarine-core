@@ -129,7 +129,8 @@ float intersectCubeSingle(in vec3 origin, in vec3 ray, in vec4 cubeMin, in vec4 
 #ifdef AMD_F16_BVH
 vec2 intersectCubeDual(
     in f16vec3 origin, in f16vec3 dr, 
-    in mat2x4 cubeMin, in mat2x4 cubeMax,
+    in f16mat2x4 cubeMin, in f16mat2x4 cubeMax,
+    //in mat2x4 cubeMin, in mat2x4 cubeMax,
     inout vec2 near, inout vec2 far
 ) 
 #else
@@ -336,12 +337,38 @@ vec4 unpackHalf(in uint64_t halfs){
     return vec4(unpackHalf2x16(hilo.x), unpackHalf2x16(hilo.y));
 }
 
+vec4 unpackHalf(in uvec2 hilo){
+    return vec4(unpackHalf2x16(hilo.x), unpackHalf2x16(hilo.y));
+}
+
+uvec2 packHalf2(in vec4 floats){
+    return (uvec2(packHalf2x16(floats.xy), packHalf2x16(floats.zw)));
+}
+
 uint64_t packHalf(in vec4 floats){
     return packUint2x32(uvec2(packHalf2x16(floats.xy), packHalf2x16(floats.zw)));
 }
 
+
 #ifdef ENABLE_AMD_INSTRUCTION_SET
+f16vec4 unpackHalf2(in uint64_t halfs){
+    uvec2 hilo = unpackUint2x32(halfs);
+    //return f16vec4(unpackFloat2x16(hilo.x), unpackFloat2x16(hilo.y));
+    return f16vec4(unpackHalf2x16(hilo.x), unpackHalf2x16(hilo.y));
+}
+
+f16vec4 unpackHalf2(in uvec2 hilo){
+    //return f16vec4(unpackFloat2x16(hilo.x), unpackFloat2x16(hilo.y));
+    return f16vec4(unpackHalf2x16(hilo.x), unpackHalf2x16(hilo.y));
+}
+
+uvec2 packHalf2(in f16vec4 floats){
+    //return (uvec2(packFloat2x16(floats.xy), packFloat2x16(floats.zw)));
+    return (uvec2(packHalf2x16(floats.xy), packHalf2x16(floats.zw)));
+}
+
 uint64_t packHalf(in f16vec4 floats){
+    //return packUint2x32(uvec2(packFloat2x16(floats.xy), packFloat2x16(floats.zw)));
     return packUint2x32(uvec2(packHalf2x16(floats.xy), packHalf2x16(floats.zw)));
 }
 #endif

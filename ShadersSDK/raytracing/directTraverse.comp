@@ -413,18 +413,27 @@ TResult traverse(in vec3 origin, in vec3 direct, in bool valid) {
         bool notLeaf = node.pdata.x != node.pdata.y && validBox;
         //if (anyInvocationARB(notLeaf)) {
         if (notLeaf) {
-            //bbox lnodebox = unpackBox(Nodes[node.pdata.x].box);
-            //bbox rnodebox = unpackBox(Nodes[node.pdata.y].box);
+            bboxf16 lnodebox_packed = Nodes[node.pdata.x].box;
+            bboxf16 rnodebox_packed = Nodes[node.pdata.y].box;
 
-            bbox lnodebox = (Nodes[node.pdata.x].box);
-            bbox rnodebox = (Nodes[node.pdata.y].box);
+#ifdef AMD_F16_BVH
+            f16vec4 lnodeboxmn = unpackHalf2(lnodebox_packed.mn);
+            f16vec4 rnodeboxmn = unpackHalf2(rnodebox_packed.mn);
+            f16vec4 lnodeboxmx = unpackHalf2(lnodebox_packed.mx);
+            f16vec4 rnodeboxmx = unpackHalf2(rnodebox_packed.mx);
+#else
+            vec4 lnodeboxmn = unpackHalf(lnodebox_packed.mn);
+            vec4 rnodeboxmn = unpackHalf(rnodebox_packed.mn);
+            vec4 lnodeboxmx = unpackHalf(lnodebox_packed.mx);
+            vec4 rnodeboxmx = unpackHalf(rnodebox_packed.mx);
+#endif
 
             vec2 inf2 = vec2(INFINITY), nears = inf2, fars = inf2;
-#ifdef AMD_F16_BVH // because precision too low, need fix some precision errors bounding boxes before testing
-            //vec2 hits = intersectCubeDual(origined, divident, mat2x4(lnodebox.mn - 0.001f, rnodebox.mn - 0.001f), mat2x4(lnodebox.mx + 0.001f, rnodebox.mx + 0.001f), nears, fars);
-            vec2 hits = intersectCubeDual(origined, divident, mat2x4(lnodebox.mn - PZERO, rnodebox.mn - PZERO), mat2x4(lnodebox.mx + PZERO, rnodebox.mx + PZERO), nears, fars);
+
+#ifdef AMD_F16_BVH
+            vec2 hits = intersectCubeDual(origined, divident, f16mat2x4(lnodeboxmn, rnodeboxmn), f16mat2x4(lnodeboxmx, rnodeboxmx), nears, fars);
 #else
-            vec2 hits = intersectCubeDual(origined, divident, mat2x4(lnodebox.mn, rnodebox.mn), mat2x4(lnodebox.mx, rnodebox.mx), nears, fars);
+            vec2 hits = intersectCubeDual(origined, divident, mat2x4(lnodeboxmn, rnodeboxmn), mat2x4(lnodeboxmx, rnodeboxmx), nears, fars);
 #endif
 
             bool leftNear = lessEqualF(nears.x, nears.y);

@@ -26,8 +26,8 @@ struct bbox {
 };
 
 struct bboxf16 {
-    uint64_t mn;
-    uint64_t mx;
+    uvec2 mn;
+    uvec2 mx;
 };
 
 
@@ -163,9 +163,9 @@ void RayBasis(inout RayRework ray, in int basis){
 
 
 struct HlbvhNode {
-     bbox box;
+     //bbox box;
      //u64vec2 box;
-     //bboxf16 box;
+     bboxf16 box;
 #ifdef _ORDERED_ACCESS
      int branch[2];
      ivec2 pdata;
@@ -175,17 +175,17 @@ struct HlbvhNode {
 };
 
 bboxf16 packBox(in bbox box){
-    bboxf16 packed;
-    packed.mn = packHalf(box.mn);
-    packed.mx = packHalf(box.mx);
-    return packed;
+    bboxf16 boxy;
+    boxy.mn = packHalf2(box.mn);
+    boxy.mx = packHalf2(box.mx);
+    return boxy;
 }
 
 bbox unpackBox(in bboxf16 box){
-    bbox packed;
-    packed.mn = unpackHalf(box.mn);
-    packed.mx = unpackHalf(box.mx);
-    return packed;
+    bbox boxy;
+    boxy.mn = unpackHalf(box.mn);
+    boxy.mx = unpackHalf(box.mx);
+    return boxy;
 }
 
 
