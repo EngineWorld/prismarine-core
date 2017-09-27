@@ -90,7 +90,7 @@ void main() {
 
                         // unify bounding box
                         bboxf16 bound;
-#ifdef AMD_F16_BVH
+#ifdef ENABLE_AMD_INSTRUCTION_SET
                         bound.mn = packHalf2(min(unpackHalf2(ln.box.mn), unpackHalf2(rn.box.mn)));
                         bound.mx = packHalf2(max(unpackHalf2(ln.box.mx), unpackHalf2(rn.box.mx)));
 #else
