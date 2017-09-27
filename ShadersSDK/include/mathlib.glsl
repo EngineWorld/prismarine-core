@@ -354,12 +354,12 @@ uint64_t packHalf(in vec4 floats){
 f16vec4 unpackHalf2(in uint64_t halfs){
     uvec2 hilo = unpackUint2x32(halfs);
     //return f16vec4(unpackFloat2x16(hilo.x), unpackFloat2x16(hilo.y));
-    return f16vec4(unpackHalf2x16(hilo.x), unpackHalf2x16(hilo.y));
+    return f16vec4(unpackHalf(halfs));
 }
 
 f16vec4 unpackHalf2(in uvec2 hilo){
     //return f16vec4(unpackFloat2x16(hilo.x), unpackFloat2x16(hilo.y));
-    return f16vec4(unpackHalf2x16(hilo.x), unpackHalf2x16(hilo.y));
+    return f16vec4(unpackHalf(hilo));
 }
 
 uvec2 packHalf2(in f16vec4 floats){
