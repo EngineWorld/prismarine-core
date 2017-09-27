@@ -332,12 +332,12 @@ vec4 textureBicubic(in sampler2D tx, in vec2 texCoords) {
 
 
 
-vec4 unpackHalf(in uint64_t halfs){
+mediump vec4 unpackHalf(in uint64_t halfs){
     uvec2 hilo = unpackUint2x32(halfs);
     return vec4(unpackHalf2x16(hilo.x), unpackHalf2x16(hilo.y));
 }
 
-vec4 unpackHalf(in uvec2 hilo){
+mediump vec4 unpackHalf(in uvec2 hilo){
     return vec4(unpackHalf2x16(hilo.x), unpackHalf2x16(hilo.y));
 }
 
