@@ -192,9 +192,16 @@ HitRework interpolateMeshData(inout HitRework res) {
             texcoords[0].yz - texcoords[0].x,
             texcoords[1].yz - texcoords[1].x
         );
+        deltas[1].xy = deltas[1].yx * vec2(1,-1);
+        deltas[0] = all(lessThan(abs(deltas[0]), vec2(0.000001f))) ? vec2(-1.f, 0.f) : deltas[0];
+        deltas[1] = all(lessThan(abs(deltas[1]), vec2(0.000001f))) ? vec2(-1.f, 0.f) : deltas[1];
 
-        vec3 tang = normalize(deltas[1].y * deltaPos1 - deltas[1].x * deltaPos2);
-        vec3 bitn = normalize(deltas[0].y * deltaPos1 - deltas[0].x * deltaPos2);
+        float f = 1.f / dot(deltas[0].xy, deltas[1].xy);
+        if (isnan(f)) f = 0.f;
+        if (isinf(f)) f = 10000.f; 
+
+        vec3 tang = fma(deltas[1].xxx, deltaPos1, deltas[1].yyy * deltaPos2)*f;
+        vec3 bitn = fma(deltas[0].xxx, deltaPos1, deltas[0].yyy * deltaPos2)*f;
 
         if (validInterpolant) {
             res.normalHeight = vec4(normal, 0.0f);
