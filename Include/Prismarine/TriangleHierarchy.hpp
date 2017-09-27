@@ -13,7 +13,7 @@ namespace NSM {
         RadixSort * sorter = nullptr;
 
         bool dirty = false;
-        uint32_t maxt = 1024 * 1024 * 1;
+        uint32_t maxt = 1024 * 128 * 1;
         uint32_t worksize = 128;
         const uint32_t boundWorkSize = 32;
 
