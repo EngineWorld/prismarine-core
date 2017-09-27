@@ -38,11 +38,11 @@ initAtomicIncFunction(counters.aabbCounter[0], atomicIncAABB, int)
 bbox calcTriBox(in mat3x4 triverts){
     bbox result;
 #ifdef ENABLE_AMD_INSTRUCTION_SET
-    result.mn = min3(triverts[0], triverts[1], triverts[2]) - 0.0001f;
-    result.mx = max3(triverts[0], triverts[1], triverts[2]) + 0.0001f;
+    result.mn = min3(triverts[0], triverts[1], triverts[2]);
+    result.mx = max3(triverts[0], triverts[1], triverts[2]);
 #else
-    result.mn = min(min(triverts[0], triverts[1]), triverts[2]) - 0.0001f;
-    result.mx = max(max(triverts[0], triverts[1]), triverts[2]) + 0.0001f;
+    result.mn = min(min(triverts[0], triverts[1]), triverts[2]);
+    result.mx = max(max(triverts[0], triverts[1]), triverts[2]);
 #endif
     return result;
 }
@@ -132,9 +132,6 @@ bbox compactBoxByTriangle(in bbox abox, in mat3x4 triverts){
         result.mn = min(points[i], result.mn);
         result.mx = max(points[i], result.mx);
     }
-
-    result.mn -= 0.0001f;
-    result.mx += 0.0001f;
 
     return result;
 }

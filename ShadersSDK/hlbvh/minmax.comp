@@ -29,13 +29,13 @@ bbox getMinMaxPrimitive(in uint idx){
 
 #ifdef ENABLE_AMD_INSTRUCTION_SET
     return bbox(
-        min3(triverts[0], triverts[1], triverts[2]) - 0.0001f, 
-        max3(triverts[0], triverts[1], triverts[2]) + 0.0001f
+        min3(triverts[0], triverts[1], triverts[2]), 
+        max3(triverts[0], triverts[1], triverts[2])
     );
 #else 
     return bbox(
-        min(min(triverts[0], triverts[1]), triverts[2]) - 0.0001f, 
-        max(max(triverts[0], triverts[1]), triverts[2]) + 0.0001f
+        min(min(triverts[0], triverts[1]), triverts[2]), 
+        max(max(triverts[0], triverts[1]), triverts[2])
     );
 #endif
 }
@@ -73,7 +73,7 @@ void main() {
     }
 
     if (tid == 0) {
-        minmax[gl_WorkGroupID.x*2 + 0] = sdata[0].mn; 
-        minmax[gl_WorkGroupID.x*2 + 1] = sdata[0].mx; 
+        minmax[gl_WorkGroupID.x*2 + 0] = sdata[0].mn - 0.00001f;
+        minmax[gl_WorkGroupID.x*2 + 1] = sdata[0].mx + 0.00001f;
     }
 }
