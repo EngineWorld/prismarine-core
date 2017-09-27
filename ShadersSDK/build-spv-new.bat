@@ -2,7 +2,7 @@
 
 cd %~dp0
 ::set CFLAGS=--target-env=opengl -x glsl -Werror -DUSE_OPENGL -E
-  set CFLAGS=--target-env=opengl -x glsl -Werror -DUSE_OPENGL -E -DENABLE_AMD_INSTRUCTION_SET 
+  set CFLAGS=--target-env=opengl -x glsl -Werror -DUSE_OPENGL -E -DENABLE_AMD_INSTRUCTION_SET -DAMD_F16_BVH 
 set INDIR=.\
 set OUTDIR=..\Build\shaders-spv\
 set OUTSHR=..\Build\shaders\

@@ -142,25 +142,19 @@ vec2 intersectCubeDual(
 #endif
 {
 #ifdef AMD_F16_BVH
-    f16mat3x2 dr2 = f16mat3x2(dr.xx, dr.yy, dr.zz);
-    f16mat3x2 origin2 = f16mat3x2(origin.xx, origin.yy, origin.zz);
-    f16mat4x2 cubeMin2 = transpose(f16mat2x4(cubeMin));
-    f16mat4x2 cubeMax2 = transpose(f16mat2x4(cubeMax));
+    f16mat3x4 dr2 = f16mat3x4(dr.xxxx, dr.yyyy, dr.zzzz);
+    f16mat3x4 origin2 = f16mat3x4(origin.xxxx, origin.yyyy, origin.zzzz);
+    f16mat4x4 cubeMinMax2 = transpose(f16mat4x4(cubeMin[0], cubeMin[1], cubeMax[0], cubeMax[1]));
 
-    f16mat3x2 norig = f16mat3x2(-origin2[0]*dr2[0], -origin2[1]*dr2[1], -origin2[2]*dr2[2]);
-    f16mat3x2 tMin = f16mat3x2(
-        fma(cubeMin2[0], dr2[0], norig[0]), 
-        fma(cubeMin2[1], dr2[1], norig[1]), 
-        fma(cubeMin2[2], dr2[2], norig[2])
-    );
-    f16mat3x2 tMax = f16mat3x2(
-        fma(cubeMax2[0], dr2[0], norig[0]), 
-        fma(cubeMax2[1], dr2[1], norig[1]), 
-        fma(cubeMax2[2], dr2[2], norig[2])
+    f16mat3x4 norig = f16mat3x4(-origin2[0]*dr2[0], -origin2[1]*dr2[1], -origin2[2]*dr2[2]);
+    f16mat3x4 tMinMax = f16mat3x4(
+        fma(cubeMinMax2[0], dr2[0], norig[0]), 
+        fma(cubeMinMax2[1], dr2[1], norig[1]), 
+        fma(cubeMinMax2[2], dr2[2], norig[2])
     );
 
-    f16mat3x2 t1 = f16mat3x2(min(tMin[0], tMax[0]), min(tMin[1], tMax[1]), min(tMin[2], tMax[2]));
-    f16mat3x2 t2 = f16mat3x2(max(tMin[0], tMax[0]), max(tMin[1], tMax[1]), max(tMin[2], tMax[2]));
+    f16mat3x2 t1 = f16mat3x2(min(tMinMax[0].xy, tMinMax[0].zw), min(tMinMax[1].xy, tMinMax[1].zw), min(tMinMax[2].xy, tMinMax[2].zw));
+    f16mat3x2 t2 = f16mat3x2(max(tMinMax[0].xy, tMinMax[0].zw), max(tMinMax[1].xy, tMinMax[1].zw), max(tMinMax[2].xy, tMinMax[2].zw));
 #ifdef ENABLE_AMD_INSTRUCTION_SET
     f16vec2 tNear = max3(t1[0], t1[1], t1[2]);
     f16vec2 tFar  = min3(t2[0], t2[1], t2[2]);
@@ -169,25 +163,19 @@ vec2 intersectCubeDual(
     f16vec2 tFar  = min(min(t2[0], t2[1]), t2[2]);
 #endif
 #else 
-    mat3x2 dr2 = mat3x2(dr.xx, dr.yy, dr.zz);
-    mat3x2 origin2 = mat3x2(origin.xx, origin.yy, origin.zz);
-    mat4x2 cubeMin2 = transpose(cubeMin);
-    mat4x2 cubeMax2 = transpose(cubeMax);
+    mat3x4 dr2 = mat3x4(dr.xxxx, dr.yyyy, dr.zzzz);
+    mat3x4 origin2 = mat3x4(origin.xxxx, origin.yyyy, origin.zzzz);
+    mat4x4 cubeMinMax2 = transpose(mat4x4(cubeMin[0], cubeMin[1], cubeMax[0], cubeMax[1]));
 
-    mat3x2 norig = mat3x2(-origin2[0]*dr2[0], -origin2[1]*dr2[1], -origin2[2]*dr2[2]);
-    mat3x2 tMin = mat3x2(
-        fma(cubeMin2[0], dr2[0], norig[0]), 
-        fma(cubeMin2[1], dr2[1], norig[1]), 
-        fma(cubeMin2[2], dr2[2], norig[2])
-    );
-    mat3x2 tMax = mat3x2(
-        fma(cubeMax2[0], dr2[0], norig[0]), 
-        fma(cubeMax2[1], dr2[1], norig[1]), 
-        fma(cubeMax2[2], dr2[2], norig[2])
+    mat3x4 norig = mat3x4(-origin2[0]*dr2[0], -origin2[1]*dr2[1], -origin2[2]*dr2[2]);
+    mat3x4 tMinMax = mat3x4(
+        fma(cubeMinMax2[0], dr2[0], norig[0]), 
+        fma(cubeMinMax2[1], dr2[1], norig[1]), 
+        fma(cubeMinMax2[2], dr2[2], norig[2])
     );
 
-    mat3x2 t1 = mat3x2(min(tMin[0], tMax[0]), min(tMin[1], tMax[1]), min(tMin[2], tMax[2]));
-    mat3x2 t2 = mat3x2(max(tMin[0], tMax[0]), max(tMin[1], tMax[1]), max(tMin[2], tMax[2]));
+    mat3x2 t1 = mat3x2(min(tMinMax[0].xy, tMinMax[0].zw), min(tMinMax[1].xy, tMinMax[1].zw), min(tMinMax[2].xy, tMinMax[2].zw));
+    mat3x2 t2 = mat3x2(max(tMinMax[0].xy, tMinMax[0].zw), max(tMinMax[1].xy, tMinMax[1].zw), max(tMinMax[2].xy, tMinMax[2].zw));
 #ifdef ENABLE_AMD_INSTRUCTION_SET
     vec2 tNear = max3(t1[0], t1[1], t1[2]);
     vec2 tFar  = min3(t2[0], t2[1], t2[2]);
