@@ -193,8 +193,8 @@ HitRework interpolateMeshData(inout HitRework res) {
             texcoords[1].yz - texcoords[1].x
         );
         deltas[1].xy = deltas[1].yx * vec2(1,-1);
-        deltas[0] = all(lessThan(abs(deltas[0]), vec2(0.000001f))) ? vec2(-1.f, 0.f) : deltas[0];
-        deltas[1] = all(lessThan(abs(deltas[1]), vec2(0.000001f))) ? vec2(-1.f, 0.f) : deltas[1];
+        deltas[0] = all(lessThan(abs(deltas[0]), vec2(0.000001f))) ? vec2(1.f, 0.f) : deltas[0];
+        deltas[1] = all(lessThan(abs(deltas[1]), vec2(0.000001f))) ? vec2(1.f, 0.f) : deltas[1];
 
         float f = 1.f / dot(deltas[0].xy, deltas[1].xy);
         if (isnan(f)) f = 0.f;
